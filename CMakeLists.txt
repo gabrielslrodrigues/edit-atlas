@@ -23,4 +23,7 @@ option(
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 include(EditAtlasWarnings)
 
+find_package(Qt6 REQUIRED COMPONENTS Widgets)
+find_package(spdlog CONFIG REQUIRED)
+
 add_subdirectory(src/core)
