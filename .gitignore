@@ -61,9 +61,17 @@ compile_commands.json
 # vcpkg
 vcpkg_installed/
 
+# Local CMake and editor configuration
+CMakeUserPresets.json
+.vscode/
+.idea/
+
 # debug information files
 *.dwo
 
 # test output & cache
 Testing/
 .cache/
+
+# Application runtime data
+logs/

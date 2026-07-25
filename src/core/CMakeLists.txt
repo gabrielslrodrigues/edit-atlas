@@ -1,0 +1,42 @@
+add_library(edit_atlas_core STATIC)
+add_library(EditAtlas::Core ALIAS edit_atlas_core)
+
+set_target_properties(
+    edit_atlas_core
+    PROPERTIES
+        EXPORT_NAME Core
+        POSITION_INDEPENDENT_CODE ON
+)
+
+target_sources(
+    edit_atlas_core
+    PRIVATE
+        version.cpp
+    PUBLIC
+        FILE_SET HEADERS
+        BASE_DIRS include
+        FILES include/edit_atlas/core/version.hpp
+)
+
+target_compile_definitions(
+    edit_atlas_core
+    PRIVATE EDIT_ATLAS_VERSION="${PROJECT_VERSION}"
+)
+
+target_compile_features(edit_atlas_core PUBLIC cxx_std_23)
+edit_atlas_set_project_warnings(edit_atlas_core)
+
+install(
+    TARGETS edit_atlas_core
+    EXPORT EditAtlasTargets
+    FILE_SET HEADERS DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}"
+    ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+    LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+    RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}"
+)
+
+install(
+    EXPORT EditAtlasTargets
+    NAMESPACE EditAtlas::
+    DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/EditAtlas"
+)
