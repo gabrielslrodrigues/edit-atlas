@@ -14,7 +14,8 @@
       "toolchainFile": "${sourceDir}/vcpkg/scripts/buildsystems/vcpkg.cmake",
       "cacheVariables": {
         "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
-        "VCPKG_INSTALLED_DIR": "${sourceDir}/build/vcpkg_installed"
+        "VCPKG_INSTALLED_DIR": "${sourceDir}/build/vcpkg_installed",
+        "VCPKG_OVERLAY_PORTS": "${sourceDir}/vcpkg-overlays"
       }
     },
     {

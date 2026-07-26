@@ -29,6 +29,7 @@ find_package(spdlog CONFIG REQUIRED)
 
 add_subdirectory(src/core)
 add_subdirectory(src/formats/cmx3600)
+add_subdirectory(src/formats/xlsx)
 
 if(BUILD_TESTING)
     find_package(GTest CONFIG REQUIRED)
