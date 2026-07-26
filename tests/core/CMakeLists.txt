@@ -1,6 +1,12 @@
 add_executable(edit_atlas_core_tests)
 
-target_sources(edit_atlas_core_tests PRIVATE version_test.cpp)
+target_sources(
+    edit_atlas_core_tests
+    PRIVATE
+        editorial_timeline_test.cpp
+        timecode_test.cpp
+        version_test.cpp
+)
 
 target_link_libraries(
     edit_atlas_core_tests
