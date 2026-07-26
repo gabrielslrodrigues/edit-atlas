@@ -13,6 +13,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 include(GNUInstallDirs)
+include(CTest)
 
 option(
     EDIT_ATLAS_WARNINGS_AS_ERRORS
@@ -27,3 +28,8 @@ find_package(Qt6 REQUIRED COMPONENTS Widgets)
 find_package(spdlog CONFIG REQUIRED)
 
 add_subdirectory(src/core)
+
+if(BUILD_TESTING)
+    find_package(GTest CONFIG REQUIRED)
+    add_subdirectory(tests)
+endif()
