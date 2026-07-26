@@ -145,6 +145,23 @@ cmake --build --preset debug
 
 Release builds use the corresponding `release` presets.
 
+## Run tests
+
+Tests are built by default and use GoogleTest with CTest discovery. Run the
+debug test suite with:
+
+```sh
+ctest --preset debug
+```
+
+Use the corresponding `release` preset to test a release build. To configure
+the project without building tests, use CMake's standard `BUILD_TESTING`
+option:
+
+```sh
+cmake --preset debug -DBUILD_TESTING=OFF
+```
+
 To treat project warnings as errors, configure with:
 
 ```sh

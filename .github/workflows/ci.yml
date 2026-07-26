@@ -142,11 +142,17 @@ jobs:
       - name: Build Debug
         run: cmake --build --preset debug
 
+      - name: Test Debug
+        run: ctest --preset debug
+
       - name: Configure Release
         run: cmake --preset release
 
       - name: Build Release
         run: cmake --build --preset release
+
+      - name: Test Release
+        run: ctest --preset release
 
       - name: Upload configuration logs
         if: failure()
