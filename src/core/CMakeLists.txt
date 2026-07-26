@@ -11,11 +11,15 @@ set_target_properties(
 target_sources(
     edit_atlas_core
     PRIVATE
+        timecode.cpp
         version.cpp
     PUBLIC
         FILE_SET HEADERS
         BASE_DIRS include
-        FILES include/edit_atlas/core/version.hpp
+        FILES
+            include/edit_atlas/core/editorial_timeline.hpp
+            include/edit_atlas/core/timecode.hpp
+            include/edit_atlas/core/version.hpp
 )
 
 target_compile_definitions(
