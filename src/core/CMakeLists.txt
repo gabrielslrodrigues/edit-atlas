@@ -11,13 +11,18 @@ set_target_properties(
 target_sources(
     edit_atlas_core
     PRIVATE
+        document_pipeline.cpp
+        format_registry.cpp
         timecode.cpp
         version.cpp
     PUBLIC
         FILE_SET HEADERS
         BASE_DIRS include
         FILES
+            include/edit_atlas/core/document_pipeline.hpp
             include/edit_atlas/core/editorial_timeline.hpp
+            include/edit_atlas/core/format.hpp
+            include/edit_atlas/core/format_registry.hpp
             include/edit_atlas/core/timecode.hpp
             include/edit_atlas/core/version.hpp
 )

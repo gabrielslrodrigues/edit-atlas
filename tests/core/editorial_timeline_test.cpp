@@ -1,4 +1,5 @@
 #include <edit_atlas/core/editorial_timeline.hpp>
+#include <edit_atlas/core/timecode.hpp>
 
 #include <gtest/gtest.h>
 
