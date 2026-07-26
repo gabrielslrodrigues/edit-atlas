@@ -28,6 +28,7 @@ find_package(Qt6 REQUIRED COMPONENTS Widgets)
 find_package(spdlog CONFIG REQUIRED)
 
 add_subdirectory(src/core)
+add_subdirectory(src/formats/cmx3600)
 
 if(BUILD_TESTING)
     find_package(GTest CONFIG REQUIRED)
