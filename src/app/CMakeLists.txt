@@ -1,0 +1,86 @@
+add_library(edit_atlas_app STATIC)
+add_library(EditAtlas::App ALIAS edit_atlas_app)
+
+set_target_properties(
+    edit_atlas_app
+    PROPERTIES
+        AUTOMOC ON
+        POSITION_INDEPENDENT_CODE ON
+)
+
+target_sources(
+    edit_atlas_app
+    PRIVATE
+        application.cpp
+        application_style.cpp
+        include/edit_atlas/app/application.hpp
+        include/edit_atlas/app/application_style.hpp
+        include/edit_atlas/app/main_window.hpp
+        include/edit_atlas/app/translation.hpp
+        main_window.cpp
+        translation.cpp
+)
+
+target_include_directories(
+    edit_atlas_app
+    PUBLIC
+        "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
+)
+
+target_link_libraries(
+    edit_atlas_app
+    PUBLIC
+        EditAtlas::Core
+        Qt6::Widgets
+    PRIVATE
+        EditAtlas::Cmx3600
+        EditAtlas::Xlsx
+)
+
+target_compile_features(edit_atlas_app PUBLIC cxx_std_23)
+edit_atlas_set_project_warnings(edit_atlas_app)
+
+qt_add_executable(edit_atlas main.cpp)
+
+if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+    qt_import_plugins(
+        edit_atlas
+        INCLUDE
+            Qt6::QWaylandIntegrationPlugin
+            Qt6::QXcbIntegrationPlugin
+    )
+endif()
+
+set_target_properties(
+    edit_atlas
+    PROPERTIES
+        MACOSX_BUNDLE ON
+        MACOSX_BUNDLE_BUNDLE_NAME "Edit Atlas"
+        MACOSX_BUNDLE_BUNDLE_VERSION "${PROJECT_VERSION}"
+        MACOSX_BUNDLE_SHORT_VERSION_STRING "${PROJECT_VERSION}"
+        OUTPUT_NAME "edit-atlas"
+        WIN32_EXECUTABLE ON
+)
+
+target_link_libraries(
+    edit_atlas
+    PRIVATE
+        EditAtlas::App
+        spdlog::spdlog
+)
+
+target_compile_features(edit_atlas PRIVATE cxx_std_23)
+edit_atlas_set_project_warnings(edit_atlas)
+
+qt_add_translations(
+    TARGETS edit_atlas_app
+    SOURCE_TARGETS edit_atlas_app
+    TS_FILES translations/edit_atlas_pt_BR.ts
+    RESOURCE_PREFIX "/i18n"
+)
+
+install(
+    TARGETS edit_atlas
+    BUNDLE DESTINATION "."
+    RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}"
+)

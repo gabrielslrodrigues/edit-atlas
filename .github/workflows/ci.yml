@@ -89,7 +89,9 @@ jobs:
             libxkbcommon-dev \
             libxkbcommon-x11-dev \
             libxrender-dev \
-            pkg-config
+            libwayland-dev \
+            pkg-config \
+            wayland-protocols
 
       - name: Install macOS host dependencies
         if: runner.os == 'macOS'
