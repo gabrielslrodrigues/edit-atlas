@@ -117,7 +117,7 @@ jobs:
         uses: actions/cache@v6.1.0
         with:
           path: .cache/vcpkg/archives
-          key: vcpkg-${{ runner.os }}-${{ runner.arch }}-${{ matrix.triplet }}-${{ hashFiles('vcpkg.json') }}
+          key: vcpkg-${{ runner.os }}-${{ runner.arch }}-${{ matrix.triplet }}-${{ hashFiles('vcpkg.json', 'vcpkg-overlays/**') }}
           restore-keys: |
             vcpkg-${{ runner.os }}-${{ runner.arch }}-${{ matrix.triplet }}-
 

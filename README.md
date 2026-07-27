@@ -1,10 +1,8 @@
 # Edit Atlas
 
 Edit Atlas is a privacy-first desktop application for inspecting editorial
-timeline interchange files and exporting structured reports. The first
-supported input format will be CMX 3600 EDL.
-
-The project is in its initial scaffolding phase.
+timeline interchange files and exporting structured reports. It currently
+supports importing CMX 3600 EDL files and exporting Microsoft Excel workbooks.
 
 ## Common requirements
 
