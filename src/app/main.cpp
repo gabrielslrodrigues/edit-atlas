@@ -8,6 +8,7 @@
 #include <QApplication>
 #include <QCoreApplication>
 #include <QGuiApplication>
+#include <QIcon>
 #include <QString>
 #include <QTranslator>
 
@@ -24,6 +25,8 @@ int main(int argc, char *argv[]) {
     QCoreApplication::setApplicationVersion(
         QString::fromStdString(std::string{edit_atlas::core::Version()}));
     QCoreApplication::setOrganizationName(QStringLiteral("Edit Atlas"));
+    QApplication::setWindowIcon(
+        QIcon{QStringLiteral(":/icons/edit_atlas.png")});
 
     spdlog::set_pattern("[%Y-%m-%d %H:%M:%S.%e] [%l] %v");
     const auto version = std::string{edit_atlas::core::Version()};

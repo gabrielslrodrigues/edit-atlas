@@ -42,6 +42,48 @@ edit_atlas_set_project_warnings(edit_atlas_app)
 
 qt_add_executable(edit_atlas main.cpp)
 
+qt_add_resources(
+    edit_atlas
+    "edit_atlas_icons"
+    PREFIX
+        "/"
+    BASE
+        "resources"
+    FILES
+        "resources/icons/edit_atlas.png"
+)
+
+if(WIN32)
+    set(edit_atlas_windows_icon
+        "${CMAKE_CURRENT_SOURCE_DIR}/resources/icons/edit_atlas.ico"
+    )
+    configure_file(
+        "resources/icons/edit_atlas.rc.in"
+        "${CMAKE_CURRENT_BINARY_DIR}/edit_atlas.rc"
+        @ONLY
+    )
+    target_sources(
+        edit_atlas
+        PRIVATE
+            "${CMAKE_CURRENT_BINARY_DIR}/edit_atlas.rc"
+    )
+elseif(APPLE)
+    set(edit_atlas_macos_icon
+        "${CMAKE_CURRENT_SOURCE_DIR}/resources/icons/edit_atlas.icns"
+    )
+    set_source_files_properties(
+        "${edit_atlas_macos_icon}"
+        PROPERTIES
+            MACOSX_PACKAGE_LOCATION "Resources"
+    )
+    target_sources(edit_atlas PRIVATE "${edit_atlas_macos_icon}")
+    set_target_properties(
+        edit_atlas
+        PROPERTIES
+            MACOSX_BUNDLE_ICON_FILE "edit_atlas.icns"
+    )
+endif()
+
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
     qt_import_plugins(
         edit_atlas
