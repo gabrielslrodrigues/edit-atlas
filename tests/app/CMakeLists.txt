@@ -20,4 +20,7 @@ target_compile_features(edit_atlas_app_tests PRIVATE cxx_std_23)
 edit_atlas_set_project_warnings(edit_atlas_app_tests)
 
 include(GoogleTest)
-gtest_discover_tests(edit_atlas_app_tests)
+gtest_discover_tests(
+    edit_atlas_app_tests
+    DISCOVERY_TIMEOUT 30
+)
