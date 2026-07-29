@@ -13,6 +13,7 @@
       "name": "qtbase",
       "default-features": false,
       "features": [
+        "dnslookup",
         "widgets"
       ]
     },
