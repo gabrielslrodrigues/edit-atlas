@@ -141,3 +141,10 @@ install(
     BUNDLE DESTINATION "."
     RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}"
 )
+
+qt_generate_deploy_app_script(
+    TARGET edit_atlas
+    OUTPUT_SCRIPT edit_atlas_deploy_script
+    NO_UNSUPPORTED_PLATFORM_ERROR
+)
+install(SCRIPT "${edit_atlas_deploy_script}")

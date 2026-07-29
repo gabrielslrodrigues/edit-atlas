@@ -31,12 +31,24 @@ jobs:
           - name: Linux x64
             os: ubuntu-24.04
             triplet: x64-linux
+            debug_preset: debug-x64-linux
+            release_preset: release-x64-linux
+            executable_suffix: src/app/edit-atlas
+            staged_executable_suffix: bin/edit-atlas
           - name: macOS ARM64
             os: macos-15
             triplet: arm64-osx
+            debug_preset: debug-arm64-osx
+            release_preset: release-arm64-osx
+            executable_suffix: src/app/edit-atlas.app/Contents/MacOS/edit-atlas
+            staged_executable_suffix: edit-atlas.app/Contents/MacOS/edit-atlas
           - name: Windows x64
             os: windows-2022
             triplet: x64-windows
+            debug_preset: debug-x64-windows
+            release_preset: release-x64-windows
+            executable_suffix: src/app/edit-atlas.exe
+            staged_executable_suffix: bin/edit-atlas.exe
 
     env:
       VCPKG_BINARY_SOURCES: clear;files,${{ github.workspace }}/.cache/vcpkg/archives,readwrite
@@ -70,6 +82,7 @@ jobs:
             autoconf \
             autoconf-archive \
             automake \
+            libc6-dev \
             libegl1-mesa-dev \
             libglu1-mesa-dev \
             libtool \
@@ -126,7 +139,7 @@ jobs:
         uses: actions/cache@v6.1.0
         with:
           path: .cache/vcpkg/archives
-          key: vcpkg-${{ runner.os }}-${{ runner.arch }}-${{ matrix.triplet }}-${{ hashFiles('vcpkg.json', 'vcpkg-overlays/**') }}
+          key: vcpkg-${{ runner.os }}-${{ runner.arch }}-${{ matrix.triplet }}-${{ hashFiles('vcpkg.json', 'vcpkg-overlays/**', 'vcpkg-triplets/**') }}
           restore-keys: |
             vcpkg-${{ runner.os }}-${{ runner.arch }}-${{ matrix.triplet }}-
 
@@ -140,7 +153,7 @@ jobs:
         run: .\vcpkg\bootstrap-vcpkg.bat -disableMetrics
 
       - name: Configure Debug
-        run: cmake --preset debug
+        run: cmake --preset ${{ matrix.debug_preset }}
 
       - name: Clean vcpkg temporary directories
         run: |
@@ -149,19 +162,44 @@ jobs:
           cmake -E remove_directory "${{ github.workspace }}/vcpkg/packages"
 
       - name: Build Debug
-        run: cmake --build --preset debug
+        run: cmake --build --preset ${{ matrix.debug_preset }}
+
+      - name: Verify Debug Qt linkage
+        run: >-
+          cmake
+          "-DEDIT_ATLAS_EXECUTABLE=${{ github.workspace }}/build/${{ matrix.debug_preset }}/${{ matrix.executable_suffix }}"
+          -P cmake/VerifyDynamicQtBinary.cmake
 
       - name: Test Debug
-        run: ctest --preset debug
+        run: ctest --preset ${{ matrix.debug_preset }}
 
       - name: Configure Release
-        run: cmake --preset release
+        run: cmake --preset ${{ matrix.release_preset }}
 
       - name: Build Release
-        run: cmake --build --preset release
+        run: cmake --build --preset ${{ matrix.release_preset }}
+
+      - name: Verify Release Qt linkage
+        run: >-
+          cmake
+          "-DEDIT_ATLAS_EXECUTABLE=${{ github.workspace }}/build/${{ matrix.release_preset }}/${{ matrix.executable_suffix }}"
+          -P cmake/VerifyDynamicQtBinary.cmake
 
       - name: Test Release
-        run: ctest --preset release
+        run: ctest --preset ${{ matrix.release_preset }}
+
+      - name: Stage Release
+        run: >-
+          cmake
+          --install "build/${{ matrix.release_preset }}"
+          --prefix "build/stage-${{ matrix.triplet }}"
+
+      - name: Verify staged Qt deployment
+        run: >-
+          cmake
+          "-DEDIT_ATLAS_DEPLOYMENT_ROOT=${{ github.workspace }}/build/stage-${{ matrix.triplet }}"
+          "-DEDIT_ATLAS_EXECUTABLE=${{ github.workspace }}/build/stage-${{ matrix.triplet }}/${{ matrix.staged_executable_suffix }}"
+          -P cmake/VerifyQtDeployment.cmake
 
       - name: Upload configuration logs
         if: failure()

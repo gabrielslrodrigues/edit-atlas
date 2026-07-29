@@ -15,42 +15,151 @@
       "cacheVariables": {
         "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
         "VCPKG_INSTALLED_DIR": "${sourceDir}/build/vcpkg_installed",
-        "VCPKG_OVERLAY_PORTS": "${sourceDir}/vcpkg-overlays"
+        "VCPKG_OVERLAY_PORTS": "${sourceDir}/vcpkg-overlays",
+        "VCPKG_OVERLAY_TRIPLETS": "${sourceDir}/vcpkg-triplets"
       }
     },
     {
       "name": "debug",
-      "inherits": "base",
-      "displayName": "Debug",
-      "description": "Configure a local debug build",
+      "hidden": true,
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug"
       }
     },
     {
       "name": "release",
-      "inherits": "base",
-      "displayName": "Release",
-      "description": "Configure a local release build",
+      "hidden": true,
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release"
       }
+    },
+    {
+      "name": "x64-linux",
+      "hidden": true,
+      "inherits": "base",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Linux"
+      },
+      "cacheVariables": {
+        "VCPKG_HOST_TRIPLET": "x64-linux",
+        "VCPKG_TARGET_TRIPLET": "x64-linux"
+      }
+    },
+    {
+      "name": "arm64-osx",
+      "hidden": true,
+      "inherits": "base",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Darwin"
+      },
+      "cacheVariables": {
+        "VCPKG_HOST_TRIPLET": "arm64-osx",
+        "VCPKG_TARGET_TRIPLET": "arm64-osx"
+      }
+    },
+    {
+      "name": "x64-windows",
+      "hidden": true,
+      "inherits": "base",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      },
+      "cacheVariables": {
+        "VCPKG_HOST_TRIPLET": "x64-windows",
+        "VCPKG_TARGET_TRIPLET": "x64-windows"
+      }
+    },
+    {
+      "name": "debug-x64-linux",
+      "inherits": [
+        "x64-linux",
+        "debug"
+      ],
+      "displayName": "Debug - Linux x64",
+      "description": "Configure a Linux x64 debug build"
+    },
+    {
+      "name": "release-x64-linux",
+      "inherits": [
+        "x64-linux",
+        "release"
+      ],
+      "displayName": "Release - Linux x64",
+      "description": "Configure a Linux x64 release build"
+    },
+    {
+      "name": "debug-arm64-osx",
+      "inherits": [
+        "arm64-osx",
+        "debug"
+      ],
+      "displayName": "Debug - macOS ARM64",
+      "description": "Configure a macOS ARM64 debug build"
+    },
+    {
+      "name": "release-arm64-osx",
+      "inherits": [
+        "arm64-osx",
+        "release"
+      ],
+      "displayName": "Release - macOS ARM64",
+      "description": "Configure a macOS ARM64 release build"
+    },
+    {
+      "name": "debug-x64-windows",
+      "inherits": [
+        "x64-windows",
+        "debug"
+      ],
+      "displayName": "Debug - Windows x64",
+      "description": "Configure a Windows x64 debug build"
+    },
+    {
+      "name": "release-x64-windows",
+      "inherits": [
+        "x64-windows",
+        "release"
+      ],
+      "displayName": "Release - Windows x64",
+      "description": "Configure a Windows x64 release build"
     }
   ],
   "buildPresets": [
     {
-      "name": "debug",
-      "configurePreset": "debug"
+      "name": "debug-x64-linux",
+      "configurePreset": "debug-x64-linux"
     },
     {
-      "name": "release",
-      "configurePreset": "release"
+      "name": "release-x64-linux",
+      "configurePreset": "release-x64-linux"
+    },
+    {
+      "name": "debug-arm64-osx",
+      "configurePreset": "debug-arm64-osx"
+    },
+    {
+      "name": "release-arm64-osx",
+      "configurePreset": "release-arm64-osx"
+    },
+    {
+      "name": "debug-x64-windows",
+      "configurePreset": "debug-x64-windows"
+    },
+    {
+      "name": "release-x64-windows",
+      "configurePreset": "release-x64-windows"
     }
   ],
   "testPresets": [
     {
-      "name": "debug",
-      "configurePreset": "debug",
+      "name": "debug-x64-linux",
+      "configurePreset": "debug-x64-linux",
       "output": {
         "outputOnFailure": true
       },
@@ -59,8 +168,48 @@
       }
     },
     {
-      "name": "release",
-      "configurePreset": "release",
+      "name": "release-x64-linux",
+      "configurePreset": "release-x64-linux",
+      "output": {
+        "outputOnFailure": true
+      },
+      "execution": {
+        "noTestsAction": "error"
+      }
+    },
+    {
+      "name": "debug-arm64-osx",
+      "configurePreset": "debug-arm64-osx",
+      "output": {
+        "outputOnFailure": true
+      },
+      "execution": {
+        "noTestsAction": "error"
+      }
+    },
+    {
+      "name": "release-arm64-osx",
+      "configurePreset": "release-arm64-osx",
+      "output": {
+        "outputOnFailure": true
+      },
+      "execution": {
+        "noTestsAction": "error"
+      }
+    },
+    {
+      "name": "debug-x64-windows",
+      "configurePreset": "debug-x64-windows",
+      "output": {
+        "outputOnFailure": true
+      },
+      "execution": {
+        "noTestsAction": "error"
+      }
+    },
+    {
+      "name": "release-x64-windows",
+      "configurePreset": "release-x64-windows",
       "output": {
         "outputOnFailure": true
       },
