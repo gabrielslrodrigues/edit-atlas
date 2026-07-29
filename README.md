@@ -1,5 +1,7 @@
 # Edit Atlas
 
+[![CI](https://github.com/gabrielslrodrigues/edit-atlas/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/gabrielslrodrigues/edit-atlas/actions/workflows/ci.yml?query=branch%3Amaster)
+
 Edit Atlas is a privacy-first desktop application for inspecting editorial
 timeline interchange files and exporting structured reports. It currently
 supports importing CMX 3600 EDL files and exporting Microsoft Excel workbooks.
