@@ -84,15 +84,6 @@ elseif(APPLE)
     )
 endif()
 
-if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
-    qt_import_plugins(
-        edit_atlas
-        INCLUDE
-            Qt6::QWaylandIntegrationPlugin
-            Qt6::QXcbIntegrationPlugin
-    )
-endif()
-
 set_target_properties(
     edit_atlas
     PROPERTIES
@@ -142,9 +133,20 @@ install(
     RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}"
 )
 
+set(edit_atlas_deploy_arguments)
+if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+    list(
+        APPEND edit_atlas_deploy_arguments
+        INCLUDE_PLUGINS
+            qwayland
+            qxcb
+    )
+endif()
+
 qt_generate_deploy_app_script(
     TARGET edit_atlas
     OUTPUT_SCRIPT edit_atlas_deploy_script
     NO_UNSUPPORTED_PLATFORM_ERROR
+    ${edit_atlas_deploy_arguments}
 )
 install(SCRIPT "${edit_atlas_deploy_script}")
