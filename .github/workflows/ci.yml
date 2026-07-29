@@ -136,7 +136,8 @@ jobs:
           vsversion: 2022
 
       - name: Restore vcpkg binary cache
-        uses: actions/cache@v6.1.0
+        id: vcpkg-cache
+        uses: actions/cache/restore@v6.1.0
         with:
           path: .cache/vcpkg/archives
           key: vcpkg-${{ runner.os }}-${{ runner.arch }}-${{ matrix.triplet }}-${{ hashFiles('vcpkg.json', 'vcpkg-overlays/**', 'vcpkg-triplets/**') }}
@@ -154,6 +155,13 @@ jobs:
 
       - name: Configure Debug
         run: cmake --preset ${{ matrix.debug_preset }}
+
+      - name: Save vcpkg binary cache
+        if: steps.vcpkg-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v6.1.0
+        with:
+          path: .cache/vcpkg/archives
+          key: ${{ steps.vcpkg-cache.outputs.cache-primary-key }}
 
       - name: Clean vcpkg temporary directories
         run: |
