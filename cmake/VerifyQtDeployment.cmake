@@ -32,13 +32,30 @@ edit_atlas_require_deployed_file(
     "*QtWidgets"
 )
 
-edit_atlas_require_deployed_file(
-    "Qt Concurrent"
-    "*Qt6Concurrent*.dll"
-    "*libQt6Concurrent*.dylib"
-    "*libQt6Concurrent.so*"
-    "*QtConcurrent"
+if(WIN32)
+    set(edit_atlas_qt_concurrent_pattern "Qt6Concurrent(d)?\\.dll")
+elseif(APPLE)
+    set(
+        edit_atlas_qt_concurrent_pattern
+        "(libQt6Concurrent[^ ]*\\.dylib|QtConcurrent\\.framework)"
+    )
+elseif(LINUX)
+    set(edit_atlas_qt_concurrent_pattern "libQt6Concurrent\\.so")
+endif()
+
+if(
+    DEFINED edit_atlas_qt_concurrent_pattern
+    AND edit_atlas_dependencies MATCHES
+        "${edit_atlas_qt_concurrent_pattern}"
 )
+    edit_atlas_require_deployed_file(
+        "Qt Concurrent"
+        "*Qt6Concurrent*.dll"
+        "*libQt6Concurrent*.dylib"
+        "*libQt6Concurrent.so*"
+        "*QtConcurrent"
+    )
+endif()
 
 if(WIN32)
     edit_atlas_require_deployed_file(
