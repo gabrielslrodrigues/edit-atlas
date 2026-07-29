@@ -138,6 +138,18 @@ install(
     RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}"
 )
 
+if(LINUX)
+    install(
+        FILES "resources/linux/edit-atlas.desktop"
+        DESTINATION "${CMAKE_INSTALL_DATADIR}/applications"
+    )
+    install(
+        FILES "resources/icons/edit_atlas.png"
+        DESTINATION "${CMAKE_INSTALL_DATADIR}/icons/hicolor/1024x1024/apps"
+        RENAME "edit-atlas.png"
+    )
+endif()
+
 set(edit_atlas_deploy_arguments)
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
     list(

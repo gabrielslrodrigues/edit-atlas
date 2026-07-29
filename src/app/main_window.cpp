@@ -13,6 +13,7 @@
 #include <QAbstractItemView>
 #include <QAction>
 #include <QComboBox>
+#include <QDialog>
 #include <QDragEnterEvent>
 #include <QDropEvent>
 #include <QEvent>
@@ -61,7 +62,6 @@
 namespace edit_atlas::app {
 namespace {
 
-constexpr int kEmptyPage = 0;
 constexpr int kLoadingPage = 1;
 constexpr int kTimelinePage = 2;
 constexpr int kFailurePage = 3;
@@ -88,8 +88,8 @@ MainWindow::MainWindow(const core::FormatRegistry &registry,
     : QMainWindow(parent), registry_(registry), translator_(translator),
       language_(initial_language) {
     setObjectName(QStringLiteral("mainWindow"));
-    resize(900, 560);
-    setMinimumSize(640, 420);
+    resize(1100, 700);
+    setMinimumSize(760, 500);
     setAcceptDrops(true);
 
     connect(&import_watcher_, &QFutureWatcher<DocumentLoadResult>::finished,
@@ -334,13 +334,19 @@ void MainWindow::OpenDocument(void) {
         }
     }
     patterns.removeDuplicates();
-    const auto filter = tr("Supported timeline files (%1);;All files (*)")
-                            .arg(patterns.isEmpty() ? QStringLiteral("*")
-                                                    : patterns.join(u' '));
-    const auto path = QFileDialog::getOpenFileName(this, tr("Open Timeline"),
-                                                   QString{}, filter);
-    if (!path.isEmpty()) {
-        OpenDocument(path);
+    QFileDialog dialog{this, tr("Open Timeline")};
+    dialog.setAcceptMode(QFileDialog::AcceptOpen);
+    dialog.setFileMode(QFileDialog::ExistingFile);
+    dialog.setNameFilters({tr("Supported timeline files (%1)")
+                               .arg(patterns.isEmpty() ? QStringLiteral("*")
+                                                       : patterns.join(u' ')),
+                           tr("All files (*)")});
+    dialog.resize(1000, 650);
+    if (dialog.exec() == QDialog::Accepted) {
+        const auto selected_files = dialog.selectedFiles();
+        if (!selected_files.empty()) {
+            OpenDocument(selected_files.front());
+        }
     }
 }
 

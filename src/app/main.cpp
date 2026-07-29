@@ -25,6 +25,7 @@ int main(int argc, char *argv[]) {
     QCoreApplication::setApplicationVersion(
         QString::fromStdString(std::string{edit_atlas::core::Version()}));
     QCoreApplication::setOrganizationName(QStringLiteral("Edit Atlas"));
+    QGuiApplication::setDesktopFileName(QStringLiteral("edit-atlas"));
     QApplication::setWindowIcon(
         QIcon{QStringLiteral(":/icons/edit_atlas.png")});
 

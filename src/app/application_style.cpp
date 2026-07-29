@@ -2,6 +2,7 @@
 
 #include <QApplication>
 #include <QColor>
+#include <QFont>
 #include <QPalette>
 #include <QProxyStyle>
 #include <QString>
@@ -40,6 +41,12 @@ void ApplyApplicationStyle(QApplication &application) {
     QApplication::setEffectEnabled(Qt::UI_AnimateTooltip, false);
     QApplication::setEffectEnabled(Qt::UI_FadeTooltip, false);
     application.setStyle(new ResponsiveStyle);
+
+    auto interface_font = application.font();
+    if (interface_font.pointSizeF() < 12.0) {
+        interface_font.setPointSizeF(12.0);
+        application.setFont(interface_font);
+    }
 
     QPalette palette;
     palette.setColor(QPalette::Window, QColor{24, 26, 31});

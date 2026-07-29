@@ -80,8 +80,12 @@ Inspecione linhas do tempo editoriais e exporte relatórios estruturados.</trans
       <translation>Nenhum arquivo recente</translation>
     </message>
     <message>
-      <source>Supported timeline files (%1);;All files (*)</source>
-      <translation>Arquivos de linha do tempo compatíveis (%1);;Todos os arquivos (*)</translation>
+      <source>Supported timeline files (%1)</source>
+      <translation>Arquivos de linha do tempo compatíveis (%1)</translation>
+    </message>
+    <message>
+      <source>All files (*)</source>
+      <translation>Todos os arquivos (*)</translation>
     </message>
     <message>
       <source>Open Timeline</source>
