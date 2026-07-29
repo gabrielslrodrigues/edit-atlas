@@ -25,7 +25,7 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 include(EditAtlasWarnings)
 include(EditAtlasQtLinkage)
 
-find_package(Qt6 REQUIRED COMPONENTS LinguistTools Widgets)
+find_package(Qt6 REQUIRED COMPONENTS Concurrent LinguistTools Widgets)
 find_package(spdlog CONFIG REQUIRED)
 
 edit_atlas_require_dynamic_qt()

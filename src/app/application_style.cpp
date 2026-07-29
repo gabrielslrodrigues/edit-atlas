@@ -2,6 +2,7 @@
 
 #include <QApplication>
 #include <QColor>
+#include <QFont>
 #include <QPalette>
 #include <QProxyStyle>
 #include <QString>
@@ -41,6 +42,12 @@ void ApplyApplicationStyle(QApplication &application) {
     QApplication::setEffectEnabled(Qt::UI_FadeTooltip, false);
     application.setStyle(new ResponsiveStyle);
 
+    auto interface_font = application.font();
+    if (interface_font.pointSizeF() < 12.0) {
+        interface_font.setPointSizeF(12.0);
+        application.setFont(interface_font);
+    }
+
     QPalette palette;
     palette.setColor(QPalette::Window, QColor{24, 26, 31});
     palette.setColor(QPalette::WindowText, QColor{232, 234, 237});
@@ -78,6 +85,47 @@ void ApplyApplicationStyle(QApplication &application) {
                        "QComboBox::drop-down {"
                        "  border: 0;"
                        "  width: 24px;"
+                       "}"
+                       "QLineEdit, QPushButton {"
+                       "  background-color: #25282f;"
+                       "  border: 1px solid #414650;"
+                       "  border-radius: 6px;"
+                       "  min-height: 28px;"
+                       "  padding: 3px 9px;"
+                       "}"
+                       "QLineEdit:focus, QPushButton:hover {"
+                       "  border-color: #707aff;"
+                       "}"
+                       "QPushButton:pressed {"
+                       "  background-color: #30343d;"
+                       "}"
+                       "QTableView, QTreeWidget {"
+                       "  border: 1px solid #353a44;"
+                       "  border-radius: 6px;"
+                       "  gridline-color: #30343d;"
+                       "  selection-background-color: #5058b8;"
+                       "}"
+                       "QHeaderView::section {"
+                       "  background-color: #25282f;"
+                       "  border: 0;"
+                       "  border-bottom: 1px solid #414650;"
+                       "  padding: 6px 8px;"
+                       "}"
+                       "QGroupBox {"
+                       "  border: 1px solid #353a44;"
+                       "  border-radius: 6px;"
+                       "  margin-top: 8px;"
+                       "  padding-top: 8px;"
+                       "}"
+                       "QGroupBox::title {"
+                       "  left: 8px;"
+                       "  padding: 0 4px;"
+                       "}"
+                       "QProgressBar {"
+                       "  background-color: #25282f;"
+                       "  border: 1px solid #414650;"
+                       "  border-radius: 4px;"
+                       "  max-height: 8px;"
                        "}"));
 }
 
