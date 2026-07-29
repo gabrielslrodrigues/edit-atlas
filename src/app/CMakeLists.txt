@@ -13,11 +13,15 @@ target_sources(
     PRIVATE
         application.cpp
         application_style.cpp
+        document_loader.cpp
         include/edit_atlas/app/application.hpp
         include/edit_atlas/app/application_style.hpp
+        include/edit_atlas/app/document_loader.hpp
         include/edit_atlas/app/main_window.hpp
+        include/edit_atlas/app/timeline_event_model.hpp
         include/edit_atlas/app/translation.hpp
         main_window.cpp
+        timeline_event_model.cpp
         translation.cpp
 )
 
@@ -35,6 +39,7 @@ target_link_libraries(
     PRIVATE
         EditAtlas::Cmx3600
         EditAtlas::Xlsx
+        Qt6::Concurrent
 )
 
 target_compile_features(edit_atlas_app PUBLIC cxx_std_23)
@@ -132,6 +137,18 @@ install(
     BUNDLE DESTINATION "."
     RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}"
 )
+
+if(LINUX)
+    install(
+        FILES "resources/linux/edit-atlas.desktop"
+        DESTINATION "${CMAKE_INSTALL_DATADIR}/applications"
+    )
+    install(
+        FILES "resources/icons/edit_atlas.png"
+        DESTINATION "${CMAKE_INSTALL_DATADIR}/icons/hicolor/1024x1024/apps"
+        RENAME "edit-atlas.png"
+    )
+endif()
 
 set(edit_atlas_deploy_arguments)
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")

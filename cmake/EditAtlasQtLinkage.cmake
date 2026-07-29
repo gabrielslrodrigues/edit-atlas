@@ -4,6 +4,7 @@ function(edit_atlas_require_dynamic_qt)
     foreach(
         edit_atlas_qt_target
         IN ITEMS
+            Qt6::Concurrent
             Qt6::Core
             Qt6::Gui
             Qt6::Widgets

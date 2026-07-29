@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=Edit Atlas
+Comment=Inspect editorial timelines and export structured reports
+Comment[pt_BR]=Inspecione linhas do tempo editoriais e exporte relatórios estruturados
+Exec=edit-atlas
+Icon=edit-atlas
+Terminal=false
+Categories=AudioVideo;AudioVideoEditing;
+StartupWMClass=edit-atlas
