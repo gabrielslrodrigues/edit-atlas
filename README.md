@@ -26,6 +26,7 @@ sudo dnf install \
   autoconf-archive \
   automake \
   curl \
+  glibc-devel \
   libtool \
   libX11-devel \
   libXext-devel \
@@ -59,6 +60,7 @@ sudo apt-get install \
   autoconf-archive \
   automake \
   curl \
+  libc6-dev \
   libtool \
   libx11-dev \
   libx11-xcb-dev \
@@ -132,39 +134,42 @@ git submodule update --init --recursive
 
 ## Configure and build
 
-Configure a debug build. vcpkg installs the dependencies declared in
-`vcpkg.json` as part of this step:
+Choose the preset matching the target platform:
+
+| Platform | Debug preset | Release preset |
+| --- | --- | --- |
+| Linux x64 | `debug-x64-linux` | `release-x64-linux` |
+| macOS ARM64 | `debug-arm64-osx` | `release-arm64-osx` |
+| Windows x64 | `debug-x64-windows` | `release-x64-windows` |
+
+For example, configure and build a Linux debug build. vcpkg installs the
+dependencies declared in `vcpkg.json` as part of the configure step:
 
 ```sh
-cmake --preset debug
+cmake --preset debug-x64-linux
+cmake --build --preset debug-x64-linux
 ```
 
-Build it:
-
-```sh
-cmake --build --preset debug
-```
-
-Release builds use the corresponding `release` presets.
+All presets use project-owned vcpkg triplets that require dynamic Qt linkage.
 
 ## Run the application
 
 After building, run the application directly on Linux:
 
 ```sh
-./build/debug/src/app/edit-atlas
+./build/debug-x64-linux/src/app/edit-atlas
 ```
 
 On macOS, open the application bundle:
 
 ```sh
-open build/debug/src/app/edit-atlas.app
+open build/debug-arm64-osx/src/app/edit-atlas.app
 ```
 
 On Windows PowerShell:
 
 ```powershell
-.\build\debug\src\app\edit-atlas.exe
+.\build\debug-x64-windows\src\app\edit-atlas.exe
 ```
 
 English is the source language. Brazilian Portuguese translations are compiled
@@ -176,27 +181,31 @@ and remembers the choice for subsequent launches.
 ## Run tests
 
 Tests are built by default and use GoogleTest with CTest discovery. Run the
-debug test suite with:
+test suite with the same platform preset used for the build:
 
 ```sh
-ctest --preset debug
+ctest --preset debug-x64-linux
 ```
 
-Use the corresponding `release` preset to test a release build. To configure
-the project without building tests, use CMake's standard `BUILD_TESTING`
-option:
+To configure the project without building tests, use CMake's standard
+`BUILD_TESTING` option:
 
 ```sh
-cmake --preset debug -DBUILD_TESTING=OFF
+cmake --preset debug-x64-linux -DBUILD_TESTING=OFF
 ```
 
 To treat project warnings as errors, configure with:
 
 ```sh
-cmake --preset debug -DEDIT_ATLAS_WARNINGS_AS_ERRORS=ON
+cmake --preset debug-x64-linux -DEDIT_ATLAS_WARNINGS_AS_ERRORS=ON
 ```
 
 ## License
 
 Edit Atlas is licensed under the Apache License 2.0. See
 [LICENSE](LICENSE).
+
+Edit Atlas dynamically links to Qt 6 under the LGPL-3.0-only option. See
+[THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) and the
+[Qt LGPL compliance policy](docs/qt-lgpl-compliance.md) for the distribution
+requirements enforced by the project.

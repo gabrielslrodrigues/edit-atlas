@@ -4,7 +4,6 @@
 #include <edit_atlas/formats/xlsx/xlsx_exporter.hpp>
 
 #include <memory>
-#include <utility>
 
 namespace edit_atlas::app {
 
@@ -21,7 +20,7 @@ CreateFormatRegistry(void) {
         !result.has_value()) {
         return std::unexpected(result.error());
     }
-    return std::move(registry);
+    return registry;
 }
 
 } // namespace edit_atlas::app
