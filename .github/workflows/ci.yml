@@ -52,7 +52,14 @@ jobs:
         if: runner.os == 'Linux'
         run: |
           df --human-readable /
-          sudo rm --recursive --force /usr/local/lib/android
+          sudo rm --recursive --force \
+            /opt/ghc \
+            /opt/hostedtoolcache/CodeQL \
+            /usr/local/.ghcup \
+            /usr/local/lib/android \
+            /usr/local/share/boost \
+            /usr/local/share/powershell \
+            /usr/share/dotnet
           df --human-readable /
 
       - name: Install Linux host dependencies
