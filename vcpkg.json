@@ -28,6 +28,14 @@
       "platform": "linux"
     },
     {
+      "name": "qtbase",
+      "default-features": false,
+      "features": [
+        "windeployqt"
+      ],
+      "platform": "windows"
+    },
+    {
       "name": "qttools",
       "default-features": false
     },
