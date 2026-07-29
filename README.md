@@ -39,6 +39,8 @@ sudo dnf install \
   pkgconf-pkg-config \
   tar \
   unzip \
+  wayland-devel \
+  wayland-protocols-devel \
   xcb-util-devel \
   xcb-util-cursor-devel \
   xcb-util-image-devel \
@@ -66,10 +68,12 @@ sudo apt-get install \
   libxi-dev \
   libxkbcommon-dev \
   libxkbcommon-x11-dev \
+  libwayland-dev \
   make \
   pkg-config \
   tar \
   unzip \
+  wayland-protocols \
   zip
 ```
 
@@ -142,6 +146,32 @@ cmake --build --preset debug
 ```
 
 Release builds use the corresponding `release` presets.
+
+## Run the application
+
+After building, run the application directly on Linux:
+
+```sh
+./build/debug/src/app/edit-atlas
+```
+
+On macOS, open the application bundle:
+
+```sh
+open build/debug/src/app/edit-atlas.app
+```
+
+On Windows PowerShell:
+
+```powershell
+.\build\debug\src\app\edit-atlas.exe
+```
+
+English is the source language. Brazilian Portuguese translations are compiled
+from `src/app/translations/edit_atlas_pt_BR.ts` and embedded in the executable.
+The interface defaults to Brazilian Portuguese on first launch. The language
+selector in the top-right switches between Brazilian Portuguese and English
+and remembers the choice for subsequent launches.
 
 ## Run tests
 

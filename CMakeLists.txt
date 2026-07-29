@@ -24,12 +24,13 @@ option(
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 include(EditAtlasWarnings)
 
-find_package(Qt6 REQUIRED COMPONENTS Widgets)
+find_package(Qt6 REQUIRED COMPONENTS LinguistTools Widgets)
 find_package(spdlog CONFIG REQUIRED)
 
 add_subdirectory(src/core)
 add_subdirectory(src/formats/cmx3600)
 add_subdirectory(src/formats/xlsx)
+add_subdirectory(src/app)
 
 if(BUILD_TESTING)
     find_package(GTest CONFIG REQUIRED)

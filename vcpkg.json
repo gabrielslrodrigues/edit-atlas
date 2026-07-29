@@ -21,9 +21,14 @@
       "default-features": false,
       "features": [
         "fontconfig",
+        "wayland",
         "xcb"
       ],
       "platform": "linux"
+    },
+    {
+      "name": "qttools",
+      "default-features": false
     },
     "spdlog"
   ]

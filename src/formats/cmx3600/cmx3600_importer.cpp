@@ -154,10 +154,11 @@ DecodeUtf16(std::span<const std::byte> input, bool little_endian) {
     output.reserve(input.size());
     for (const auto byte : input) {
         const auto value = ByteValue(byte);
-        const auto code_point =
-            value >= 0x80 && value <= 0x9F
-                ? kControlCodePoints[static_cast<std::size_t>(value - 0x80)]
-                : value;
+        std::uint32_t code_point = value;
+        if (value >= 0x80 && value <= 0x9F) {
+            code_point =
+                kControlCodePoints[static_cast<std::size_t>(value - 0x80)];
+        }
         AppendUtf8(output, code_point);
     }
     return output;
