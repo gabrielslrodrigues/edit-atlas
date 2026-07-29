@@ -32,6 +32,14 @@ edit_atlas_require_deployed_file(
     "*QtWidgets"
 )
 
+edit_atlas_require_deployed_file(
+    "Qt Concurrent"
+    "*Qt6Concurrent*.dll"
+    "*libQt6Concurrent*.dylib"
+    "*libQt6Concurrent.so*"
+    "*QtConcurrent"
+)
+
 if(WIN32)
     edit_atlas_require_deployed_file(
         "the Windows Qt platform plugin"

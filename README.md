@@ -178,6 +178,16 @@ The interface defaults to Brazilian Portuguese on first launch. The language
 selector in the top-right switches between Brazilian Portuguese and English
 and remembers the choice for subsequent launches.
 
+Open a CMX 3600 EDL with **File → Open Timeline**, the standard open shortcut,
+or by dropping the file onto the window. Non-drop-frame EDLs that omit their
+frame rate prompt for it before import. Parsed events can be sorted by any
+column and filtered using the field above the table; importer warnings and
+errors retain their source line numbers.
+
+Recent-file history is disabled by default. Enabling **Remember Recent Files**
+stores only local file paths in the platform settings. Disabling it clears the
+stored history.
+
 ## Run tests
 
 Tests are built by default and use GoogleTest with CTest discovery. Run the

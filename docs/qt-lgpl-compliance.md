@@ -8,7 +8,8 @@ it is not legal advice.
 
 All supported desktop targets dynamically link Qt. The inherited platform
 presets explicitly select project-owned dynamic target and host triplets, and
-CMake rejects Qt Core, GUI, or Widgets imported as static libraries.
+CMake rejects Qt Core, GUI, Widgets, or Concurrent imported as static
+libraries.
 
 The supported presets are:
 
@@ -51,9 +52,9 @@ CMake configuration is the first enforcement layer:
 cmake --preset release-x64-linux
 ```
 
-Configuration fails if `Qt6::Core`, `Qt6::Gui`, or `Qt6::Widgets` is not a
-shared library target. Release CI must additionally inspect the final packaged
-binary:
+Configuration fails if `Qt6::Core`, `Qt6::Gui`, `Qt6::Widgets`, or
+`Qt6::Concurrent` is not a shared library target. Release CI must additionally
+inspect the final packaged binary:
 
 - Linux: `readelf -d` or `ldd` must report `libQt6Widgets.so`.
 - macOS: `otool -L` must report a dynamic Qt Widgets library or framework.
