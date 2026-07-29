@@ -192,7 +192,7 @@ jobs:
         run: >-
           cmake
           --install "build/${{ matrix.release_preset }}"
-          --prefix "build/stage-${{ matrix.triplet }}"
+          --prefix "${{ github.workspace }}/build/stage-${{ matrix.triplet }}"
 
       - name: Verify staged Qt deployment
         run: >-
