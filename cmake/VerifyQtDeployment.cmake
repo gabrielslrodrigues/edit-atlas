@@ -83,6 +83,10 @@ edit_atlas_require_deployed_file(
     "*THIRD_PARTY_NOTICES.md"
 )
 edit_atlas_require_deployed_file(
+    "the Edit Atlas license"
+    "*LICENSE"
+)
+edit_atlas_require_deployed_file(
     "the Qt Base license notices"
     "*qtbase-copyright"
 )

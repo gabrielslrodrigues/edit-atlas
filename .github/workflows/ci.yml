@@ -22,7 +22,7 @@ jobs:
   build:
     name: ${{ matrix.name }}
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 120
+    timeout-minutes: 180
 
     strategy:
       fail-fast: false
@@ -33,13 +33,15 @@ jobs:
             triplet: x64-linux
             debug_preset: debug-x64-linux
             release_preset: release-x64-linux
+            package_preset: package-release-x64-linux
             executable_suffix: src/app/edit-atlas
             staged_executable_suffix: bin/edit-atlas
-          - name: macOS ARM64
+          - name: macOS Universal
             os: macos-15
-            triplet: arm64-osx
-            debug_preset: debug-arm64-osx
-            release_preset: release-arm64-osx
+            triplet: universal-osx
+            debug_preset: debug-universal-osx
+            release_preset: release-universal-osx
+            package_preset: package-release-universal-osx
             executable_suffix: src/app/edit-atlas.app/Contents/MacOS/edit-atlas
             staged_executable_suffix: edit-atlas.app/Contents/MacOS/edit-atlas
           - name: Windows x64
@@ -47,6 +49,7 @@ jobs:
             triplet: x64-windows
             debug_preset: debug-x64-windows
             release_preset: release-x64-windows
+            package_preset: package-release-x64-windows
             executable_suffix: src/app/edit-atlas.exe
             staged_executable_suffix: bin/edit-atlas.exe
 
@@ -82,6 +85,7 @@ jobs:
             autoconf \
             autoconf-archive \
             automake \
+            dpkg-dev \
             libc6-dev \
             libegl1-mesa-dev \
             libglu1-mesa-dev \
@@ -111,6 +115,7 @@ jobs:
             libxrender-dev \
             libwayland-dev \
             pkg-config \
+            rpm \
             wayland-protocols
 
       - name: Install macOS host dependencies
@@ -156,13 +161,6 @@ jobs:
       - name: Configure Debug
         run: cmake --preset ${{ matrix.debug_preset }}
 
-      - name: Save vcpkg binary cache
-        if: steps.vcpkg-cache.outputs.cache-hit != 'true'
-        uses: actions/cache/save@v6.1.0
-        with:
-          path: .cache/vcpkg/archives
-          key: ${{ steps.vcpkg-cache.outputs.cache-primary-key }}
-
       - name: Clean vcpkg temporary directories
         run: |
           cmake -E remove_directory "${{ github.workspace }}/vcpkg/buildtrees"
@@ -181,8 +179,24 @@ jobs:
       - name: Test Debug
         run: ctest --preset ${{ matrix.debug_preset }}
 
+      - name: Remove Debug build tree
+        run: cmake -E remove_directory "build/${{ matrix.debug_preset }}"
+
       - name: Configure Release
         run: cmake --preset ${{ matrix.release_preset }}
+
+      - name: Save vcpkg binary cache
+        if: steps.vcpkg-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v6.1.0
+        with:
+          path: .cache/vcpkg/archives
+          key: ${{ steps.vcpkg-cache.outputs.cache-primary-key }}
+
+      - name: Clean vcpkg temporary directories
+        run: |
+          cmake -E remove_directory "${{ github.workspace }}/vcpkg/buildtrees"
+          cmake -E remove_directory "${{ github.workspace }}/vcpkg/downloads"
+          cmake -E remove_directory "${{ github.workspace }}/vcpkg/packages"
 
       - name: Build Release
         run: cmake --build --preset ${{ matrix.release_preset }}
@@ -209,6 +223,123 @@ jobs:
           "-DEDIT_ATLAS_EXECUTABLE=${{ github.workspace }}/build/stage-${{ matrix.triplet }}/${{ matrix.staged_executable_suffix }}"
           -P cmake/VerifyQtDeployment.cmake
 
+      - name: Verify staged macOS universal bundle
+        if: runner.os == 'macOS'
+        run: >-
+          cmake
+          "-DEDIT_ATLAS_BUNDLE=${{ github.workspace }}/build/stage-${{ matrix.triplet }}/edit-atlas.app"
+          -P cmake/VerifyMacOSUniversalBundle.cmake
+
+      - name: Remove staged Release
+        run: cmake -E remove_directory "build/stage-${{ matrix.triplet }}"
+
+      - name: Package Release
+        run: cpack --preset ${{ matrix.package_preset }}
+
+      - name: Verify Linux packages
+        if: runner.os == 'Linux'
+        shell: bash
+        run: |
+          set -euo pipefail
+          package_dir="${{ github.workspace }}/build/packages/${{ matrix.triplet }}"
+          check_dir="${{ github.workspace }}/build/package-check-linux"
+          archive="$(find "$package_dir" -name '*.tar.gz' -print -quit)"
+          deb="$(find "$package_dir" -name '*.deb' -print -quit)"
+          rpm_package="$(find "$package_dir" -name '*.rpm' -print -quit)"
+          test -n "$archive"
+          test -n "$deb"
+          test -n "$rpm_package"
+          test "$(
+            rpm --query --package --queryformat '%{ARCH}' "$rpm_package"
+          )" = "x86_64"
+
+          archive_dir="$check_dir/archive"
+          mkdir -p "$archive_dir"
+          cmake -E chdir "$archive_dir" cmake -E tar xzf "$archive"
+          archive_executable="$(
+            find "$archive_dir" -path '*/bin/edit-atlas' -type f -print -quit
+          )"
+          test -n "$archive_executable"
+          archive_root="$(dirname "$(dirname "$archive_executable")")"
+          cmake \
+            "-DEDIT_ATLAS_DEPLOYMENT_ROOT=$archive_root" \
+            "-DEDIT_ATLAS_EXECUTABLE=$archive_executable" \
+            -P cmake/VerifyQtDeployment.cmake
+          cmake -E remove_directory "$archive_dir"
+
+          deb_dir="$check_dir/deb"
+          mkdir -p "$deb_dir"
+          dpkg-deb --extract "$deb" "$deb_dir"
+          test "$(dpkg-deb --field "$deb" Architecture)" = "amd64"
+          cmake \
+            "-DEDIT_ATLAS_DEPLOYMENT_ROOT=$deb_dir/usr" \
+            "-DEDIT_ATLAS_EXECUTABLE=$deb_dir/usr/bin/edit-atlas" \
+            -P cmake/VerifyQtDeployment.cmake
+
+          sudo apt-get install --yes "$deb"
+          trap 'sudo apt-get remove --yes edit-atlas || true' EXIT
+          test -x /usr/bin/edit-atlas
+          test "$(
+            dpkg-query --show --showformat='${Status}' edit-atlas
+          )" = "install ok installed"
+          sudo apt-get remove --yes edit-atlas
+          test ! -e /usr/bin/edit-atlas
+          trap - EXIT
+
+      - name: Verify macOS package
+        if: runner.os == 'macOS'
+        shell: bash
+        run: |
+          set -euo pipefail
+          package_dir="${{ github.workspace }}/build/packages/${{ matrix.triplet }}"
+          package="$(find "$package_dir" -name '*.pkg' -print -quit)"
+          test -n "$package"
+          application="/Applications/edit-atlas.app"
+          test ! -e "$application"
+          sudo installer -pkg "$package" -target /
+          trap 'sudo rm --recursive --force "$application"' EXIT
+          cmake \
+            "-DEDIT_ATLAS_DEPLOYMENT_ROOT=$application" \
+            "-DEDIT_ATLAS_EXECUTABLE=$application/Contents/MacOS/edit-atlas" \
+            -P cmake/VerifyQtDeployment.cmake
+          cmake \
+            "-DEDIT_ATLAS_BUNDLE=$application" \
+            -P cmake/VerifyMacOSUniversalBundle.cmake
+          "$application/Contents/MacOS/edit-atlas" &
+          application_pid=$!
+          sleep 5
+          kill -0 "$application_pid"
+          kill "$application_pid"
+          wait "$application_pid" || true
+          sudo rm --recursive --force "$application"
+          test ! -e "$application"
+          trap - EXIT
+
+      - name: Verify Windows installer
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $installer = Get-ChildItem `
+            "${{ github.workspace }}/build/packages/${{ matrix.triplet }}" `
+            -Filter "*-windows-x64.msi" |
+            Select-Object -First 1
+          if ($null -eq $installer) {
+            throw "The Windows installer was not generated."
+          }
+          & "${{ github.workspace }}/cmake/VerifyWindowsInstaller.ps1" `
+            -Installer $installer.FullName `
+            -InstallDirectory "${{ github.workspace }}/build/package-check-windows/install" `
+            -SourceDirectory "${{ github.workspace }}"
+
+      - name: Upload packages
+        if: github.event_name != 'schedule' || runner.os != 'Windows'
+        uses: actions/upload-artifact@v7
+        with:
+          name: edit-atlas-${{ matrix.triplet }}-packages
+          path: build/packages/${{ matrix.triplet }}
+          if-no-files-found: error
+          retention-days: 3
+
       - name: Upload configuration logs
         if: failure()
         uses: actions/upload-artifact@v7
@@ -220,3 +351,119 @@ jobs:
             vcpkg/buildtrees/**/*.log
           if-no-files-found: ignore
           retention-days: 7
+
+  verify-fedora-rpm:
+    name: RPM on Fedora 44
+    needs: build
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    container: fedora:44
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v7.0.1
+
+      - name: Download Linux packages
+        uses: actions/download-artifact@v8
+        with:
+          name: edit-atlas-x64-linux-packages
+          path: build/packages/x64-linux
+
+      - name: Install verification tools
+        run: >-
+          dnf install
+          --assumeyes
+          binutils
+          cmake
+          cpio
+          findutils
+          rpm
+
+      - name: Verify Fedora installation
+        shell: bash
+        run: |
+          set -euo pipefail
+          package_relative="$(
+            find build/packages/x64-linux -name '*.rpm' -print -quit
+          )"
+          test -n "$package_relative"
+          package="$PWD/$package_relative"
+          test "$(
+            rpm --query --package --queryformat '%{ARCH}' "$package"
+          )" = "x86_64"
+
+          check_dir="$PWD/build/package-check-fedora"
+          mkdir -p "$check_dir"
+          (
+            cd "$check_dir"
+            rpm2cpio "$package" |
+              cpio --extract --make-directories --quiet
+          )
+          cmake \
+            "-DEDIT_ATLAS_DEPLOYMENT_ROOT=$check_dir/usr" \
+            "-DEDIT_ATLAS_EXECUTABLE=$check_dir/usr/bin/edit-atlas" \
+            -P cmake/VerifyQtDeployment.cmake
+
+          dnf install --assumeyes "$package"
+          trap 'dnf remove --assumeyes edit-atlas || true' EXIT
+          test -x /usr/bin/edit-atlas
+          rpm --query edit-atlas
+          cmake \
+            "-DEDIT_ATLAS_DEPLOYMENT_ROOT=/usr" \
+            "-DEDIT_ATLAS_EXECUTABLE=/usr/bin/edit-atlas" \
+            -P cmake/VerifyQtDeployment.cmake
+          dnf remove --assumeyes edit-atlas
+          test ! -e /usr/bin/edit-atlas
+          if rpm --query edit-atlas; then
+            echo "The Edit Atlas RPM remains installed." >&2
+            exit 1
+          fi
+          trap - EXIT
+
+  verify-macos-intel:
+    name: macOS Universal on Intel
+    needs: build
+    runs-on: macos-15-intel
+    timeout-minutes: 20
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v7.0.1
+
+      - name: Install CMake
+        uses: lukka/get-cmake@v4.4.0
+
+      - name: Download macOS package
+        uses: actions/download-artifact@v8
+        with:
+          name: edit-atlas-universal-osx-packages
+          path: build/packages/universal-osx
+
+      - name: Verify Intel installation
+        shell: bash
+        run: |
+          set -euo pipefail
+          package="$(
+            find build/packages/universal-osx -name '*.pkg' -print -quit
+          )"
+          test -n "$package"
+          application="/Applications/edit-atlas.app"
+          test ! -e "$application"
+          sudo installer -pkg "$package" -target /
+          trap 'sudo rm --recursive --force "$application"' EXIT
+          cmake \
+            "-DEDIT_ATLAS_DEPLOYMENT_ROOT=$application" \
+            "-DEDIT_ATLAS_EXECUTABLE=$application/Contents/MacOS/edit-atlas" \
+            -P cmake/VerifyQtDeployment.cmake
+          cmake \
+            "-DEDIT_ATLAS_BUNDLE=$application" \
+            -P cmake/VerifyMacOSUniversalBundle.cmake
+          "$application/Contents/MacOS/edit-atlas" &
+          application_pid=$!
+          sleep 5
+          kill -0 "$application_pid"
+          kill "$application_pid"
+          wait "$application_pid" || true
+          sudo rm --recursive --force "$application"
+          test ! -e "$application"
+          trap - EXIT

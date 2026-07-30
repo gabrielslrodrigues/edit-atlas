@@ -6,10 +6,10 @@ it is not legal advice.
 
 ## Linkage policy
 
-All supported desktop targets dynamically link Qt. The inherited platform
-presets explicitly select project-owned dynamic target and host triplets, and
-CMake rejects Qt Core, GUI, Widgets, or Concurrent imported as static
-libraries.
+All supported desktop targets dynamically link Qt. The inherited platform and
+architecture presets explicitly select project-owned dynamic target triplets,
+while vcpkg detects the native host triplet. CMake rejects Qt Core, GUI,
+Widgets, or Concurrent imported as static libraries.
 
 The supported presets are:
 
@@ -17,6 +17,8 @@ The supported presets are:
 | --- | --- | --- |
 | Linux x64 | `debug-x64-linux` | `release-x64-linux` |
 | macOS ARM64 | `debug-arm64-osx` | `release-arm64-osx` |
+| macOS x64 | `debug-x64-osx` | `release-x64-osx` |
+| macOS Universal | `debug-universal-osx` | `release-universal-osx` |
 | Windows x64 | `debug-x64-windows` | `release-x64-windows` |
 
 Qt platform plugins must remain dynamically loaded. The install-time Qt
@@ -60,9 +62,10 @@ inspect the final packaged binary:
 - macOS: `otool -L` must report a dynamic Qt Widgets library or framework.
 - Windows: `dumpbin /dependents` must report `Qt6Widgets.dll`.
 
-CI performs these checks on build-tree binaries and staged installations. The
-corresponding packaging issue must apply the same verification to each final
-installer because packaging can still change library paths and bundle layout.
+CI performs these checks on build-tree binaries, staged installations, and
+the extracted or installed contents of every generated package. It also
+verifies that every Mach-O file installed by the macOS package contains both
+x86_64 and ARM64 slices.
 
 ## References
 

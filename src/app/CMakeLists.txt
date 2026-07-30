@@ -92,6 +92,8 @@ set_target_properties(
     PROPERTIES
         MACOSX_BUNDLE ON
         MACOSX_BUNDLE_BUNDLE_NAME "Edit Atlas"
+        MACOSX_BUNDLE_GUI_IDENTIFIER
+            "com.github.gabrielslrodrigues.edit-atlas"
         MACOSX_BUNDLE_BUNDLE_VERSION "${PROJECT_VERSION}"
         MACOSX_BUNDLE_SHORT_VERSION_STRING "${PROJECT_VERSION}"
         OUTPUT_NAME "edit-atlas"
@@ -132,19 +134,25 @@ qt_add_translations(
 
 install(
     TARGETS edit_atlas
-    BUNDLE DESTINATION "."
-    RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}"
+    BUNDLE
+        DESTINATION "."
+        COMPONENT Runtime
+    RUNTIME
+        DESTINATION "${CMAKE_INSTALL_BINDIR}"
+        COMPONENT Runtime
 )
 
 if(LINUX)
     install(
         FILES "resources/linux/edit-atlas.desktop"
         DESTINATION "${CMAKE_INSTALL_DATADIR}/applications"
+        COMPONENT Runtime
     )
     install(
         FILES "resources/icons/edit_atlas.png"
         DESTINATION "${CMAKE_INSTALL_DATADIR}/icons/hicolor/1024x1024/apps"
         RENAME "edit-atlas.png"
+        COMPONENT Runtime
     )
 endif()
 
@@ -164,4 +172,7 @@ qt_generate_deploy_app_script(
     NO_UNSUPPORTED_PLATFORM_ERROR
     ${edit_atlas_deploy_arguments}
 )
-install(SCRIPT "${edit_atlas_deploy_script}")
+install(
+    SCRIPT "${edit_atlas_deploy_script}"
+    COMPONENT Runtime
+)
