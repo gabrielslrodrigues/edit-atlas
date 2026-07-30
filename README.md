@@ -194,6 +194,12 @@ Recent-file history is disabled by default. Enabling **Remember Recent Files**
 stores only local file paths in the platform settings. Disabling it clears the
 stored history.
 
+Persistent logs are stored privately with bounded rotation and retention.
+**Help → Export Diagnostic Logs** creates an offline support bundle after
+disclosing its contents. See
+[Diagnostic logging and support bundles](docs/diagnostic-support.md) for the
+logged metadata and exact bundle contents.
+
 ## Run tests
 
 Tests are built by default and use GoogleTest with CTest discovery. Run the

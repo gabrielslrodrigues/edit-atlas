@@ -23,6 +23,8 @@ TEST(ApplicationTest, LoadsBrazilianPortugueseTranslations) {
     EXPECT_EQ(MainWindow::tr("&File"), QStringLiteral("&Arquivo"));
     EXPECT_EQ(MainWindow::tr("&Export Spreadsheet"),
               QStringLiteral("&Exportar planilha"));
+    EXPECT_EQ(MainWindow::tr("Export Diagnostic &Logs"),
+              QStringLiteral("Exportar &logs de diagnóstico"));
 }
 
 TEST(ApplicationTest, PresentsTimelineDocumentInTableModel) {

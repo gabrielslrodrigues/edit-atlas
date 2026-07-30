@@ -9,10 +9,13 @@
 #include <edit_atlas/services/document_export_service.hpp>
 #include <edit_atlas/services/document_import_service.hpp>
 
+#include <edit_atlas/support/support_bundle.hpp>
+
 #include <QFutureWatcher>
 #include <QMainWindow>
 #include <QString>
 
+#include <filesystem>
 #include <optional>
 #include <string>
 #include <system_error>
@@ -47,6 +50,8 @@ class MainWindow final : public QMainWindow {
     explicit MainWindow(const core::FormatRegistry &registry,
                         QTranslator &translator,
                         ApplicationLanguage initial_language,
+                        std::filesystem::path log_directory,
+                        support::DiagnosticEnvironment diagnostic_environment,
                         QWidget *parent = nullptr);
     ~MainWindow(void) override;
 
@@ -69,8 +74,10 @@ class MainWindow final : public QMainWindow {
     [[nodiscard]] QString
     DiagnosticSummary(const std::vector<core::Diagnostic> &diagnostics) const;
     void ExportSpreadsheet(void);
+    void ExportDiagnosticLogs(void);
     void HandleExportFinished(void);
     void HandleImportFinished(void);
+    void HandleSupportBundleFinished(void);
     void OpenDocument(void);
     void OpenDocument(const QString &path);
     void PopulateDiagnostics(const std::vector<core::Diagnostic> &diagnostics);
@@ -83,6 +90,7 @@ class MainWindow final : public QMainWindow {
     void SetRememberRecentFiles(bool enabled);
     void ShowExportFailure(const services::DocumentExportFailure &failure);
     void ShowImportFailure(const services::DocumentImportFailure &failure);
+    void ShowSupportBundleFailure(const support::SupportBundleFailure &failure);
     void ShowAboutDialog(void);
     void StartImport(const QString &path,
                      std::optional<std::string> frame_rate = std::nullopt);
@@ -93,6 +101,8 @@ class MainWindow final : public QMainWindow {
     services::DocumentImportService document_import_service_;
     QTranslator &translator_;
     ApplicationLanguage language_;
+    std::filesystem::path log_directory_;
+    support::DiagnosticEnvironment diagnostic_environment_;
     std::optional<core::TimelineDocument> document_;
     QString current_path_;
     std::optional<std::string> requested_frame_rate_;
@@ -101,10 +111,12 @@ class MainWindow final : public QMainWindow {
     std::vector<core::Diagnostic> last_diagnostics_;
     QFutureWatcher<services::ExportDocumentResult> export_watcher_;
     QFutureWatcher<services::ImportDocumentResult> import_watcher_;
+    QFutureWatcher<support::CreateSupportBundleResult> support_bundle_watcher_;
     QAction *open_action_ = nullptr;
     QAction *export_action_ = nullptr;
     QAction *remember_recent_action_ = nullptr;
     QAction *exit_action_ = nullptr;
+    QAction *export_logs_action_ = nullptr;
     QAction *about_action_ = nullptr;
     QMenu *file_menu_ = nullptr;
     QMenu *recent_files_menu_ = nullptr;

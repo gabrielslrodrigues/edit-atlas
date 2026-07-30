@@ -409,6 +409,68 @@ Inspecione linhas do tempo editoriais e exporte relatórios estruturados.</trans
       <source>The spreadsheet was saved, but its location could not be opened.</source>
       <translation>A planilha foi salva, mas não foi possível abrir sua localização.</translation>
     </message>
+    <message>
+      <source>Export Diagnostic &amp;Logs</source>
+      <translation>Exportar &amp;logs de diagnóstico</translation>
+    </message>
+    <message>
+      <source>Create a local support bundle containing diagnostic logs.</source>
+      <translation>Crie um pacote de suporte local contendo logs de diagnóstico.</translation>
+    </message>
+    <message>
+      <source>Export Diagnostic Logs</source>
+      <translation>Exportar logs de diagnóstico</translation>
+    </message>
+    <message>
+      <source>The support bundle will contain recent Edit Atlas application logs and a summary of the application version, operating system, architecture, Qt version, platform plugin, and registered formats.</source>
+      <translation>O pacote de suporte conterá logs recentes do aplicativo Edit Atlas e um resumo da versão do aplicativo, sistema operacional, arquitetura, versão do Qt, plugin de plataforma e formatos registrados.</translation>
+    </message>
+    <message>
+      <source>It will not automatically include timelines, spreadsheets, media, environment variables, or secrets.</source>
+      <translation>Ele não incluirá automaticamente linhas do tempo, planilhas, mídia, variáveis de ambiente ou segredos.</translation>
+    </message>
+    <message>
+      <source>ZIP archive (*.zip)</source>
+      <translation>Arquivo ZIP (*.zip)</translation>
+    </message>
+    <message>
+      <source>Creating diagnostic support bundle…</source>
+      <translation>Criando pacote de suporte de diagnóstico…</translation>
+    </message>
+    <message>
+      <source>Diagnostic Logs Exported</source>
+      <translation>Logs de diagnóstico exportados</translation>
+    </message>
+    <message>
+      <source>The support bundle was saved to:
+%1</source>
+      <translation>O pacote de suporte foi salvo em:
+%1</translation>
+    </message>
+    <message>
+      <source>Recent application log files included: %1</source>
+      <translation>Arquivos de log recentes do aplicativo incluídos: %1</translation>
+    </message>
+    <message>
+      <source>The support bundle was saved, but its location could not be opened.</source>
+      <translation>O pacote de suporte foi salvo, mas não foi possível abrir sua localização.</translation>
+    </message>
+    <message>
+      <source>The application logs could not be read.</source>
+      <translation>Não foi possível ler os logs do aplicativo.</translation>
+    </message>
+    <message>
+      <source>The diagnostic support bundle could not be created.</source>
+      <translation>Não foi possível criar o pacote de suporte de diagnóstico.</translation>
+    </message>
+    <message>
+      <source>The completed support bundle could not replace the destination file.</source>
+      <translation>O pacote de suporte concluído não pôde substituir o arquivo de destino.</translation>
+    </message>
+    <message>
+      <source>Could Not Export Diagnostic Logs</source>
+      <translation>Não foi possível exportar os logs de diagnóstico</translation>
+    </message>
   </context>
   <context>
     <name>edit_atlas::app::TimelineEventModel</name>
