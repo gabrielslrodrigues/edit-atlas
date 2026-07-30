@@ -159,8 +159,8 @@ cmake --build --preset debug-x64-linux
 ```
 
 All presets use project-owned vcpkg triplets that require dynamic Qt linkage.
-The universal macOS release builds both the application and its dependencies
-for Intel and Apple Silicon.
+Release CI builds macOS ARM64 and x64 independently, then combines their
+staged bundles into the universal installer.
 
 ## Run the application
 

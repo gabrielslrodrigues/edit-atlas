@@ -42,15 +42,24 @@ jobs:
             package_preset: package-release-x64-linux
             executable_suffix: src/app/edit-atlas
             staged_executable_suffix: bin/edit-atlas
-          - name: macOS Universal
+          - name: macOS ARM64
             os: macos-15
-            triplet: universal-osx
-            cache_target_triplet_file: vcpkg-triplets/universal-osx.cmake
+            triplet: arm64-osx
+            cache_target_triplet_file: vcpkg-triplets/arm64-osx.cmake
             cache_host_triplet_file: vcpkg-triplets/arm64-osx.cmake
             cache_support_file: cmake/EditAtlasPlatformSupport.cmake
-            debug_preset: debug-universal-osx
-            release_preset: release-universal-osx
-            package_preset: package-release-universal-osx
+            debug_preset: debug-arm64-osx
+            release_preset: release-arm64-osx
+            executable_suffix: src/app/edit-atlas.app/Contents/MacOS/edit-atlas
+            staged_executable_suffix: edit-atlas.app/Contents/MacOS/edit-atlas
+          - name: macOS x64
+            os: macos-15-intel
+            triplet: x64-osx
+            cache_target_triplet_file: vcpkg-triplets/x64-osx.cmake
+            cache_host_triplet_file: vcpkg-triplets/x64-osx.cmake
+            cache_support_file: cmake/EditAtlasPlatformSupport.cmake
+            debug_preset: debug-x64-osx
+            release_preset: release-x64-osx
             executable_suffix: src/app/edit-atlas.app/Contents/MacOS/edit-atlas
             staged_executable_suffix: edit-atlas.app/Contents/MacOS/edit-atlas
           - name: Windows x64
@@ -235,27 +244,43 @@ jobs:
           "-DEDIT_ATLAS_EXECUTABLE=${{ github.workspace }}/build/stage-${{ matrix.triplet }}/${{ matrix.staged_executable_suffix }}"
           -P cmake/VerifyQtDeployment.cmake
 
-      - name: Verify staged macOS universal bundle
+      - name: Archive staged macOS bundle
         if: runner.os == 'macOS'
-        run: >-
-          cmake
-          "-DEDIT_ATLAS_BUNDLE=${{ github.workspace }}/build/stage-${{ matrix.triplet }}/edit-atlas.app"
-          -P cmake/VerifyMacOSUniversalBundle.cmake
+        run: |
+          cmake -E chdir "build/stage-${{ matrix.triplet }}" \
+            cmake -E tar czf \
+            "${{ github.workspace }}/build/edit-atlas-${{ matrix.triplet }}-stage.tar.gz" \
+            --format=gnutar \
+            edit-atlas.app
+
+      - name: Upload staged macOS bundle
+        if: runner.os == 'macOS'
+        uses: actions/upload-artifact@v7
+        with:
+          name: edit-atlas-${{ matrix.triplet }}-stage
+          path: build/edit-atlas-${{ matrix.triplet }}-stage.tar.gz
+          if-no-files-found: error
+          retention-days: 3
 
       - name: Remove staged Release
         run: cmake -E remove_directory "build/stage-${{ matrix.triplet }}"
 
       - name: Package Release
         id: package
+        if: runner.os != 'macOS'
         run: cpack --preset ${{ matrix.package_preset }}
 
       - name: Remove CPack temporary files
+        if: runner.os != 'macOS'
         run: >-
           cmake -E remove_directory
           "build/packages/${{ matrix.triplet }}/_CPack_Packages"
 
       - name: Upload packages
-        if: always() && steps.package.outcome == 'success'
+        if: >-
+          always() &&
+          runner.os != 'macOS' &&
+          steps.package.outcome == 'success'
         uses: actions/upload-artifact@v7
         with:
           name: edit-atlas-${{ matrix.triplet }}-packages
@@ -274,6 +299,46 @@ jobs:
             vcpkg/buildtrees/**/*.log
           if-no-files-found: ignore
           retention-days: 7
+
+  package-macos-universal:
+    name: Package / macOS Universal
+    needs: build-and-package
+    runs-on: macos-15
+    timeout-minutes: 20
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v7.0.1
+
+      - name: Install CMake
+        uses: lukka/get-cmake@v4.4.0
+
+      - name: Download ARM64 staged bundle
+        uses: actions/download-artifact@v8
+        with:
+          name: edit-atlas-arm64-osx-stage
+          path: build/stages/arm64
+
+      - name: Download x64 staged bundle
+        uses: actions/download-artifact@v8
+        with:
+          name: edit-atlas-x64-osx-stage
+          path: build/stages/x64
+
+      - name: Create universal package
+        run: >-
+          ./scripts/ci/create-macos-universal-package.sh
+          build/stages/arm64/edit-atlas-arm64-osx-stage.tar.gz
+          build/stages/x64/edit-atlas-x64-osx-stage.tar.gz
+          build/packages/universal-osx
+
+      - name: Upload universal package
+        uses: actions/upload-artifact@v7
+        with:
+          name: edit-atlas-universal-osx-packages
+          path: build/packages/universal-osx
+          if-no-files-found: error
+          retention-days: 3
 
   verify-linux-packages:
     name: Verify Linux packages / ${{ matrix.name }}
@@ -338,7 +403,7 @@ jobs:
 
   verify-macos-package:
     name: Verify macOS package / ${{ matrix.name }}
-    needs: build-and-package
+    needs: package-macos-universal
     runs-on: ${{ matrix.os }}
     timeout-minutes: 20
 

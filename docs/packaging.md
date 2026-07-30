@@ -63,12 +63,11 @@ does not use the differently licensed current WiX command-line tool.
 
 ## Create packages
 
-Each workflow configures a release build, builds it, and runs the matching
-CPack generator:
+The Linux workflow configures a release build, builds it, and runs the
+matching CPack generators:
 
 ```sh
 cmake --workflow --preset create-package-x64-linux
-cmake --workflow --preset create-package-universal-osx
 ```
 
 On Windows PowerShell:
@@ -76,6 +75,12 @@ On Windows PowerShell:
 ```powershell
 cmake --workflow --preset create-package-x64-windows
 ```
+
+The universal macOS package is assembled by CI from independently built and
+staged ARM64 and x64 application bundles. This avoids relying on a universal
+vcpkg triplet for dependencies whose upstream build systems do not reliably
+support multi-architecture builds. The assembly is automated by
+`scripts/ci/create-macos-universal-package.sh`.
 
 Outputs are written below:
 
@@ -129,9 +134,11 @@ sudo dnf remove edit-atlas
 ## Package verification
 
 CI separates package production from package consumption. The
-`build-and-package` matrix builds, tests, stages, and packages Linux x64,
-macOS Universal, and Windows x64 artifacts. Independent verification jobs
-then download those artifacts and treat them like end-user downloads:
+`build-and-package` matrix builds, tests, and stages native macOS ARM64 and
+x64 bundles, while directly packaging Linux x64 and Windows x64. A dedicated
+job merges every matching pair of Mach-O files into a universal macOS bundle
+and creates its installer. Independent verification jobs then download the
+packages and treat them like end-user downloads:
 
 - extracts the portable archive and both Linux native packages, verifies their
   deployed Qt libraries, XCB and Wayland plugins, architecture metadata, and

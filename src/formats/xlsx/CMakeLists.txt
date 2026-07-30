@@ -50,3 +50,19 @@ install(
         DESTINATION "${CMAKE_INSTALL_BINDIR}"
         COMPONENT Development
 )
+
+if(APPLE)
+    if(TARGET MINIZIP::minizip)
+        set(edit_atlas_minizip_target MINIZIP::minizip)
+    else()
+        set(edit_atlas_minizip_target MINIZIP::minizipstatic)
+    endif()
+
+    install(
+        FILES
+            "$<TARGET_FILE:Libxlsxwriter::Libxlsxwriter>"
+            "$<TARGET_FILE:${edit_atlas_minizip_target}>"
+        DESTINATION "edit-atlas.app/Contents/Frameworks"
+        COMPONENT Runtime
+    )
+endif()

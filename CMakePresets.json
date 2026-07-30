@@ -355,18 +355,6 @@
       }
     },
     {
-      "name": "package-release-universal-osx",
-      "displayName": "Package Release - macOS Universal",
-      "configurePreset": "release-universal-osx",
-      "generators": [
-        "productbuild"
-      ],
-      "packageDirectory": "${sourceDir}/build/packages/universal-osx",
-      "output": {
-        "verbose": true
-      }
-    },
-    {
       "name": "package-release-x64-windows",
       "displayName": "Package Release - Windows x64",
       "configurePreset": "release-x64-windows",
@@ -395,24 +383,6 @@
         {
           "type": "package",
           "name": "package-release-x64-linux"
-        }
-      ]
-    },
-    {
-      "name": "create-package-universal-osx",
-      "displayName": "Create Package - macOS Universal",
-      "steps": [
-        {
-          "type": "configure",
-          "name": "release-universal-osx"
-        },
-        {
-          "type": "build",
-          "name": "release-universal-osx"
-        },
-        {
-          "type": "package",
-          "name": "package-release-universal-osx"
         }
       ]
     },

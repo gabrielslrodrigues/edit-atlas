@@ -142,6 +142,16 @@ install(
         COMPONENT Runtime
 )
 
+if(APPLE)
+    install(
+        FILES
+            "$<TARGET_FILE:spdlog::spdlog>"
+            "$<TARGET_FILE:fmt::fmt>"
+        DESTINATION "edit-atlas.app/Contents/Frameworks"
+        COMPONENT Runtime
+    )
+endif()
+
 if(LINUX)
     install(
         FILES "resources/linux/edit-atlas.desktop"
