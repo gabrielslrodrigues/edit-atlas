@@ -85,8 +85,6 @@ class MainWindow final : public QMainWindow {
     void RememberRecentFile(const QString &path);
     void RetranslateUi(void);
     void RetranslateTimeline(void);
-    [[nodiscard]] std::optional<std::vector<core::MetadataEntry>>
-    SpreadsheetExportOptions(void);
     void SetRememberRecentFiles(bool enabled);
     void ShowExportFailure(const services::DocumentExportFailure &failure);
     void ShowImportFailure(const services::DocumentImportFailure &failure);

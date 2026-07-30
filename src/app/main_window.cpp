@@ -1,5 +1,6 @@
 #include <edit_atlas/app/main_window.hpp>
 
+#include <edit_atlas/app/spreadsheet_export_options_dialog.hpp>
 #include <edit_atlas/app/timeline_event_model.hpp>
 
 #include <edit_atlas/core/document_pipeline.hpp>
@@ -19,11 +20,9 @@
 #include <QAbstractItemView>
 #include <QAction>
 #include <QByteArray>
-#include <QCheckBox>
 #include <QComboBox>
 #include <QDesktopServices>
 #include <QDialog>
-#include <QDialogButtonBox>
 #include <QDir>
 #include <QDragEnterEvent>
 #include <QDropEvent>
@@ -443,55 +442,6 @@ void MainWindow::OpenDocument(const QString &path) {
     StartImport(path);
 }
 
-std::optional<std::vector<core::MetadataEntry>>
-MainWindow::SpreadsheetExportOptions(void) {
-    QDialog dialog{this};
-    dialog.setWindowTitle(tr("Spreadsheet Options"));
-    dialog.setModal(true);
-
-    auto *layout = new QVBoxLayout{&dialog};
-    auto *description = new QLabel{
-        tr("Choose the information to include in the workbook."), &dialog};
-    description->setWordWrap(true);
-    layout->addWidget(description);
-
-    auto *timeline = new QCheckBox{tr("Include timeline summary"), &dialog};
-    timeline->setChecked(true);
-    layout->addWidget(timeline);
-
-    auto *diagnostics = new QCheckBox{tr("Include diagnostics"), &dialog};
-    diagnostics->setChecked(true);
-    layout->addWidget(diagnostics);
-
-    auto *buttons = new QDialogButtonBox{&dialog};
-    buttons->addButton(tr("Continue"), QDialogButtonBox::AcceptRole);
-    buttons->addButton(tr("Cancel"), QDialogButtonBox::RejectRole);
-    connect(buttons, &QDialogButtonBox::accepted, &dialog, &QDialog::accept);
-    connect(buttons, &QDialogButtonBox::rejected, &dialog, &QDialog::reject);
-    layout->addWidget(buttons);
-
-    if (dialog.exec() != QDialog::Accepted) {
-        return std::nullopt;
-    }
-
-    return std::vector<core::MetadataEntry>{
-        core::MetadataEntry{
-            .key =
-                std::string{
-                    formats::xlsx::kIncludeTimelineSheetOption,
-                },
-            .value = timeline->isChecked(),
-        },
-        core::MetadataEntry{
-            .key =
-                std::string{
-                    formats::xlsx::kIncludeDiagnosticsSheetOption,
-                },
-            .value = diagnostics->isChecked(),
-        },
-    };
-}
-
 void MainWindow::ExportSpreadsheet(void) {
     if (!document_.has_value() || import_watcher_.isRunning() ||
         export_watcher_.isRunning() || support_bundle_watcher_.isRunning()) {
@@ -512,10 +462,11 @@ void MainWindow::ExportSpreadsheet(void) {
         return;
     }
 
-    auto options = SpreadsheetExportOptions();
-    if (!options.has_value()) {
+    SpreadsheetExportOptionsDialog options_dialog{language_, this};
+    if (options_dialog.exec() != QDialog::Accepted) {
         return;
     }
+    auto options = options_dialog.Options();
 
     const QFileInfo source{current_path_};
     auto suggested_name = source.completeBaseName();
@@ -578,7 +529,7 @@ void MainWindow::ExportSpreadsheet(void) {
         .path = FilesystemPath(destination),
         .format_identifier = exporters.front()->descriptor().identifier,
         .document = *document_,
-        .options = std::move(*options),
+        .options = std::move(options),
         .replace_existing = replace_existing,
     };
     SPDLOG_INFO("Spreadsheet export started");

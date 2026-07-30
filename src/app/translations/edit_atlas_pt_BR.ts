@@ -280,30 +280,6 @@ Inspecione linhas do tempo editoriais e exporte relatórios estruturados.</trans
       <translation>Exporte a linha do tempo aberta como uma pasta de trabalho do Excel.</translation>
     </message>
     <message>
-      <source>Spreadsheet Options</source>
-      <translation>Opções da planilha</translation>
-    </message>
-    <message>
-      <source>Choose the information to include in the workbook.</source>
-      <translation>Escolha as informações a serem incluídas na pasta de trabalho.</translation>
-    </message>
-    <message>
-      <source>Include timeline summary</source>
-      <translation>Incluir resumo da linha do tempo</translation>
-    </message>
-    <message>
-      <source>Include diagnostics</source>
-      <translation>Incluir diagnósticos</translation>
-    </message>
-    <message>
-      <source>Continue</source>
-      <translation>Continuar</translation>
-    </message>
-    <message>
-      <source>Cancel</source>
-      <translation>Cancelar</translation>
-    </message>
-    <message>
       <source>Could not export spreadsheet</source>
       <translation>Não foi possível exportar a planilha</translation>
     </message>
@@ -470,6 +446,57 @@ Inspecione linhas do tempo editoriais e exporte relatórios estruturados.</trans
     <message>
       <source>Could Not Export Diagnostic Logs</source>
       <translation>Não foi possível exportar os logs de diagnóstico</translation>
+    </message>
+    <message>
+      <source>Continue</source>
+      <translation>Continuar</translation>
+    </message>
+    <message>
+      <source>Cancel</source>
+      <translation>Cancelar</translation>
+    </message>
+  </context>
+  <context>
+    <name>edit_atlas::app::SpreadsheetExportOptionsDialog</name>
+    <message>
+      <source>Spreadsheet Options</source>
+      <translation>Opções da planilha</translation>
+    </message>
+    <message>
+      <source>Choose the information to include in the workbook.</source>
+      <translation>Escolha as informações a serem incluídas na pasta de trabalho.</translation>
+    </message>
+    <message>
+      <source>Workbook language</source>
+      <translation>Idioma da pasta de trabalho</translation>
+    </message>
+    <message>
+      <source>Same as application</source>
+      <translation>Mesmo idioma do aplicativo</translation>
+    </message>
+    <message>
+      <source>English</source>
+      <translation>Inglês</translation>
+    </message>
+    <message>
+      <source>Português (Brasil)</source>
+      <translation>Português (Brasil)</translation>
+    </message>
+    <message>
+      <source>Include timeline summary</source>
+      <translation>Incluir resumo da linha do tempo</translation>
+    </message>
+    <message>
+      <source>Include diagnostics</source>
+      <translation>Incluir diagnósticos</translation>
+    </message>
+    <message>
+      <source>Continue</source>
+      <translation>Continuar</translation>
+    </message>
+    <message>
+      <source>Cancel</source>
+      <translation>Cancelar</translation>
     </message>
   </context>
   <context>

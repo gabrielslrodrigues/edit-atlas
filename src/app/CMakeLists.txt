@@ -16,9 +16,11 @@ target_sources(
         include/edit_atlas/app/application_style.hpp
         include/edit_atlas/app/diagnostic_support.hpp
         include/edit_atlas/app/main_window.hpp
+        include/edit_atlas/app/spreadsheet_export_options_dialog.hpp
         include/edit_atlas/app/timeline_event_model.hpp
         include/edit_atlas/app/translation.hpp
         main_window.cpp
+        spreadsheet_export_options_dialog.cpp
         timeline_event_model.cpp
         translation.cpp
 )
