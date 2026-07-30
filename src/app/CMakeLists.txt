@@ -157,7 +157,13 @@ if(LINUX)
 endif()
 
 set(edit_atlas_deploy_arguments)
-if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+if(APPLE)
+    list(
+        APPEND edit_atlas_deploy_arguments
+        DEPLOY_TOOL_OPTIONS
+            "-libpath=${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/lib"
+    )
+elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
     list(
         APPEND edit_atlas_deploy_arguments
         INCLUDE_PLUGINS

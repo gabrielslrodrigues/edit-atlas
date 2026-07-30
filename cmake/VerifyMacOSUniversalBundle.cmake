@@ -47,10 +47,22 @@ foreach(edit_atlas_bundle_file IN LISTS edit_atlas_bundle_files)
         ERROR_VARIABLE edit_atlas_lipo_error
     )
     if(NOT edit_atlas_lipo_result EQUAL 0)
+        execute_process(
+            COMMAND lipo "${edit_atlas_bundle_file}" -archs
+            RESULT_VARIABLE edit_atlas_archs_result
+            OUTPUT_VARIABLE edit_atlas_archs
+            ERROR_VARIABLE edit_atlas_archs_error
+            OUTPUT_STRIP_TRAILING_WHITESPACE
+        )
+        if(NOT edit_atlas_archs_result EQUAL 0)
+            set(edit_atlas_archs "${edit_atlas_archs_error}")
+        endif()
         message(
             FATAL_ERROR
             "Mach-O file is not universal x86_64 and ARM64: "
-            "${edit_atlas_bundle_file}\n${edit_atlas_lipo_error}"
+            "${edit_atlas_bundle_file}\n"
+            "Architectures: ${edit_atlas_archs}\n"
+            "${edit_atlas_lipo_error}"
         )
     endif()
 endforeach()
