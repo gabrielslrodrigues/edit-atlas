@@ -39,10 +39,10 @@ foreach(edit_atlas_bundle_file IN LISTS edit_atlas_bundle_files)
     execute_process(
         COMMAND
             lipo
+            "${edit_atlas_bundle_file}"
             -verify_arch
             x86_64
             arm64
-            "${edit_atlas_bundle_file}"
         RESULT_VARIABLE edit_atlas_lipo_result
         ERROR_VARIABLE edit_atlas_lipo_error
     )
