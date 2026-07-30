@@ -1,5 +1,16 @@
 cmake_minimum_required(VERSION 4.0)
 
+include("${CMAKE_CURRENT_LIST_DIR}/cmake/EditAtlasPlatformSupport.cmake")
+if(CMAKE_HOST_APPLE)
+    set(
+        CMAKE_OSX_DEPLOYMENT_TARGET
+        "${EDIT_ATLAS_MACOS_MINIMUM_VERSION}"
+        CACHE STRING
+        "Minimum supported macOS version"
+        FORCE
+    )
+endif()
+
 project(
     EditAtlas
     VERSION 0.1.0

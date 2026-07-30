@@ -15,10 +15,13 @@ therefore warn when opening them.
 | Package | Architecture | Minimum supported system |
 | --- | --- | --- |
 | Windows installer | x86_64 | Windows 10 version 1809 |
-| macOS installer | x86_64 and ARM64 | macOS 13 |
+| macOS installer | x86_64 and ARM64 | macOS 13.3 |
 | Linux archive | x86_64 | Ubuntu 24.04 or another distribution with glibc 2.39 or newer |
 | Debian package | amd64 | Ubuntu 24.04 or a compatible Debian-based distribution with glibc 2.39 or newer |
 | RPM package | x86_64 | Fedora 44 or a compatible RPM-based distribution with glibc 2.39 or newer |
+
+Build-system platform baselines are defined centrally in
+[EditAtlasPlatformSupport.cmake](../cmake/EditAtlasPlatformSupport.cmake).
 
 Linux packages bundle Qt and the non-system runtime libraries selected by Qt's
 deployment tooling. They intentionally rely on the host's GNU C library,
