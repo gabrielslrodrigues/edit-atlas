@@ -38,14 +38,23 @@ edit_atlas_set_project_warnings(edit_atlas_core)
 install(
     TARGETS edit_atlas_core
     EXPORT EditAtlasTargets
-    FILE_SET HEADERS DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}"
-    ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}"
-    LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}"
-    RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}"
+    FILE_SET HEADERS
+        DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}"
+        COMPONENT Development
+    ARCHIVE
+        DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+        COMPONENT Development
+    LIBRARY
+        DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+        COMPONENT Development
+    RUNTIME
+        DESTINATION "${CMAKE_INSTALL_BINDIR}"
+        COMPONENT Development
 )
 
 install(
     EXPORT EditAtlasTargets
     NAMESPACE EditAtlas::
     DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/EditAtlas"
+    COMPONENT Development
 )

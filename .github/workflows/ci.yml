@@ -19,10 +19,13 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  build:
-    name: ${{ matrix.name }}
+  build-and-package:
+    name: Build and package / ${{ matrix.name }}
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 120
+    timeout-minutes: 180
+    permissions:
+      actions: write
+      contents: read
 
     strategy:
       fail-fast: false
@@ -31,22 +34,43 @@ jobs:
           - name: Linux x64
             os: ubuntu-24.04
             triplet: x64-linux
+            cache_target_triplet_file: vcpkg-triplets/x64-linux.cmake
+            cache_host_triplet_file: vcpkg-triplets/x64-linux.cmake
+            cache_support_file: vcpkg-triplets/x64-linux.cmake
             debug_preset: debug-x64-linux
             release_preset: release-x64-linux
+            package_preset: package-release-x64-linux
             executable_suffix: src/app/edit-atlas
             staged_executable_suffix: bin/edit-atlas
           - name: macOS ARM64
             os: macos-15
             triplet: arm64-osx
+            cache_target_triplet_file: vcpkg-triplets/arm64-osx.cmake
+            cache_host_triplet_file: vcpkg-triplets/arm64-osx.cmake
+            cache_support_file: cmake/EditAtlasPlatformSupport.cmake
             debug_preset: debug-arm64-osx
             release_preset: release-arm64-osx
+            executable_suffix: src/app/edit-atlas.app/Contents/MacOS/edit-atlas
+            staged_executable_suffix: edit-atlas.app/Contents/MacOS/edit-atlas
+          - name: macOS x64
+            os: macos-15-intel
+            triplet: x64-osx
+            cache_target_triplet_file: vcpkg-triplets/x64-osx.cmake
+            cache_host_triplet_file: vcpkg-triplets/x64-osx.cmake
+            cache_support_file: cmake/EditAtlasPlatformSupport.cmake
+            debug_preset: debug-x64-osx
+            release_preset: release-x64-osx
             executable_suffix: src/app/edit-atlas.app/Contents/MacOS/edit-atlas
             staged_executable_suffix: edit-atlas.app/Contents/MacOS/edit-atlas
           - name: Windows x64
             os: windows-2022
             triplet: x64-windows
+            cache_target_triplet_file: vcpkg-triplets/x64-windows.cmake
+            cache_host_triplet_file: vcpkg-triplets/x64-windows.cmake
+            cache_support_file: vcpkg-triplets/x64-windows.cmake
             debug_preset: debug-x64-windows
             release_preset: release-x64-windows
+            package_preset: package-release-x64-windows
             executable_suffix: src/app/edit-atlas.exe
             staged_executable_suffix: bin/edit-atlas.exe
 
@@ -64,7 +88,7 @@ jobs:
         if: runner.os == 'Linux'
         run: |
           df --human-readable /
-          sudo rm --recursive --force \
+          sudo rm -rf \
             /opt/ghc \
             /opt/hostedtoolcache/CodeQL \
             /usr/local/.ghcup \
@@ -74,56 +98,15 @@ jobs:
             /usr/share/dotnet
           df --human-readable /
 
-      - name: Install Linux host dependencies
+      - name: Install Ubuntu host dependencies
         if: runner.os == 'Linux'
-        run: |
-          sudo apt-get update
-          sudo apt-get install --yes --no-install-recommends \
-            autoconf \
-            autoconf-archive \
-            automake \
-            libc6-dev \
-            libegl1-mesa-dev \
-            libglu1-mesa-dev \
-            libtool \
-            libx11-dev \
-            libx11-xcb-dev \
-            libxcb-cursor-dev \
-            libxcb-glx0-dev \
-            libxcb-icccm4-dev \
-            libxcb-image0-dev \
-            libxcb-keysyms1-dev \
-            libxcb-randr0-dev \
-            libxcb-render-util0-dev \
-            libxcb-shape0-dev \
-            libxcb-shm0-dev \
-            libxcb-sync-dev \
-            libxcb-util-dev \
-            libxcb-xfixes0-dev \
-            libxcb-xinput-dev \
-            libxcb-xkb-dev \
-            libxcb1-dev \
-            libxext-dev \
-            libxfixes-dev \
-            libxi-dev \
-            libxkbcommon-dev \
-            libxkbcommon-x11-dev \
-            libxrender-dev \
-            libwayland-dev \
-            pkg-config \
-            wayland-protocols
+        run: ./scripts/ci/install-ubuntu-dependencies.sh
 
       - name: Install macOS host dependencies
         if: runner.os == 'macOS'
         env:
           HOMEBREW_NO_AUTO_UPDATE: 1
-        run: |
-          brew install \
-            autoconf \
-            autoconf-archive \
-            automake \
-            libtool \
-            pkg-config
+        run: ./scripts/ci/install-macos-dependencies.sh
 
       - name: Install CMake and Ninja
         uses: lukka/get-cmake@v4.4.0
@@ -140,7 +123,7 @@ jobs:
         uses: actions/cache/restore@v6.1.0
         with:
           path: .cache/vcpkg/archives
-          key: vcpkg-${{ runner.os }}-${{ runner.arch }}-${{ matrix.triplet }}-${{ hashFiles('vcpkg.json', 'vcpkg-overlays/**', 'vcpkg-triplets/**') }}
+          key: vcpkg-${{ runner.os }}-${{ runner.arch }}-${{ matrix.triplet }}-${{ hashFiles('vcpkg.json', 'vcpkg-overlays/**', matrix.cache_target_triplet_file, matrix.cache_host_triplet_file, matrix.cache_support_file) }}
           restore-keys: |
             vcpkg-${{ runner.os }}-${{ runner.arch }}-${{ matrix.triplet }}-
 
@@ -157,11 +140,54 @@ jobs:
         run: cmake --preset ${{ matrix.debug_preset }}
 
       - name: Save vcpkg binary cache
-        if: steps.vcpkg-cache.outputs.cache-hit != 'true'
+        id: vcpkg-cache-save
+        if: always() && steps.vcpkg-cache.outputs.cache-hit != 'true'
         uses: actions/cache/save@v6.1.0
         with:
           path: .cache/vcpkg/archives
           key: ${{ steps.vcpkg-cache.outputs.cache-primary-key }}
+
+      - name: Delete superseded vcpkg cache
+        if: >-
+          always() &&
+          steps.vcpkg-cache-save.outcome == 'success' &&
+          steps.vcpkg-cache.outputs.cache-matched-key != '' &&
+          steps.vcpkg-cache.outputs.cache-matched-key !=
+            steps.vcpkg-cache.outputs.cache-primary-key &&
+          (
+            github.event_name != 'pull_request' ||
+            github.event.pull_request.head.repo.full_name == github.repository
+          )
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SUPERSEDED_CACHE_KEY: ${{ steps.vcpkg-cache.outputs.cache-matched-key }}
+        run: |
+          $cacheJson = gh cache list `
+            --repo "$env:GITHUB_REPOSITORY" `
+            --ref "$env:GITHUB_REF" `
+            --key "$env:SUPERSEDED_CACHE_KEY" `
+            --limit 100 `
+            --json id,key
+          if ($LASTEXITCODE -ne 0) {
+            throw "Could not list superseded vcpkg caches."
+          }
+
+          $caches = @(
+            $cacheJson |
+              ConvertFrom-Json |
+              Where-Object {
+                $_.key -eq $env:SUPERSEDED_CACHE_KEY
+              }
+          )
+          foreach ($cache in $caches) {
+            gh cache delete "$($cache.id)" `
+              --repo "$env:GITHUB_REPOSITORY"
+            if ($LASTEXITCODE -ne 0) {
+              throw "Could not delete vcpkg cache $($cache.id)."
+            }
+            Write-Host "Deleted superseded vcpkg cache $($cache.id)."
+          }
 
       - name: Clean vcpkg temporary directories
         run: |
@@ -181,8 +207,17 @@ jobs:
       - name: Test Debug
         run: ctest --preset ${{ matrix.debug_preset }}
 
+      - name: Remove Debug build tree
+        run: cmake -E remove_directory "build/${{ matrix.debug_preset }}"
+
       - name: Configure Release
         run: cmake --preset ${{ matrix.release_preset }}
+
+      - name: Clean vcpkg temporary directories
+        run: |
+          cmake -E remove_directory "${{ github.workspace }}/vcpkg/buildtrees"
+          cmake -E remove_directory "${{ github.workspace }}/vcpkg/downloads"
+          cmake -E remove_directory "${{ github.workspace }}/vcpkg/packages"
 
       - name: Build Release
         run: cmake --build --preset ${{ matrix.release_preset }}
@@ -209,6 +244,50 @@ jobs:
           "-DEDIT_ATLAS_EXECUTABLE=${{ github.workspace }}/build/stage-${{ matrix.triplet }}/${{ matrix.staged_executable_suffix }}"
           -P cmake/VerifyQtDeployment.cmake
 
+      - name: Archive staged macOS bundle
+        if: runner.os == 'macOS'
+        run: |
+          cmake -E chdir "build/stage-${{ matrix.triplet }}" \
+            cmake -E tar czf \
+            "${{ github.workspace }}/build/edit-atlas-${{ matrix.triplet }}-stage.tar.gz" \
+            --format=gnutar \
+            edit-atlas.app
+
+      - name: Upload staged macOS bundle
+        if: runner.os == 'macOS'
+        uses: actions/upload-artifact@v7
+        with:
+          name: edit-atlas-${{ matrix.triplet }}-stage
+          path: build/edit-atlas-${{ matrix.triplet }}-stage.tar.gz
+          if-no-files-found: error
+          retention-days: 3
+
+      - name: Remove staged Release
+        run: cmake -E remove_directory "build/stage-${{ matrix.triplet }}"
+
+      - name: Package Release
+        id: package
+        if: runner.os != 'macOS'
+        run: cpack --preset ${{ matrix.package_preset }}
+
+      - name: Remove CPack temporary files
+        if: runner.os != 'macOS'
+        run: >-
+          cmake -E remove_directory
+          "build/packages/${{ matrix.triplet }}/_CPack_Packages"
+
+      - name: Upload packages
+        if: >-
+          always() &&
+          runner.os != 'macOS' &&
+          steps.package.outcome == 'success'
+        uses: actions/upload-artifact@v7
+        with:
+          name: edit-atlas-${{ matrix.triplet }}-packages
+          path: build/packages/${{ matrix.triplet }}
+          if-no-files-found: error
+          retention-days: 3
+
       - name: Upload configuration logs
         if: failure()
         uses: actions/upload-artifact@v7
@@ -218,5 +297,177 @@ jobs:
             build/*/CMakeFiles/CMakeConfigureLog.yaml
             build/*/vcpkg-manifest-install.log
             vcpkg/buildtrees/**/*.log
+          if-no-files-found: ignore
+          retention-days: 7
+
+  package-macos-universal:
+    name: Package / macOS Universal
+    needs: build-and-package
+    runs-on: macos-15
+    timeout-minutes: 20
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v7.0.1
+
+      - name: Install CMake
+        uses: lukka/get-cmake@v4.4.0
+
+      - name: Download ARM64 staged bundle
+        uses: actions/download-artifact@v8
+        with:
+          name: edit-atlas-arm64-osx-stage
+          path: build/stages/arm64
+
+      - name: Download x64 staged bundle
+        uses: actions/download-artifact@v8
+        with:
+          name: edit-atlas-x64-osx-stage
+          path: build/stages/x64
+
+      - name: Create universal package
+        run: >-
+          ./scripts/ci/create-macos-universal-package.sh
+          build/stages/arm64/edit-atlas-arm64-osx-stage.tar.gz
+          build/stages/x64/edit-atlas-x64-osx-stage.tar.gz
+          build/packages/universal-osx
+
+      - name: Upload universal package
+        uses: actions/upload-artifact@v7
+        with:
+          name: edit-atlas-universal-osx-packages
+          path: build/packages/universal-osx
+          if-no-files-found: error
+          retention-days: 3
+
+  verify-linux-packages:
+    name: Verify Linux packages / ${{ matrix.name }}
+    needs: build-and-package
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    container: ${{ matrix.container }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Ubuntu 24.04
+            distribution: ubuntu
+            container: ubuntu:24.04
+          - name: Fedora 44
+            distribution: fedora
+            container: fedora:44
+
+    steps:
+      - name: Install Ubuntu verification tools
+        if: matrix.distribution == 'ubuntu'
+        run: >-
+          apt-get update &&
+          apt-get install
+          --yes
+          --no-install-recommends
+          binutils
+          ca-certificates
+          cmake
+          findutils
+          git
+
+      - name: Install Fedora verification tools
+        if: matrix.distribution == 'fedora'
+        run: >-
+          dnf install
+          --assumeyes
+          binutils
+          ca-certificates
+          cmake
+          cpio
+          findutils
+          git
+          rpm
+
+      - name: Check out source
+        uses: actions/checkout@v7.0.1
+
+      - name: Download Linux packages
+        uses: actions/download-artifact@v8
+        with:
+          name: edit-atlas-x64-linux-packages
+          path: build/packages/x64-linux
+
+      - name: Verify packages
+        shell: bash
+        run: >-
+          ./scripts/ci/verify-linux-packages.sh
+          ${{ matrix.distribution }}
+          build/packages/x64-linux
+
+  verify-macos-package:
+    name: Verify macOS package / ${{ matrix.name }}
+    needs: package-macos-universal
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Apple Silicon
+            os: macos-15
+          - name: Intel
+            os: macos-15-intel
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v7.0.1
+
+      - name: Install CMake
+        uses: lukka/get-cmake@v4.4.0
+
+      - name: Download macOS package
+        uses: actions/download-artifact@v8
+        with:
+          name: edit-atlas-universal-osx-packages
+          path: build/packages/universal-osx
+
+      - name: Verify package
+        run: ./scripts/ci/verify-macos-package.sh build/packages/universal-osx
+
+  verify-windows-package:
+    name: Verify Windows package / Windows x64
+    needs: build-and-package
+    runs-on: windows-2022
+    timeout-minutes: 20
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v7.0.1
+
+      - name: Install CMake
+        uses: lukka/get-cmake@v4.4.0
+
+      - name: Configure MSVC
+        uses: ilammy/msvc-dev-cmd@v1.13.0
+        with:
+          arch: x64
+          vsversion: 2022
+
+      - name: Download Windows package
+        uses: actions/download-artifact@v8
+        with:
+          name: edit-atlas-x64-windows-packages
+          path: build/packages/x64-windows
+
+      - name: Verify package
+        shell: pwsh
+        run: >-
+          ./scripts/ci/verify-windows-package.ps1
+          -PackageDirectory build/packages/x64-windows
+
+      - name: Upload Windows Installer logs
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: windows-installer-logs
+          path: build/package-check-windows/*.log
           if-no-files-found: ignore
           retention-days: 7

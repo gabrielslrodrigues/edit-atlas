@@ -1,5 +1,16 @@
 cmake_minimum_required(VERSION 4.0)
 
+include("${CMAKE_CURRENT_LIST_DIR}/cmake/EditAtlasPlatformSupport.cmake")
+if(CMAKE_HOST_APPLE)
+    set(
+        CMAKE_OSX_DEPLOYMENT_TARGET
+        "${EDIT_ATLAS_MACOS_MINIMUM_VERSION}"
+        CACHE STRING
+        "Minimum supported macOS version"
+        FORCE
+    )
+endif()
+
 project(
     EditAtlas
     VERSION 0.1.0
@@ -30,9 +41,11 @@ find_package(spdlog CONFIG REQUIRED)
 
 edit_atlas_require_dynamic_qt()
 
-set(
-    edit_atlas_qtbase_copyright
-    "${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/share/qtbase/copyright"
+set(edit_atlas_vcpkg_share_directory
+    "${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/share"
+)
+set(edit_atlas_qtbase_copyright
+    "${edit_atlas_vcpkg_share_directory}/qtbase/copyright"
 )
 if(NOT EXISTS "${edit_atlas_qtbase_copyright}")
     message(
@@ -67,11 +80,35 @@ else()
 endif()
 
 install(
-    FILES "${CMAKE_CURRENT_SOURCE_DIR}/THIRD_PARTY_NOTICES.md"
+    FILES
+        "${CMAKE_CURRENT_SOURCE_DIR}/LICENSE"
+        "${CMAKE_CURRENT_SOURCE_DIR}/THIRD_PARTY_NOTICES.md"
     DESTINATION "${edit_atlas_license_install_dir}"
+    COMPONENT Runtime
 )
-install(
-    FILES "${edit_atlas_qtbase_copyright}"
-    DESTINATION "${edit_atlas_license_install_dir}"
-    RENAME "qtbase-copyright"
+
+file(
+    GLOB edit_atlas_vcpkg_copyrights
+    LIST_DIRECTORIES FALSE
+    "${edit_atlas_vcpkg_share_directory}/*/copyright"
 )
+foreach(edit_atlas_vcpkg_copyright IN LISTS edit_atlas_vcpkg_copyrights)
+    get_filename_component(
+        edit_atlas_vcpkg_package_directory
+        "${edit_atlas_vcpkg_copyright}"
+        DIRECTORY
+    )
+    get_filename_component(
+        edit_atlas_vcpkg_package
+        "${edit_atlas_vcpkg_package_directory}"
+        NAME
+    )
+    install(
+        FILES "${edit_atlas_vcpkg_copyright}"
+        DESTINATION "${edit_atlas_license_install_dir}/vcpkg"
+        RENAME "${edit_atlas_vcpkg_package}-copyright"
+        COMPONENT Runtime
+    )
+endforeach()
+
+include(EditAtlasPackaging)

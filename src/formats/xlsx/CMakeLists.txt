@@ -37,8 +37,32 @@ edit_atlas_set_project_warnings(edit_atlas_xlsx)
 install(
     TARGETS edit_atlas_xlsx
     EXPORT EditAtlasTargets
-    FILE_SET HEADERS DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}"
-    ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}"
-    LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}"
-    RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}"
+    FILE_SET HEADERS
+        DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}"
+        COMPONENT Development
+    ARCHIVE
+        DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+        COMPONENT Development
+    LIBRARY
+        DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+        COMPONENT Development
+    RUNTIME
+        DESTINATION "${CMAKE_INSTALL_BINDIR}"
+        COMPONENT Development
 )
+
+if(APPLE)
+    if(TARGET MINIZIP::minizip)
+        set(edit_atlas_minizip_target MINIZIP::minizip)
+    else()
+        set(edit_atlas_minizip_target MINIZIP::minizipstatic)
+    endif()
+
+    install(
+        FILES
+            "$<TARGET_FILE:Libxlsxwriter::Libxlsxwriter>"
+            "$<TARGET_FILE:${edit_atlas_minizip_target}>"
+        DESTINATION "edit-atlas.app/Contents/Frameworks"
+        COMPONENT Runtime
+    )
+endif()

@@ -146,6 +146,8 @@ Choose the preset matching the target platform:
 | --- | --- | --- |
 | Linux x64 | `debug-x64-linux` | `release-x64-linux` |
 | macOS ARM64 | `debug-arm64-osx` | `release-arm64-osx` |
+| macOS x64 | `debug-x64-osx` | `release-x64-osx` |
+| macOS Universal | `debug-universal-osx` | `release-universal-osx` |
 | Windows x64 | `debug-x64-windows` | `release-x64-windows` |
 
 For example, configure and build a Linux debug build. vcpkg installs the
@@ -157,6 +159,8 @@ cmake --build --preset debug-x64-linux
 ```
 
 All presets use project-owned vcpkg triplets that require dynamic Qt linkage.
+Release CI builds macOS ARM64 and x64 independently, then combines their
+staged bundles into the universal installer.
 
 ## Run the application
 
@@ -221,6 +225,14 @@ To treat project warnings as errors, configure with:
 ```sh
 cmake --preset debug-x64-linux -DEDIT_ATLAS_WARNINGS_AS_ERRORS=ON
 ```
+
+## Create installers
+
+Preset-driven packaging creates a Windows installer, a universal macOS
+installer, and Linux portable and Debian packages without requiring users to
+install Qt or vcpkg. See [Desktop packaging](docs/packaging.md) for the
+one-command workflows, output locations, supported systems, and installation
+instructions.
 
 ## License
 

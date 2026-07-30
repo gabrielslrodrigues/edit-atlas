@@ -176,6 +176,10 @@ ReadZipEntry(const std::filesystem::path &path, std::string_view entry_name) {
                     .key = "source_format",
                     .value = std::string{"cmx-3600"},
                 },
+                core::MetadataEntry{
+                    .key = "playback_speed",
+                    .value = 1.25,
+                },
             },
         .diagnostics =
             {
@@ -239,6 +243,8 @@ TEST(XlsxExporterTest, WritesStableSheetsAndTimelineValues) {
     EXPECT_NE(shared_strings->find("30000/1001"), std::string::npos);
     EXPECT_NE(shared_strings->find("Drop Frame"), std::string::npos);
     EXPECT_NE(shared_strings->find("cmx-3600"), std::string::npos);
+    EXPECT_NE(shared_strings->find("playback_speed"), std::string::npos);
+    EXPECT_NE(shared_strings->find("1.25"), std::string::npos);
 }
 
 TEST(XlsxExporterTest, PreservesEventValuesAsLiteralText) {

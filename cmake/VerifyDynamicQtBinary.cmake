@@ -10,16 +10,34 @@ if(NOT EXISTS "${EDIT_ATLAS_EXECUTABLE}")
 endif()
 
 if(WIN32)
-    set(edit_atlas_dependency_command dumpbin /dependents)
+    find_program(
+        edit_atlas_dependency_tool
+        NAMES dumpbin
+        REQUIRED
+    )
+    set(edit_atlas_dependency_command
+        "${edit_atlas_dependency_tool}"
+        /dependents
+    )
     set(edit_atlas_qt_widgets_pattern "Qt6Widgets(d)?\\.dll")
 elseif(APPLE)
-    set(edit_atlas_dependency_command otool -L)
+    find_program(
+        edit_atlas_dependency_tool
+        NAMES otool
+        REQUIRED
+    )
+    set(edit_atlas_dependency_command "${edit_atlas_dependency_tool}" -L)
     set(
         edit_atlas_qt_widgets_pattern
         "(libQt6Widgets[^ ]*\\.dylib|QtWidgets\\.framework)"
     )
 elseif(UNIX)
-    set(edit_atlas_dependency_command readelf -d)
+    find_program(
+        edit_atlas_dependency_tool
+        NAMES readelf
+        REQUIRED
+    )
+    set(edit_atlas_dependency_command "${edit_atlas_dependency_tool}" -d)
     set(edit_atlas_qt_widgets_pattern "libQt6Widgets\\.so")
 else()
     message(FATAL_ERROR "Dynamic Qt verification is unsupported on this host.")

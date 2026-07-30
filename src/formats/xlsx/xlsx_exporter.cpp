@@ -87,6 +87,13 @@ template <typename Integer>
     return std::string{buffer.data(), result.ptr};
 }
 
+[[nodiscard]] std::string DoubleText(double value) {
+    std::array<char, 64> buffer{};
+    const auto result =
+        std::to_chars(buffer.data(), buffer.data() + buffer.size(), value);
+    return std::string{buffer.data(), result.ptr};
+}
+
 [[nodiscard]] std::string MetadataValueText(const core::MetadataValue &value) {
     return std::visit(
         [](const auto &item) -> std::string {
@@ -96,10 +103,7 @@ template <typename Integer>
             } else if constexpr (std::is_same_v<Value, std::string>) {
                 return item;
             } else if constexpr (std::is_same_v<Value, double>) {
-                std::array<char, 64> buffer{};
-                const auto result = std::to_chars(
-                    buffer.data(), buffer.data() + buffer.size(), item);
-                return std::string{buffer.data(), result.ptr};
+                return DoubleText(item);
             } else {
                 return IntegerText(item);
             }
