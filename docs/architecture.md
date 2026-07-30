@@ -5,8 +5,9 @@ interfaces:
 
 ```text
 Qt desktop frontend ─┐
-future CLI frontend ─┴─> application services ─┬─> core
-                                               └─> built-in formats ─> core
+future CLI frontend ─┼─> application services ─┬─> core
+                     │                         └─> built-in formats ─> core
+                     └─> diagnostic support
 ```
 
 ## Core
@@ -50,3 +51,11 @@ CLI can provide terminal input and output while invoking the same services.
 Dependencies point inward: frontends may depend on application services, which
 may depend on core and format targets. Core and format targets never depend on
 application services or a frontend.
+
+## Diagnostic support
+
+`EditAtlas::Support` owns bounded persistent logging and privacy-limited
+support-bundle generation. It depends on neither Qt nor editorial formats and
+accepts only explicit diagnostic metadata and log-directory paths. Frontends
+provide platform paths and runtime metadata, disclose bundle contents, and
+present localized results.

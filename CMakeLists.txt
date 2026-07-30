@@ -46,6 +46,7 @@ add_subdirectory(src/core)
 add_subdirectory(src/formats/cmx3600)
 add_subdirectory(src/formats/xlsx)
 add_subdirectory(src/services)
+add_subdirectory(src/support)
 add_subdirectory(src/app)
 
 if(BUILD_TESTING)

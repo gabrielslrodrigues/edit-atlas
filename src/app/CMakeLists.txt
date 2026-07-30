@@ -12,7 +12,9 @@ target_sources(
     edit_atlas_app
     PRIVATE
         application_style.cpp
+        diagnostic_support.cpp
         include/edit_atlas/app/application_style.hpp
+        include/edit_atlas/app/diagnostic_support.hpp
         include/edit_atlas/app/main_window.hpp
         include/edit_atlas/app/timeline_event_model.hpp
         include/edit_atlas/app/translation.hpp
@@ -31,9 +33,11 @@ target_link_libraries(
     edit_atlas_app
     PUBLIC
         EditAtlas::Services
+        EditAtlas::Support
         Qt6::Widgets
     PRIVATE
         Qt6::Concurrent
+        spdlog::spdlog
 )
 
 target_compile_features(edit_atlas_app PUBLIC cxx_std_23)

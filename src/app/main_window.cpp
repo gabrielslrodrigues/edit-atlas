@@ -14,6 +14,8 @@
 #include <edit_atlas/services/document_export_service.hpp>
 #include <edit_atlas/services/document_import_service.hpp>
 
+#include <edit_atlas/support/support_bundle.hpp>
+
 #include <QAbstractItemView>
 #include <QAction>
 #include <QByteArray>
@@ -60,6 +62,8 @@
 #include <QWidget>
 #include <Qt>
 #include <QtConcurrentRun>
+
+#include <spdlog/spdlog.h>
 
 #include <algorithm>
 #include <array>
@@ -123,10 +127,15 @@ HasDiagnosticCode(const std::vector<core::Diagnostic> &diagnostics,
 
 MainWindow::MainWindow(const core::FormatRegistry &registry,
                        QTranslator &translator,
-                       ApplicationLanguage initial_language, QWidget *parent)
+                       ApplicationLanguage initial_language,
+                       std::filesystem::path log_directory,
+                       support::DiagnosticEnvironment diagnostic_environment,
+                       QWidget *parent)
     : QMainWindow(parent), registry_(registry),
       document_export_service_(registry), document_import_service_(registry),
-      translator_(translator), language_(initial_language) {
+      translator_(translator), language_(initial_language),
+      log_directory_(std::move(log_directory)),
+      diagnostic_environment_(std::move(diagnostic_environment)) {
     setObjectName(QStringLiteral("mainWindow"));
     resize(1100, 700);
     setMinimumSize(760, 500);
@@ -138,6 +147,9 @@ MainWindow::MainWindow(const core::FormatRegistry &registry,
     connect(&export_watcher_,
             &QFutureWatcher<services::ExportDocumentResult>::finished, this,
             &MainWindow::HandleExportFinished);
+    connect(&support_bundle_watcher_,
+            &QFutureWatcher<support::CreateSupportBundleResult>::finished, this,
+            &MainWindow::HandleSupportBundleFinished);
 
     BuildMenus();
     BuildUi();
@@ -151,6 +163,9 @@ MainWindow::~MainWindow(void) {
     if (export_watcher_.isRunning()) {
         export_watcher_.waitForFinished();
     }
+    if (support_bundle_watcher_.isRunning()) {
+        support_bundle_watcher_.waitForFinished();
+    }
 }
 
 void MainWindow::changeEvent(QEvent *event) {
@@ -162,7 +177,7 @@ void MainWindow::changeEvent(QEvent *event) {
 
 void MainWindow::dragEnterEvent(QDragEnterEvent *event) {
     if (!import_watcher_.isRunning() && !export_watcher_.isRunning() &&
-        event->mimeData()->hasUrls() &&
+        !support_bundle_watcher_.isRunning() && event->mimeData()->hasUrls() &&
         std::ranges::any_of(event->mimeData()->urls(), [](const QUrl &url) {
             return url.isLocalFile();
         })) {
@@ -213,6 +228,12 @@ void MainWindow::BuildMenus(void) {
     connect(exit_action_, &QAction::triggered, this, &QWidget::close);
 
     help_menu_ = menuBar()->addMenu(QString{});
+    export_logs_action_ = help_menu_->addAction(QString{});
+    export_logs_action_->setObjectName(
+        QStringLiteral("exportDiagnosticLogsAction"));
+    connect(export_logs_action_, &QAction::triggered, this,
+            &MainWindow::ExportDiagnosticLogs);
+    help_menu_->addSeparator();
     about_action_ = help_menu_->addAction(QString{});
     connect(about_action_, &QAction::triggered, this,
             &MainWindow::ShowAboutDialog);
@@ -416,7 +437,7 @@ void MainWindow::OpenDocument(void) {
 
 void MainWindow::OpenDocument(const QString &path) {
     if (path.isEmpty() || import_watcher_.isRunning() ||
-        export_watcher_.isRunning()) {
+        export_watcher_.isRunning() || support_bundle_watcher_.isRunning()) {
         return;
     }
     StartImport(path);
@@ -473,7 +494,7 @@ MainWindow::SpreadsheetExportOptions(void) {
 
 void MainWindow::ExportSpreadsheet(void) {
     if (!document_.has_value() || import_watcher_.isRunning() ||
-        export_watcher_.isRunning()) {
+        export_watcher_.isRunning() || support_bundle_watcher_.isRunning()) {
         return;
     }
 
@@ -560,10 +581,12 @@ void MainWindow::ExportSpreadsheet(void) {
         .options = std::move(*options),
         .replace_existing = replace_existing,
     };
+    SPDLOG_INFO("Spreadsheet export started");
     open_action_->setEnabled(false);
     export_action_->setEnabled(false);
     timeline_export_button_->setEnabled(false);
     empty_open_button_->setEnabled(false);
+    export_logs_action_->setEnabled(false);
     statusBar()->showMessage(
         tr("Exporting %1…").arg(QFileInfo{destination}.fileName()));
 
@@ -579,13 +602,20 @@ void MainWindow::HandleExportFinished(void) {
     empty_open_button_->setEnabled(true);
     export_action_->setEnabled(document_.has_value());
     timeline_export_button_->setEnabled(document_.has_value());
+    export_logs_action_->setEnabled(true);
     statusBar()->clearMessage();
 
     auto result = export_watcher_.result();
     if (!result.has_value()) {
+        SPDLOG_ERROR("Spreadsheet export failed at stage {} with {} "
+                     "diagnostic(s)",
+                     static_cast<int>(result.error().kind),
+                     result.error().diagnostics.size());
         ShowExportFailure(result.error());
         return;
     }
+    SPDLOG_INFO("Spreadsheet export completed with {} diagnostic(s)",
+                result->diagnostics.size());
 
     const auto path = PathText(result->path);
     QMessageBox message{this};
@@ -619,6 +649,140 @@ void MainWindow::HandleExportFinished(void) {
     }
 }
 
+void MainWindow::ExportDiagnosticLogs(void) {
+    if (import_watcher_.isRunning() || export_watcher_.isRunning() ||
+        support_bundle_watcher_.isRunning()) {
+        return;
+    }
+
+    QMessageBox disclosure{
+        QMessageBox::Information,
+        tr("Export Diagnostic Logs"),
+        tr("The support bundle will contain recent Edit Atlas application "
+           "logs and a summary of the application version, operating system, "
+           "architecture, Qt version, platform plugin, and registered "
+           "formats."),
+        QMessageBox::NoButton,
+        this,
+    };
+    disclosure.setInformativeText(
+        tr("It will not automatically include timelines, spreadsheets, "
+           "media, environment variables, or secrets."));
+    auto *continue_button =
+        disclosure.addButton(tr("Continue"), QMessageBox::AcceptRole);
+    disclosure.addButton(tr("Cancel"), QMessageBox::RejectRole);
+    disclosure.exec();
+    if (disclosure.clickedButton() != continue_button) {
+        return;
+    }
+
+    QFileDialog dialog{
+        this,
+        tr("Export Diagnostic Logs"),
+        QStringLiteral("edit-atlas-diagnostics.zip"),
+    };
+    dialog.setAcceptMode(QFileDialog::AcceptSave);
+    dialog.setFileMode(QFileDialog::AnyFile);
+    dialog.setDefaultSuffix(QStringLiteral("zip"));
+    dialog.setNameFilters({tr("ZIP archive (*.zip)"), tr("All files (*)")});
+    dialog.setOption(QFileDialog::DontConfirmOverwrite, true);
+    dialog.resize(1000, 650);
+    if (dialog.exec() != QDialog::Accepted) {
+        return;
+    }
+    const auto selected_files = dialog.selectedFiles();
+    if (selected_files.empty()) {
+        return;
+    }
+
+    const auto destination = selected_files.front();
+    const auto replace_existing = QFileInfo::exists(destination);
+    if (replace_existing) {
+        QMessageBox confirmation{
+            QMessageBox::Question,
+            tr("Replace Existing File?"),
+            tr("%1 already exists. Do you want to replace it?")
+                .arg(QFileInfo{destination}.fileName()),
+            QMessageBox::NoButton,
+            this,
+        };
+        auto *replace_button =
+            confirmation.addButton(tr("Replace"), QMessageBox::AcceptRole);
+        confirmation.addButton(tr("Cancel"), QMessageBox::RejectRole);
+        confirmation.exec();
+        if (confirmation.clickedButton() != replace_button) {
+            return;
+        }
+    }
+
+    SPDLOG_INFO("Diagnostic support bundle export started");
+    spdlog::default_logger()->flush();
+    support::SupportBundleRequest request{
+        .path = FilesystemPath(destination),
+        .log_directory = log_directory_,
+        .environment = diagnostic_environment_,
+        .replace_existing = replace_existing,
+    };
+    open_action_->setEnabled(false);
+    export_action_->setEnabled(false);
+    timeline_export_button_->setEnabled(false);
+    empty_open_button_->setEnabled(false);
+    export_logs_action_->setEnabled(false);
+    statusBar()->showMessage(tr("Creating diagnostic support bundle…"));
+    support_bundle_watcher_.setFuture(
+        QtConcurrent::run([request = std::move(request)](void) mutable {
+            return support::CreateSupportBundle(std::move(request));
+        }));
+}
+
+void MainWindow::HandleSupportBundleFinished(void) {
+    open_action_->setEnabled(true);
+    empty_open_button_->setEnabled(true);
+    export_action_->setEnabled(document_.has_value());
+    timeline_export_button_->setEnabled(document_.has_value());
+    export_logs_action_->setEnabled(true);
+    statusBar()->clearMessage();
+
+    auto result = support_bundle_watcher_.result();
+    if (!result.has_value()) {
+        SPDLOG_ERROR("Diagnostic support bundle export failed at stage {}: {}",
+                     static_cast<int>(result.error().kind),
+                     result.error().detail);
+        ShowSupportBundleFailure(result.error());
+        return;
+    }
+
+    SPDLOG_INFO("Diagnostic support bundle exported with {} log file(s)",
+                result->log_file_count);
+    const auto path = PathText(result->path);
+    QMessageBox message{
+        QMessageBox::Information,
+        tr("Diagnostic Logs Exported"),
+        tr("The support bundle was saved to:\n%1").arg(path),
+        QMessageBox::NoButton,
+        this,
+    };
+    message.setInformativeText(
+        tr("Recent application log files included: %1")
+            .arg(static_cast<qulonglong>(result->log_file_count)));
+    auto *reveal_button =
+        message.addButton(tr("Reveal File"), QMessageBox::ActionRole);
+    message.addButton(tr("Close"), QMessageBox::RejectRole);
+    message.exec();
+    if (message.clickedButton() == reveal_button && !RevealFile(path)) {
+        QMessageBox warning{
+            QMessageBox::Warning,
+            tr("Could Not Reveal File"),
+            tr("The support bundle was saved, but its location could not be "
+               "opened."),
+            QMessageBox::NoButton,
+            this,
+        };
+        warning.addButton(tr("Close"), QMessageBox::RejectRole);
+        warning.exec();
+    }
+}
+
 void MainWindow::StartImport(const QString &path,
                              std::optional<std::string> frame_rate) {
     ClearDocument();
@@ -627,6 +791,7 @@ void MainWindow::StartImport(const QString &path,
     open_action_->setEnabled(false);
     export_action_->setEnabled(false);
     empty_open_button_->setEnabled(false);
+    export_logs_action_->setEnabled(false);
     document_stack_->setCurrentIndex(kLoadingPage);
     loading_label_->setText(tr("Opening %1…").arg(QFileInfo{path}.fileName()));
 
@@ -641,6 +806,7 @@ void MainWindow::StartImport(const QString &path,
             .value = *frame_rate,
         });
     }
+    SPDLOG_INFO("Timeline import started");
     const auto *document_import_service = &document_import_service_;
     import_watcher_.setFuture(QtConcurrent::run(
         [document_import_service, request = std::move(request)](void) mutable {
@@ -651,6 +817,7 @@ void MainWindow::StartImport(const QString &path,
 void MainWindow::HandleImportFinished(void) {
     open_action_->setEnabled(true);
     empty_open_button_->setEnabled(true);
+    export_logs_action_->setEnabled(true);
     auto result = import_watcher_.result();
 
     if (!result.has_value() &&
@@ -685,6 +852,9 @@ void MainWindow::HandleImportFinished(void) {
     }
 
     if (!result.has_value()) {
+        SPDLOG_ERROR("Timeline import failed at stage {} with {} diagnostic(s)",
+                     static_cast<int>(result.error().kind),
+                     result.error().diagnostics.size());
         ShowImportFailure(result.error());
         return;
     }
@@ -698,6 +868,9 @@ void MainWindow::HandleImportFinished(void) {
     document_stack_->setCurrentIndex(kTimelinePage);
     export_action_->setEnabled(true);
     timeline_export_button_->setEnabled(true);
+    SPDLOG_INFO("Timeline import completed with {} event(s) and {} "
+                "diagnostic(s)",
+                document_->events.size(), last_diagnostics_.size());
     RememberRecentFile(PathText(result->path));
 }
 
@@ -918,6 +1091,42 @@ void MainWindow::ShowExportFailure(
     message.exec();
 }
 
+void MainWindow::ShowSupportBundleFailure(
+    const support::SupportBundleFailure &failure) {
+    QString description;
+    switch (failure.kind) {
+    case support::SupportBundleFailureKind::kDestinationExists:
+        description =
+            tr("The destination file already exists and was not replaced.");
+        break;
+    case support::SupportBundleFailureKind::kReadLogsFailed:
+        description = tr("The application logs could not be read.");
+        break;
+    case support::SupportBundleFailureKind::kWriteBundleFailed:
+        description = tr("The diagnostic support bundle could not be "
+                         "created.");
+        break;
+    case support::SupportBundleFailureKind::kCommitFailed:
+        description = tr("The completed support bundle could not replace the "
+                         "destination file.");
+        break;
+    }
+    if (failure.filesystem_error) {
+        description +=
+            QStringLiteral("\n") + Utf8(failure.filesystem_error.message());
+    }
+
+    QMessageBox message{
+        QMessageBox::Critical,
+        tr("Could Not Export Diagnostic Logs"),
+        description,
+        QMessageBox::NoButton,
+        this,
+    };
+    message.addButton(tr("Close"), QMessageBox::RejectRole);
+    message.exec();
+}
+
 void MainWindow::RememberRecentFile(const QString &path) {
     if (!remember_recent_action_->isChecked()) {
         return;
@@ -1011,6 +1220,9 @@ void MainWindow::RetranslateUi(void) {
         tr("Export the open timeline as an Excel workbook."));
     exit_action_->setText(tr("E&xit"));
     help_menu_->setTitle(tr("&Help"));
+    export_logs_action_->setText(tr("Export Diagnostic &Logs"));
+    export_logs_action_->setToolTip(
+        tr("Create a local support bundle containing diagnostic logs."));
     about_action_->setText(tr("&About Edit Atlas"));
 
     const QSignalBlocker blocker{language_selector_};
@@ -1039,6 +1251,8 @@ void MainWindow::RetranslateUi(void) {
 
     if (export_watcher_.isRunning()) {
         statusBar()->showMessage(tr("Exporting spreadsheet…"));
+    } else if (support_bundle_watcher_.isRunning()) {
+        statusBar()->showMessage(tr("Creating diagnostic support bundle…"));
     }
 
     failure_open_button_->setText(tr("Open Another Timeline…"));
