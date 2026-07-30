@@ -19,8 +19,8 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  build:
-    name: ${{ matrix.name }}
+  build-and-package:
+    name: Build and package / ${{ matrix.name }}
     runs-on: ${{ matrix.os }}
     timeout-minutes: 180
 
@@ -77,58 +77,15 @@ jobs:
             /usr/share/dotnet
           df --human-readable /
 
-      - name: Install Linux host dependencies
+      - name: Install Ubuntu host dependencies
         if: runner.os == 'Linux'
-        run: |
-          sudo apt-get update
-          sudo apt-get install --yes --no-install-recommends \
-            autoconf \
-            autoconf-archive \
-            automake \
-            dpkg-dev \
-            libc6-dev \
-            libegl1-mesa-dev \
-            libglu1-mesa-dev \
-            libtool \
-            libx11-dev \
-            libx11-xcb-dev \
-            libxcb-cursor-dev \
-            libxcb-glx0-dev \
-            libxcb-icccm4-dev \
-            libxcb-image0-dev \
-            libxcb-keysyms1-dev \
-            libxcb-randr0-dev \
-            libxcb-render-util0-dev \
-            libxcb-shape0-dev \
-            libxcb-shm0-dev \
-            libxcb-sync-dev \
-            libxcb-util-dev \
-            libxcb-xfixes0-dev \
-            libxcb-xinput-dev \
-            libxcb-xkb-dev \
-            libxcb1-dev \
-            libxext-dev \
-            libxfixes-dev \
-            libxi-dev \
-            libxkbcommon-dev \
-            libxkbcommon-x11-dev \
-            libxrender-dev \
-            libwayland-dev \
-            pkg-config \
-            rpm \
-            wayland-protocols
+        run: ./scripts/ci/install-ubuntu-dependencies.sh
 
       - name: Install macOS host dependencies
         if: runner.os == 'macOS'
         env:
           HOMEBREW_NO_AUTO_UPDATE: 1
-        run: |
-          brew install \
-            autoconf \
-            autoconf-archive \
-            automake \
-            libtool \
-            pkg-config
+        run: ./scripts/ci/install-macos-dependencies.sh
 
       - name: Install CMake and Ninja
         uses: lukka/get-cmake@v4.4.0
@@ -161,6 +118,13 @@ jobs:
       - name: Configure Debug
         run: cmake --preset ${{ matrix.debug_preset }}
 
+      - name: Save vcpkg binary cache
+        if: always() && steps.vcpkg-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v6.1.0
+        with:
+          path: .cache/vcpkg/archives
+          key: ${{ steps.vcpkg-cache.outputs.cache-primary-key }}
+
       - name: Clean vcpkg temporary directories
         run: |
           cmake -E remove_directory "${{ github.workspace }}/vcpkg/buildtrees"
@@ -184,13 +148,6 @@ jobs:
 
       - name: Configure Release
         run: cmake --preset ${{ matrix.release_preset }}
-
-      - name: Save vcpkg binary cache
-        if: steps.vcpkg-cache.outputs.cache-hit != 'true'
-        uses: actions/cache/save@v6.1.0
-        with:
-          path: .cache/vcpkg/archives
-          key: ${{ steps.vcpkg-cache.outputs.cache-primary-key }}
 
       - name: Clean vcpkg temporary directories
         run: |
@@ -234,105 +191,16 @@ jobs:
         run: cmake -E remove_directory "build/stage-${{ matrix.triplet }}"
 
       - name: Package Release
+        id: package
         run: cpack --preset ${{ matrix.package_preset }}
 
-      - name: Verify Linux packages
-        if: runner.os == 'Linux'
-        shell: bash
-        run: |
-          set -euo pipefail
-          package_dir="${{ github.workspace }}/build/packages/${{ matrix.triplet }}"
-          check_dir="${{ github.workspace }}/build/package-check-linux"
-          archive="$(find "$package_dir" -name '*.tar.gz' -print -quit)"
-          deb="$(find "$package_dir" -name '*.deb' -print -quit)"
-          rpm_package="$(find "$package_dir" -name '*.rpm' -print -quit)"
-          test -n "$archive"
-          test -n "$deb"
-          test -n "$rpm_package"
-          test "$(
-            rpm --query --package --queryformat '%{ARCH}' "$rpm_package"
-          )" = "x86_64"
-
-          archive_dir="$check_dir/archive"
-          mkdir -p "$archive_dir"
-          cmake -E chdir "$archive_dir" cmake -E tar xzf "$archive"
-          archive_executable="$(
-            find "$archive_dir" -path '*/bin/edit-atlas' -type f -print -quit
-          )"
-          test -n "$archive_executable"
-          archive_root="$(dirname "$(dirname "$archive_executable")")"
-          cmake \
-            "-DEDIT_ATLAS_DEPLOYMENT_ROOT=$archive_root" \
-            "-DEDIT_ATLAS_EXECUTABLE=$archive_executable" \
-            -P cmake/VerifyQtDeployment.cmake
-          cmake -E remove_directory "$archive_dir"
-
-          deb_dir="$check_dir/deb"
-          mkdir -p "$deb_dir"
-          dpkg-deb --extract "$deb" "$deb_dir"
-          test "$(dpkg-deb --field "$deb" Architecture)" = "amd64"
-          cmake \
-            "-DEDIT_ATLAS_DEPLOYMENT_ROOT=$deb_dir/usr" \
-            "-DEDIT_ATLAS_EXECUTABLE=$deb_dir/usr/bin/edit-atlas" \
-            -P cmake/VerifyQtDeployment.cmake
-
-          sudo apt-get install --yes "$deb"
-          trap 'sudo apt-get remove --yes edit-atlas || true' EXIT
-          test -x /usr/bin/edit-atlas
-          test "$(
-            dpkg-query --show --showformat='${Status}' edit-atlas
-          )" = "install ok installed"
-          sudo apt-get remove --yes edit-atlas
-          test ! -e /usr/bin/edit-atlas
-          trap - EXIT
-
-      - name: Verify macOS package
-        if: runner.os == 'macOS'
-        shell: bash
-        run: |
-          set -euo pipefail
-          package_dir="${{ github.workspace }}/build/packages/${{ matrix.triplet }}"
-          package="$(find "$package_dir" -name '*.pkg' -print -quit)"
-          test -n "$package"
-          application="/Applications/edit-atlas.app"
-          test ! -e "$application"
-          sudo installer -pkg "$package" -target /
-          trap 'sudo rm --recursive --force "$application"' EXIT
-          cmake \
-            "-DEDIT_ATLAS_DEPLOYMENT_ROOT=$application" \
-            "-DEDIT_ATLAS_EXECUTABLE=$application/Contents/MacOS/edit-atlas" \
-            -P cmake/VerifyQtDeployment.cmake
-          cmake \
-            "-DEDIT_ATLAS_BUNDLE=$application" \
-            -P cmake/VerifyMacOSUniversalBundle.cmake
-          "$application/Contents/MacOS/edit-atlas" &
-          application_pid=$!
-          sleep 5
-          kill -0 "$application_pid"
-          kill "$application_pid"
-          wait "$application_pid" || true
-          sudo rm --recursive --force "$application"
-          test ! -e "$application"
-          trap - EXIT
-
-      - name: Verify Windows installer
-        if: runner.os == 'Windows'
-        shell: pwsh
-        run: |
-          $installer = Get-ChildItem `
-            "${{ github.workspace }}/build/packages/${{ matrix.triplet }}" `
-            -Filter "*-windows-x64.msi" |
-            Select-Object -First 1
-          if ($null -eq $installer) {
-            throw "The Windows installer was not generated."
-          }
-          & "${{ github.workspace }}/cmake/VerifyWindowsInstaller.ps1" `
-            -Installer $installer.FullName `
-            -InstallDirectory "${{ github.workspace }}/build/package-check-windows/install" `
-            -SourceDirectory "${{ github.workspace }}"
+      - name: Remove CPack temporary files
+        run: >-
+          cmake -E remove_directory
+          "build/packages/${{ matrix.triplet }}/_CPack_Packages"
 
       - name: Upload packages
-        if: github.event_name != 'schedule' || runner.os != 'Windows'
+        if: always() && steps.package.outcome == 'success'
         uses: actions/upload-artifact@v7
         with:
           name: edit-atlas-${{ matrix.triplet }}-packages
@@ -352,14 +220,51 @@ jobs:
           if-no-files-found: ignore
           retention-days: 7
 
-  verify-fedora-rpm:
-    name: RPM on Fedora 44
-    needs: build
+  verify-linux-packages:
+    name: Verify Linux packages / ${{ matrix.name }}
+    needs: build-and-package
     runs-on: ubuntu-24.04
     timeout-minutes: 20
-    container: fedora:44
+    container: ${{ matrix.container }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Ubuntu 24.04
+            distribution: ubuntu
+            container: ubuntu:24.04
+          - name: Fedora 44
+            distribution: fedora
+            container: fedora:44
 
     steps:
+      - name: Install Ubuntu verification tools
+        if: matrix.distribution == 'ubuntu'
+        run: >-
+          apt-get update &&
+          apt-get install
+          --yes
+          --no-install-recommends
+          binutils
+          ca-certificates
+          cmake
+          findutils
+          git
+
+      - name: Install Fedora verification tools
+        if: matrix.distribution == 'fedora'
+        run: >-
+          dnf install
+          --assumeyes
+          binutils
+          ca-certificates
+          cmake
+          cpio
+          findutils
+          git
+          rpm
+
       - name: Check out source
         uses: actions/checkout@v7.0.1
 
@@ -369,62 +274,27 @@ jobs:
           name: edit-atlas-x64-linux-packages
           path: build/packages/x64-linux
 
-      - name: Install verification tools
-        run: >-
-          dnf install
-          --assumeyes
-          binutils
-          cmake
-          cpio
-          findutils
-          rpm
-
-      - name: Verify Fedora installation
+      - name: Verify packages
         shell: bash
-        run: |
-          set -euo pipefail
-          package_relative="$(
-            find build/packages/x64-linux -name '*.rpm' -print -quit
-          )"
-          test -n "$package_relative"
-          package="$PWD/$package_relative"
-          test "$(
-            rpm --query --package --queryformat '%{ARCH}' "$package"
-          )" = "x86_64"
+        run: >-
+          ./scripts/ci/verify-linux-packages.sh
+          ${{ matrix.distribution }}
+          build/packages/x64-linux
 
-          check_dir="$PWD/build/package-check-fedora"
-          mkdir -p "$check_dir"
-          (
-            cd "$check_dir"
-            rpm2cpio "$package" |
-              cpio --extract --make-directories --quiet
-          )
-          cmake \
-            "-DEDIT_ATLAS_DEPLOYMENT_ROOT=$check_dir/usr" \
-            "-DEDIT_ATLAS_EXECUTABLE=$check_dir/usr/bin/edit-atlas" \
-            -P cmake/VerifyQtDeployment.cmake
-
-          dnf install --assumeyes "$package"
-          trap 'dnf remove --assumeyes edit-atlas || true' EXIT
-          test -x /usr/bin/edit-atlas
-          rpm --query edit-atlas
-          cmake \
-            "-DEDIT_ATLAS_DEPLOYMENT_ROOT=/usr" \
-            "-DEDIT_ATLAS_EXECUTABLE=/usr/bin/edit-atlas" \
-            -P cmake/VerifyQtDeployment.cmake
-          dnf remove --assumeyes edit-atlas
-          test ! -e /usr/bin/edit-atlas
-          if rpm --query edit-atlas; then
-            echo "The Edit Atlas RPM remains installed." >&2
-            exit 1
-          fi
-          trap - EXIT
-
-  verify-macos-intel:
-    name: macOS Universal on Intel
-    needs: build
-    runs-on: macos-15-intel
+  verify-macos-package:
+    name: Verify macOS package / ${{ matrix.name }}
+    needs: build-and-package
+    runs-on: ${{ matrix.os }}
     timeout-minutes: 20
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Apple Silicon
+            os: macos-15
+          - name: Intel
+            os: macos-15-intel
 
     steps:
       - name: Check out source
@@ -439,31 +309,39 @@ jobs:
           name: edit-atlas-universal-osx-packages
           path: build/packages/universal-osx
 
-      - name: Verify Intel installation
-        shell: bash
-        run: |
-          set -euo pipefail
-          package="$(
-            find build/packages/universal-osx -name '*.pkg' -print -quit
-          )"
-          test -n "$package"
-          application="/Applications/edit-atlas.app"
-          test ! -e "$application"
-          sudo installer -pkg "$package" -target /
-          trap 'sudo rm --recursive --force "$application"' EXIT
-          cmake \
-            "-DEDIT_ATLAS_DEPLOYMENT_ROOT=$application" \
-            "-DEDIT_ATLAS_EXECUTABLE=$application/Contents/MacOS/edit-atlas" \
-            -P cmake/VerifyQtDeployment.cmake
-          cmake \
-            "-DEDIT_ATLAS_BUNDLE=$application" \
-            -P cmake/VerifyMacOSUniversalBundle.cmake
-          "$application/Contents/MacOS/edit-atlas" &
-          application_pid=$!
-          sleep 5
-          kill -0 "$application_pid"
-          kill "$application_pid"
-          wait "$application_pid" || true
-          sudo rm --recursive --force "$application"
-          test ! -e "$application"
-          trap - EXIT
+      - name: Verify package
+        run: ./scripts/ci/verify-macos-package.sh build/packages/universal-osx
+
+  verify-windows-package:
+    name: Verify Windows package / Windows x64
+    needs: build-and-package
+    runs-on: windows-2022
+    timeout-minutes: 20
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v7.0.1
+
+      - name: Install CMake
+        uses: lukka/get-cmake@v4.4.0
+
+      - name: Download Windows package
+        uses: actions/download-artifact@v8
+        with:
+          name: edit-atlas-x64-windows-packages
+          path: build/packages/x64-windows
+
+      - name: Verify package
+        shell: pwsh
+        run: >-
+          ./scripts/ci/verify-windows-package.ps1
+          -PackageDirectory build/packages/x64-windows
+
+      - name: Upload Windows Installer logs
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: windows-installer-logs
+          path: build/package-check-windows/*.log
+          if-no-files-found: ignore
+          retention-days: 7

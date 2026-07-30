@@ -125,7 +125,10 @@ sudo dnf remove edit-atlas
 
 ## Package verification
 
-CI builds packages from the same release presets used locally and then:
+CI separates package production from package consumption. The
+`build-and-package` matrix builds, tests, stages, and packages Linux x64,
+macOS Universal, and Windows x64 artifacts. Independent verification jobs
+then download those artifacts and treat them like end-user downloads:
 
 - extracts the portable archive and both Linux native packages, verifies their
   deployed Qt libraries, XCB and Wayland plugins, architecture metadata, and
@@ -137,6 +140,37 @@ CI builds packages from the same release presets used locally and then:
 - silently installs the Windows package into an isolated directory, verifies
   Qt and the Windows platform plugin, confirms the uninstall registry entry,
   runs the uninstaller, and confirms the executable was removed.
+
+The package checks are scripts rather than embedded workflow fragments, so the
+same checks can be run locally after creating the matching package:
+
+```sh
+./scripts/ci/verify-linux-packages.sh ubuntu build/packages/x64-linux
+./scripts/ci/verify-linux-packages.sh fedora build/packages/x64-linux
+./scripts/ci/verify-macos-package.sh build/packages/universal-osx
+```
+
+On Windows PowerShell:
+
+```powershell
+.\scripts\ci\verify-windows-package.ps1 `
+  -PackageDirectory build\packages\x64-windows
+```
+
+Run each Linux command on the named distribution. The Linux scripts install
+and remove the native package through the system package manager. The macOS
+script installs the application under `/Applications` for its launch check and
+then removes it. The Windows script performs a silent MSI installation and
+uninstallation. All three therefore require permission to install software.
+Failed Windows verification jobs upload the verbose Windows Installer logs as
+the `windows-installer-logs` workflow artifact. Other verifier output remains
+in the corresponding GitHub Actions step log.
+
+The producer's Ubuntu and macOS host dependencies are also captured in
+`scripts/ci/install-ubuntu-dependencies.sh` and
+`scripts/ci/install-macos-dependencies.sh`. These supplement the common tools
+listed in the project README and are usable when reproducing their respective
+CI environments.
 
 These checks validate package structure and dependency deployment. Before a
 release is published, a manual clean-machine smoke test should still open the
