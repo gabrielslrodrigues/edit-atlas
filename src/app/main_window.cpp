@@ -9,14 +9,20 @@
 #include <edit_atlas/core/version.hpp>
 
 #include <edit_atlas/formats/cmx3600/cmx3600_importer.hpp>
+#include <edit_atlas/formats/xlsx/xlsx_exporter.hpp>
 
-#include <edit_atlas/services/document_service.hpp>
+#include <edit_atlas/services/document_export_service.hpp>
+#include <edit_atlas/services/document_import_service.hpp>
 
 #include <QAbstractItemView>
 #include <QAction>
 #include <QByteArray>
+#include <QCheckBox>
 #include <QComboBox>
+#include <QDesktopServices>
 #include <QDialog>
+#include <QDialogButtonBox>
+#include <QDir>
 #include <QDragEnterEvent>
 #include <QDropEvent>
 #include <QEvent>
@@ -34,12 +40,14 @@
 #include <QMenuBar>
 #include <QMessageBox>
 #include <QMimeData>
+#include <QProcess>
 #include <QProgressBar>
 #include <QPushButton>
 #include <QSettings>
 #include <QSignalBlocker>
 #include <QSortFilterProxyModel>
 #include <QStackedWidget>
+#include <QStatusBar>
 #include <QString>
 #include <QStringList>
 #include <QTableView>
@@ -88,6 +96,20 @@ constexpr qsizetype kMaximumRecentFiles = 10;
                              static_cast<qsizetype>(utf8.size()));
 }
 
+[[nodiscard]] bool RevealFile(const QString &path) {
+#if defined(Q_OS_WIN)
+    return QProcess::startDetached(
+        QStringLiteral("explorer.exe"),
+        {QStringLiteral("/select,"), QDir::toNativeSeparators(path)});
+#elif defined(Q_OS_MACOS)
+    return QProcess::startDetached(QStringLiteral("open"),
+                                   {QStringLiteral("-R"), path});
+#else
+    return QDesktopServices::openUrl(
+        QUrl::fromLocalFile(QFileInfo{path}.absolutePath()));
+#endif
+}
+
 [[nodiscard]] bool
 HasDiagnosticCode(const std::vector<core::Diagnostic> &diagnostics,
                   std::string_view code) {
@@ -102,7 +124,8 @@ HasDiagnosticCode(const std::vector<core::Diagnostic> &diagnostics,
 MainWindow::MainWindow(const core::FormatRegistry &registry,
                        QTranslator &translator,
                        ApplicationLanguage initial_language, QWidget *parent)
-    : QMainWindow(parent), registry_(registry), document_service_(registry),
+    : QMainWindow(parent), registry_(registry),
+      document_export_service_(registry), document_import_service_(registry),
       translator_(translator), language_(initial_language) {
     setObjectName(QStringLiteral("mainWindow"));
     resize(1100, 700);
@@ -110,8 +133,11 @@ MainWindow::MainWindow(const core::FormatRegistry &registry,
     setAcceptDrops(true);
 
     connect(&import_watcher_,
-            &QFutureWatcher<services::OpenDocumentResult>::finished, this,
+            &QFutureWatcher<services::ImportDocumentResult>::finished, this,
             &MainWindow::HandleImportFinished);
+    connect(&export_watcher_,
+            &QFutureWatcher<services::ExportDocumentResult>::finished, this,
+            &MainWindow::HandleExportFinished);
 
     BuildMenus();
     BuildUi();
@@ -121,6 +147,9 @@ MainWindow::MainWindow(const core::FormatRegistry &registry,
 MainWindow::~MainWindow(void) {
     if (import_watcher_.isRunning()) {
         import_watcher_.waitForFinished();
+    }
+    if (export_watcher_.isRunning()) {
+        export_watcher_.waitForFinished();
     }
 }
 
@@ -132,7 +161,8 @@ void MainWindow::changeEvent(QEvent *event) {
 }
 
 void MainWindow::dragEnterEvent(QDragEnterEvent *event) {
-    if (!import_watcher_.isRunning() && event->mimeData()->hasUrls() &&
+    if (!import_watcher_.isRunning() && !export_watcher_.isRunning() &&
+        event->mimeData()->hasUrls() &&
         std::ranges::any_of(event->mimeData()->urls(), [](const QUrl &url) {
             return url.isLocalFile();
         })) {
@@ -169,6 +199,13 @@ void MainWindow::BuildMenus(void) {
         settings.value(QStringLiteral("files/rememberRecent"), false).toBool());
     connect(remember_recent_action_, &QAction::toggled, this,
             &MainWindow::SetRememberRecentFiles);
+
+    file_menu_->addSeparator();
+    export_action_ = file_menu_->addAction(QString{});
+    export_action_->setObjectName(QStringLiteral("exportAction"));
+    export_action_->setEnabled(false);
+    connect(export_action_, &QAction::triggered, this,
+            &MainWindow::ExportSpreadsheet);
 
     file_menu_->addSeparator();
     exit_action_ = file_menu_->addAction(QString{});
@@ -269,12 +306,21 @@ void MainWindow::BuildUi(void) {
     auto *timeline_page = new QWidget{document_stack_};
     auto *timeline_layout = new QVBoxLayout{timeline_page};
     timeline_layout->setContentsMargins(0, 4, 0, 0);
+    auto *timeline_header_layout = new QHBoxLayout;
     timeline_title_label_ = new QLabel{timeline_page};
     auto timeline_title_font = timeline_title_label_->font();
     timeline_title_font.setPointSize(14);
     timeline_title_font.setWeight(QFont::DemiBold);
     timeline_title_label_->setFont(timeline_title_font);
-    timeline_layout->addWidget(timeline_title_label_);
+    timeline_header_layout->addWidget(timeline_title_label_, 1);
+    timeline_export_button_ = new QPushButton{timeline_page};
+    timeline_export_button_->setObjectName(
+        QStringLiteral("timelineExportButton"));
+    timeline_export_button_->setEnabled(false);
+    connect(timeline_export_button_, &QPushButton::clicked, this,
+            &MainWindow::ExportSpreadsheet);
+    timeline_header_layout->addWidget(timeline_export_button_);
+    timeline_layout->addLayout(timeline_header_layout);
     timeline_summary_label_ = new QLabel{timeline_page};
     timeline_summary_label_->setObjectName(QStringLiteral("timelineSummary"));
     timeline_layout->addWidget(timeline_summary_label_);
@@ -369,10 +415,208 @@ void MainWindow::OpenDocument(void) {
 }
 
 void MainWindow::OpenDocument(const QString &path) {
-    if (path.isEmpty() || import_watcher_.isRunning()) {
+    if (path.isEmpty() || import_watcher_.isRunning() ||
+        export_watcher_.isRunning()) {
         return;
     }
     StartImport(path);
+}
+
+std::optional<std::vector<core::MetadataEntry>>
+MainWindow::SpreadsheetExportOptions(void) {
+    QDialog dialog{this};
+    dialog.setWindowTitle(tr("Spreadsheet Options"));
+    dialog.setModal(true);
+
+    auto *layout = new QVBoxLayout{&dialog};
+    auto *description = new QLabel{
+        tr("Choose the information to include in the workbook."), &dialog};
+    description->setWordWrap(true);
+    layout->addWidget(description);
+
+    auto *timeline = new QCheckBox{tr("Include timeline summary"), &dialog};
+    timeline->setChecked(true);
+    layout->addWidget(timeline);
+
+    auto *diagnostics = new QCheckBox{tr("Include diagnostics"), &dialog};
+    diagnostics->setChecked(true);
+    layout->addWidget(diagnostics);
+
+    auto *buttons = new QDialogButtonBox{&dialog};
+    buttons->addButton(tr("Continue"), QDialogButtonBox::AcceptRole);
+    buttons->addButton(tr("Cancel"), QDialogButtonBox::RejectRole);
+    connect(buttons, &QDialogButtonBox::accepted, &dialog, &QDialog::accept);
+    connect(buttons, &QDialogButtonBox::rejected, &dialog, &QDialog::reject);
+    layout->addWidget(buttons);
+
+    if (dialog.exec() != QDialog::Accepted) {
+        return std::nullopt;
+    }
+
+    return std::vector<core::MetadataEntry>{
+        core::MetadataEntry{
+            .key =
+                std::string{
+                    formats::xlsx::kIncludeTimelineSheetOption,
+                },
+            .value = timeline->isChecked(),
+        },
+        core::MetadataEntry{
+            .key =
+                std::string{
+                    formats::xlsx::kIncludeDiagnosticsSheetOption,
+                },
+            .value = diagnostics->isChecked(),
+        },
+    };
+}
+
+void MainWindow::ExportSpreadsheet(void) {
+    if (!document_.has_value() || import_watcher_.isRunning() ||
+        export_watcher_.isRunning()) {
+        return;
+    }
+
+    const auto exporters = registry_.ExportersForExtension("xlsx");
+    if (exporters.empty()) {
+        QMessageBox message{
+            QMessageBox::Critical,
+            tr("Could not export spreadsheet"),
+            tr("No registered exporter can create an Excel workbook."),
+            QMessageBox::NoButton,
+            this,
+        };
+        message.addButton(tr("Close"), QMessageBox::RejectRole);
+        message.exec();
+        return;
+    }
+
+    auto options = SpreadsheetExportOptions();
+    if (!options.has_value()) {
+        return;
+    }
+
+    const QFileInfo source{current_path_};
+    auto suggested_name = source.completeBaseName();
+    if (suggested_name.isEmpty()) {
+        suggested_name = tr("timeline");
+    }
+    suggested_name += QStringLiteral("-report.xlsx");
+
+    const QSettings settings;
+    auto directory =
+        settings.value(QStringLiteral("export/lastDirectory")).toString();
+    if (directory.isEmpty()) {
+        directory = source.absolutePath();
+    }
+
+    QFileDialog dialog{
+        this,
+        tr("Export Spreadsheet"),
+        QDir{directory}.filePath(suggested_name),
+    };
+    dialog.setAcceptMode(QFileDialog::AcceptSave);
+    dialog.setFileMode(QFileDialog::AnyFile);
+    dialog.setDefaultSuffix(QStringLiteral("xlsx"));
+    dialog.setNameFilters({tr("Excel workbook (*.xlsx)"), tr("All files (*)")});
+    dialog.setOption(QFileDialog::DontConfirmOverwrite, true);
+    dialog.resize(1000, 650);
+    if (dialog.exec() != QDialog::Accepted) {
+        return;
+    }
+    const auto selected_files = dialog.selectedFiles();
+    if (selected_files.empty()) {
+        return;
+    }
+
+    const auto destination = selected_files.front();
+    const auto replace_existing = QFileInfo::exists(destination);
+    if (replace_existing) {
+        QMessageBox confirmation{
+            QMessageBox::Question,
+            tr("Replace Existing File?"),
+            tr("%1 already exists. Do you want to replace it?")
+                .arg(QFileInfo{destination}.fileName()),
+            QMessageBox::NoButton,
+            this,
+        };
+        auto *replace_button =
+            confirmation.addButton(tr("Replace"), QMessageBox::AcceptRole);
+        confirmation.addButton(tr("Cancel"), QMessageBox::RejectRole);
+        confirmation.exec();
+        if (confirmation.clickedButton() != replace_button) {
+            return;
+        }
+    }
+
+    QSettings writable_settings;
+    writable_settings.setValue(QStringLiteral("export/lastDirectory"),
+                               QFileInfo{destination}.absolutePath());
+
+    services::ExportDocumentRequest request{
+        .path = FilesystemPath(destination),
+        .format_identifier = exporters.front()->descriptor().identifier,
+        .document = *document_,
+        .options = std::move(*options),
+        .replace_existing = replace_existing,
+    };
+    open_action_->setEnabled(false);
+    export_action_->setEnabled(false);
+    timeline_export_button_->setEnabled(false);
+    empty_open_button_->setEnabled(false);
+    statusBar()->showMessage(
+        tr("Exporting %1…").arg(QFileInfo{destination}.fileName()));
+
+    const auto *service = &document_export_service_;
+    export_watcher_.setFuture(QtConcurrent::run(
+        [service, request = std::move(request)](void) mutable {
+            return service->ExportDocument(std::move(request));
+        }));
+}
+
+void MainWindow::HandleExportFinished(void) {
+    open_action_->setEnabled(true);
+    empty_open_button_->setEnabled(true);
+    export_action_->setEnabled(document_.has_value());
+    timeline_export_button_->setEnabled(document_.has_value());
+    statusBar()->clearMessage();
+
+    auto result = export_watcher_.result();
+    if (!result.has_value()) {
+        ShowExportFailure(result.error());
+        return;
+    }
+
+    const auto path = PathText(result->path);
+    QMessageBox message{this};
+    message.setWindowTitle(result->diagnostics.empty()
+                               ? tr("Spreadsheet Exported")
+                               : tr("Spreadsheet Exported with Warnings"));
+    message.setIcon(result->diagnostics.empty() ? QMessageBox::Information
+                                                : QMessageBox::Warning);
+    message.setText(tr("The spreadsheet was saved to:\n%1").arg(path));
+    if (!result->diagnostics.empty()) {
+        message.setInformativeText(
+            tr("The workbook was created, but the exporter reported "
+               "warnings."));
+        message.setDetailedText(DiagnosticSummary(result->diagnostics));
+    }
+    auto *reveal_button =
+        message.addButton(tr("Reveal File"), QMessageBox::ActionRole);
+    message.addButton(tr("Close"), QMessageBox::RejectRole);
+    message.exec();
+    if (message.clickedButton() == reveal_button && !RevealFile(path)) {
+        QMessageBox warning{
+            QMessageBox::Warning,
+            tr("Could Not Reveal File"),
+            tr("The spreadsheet was saved, but its location could not be "
+               "opened."),
+            QMessageBox::NoButton,
+            this,
+        };
+        warning.addButton(tr("Close"), QMessageBox::RejectRole);
+        warning.exec();
+    }
 }
 
 void MainWindow::StartImport(const QString &path,
@@ -381,11 +625,12 @@ void MainWindow::StartImport(const QString &path,
     current_path_ = path;
     requested_frame_rate_ = frame_rate;
     open_action_->setEnabled(false);
+    export_action_->setEnabled(false);
     empty_open_button_->setEnabled(false);
     document_stack_->setCurrentIndex(kLoadingPage);
     loading_label_->setText(tr("Opening %1…").arg(QFileInfo{path}.fileName()));
 
-    services::OpenDocumentRequest request{
+    services::ImportDocumentRequest request{
         .path = FilesystemPath(path),
         .format_identifier = {},
         .options = {},
@@ -396,10 +641,10 @@ void MainWindow::StartImport(const QString &path,
             .value = *frame_rate,
         });
     }
-    const auto *document_service = &document_service_;
+    const auto *document_import_service = &document_import_service_;
     import_watcher_.setFuture(QtConcurrent::run(
-        [document_service, request = std::move(request)](void) mutable {
-            return document_service->OpenDocument(std::move(request));
+        [document_import_service, request = std::move(request)](void) mutable {
+            return document_import_service->ImportDocument(std::move(request));
         }));
 }
 
@@ -410,7 +655,7 @@ void MainWindow::HandleImportFinished(void) {
 
     if (!result.has_value() &&
         result.error().kind ==
-            services::DocumentOpenFailureKind::kImportFailed &&
+            services::DocumentImportFailureKind::kImportFailed &&
         !requested_frame_rate_.has_value() &&
         HasDiagnosticCode(
             result.error().diagnostics,
@@ -440,26 +685,30 @@ void MainWindow::HandleImportFinished(void) {
     }
 
     if (!result.has_value()) {
-        ShowFailure(result.error());
+        ShowImportFailure(result.error());
         return;
     }
 
     document_ = std::move(result->document);
     last_diagnostics_ = std::move(result->diagnostics);
-    last_load_error_.reset();
+    last_import_error_.reset();
     last_filesystem_error_.clear();
     PopulateTimeline();
     PopulateDiagnostics(last_diagnostics_);
     document_stack_->setCurrentIndex(kTimelinePage);
+    export_action_->setEnabled(true);
+    timeline_export_button_->setEnabled(true);
     RememberRecentFile(PathText(result->path));
 }
 
 void MainWindow::ClearDocument(void) {
+    export_action_->setEnabled(false);
+    timeline_export_button_->setEnabled(false);
     event_model_->SetDocument(nullptr);
     document_.reset();
     current_path_.clear();
     requested_frame_rate_.reset();
-    last_load_error_.reset();
+    last_import_error_.reset();
     last_filesystem_error_.clear();
     last_diagnostics_.clear();
     event_filter_->clear();
@@ -509,7 +758,34 @@ MainWindow::DiagnosticMessage(const core::Diagnostic &diagnostic) const {
     if (code == core::pipeline_diagnostic_code::kImportProducedNoDocument) {
         return tr("The importer did not produce a timeline.");
     }
+    if (code == core::pipeline_diagnostic_code::kUnknownExportFormat) {
+        return tr("The requested export format is not registered.");
+    }
+    if (code == core::pipeline_diagnostic_code::kExportException) {
+        return tr("The exporter failed unexpectedly.");
+    }
+    if (code == core::pipeline_diagnostic_code::kExportProducedNoArtifact) {
+        return tr("The exporter did not produce a spreadsheet.");
+    }
+    if (code == formats::xlsx::diagnostic_code::kWorkbookCreationFailed) {
+        return tr("The Excel workbook could not be created.");
+    }
+    if (code == formats::xlsx::diagnostic_code::kWorkbookWriteFailed) {
+        return tr("The Excel workbook could not be written.");
+    }
     return Utf8(diagnostic.message);
+}
+
+QString MainWindow::DiagnosticSummary(
+    const std::vector<core::Diagnostic> &diagnostics) const {
+    QStringList messages;
+    messages.reserve(static_cast<qsizetype>(diagnostics.size()));
+    for (const auto &diagnostic : diagnostics) {
+        messages.emplace_back(
+            QStringLiteral("• %1 [%2]")
+                .arg(DiagnosticMessage(diagnostic), Utf8(diagnostic.code)));
+    }
+    return messages.join(u'\n');
 }
 
 void MainWindow::PopulateTimeline(void) {
@@ -577,20 +853,22 @@ void MainWindow::PopulateDiagnostics(
     diagnostics_tree_->resizeColumnToContents(1);
 }
 
-void MainWindow::ShowFailure(const services::DocumentOpenFailure &failure) {
+void MainWindow::ShowImportFailure(
+    const services::DocumentImportFailure &failure) {
     event_model_->SetDocument(nullptr);
     document_.reset();
     current_path_ = PathText(failure.path);
-    last_load_error_ = failure.kind;
+    last_import_error_ = failure.kind;
     last_filesystem_error_ = failure.filesystem_error;
     last_diagnostics_ = failure.diagnostics;
     failure_title_label_->setText(tr("Could not open timeline"));
 
-    if (failure.kind == services::DocumentOpenFailureKind::kOpenFailed) {
+    if (failure.kind == services::DocumentImportFailureKind::kOpenFailed) {
         failure_description_label_->setText(
             tr("The file could not be opened: %1")
                 .arg(Utf8(last_filesystem_error_.message())));
-    } else if (failure.kind == services::DocumentOpenFailureKind::kReadFailed) {
+    } else if (failure.kind ==
+               services::DocumentImportFailureKind::kReadFailed) {
         failure_description_label_->setText(
             tr("The file could not be read: %1")
                 .arg(Utf8(last_filesystem_error_.message())));
@@ -601,6 +879,43 @@ void MainWindow::ShowFailure(const services::DocumentOpenFailure &failure) {
     }
     PopulateDiagnostics(last_diagnostics_);
     document_stack_->setCurrentIndex(kFailurePage);
+}
+
+void MainWindow::ShowExportFailure(
+    const services::DocumentExportFailure &failure) {
+    QString description;
+    switch (failure.kind) {
+    case services::DocumentExportFailureKind::kExportFailed:
+        description = tr("The exporter could not create the spreadsheet.");
+        break;
+    case services::DocumentExportFailureKind::kDestinationExists:
+        description =
+            tr("The destination file already exists and was not replaced.");
+        break;
+    case services::DocumentExportFailureKind::kWriteFailed:
+        description = tr("The spreadsheet could not be written: %1")
+                          .arg(Utf8(failure.filesystem_error.message()));
+        break;
+    case services::DocumentExportFailureKind::kCommitFailed:
+        description =
+            tr("The completed spreadsheet could not replace the destination "
+               "file: %1")
+                .arg(Utf8(failure.filesystem_error.message()));
+        break;
+    }
+
+    QMessageBox message{
+        QMessageBox::Critical,
+        tr("Could not export spreadsheet"),
+        description,
+        QMessageBox::NoButton,
+        this,
+    };
+    if (!failure.diagnostics.empty()) {
+        message.setDetailedText(DiagnosticSummary(failure.diagnostics));
+    }
+    message.addButton(tr("Close"), QMessageBox::RejectRole);
+    message.exec();
 }
 
 void MainWindow::RememberRecentFile(const QString &path) {
@@ -691,6 +1006,9 @@ void MainWindow::RetranslateUi(void) {
     remember_recent_action_->setText(tr("Remember Recent Files"));
     remember_recent_action_->setToolTip(
         tr("When enabled, Edit Atlas stores only the paths of opened files."));
+    export_action_->setText(tr("&Export Spreadsheet"));
+    export_action_->setToolTip(
+        tr("Export the open timeline as an Excel workbook."));
     exit_action_->setText(tr("E&xit"));
     help_menu_->setTitle(tr("&Help"));
     about_action_->setText(tr("&About Edit Atlas"));
@@ -713,8 +1031,15 @@ void MainWindow::RetranslateUi(void) {
     event_filter_->setAccessibleName(tr("Filter timeline events"));
     event_table_->setAccessibleName(tr("Timeline edit events"));
     diagnostics_tree_->setAccessibleName(tr("Import diagnostics"));
+    timeline_export_button_->setText(tr("Export Spreadsheet"));
+    timeline_export_button_->setToolTip(
+        tr("Export the open timeline as an Excel workbook."));
     privacy_label_->setText(
         tr("Your media and timeline data stay on this computer."));
+
+    if (export_watcher_.isRunning()) {
+        statusBar()->showMessage(tr("Exporting spreadsheet…"));
+    }
 
     failure_open_button_->setText(tr("Open Another Timeline…"));
 
@@ -729,14 +1054,14 @@ void MainWindow::RetranslateTimeline(void) {
         return;
     }
     if (document_stack_->currentIndex() == kFailurePage) {
-        services::DocumentOpenFailure failure{
+        services::DocumentImportFailure failure{
             .path = FilesystemPath(current_path_),
-            .kind = last_load_error_.value_or(
-                services::DocumentOpenFailureKind::kImportFailed),
+            .kind = last_import_error_.value_or(
+                services::DocumentImportFailureKind::kImportFailed),
             .filesystem_error = last_filesystem_error_,
             .diagnostics = last_diagnostics_,
         };
-        ShowFailure(failure);
+        ShowImportFailure(failure);
     }
 }
 

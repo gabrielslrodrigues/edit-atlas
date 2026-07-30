@@ -5,6 +5,7 @@
 
 #include <xlsxwriter.h>
 
+#include <algorithm>
 #include <array>
 #include <charconv>
 #include <cstddef>
@@ -170,6 +171,21 @@ CommentText(const std::vector<core::Comment> &comments) {
         output += comment.text;
     }
     return output;
+}
+
+[[nodiscard]] bool
+BooleanOption(const std::vector<core::MetadataEntry> &options,
+              std::string_view key, bool default_value) {
+    const auto option =
+        std::ranges::find(options, key, &core::MetadataEntry::key);
+    if (option == options.end()) {
+        return default_value;
+    }
+    if (const auto *value = std::get_if<bool>(&option->value);
+        value != nullptr) {
+        return *value;
+    }
+    return default_value;
 }
 
 void WriteString(WriteStatus &status, lxw_worksheet *worksheet, lxw_row_t row,
@@ -393,11 +409,20 @@ XlsxExporter::Export(const core::ExportRequest &request) const {
     status.Record(workbook_set_properties(workbook, &properties));
 
     auto *events = workbook_add_worksheet(workbook, "Events");
-    auto *timeline = workbook_add_worksheet(workbook, "Timeline");
-    auto *diagnostics = workbook_add_worksheet(workbook, "Diagnostics");
+    const auto include_timeline =
+        BooleanOption(request.options, kIncludeTimelineSheetOption, true);
+    const auto include_diagnostics =
+        BooleanOption(request.options, kIncludeDiagnosticsSheetOption, true);
+    auto *timeline = include_timeline
+                         ? workbook_add_worksheet(workbook, "Timeline")
+                         : nullptr;
+    auto *diagnostics = include_diagnostics
+                            ? workbook_add_worksheet(workbook, "Diagnostics")
+                            : nullptr;
     auto *header_format = workbook_add_format(workbook);
     auto *wrapped_format = workbook_add_format(workbook);
-    if (events == nullptr || timeline == nullptr || diagnostics == nullptr ||
+    if (events == nullptr || (include_timeline && timeline == nullptr) ||
+        (include_diagnostics && diagnostics == nullptr) ||
         header_format == nullptr || wrapped_format == nullptr) {
         static_cast<void>(workbook_close(workbook));
         FreeOutputBuffer(output_buffer);
@@ -418,9 +443,13 @@ XlsxExporter::Export(const core::ExportRequest &request) const {
 
     WriteEventsSheet(status, events, request.document, header_format,
                      wrapped_format);
-    WriteTimelineSheet(status, timeline, request.document, header_format);
-    WriteDiagnosticsSheet(status, diagnostics, request.document, header_format,
-                          wrapped_format);
+    if (timeline != nullptr) {
+        WriteTimelineSheet(status, timeline, request.document, header_format);
+    }
+    if (diagnostics != nullptr) {
+        WriteDiagnosticsSheet(status, diagnostics, request.document,
+                              header_format, wrapped_format);
+    }
 
     const auto close_error = workbook_close(workbook);
     status.Record(close_error);

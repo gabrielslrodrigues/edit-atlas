@@ -25,13 +25,20 @@ not open files, display messages, or schedule work.
 
 `EditAtlas::Services` is the reusable application boundary. It composes the
 built-in format registry and coordinates filesystem operations with the core
-pipeline using standard C++ types. A successful document-opening request
-returns a `DocumentSession`; failures preserve their stage, path, filesystem
-error, and import diagnostics. Filesystem failures retain their native
-`std::error_code` instead of frontend-specific text.
+pipeline using standard C++ types. `DocumentImportService` imports local
+documents. A successful request returns a `DocumentImportReceipt`;
+failures preserve their stage, path, filesystem error, and import diagnostics.
+Filesystem failures retain their native `std::error_code` instead of
+frontend-specific text.
+
+Document exports use the same boundary. `DocumentExportService` selects a
+registered exporter, writes its artifact beside the destination, and atomically
+commits the completed file. It never replaces an existing destination unless
+the frontend explicitly authorizes replacement.
 
 The services target has no Qt dependency. Any executable can use document
-opening and built-in format composition by linking `EditAtlas::Services`.
+import, atomic export, and built-in format composition by linking
+`EditAtlas::Services`.
 
 ## Frontends
 

@@ -267,6 +267,148 @@ Inspecione linhas do tempo editoriais e exporte relatórios estruturados.</trans
       <source>The file is not a supported timeline or contains fatal errors. Review the diagnostics below.</source>
       <translation>O arquivo não é uma linha do tempo compatível ou contém erros fatais. Revise os diagnósticos abaixo.</translation>
     </message>
+    <message>
+      <source>&amp;Export Spreadsheet</source>
+      <translation>&amp;Exportar planilha</translation>
+    </message>
+    <message>
+      <source>Export Spreadsheet</source>
+      <translation>Exportar planilha</translation>
+    </message>
+    <message>
+      <source>Export the open timeline as an Excel workbook.</source>
+      <translation>Exporte a linha do tempo aberta como uma pasta de trabalho do Excel.</translation>
+    </message>
+    <message>
+      <source>Spreadsheet Options</source>
+      <translation>Opções da planilha</translation>
+    </message>
+    <message>
+      <source>Choose the information to include in the workbook.</source>
+      <translation>Escolha as informações a serem incluídas na pasta de trabalho.</translation>
+    </message>
+    <message>
+      <source>Include timeline summary</source>
+      <translation>Incluir resumo da linha do tempo</translation>
+    </message>
+    <message>
+      <source>Include diagnostics</source>
+      <translation>Incluir diagnósticos</translation>
+    </message>
+    <message>
+      <source>Continue</source>
+      <translation>Continuar</translation>
+    </message>
+    <message>
+      <source>Cancel</source>
+      <translation>Cancelar</translation>
+    </message>
+    <message>
+      <source>Could not export spreadsheet</source>
+      <translation>Não foi possível exportar a planilha</translation>
+    </message>
+    <message>
+      <source>No registered exporter can create an Excel workbook.</source>
+      <translation>Nenhum exportador registrado pode criar uma pasta de trabalho do Excel.</translation>
+    </message>
+    <message>
+      <source>timeline</source>
+      <translation>linha-do-tempo</translation>
+    </message>
+    <message>
+      <source>Excel workbook (*.xlsx)</source>
+      <translation>Pasta de trabalho do Excel (*.xlsx)</translation>
+    </message>
+    <message>
+      <source>Replace Existing File?</source>
+      <translation>Substituir arquivo existente?</translation>
+    </message>
+    <message>
+      <source>%1 already exists. Do you want to replace it?</source>
+      <translation>%1 já existe. Deseja substituí-lo?</translation>
+    </message>
+    <message>
+      <source>Replace</source>
+      <translation>Substituir</translation>
+    </message>
+    <message>
+      <source>Exporting %1…</source>
+      <translation>Exportando %1…</translation>
+    </message>
+    <message>
+      <source>Exporting spreadsheet…</source>
+      <translation>Exportando planilha…</translation>
+    </message>
+    <message>
+      <source>The requested export format is not registered.</source>
+      <translation>O formato de exportação solicitado não está registrado.</translation>
+    </message>
+    <message>
+      <source>The exporter failed unexpectedly.</source>
+      <translation>O exportador falhou inesperadamente.</translation>
+    </message>
+    <message>
+      <source>The exporter did not produce a spreadsheet.</source>
+      <translation>O exportador não produziu uma planilha.</translation>
+    </message>
+    <message>
+      <source>The Excel workbook could not be created.</source>
+      <translation>Não foi possível criar a pasta de trabalho do Excel.</translation>
+    </message>
+    <message>
+      <source>The Excel workbook could not be written.</source>
+      <translation>Não foi possível gravar a pasta de trabalho do Excel.</translation>
+    </message>
+    <message>
+      <source>The exporter could not create the spreadsheet.</source>
+      <translation>O exportador não conseguiu criar a planilha.</translation>
+    </message>
+    <message>
+      <source>The destination file already exists and was not replaced.</source>
+      <translation>O arquivo de destino já existe e não foi substituído.</translation>
+    </message>
+    <message>
+      <source>The spreadsheet could not be written: %1</source>
+      <translation>Não foi possível gravar a planilha: %1</translation>
+    </message>
+    <message>
+      <source>The completed spreadsheet could not replace the destination file: %1</source>
+      <translation>A planilha concluída não pôde substituir o arquivo de destino: %1</translation>
+    </message>
+    <message>
+      <source>Spreadsheet Exported</source>
+      <translation>Planilha exportada</translation>
+    </message>
+    <message>
+      <source>Spreadsheet Exported with Warnings</source>
+      <translation>Planilha exportada com avisos</translation>
+    </message>
+    <message>
+      <source>The spreadsheet was saved to:
+%1</source>
+      <translation>A planilha foi salva em:
+%1</translation>
+    </message>
+    <message>
+      <source>The workbook was created, but the exporter reported warnings.</source>
+      <translation>A pasta de trabalho foi criada, mas o exportador relatou avisos.</translation>
+    </message>
+    <message>
+      <source>Reveal File</source>
+      <translation>Mostrar arquivo</translation>
+    </message>
+    <message>
+      <source>Close</source>
+      <translation>Fechar</translation>
+    </message>
+    <message>
+      <source>Could Not Reveal File</source>
+      <translation>Não foi possível mostrar o arquivo</translation>
+    </message>
+    <message>
+      <source>The spreadsheet was saved, but its location could not be opened.</source>
+      <translation>A planilha foi salva, mas não foi possível abrir sua localização.</translation>
+    </message>
   </context>
   <context>
     <name>edit_atlas::app::TimelineEventModel</name>

@@ -12,13 +12,15 @@ target_sources(
     edit_atlas_services
     PRIVATE
         built_in_formats.cpp
-        document_service.cpp
+        document_export_service.cpp
+        document_import_service.cpp
     PUBLIC
         FILE_SET HEADERS
         BASE_DIRS include
         FILES
             include/edit_atlas/services/built_in_formats.hpp
-            include/edit_atlas/services/document_service.hpp
+            include/edit_atlas/services/document_export_service.hpp
+            include/edit_atlas/services/document_import_service.hpp
 )
 
 target_link_libraries(

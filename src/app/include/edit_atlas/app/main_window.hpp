@@ -6,7 +6,8 @@
 #include <edit_atlas/core/editorial_timeline.hpp>
 #include <edit_atlas/core/format_registry.hpp>
 
-#include <edit_atlas/services/document_service.hpp>
+#include <edit_atlas/services/document_export_service.hpp>
+#include <edit_atlas/services/document_import_service.hpp>
 
 #include <QFutureWatcher>
 #include <QMainWindow>
@@ -65,6 +66,10 @@ class MainWindow final : public QMainWindow {
     void ClearDocument(void);
     [[nodiscard]] QString
     DiagnosticMessage(const core::Diagnostic &diagnostic) const;
+    [[nodiscard]] QString
+    DiagnosticSummary(const std::vector<core::Diagnostic> &diagnostics) const;
+    void ExportSpreadsheet(void);
+    void HandleExportFinished(void);
     void HandleImportFinished(void);
     void OpenDocument(void);
     void OpenDocument(const QString &path);
@@ -73,25 +78,31 @@ class MainWindow final : public QMainWindow {
     void RememberRecentFile(const QString &path);
     void RetranslateUi(void);
     void RetranslateTimeline(void);
+    [[nodiscard]] std::optional<std::vector<core::MetadataEntry>>
+    SpreadsheetExportOptions(void);
     void SetRememberRecentFiles(bool enabled);
-    void ShowFailure(const services::DocumentOpenFailure &failure);
+    void ShowExportFailure(const services::DocumentExportFailure &failure);
+    void ShowImportFailure(const services::DocumentImportFailure &failure);
     void ShowAboutDialog(void);
     void StartImport(const QString &path,
                      std::optional<std::string> frame_rate = std::nullopt);
     void UpdateRecentFilesMenu(void);
 
     const core::FormatRegistry &registry_;
-    services::DocumentService document_service_;
+    services::DocumentExportService document_export_service_;
+    services::DocumentImportService document_import_service_;
     QTranslator &translator_;
     ApplicationLanguage language_;
     std::optional<core::TimelineDocument> document_;
     QString current_path_;
     std::optional<std::string> requested_frame_rate_;
-    std::optional<services::DocumentOpenFailureKind> last_load_error_;
+    std::optional<services::DocumentImportFailureKind> last_import_error_;
     std::error_code last_filesystem_error_;
     std::vector<core::Diagnostic> last_diagnostics_;
-    QFutureWatcher<services::OpenDocumentResult> import_watcher_;
+    QFutureWatcher<services::ExportDocumentResult> export_watcher_;
+    QFutureWatcher<services::ImportDocumentResult> import_watcher_;
     QAction *open_action_ = nullptr;
+    QAction *export_action_ = nullptr;
     QAction *remember_recent_action_ = nullptr;
     QAction *exit_action_ = nullptr;
     QAction *about_action_ = nullptr;
@@ -110,6 +121,7 @@ class MainWindow final : public QMainWindow {
     QLabel *failure_description_label_ = nullptr;
     QPushButton *failure_open_button_ = nullptr;
     QLabel *timeline_title_label_ = nullptr;
+    QPushButton *timeline_export_button_ = nullptr;
     QLabel *timeline_summary_label_ = nullptr;
     QLineEdit *event_filter_ = nullptr;
     QTableView *event_table_ = nullptr;

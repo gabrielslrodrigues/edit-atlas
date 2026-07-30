@@ -1,5 +1,5 @@
 #include <edit_atlas/services/built_in_formats.hpp>
-#include <edit_atlas/services/document_service.hpp>
+#include <edit_atlas/services/document_import_service.hpp>
 
 #include <edit_atlas/core/editorial_timeline.hpp>
 
@@ -19,13 +19,11 @@
 namespace edit_atlas::services {
 namespace {
 
-[[nodiscard]] std::filesystem::path
-UniqueTemporaryPath(std::string_view name) {
+[[nodiscard]] std::filesystem::path UniqueTemporaryPath(std::string_view name) {
     std::random_device random;
     return std::filesystem::temp_directory_path() /
            (std::string{name} + "-" +
-            std::to_string(static_cast<unsigned long long>(random())) +
-            ".edl");
+            std::to_string(static_cast<unsigned long long>(random())) + ".edl");
 }
 
 class TemporaryDocument final {
@@ -59,7 +57,7 @@ class TemporaryDocument final {
     bool valid_ = false;
 };
 
-TEST(DocumentServiceTest, OpensDocumentWithStandardCppRequest) {
+TEST(DocumentImportServiceTest, ImportsDocumentWithStandardCppRequest) {
     auto registry = CreateBuiltInFormatRegistry();
     ASSERT_TRUE(registry.has_value());
     const TemporaryDocument file{
@@ -70,9 +68,9 @@ TEST(DocumentServiceTest, OpensDocumentWithStandardCppRequest) {
         "01:00:00:00 01:00:01:00\n",
     };
     ASSERT_TRUE(file.valid());
-    const DocumentService service{*registry};
+    const DocumentImportService service{*registry};
 
-    const auto result = service.OpenDocument(OpenDocumentRequest{
+    const auto result = service.ImportDocument(ImportDocumentRequest{
         .path = file.path(),
         .format_identifier = {},
         .options =
@@ -91,7 +89,7 @@ TEST(DocumentServiceTest, OpensDocumentWithStandardCppRequest) {
     EXPECT_EQ(result->document.events.front().identifier, "001");
 }
 
-TEST(DocumentServiceTest, ReturnsImportFailureWithDiagnostics) {
+TEST(DocumentImportServiceTest, ReturnsImportFailureWithDiagnostics) {
     auto registry = CreateBuiltInFormatRegistry();
     ASSERT_TRUE(registry.has_value());
     const TemporaryDocument file{
@@ -102,16 +100,16 @@ TEST(DocumentServiceTest, ReturnsImportFailureWithDiagnostics) {
         "01:00:00:00 01:00:01:00\n",
     };
     ASSERT_TRUE(file.valid());
-    const DocumentService service{*registry};
+    const DocumentImportService service{*registry};
 
-    const auto result = service.OpenDocument(OpenDocumentRequest{
+    const auto result = service.ImportDocument(ImportDocumentRequest{
         .path = file.path(),
         .format_identifier = {},
         .options = {},
     });
 
     ASSERT_FALSE(result.has_value());
-    EXPECT_EQ(result.error().kind, DocumentOpenFailureKind::kImportFailed);
+    EXPECT_EQ(result.error().kind, DocumentImportFailureKind::kImportFailed);
     EXPECT_TRUE(std::ranges::any_of(
         result.error().diagnostics, [](const core::Diagnostic &diagnostic) {
             return diagnostic.code ==
@@ -119,16 +117,15 @@ TEST(DocumentServiceTest, ReturnsImportFailureWithDiagnostics) {
         }));
 }
 
-TEST(DocumentServiceTest, ReturnsOpenFailureForMissingFile) {
+TEST(DocumentImportServiceTest, ReturnsOpenFailureForMissingFile) {
     auto registry = CreateBuiltInFormatRegistry();
     ASSERT_TRUE(registry.has_value());
-    const DocumentService service{*registry};
-    const auto path =
-        UniqueTemporaryPath("edit-atlas-services-does-not-exist");
+    const DocumentImportService service{*registry};
+    const auto path = UniqueTemporaryPath("edit-atlas-services-does-not-exist");
     std::error_code error;
     static_cast<void>(std::filesystem::remove(path, error));
 
-    const auto result = service.OpenDocument(OpenDocumentRequest{
+    const auto result = service.ImportDocument(ImportDocumentRequest{
         .path = path,
         .format_identifier = {},
         .options = {},
@@ -136,7 +133,7 @@ TEST(DocumentServiceTest, ReturnsOpenFailureForMissingFile) {
 
     ASSERT_FALSE(result.has_value());
     EXPECT_EQ(result.error().path, path);
-    EXPECT_EQ(result.error().kind, DocumentOpenFailureKind::kOpenFailed);
+    EXPECT_EQ(result.error().kind, DocumentImportFailureKind::kOpenFailed);
     EXPECT_TRUE(result.error().filesystem_error);
     EXPECT_FALSE(result.error().filesystem_error.message().empty());
     EXPECT_TRUE(result.error().diagnostics.empty());
