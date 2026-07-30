@@ -34,7 +34,7 @@ cleanup() {
     wait "$application_pid" || true
   fi
   if [[ "$installed_package" == true ]]; then
-    run_as_root rm --recursive --force "$application"
+    run_as_root rm -rf "$application"
   fi
 }
 
@@ -80,7 +80,7 @@ kill "$application_pid"
 wait "$application_pid" || true
 application_pid=""
 
-run_as_root rm --recursive --force "$application"
+run_as_root rm -rf "$application"
 installed_package=false
 if [[ -e "$application" ]]; then
   echo "The application remains after package cleanup: $application" >&2
