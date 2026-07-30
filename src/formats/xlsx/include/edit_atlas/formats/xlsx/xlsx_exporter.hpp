@@ -8,6 +8,10 @@
 namespace edit_atlas::formats::xlsx {
 
 inline constexpr std::string_view kFormatIdentifier = "xlsx";
+inline constexpr std::string_view kIncludeTimelineSheetOption =
+    "xlsx.include_timeline_sheet";
+inline constexpr std::string_view kIncludeDiagnosticsSheetOption =
+    "xlsx.include_diagnostics_sheet";
 
 namespace diagnostic_code {
 

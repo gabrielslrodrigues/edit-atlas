@@ -21,6 +21,8 @@ TEST(ApplicationTest, LoadsBrazilianPortugueseTranslations) {
     ASSERT_TRUE(SetApplicationLanguage(
         translator, ApplicationLanguage::kBrazilianPortuguese));
     EXPECT_EQ(MainWindow::tr("&File"), QStringLiteral("&Arquivo"));
+    EXPECT_EQ(MainWindow::tr("&Export Spreadsheet"),
+              QStringLiteral("&Exportar planilha"));
 }
 
 TEST(ApplicationTest, PresentsTimelineDocumentInTableModel) {

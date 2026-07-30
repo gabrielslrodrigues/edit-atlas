@@ -1,5 +1,5 @@
-#ifndef EDIT_ATLAS_SERVICES_DOCUMENT_SERVICE_HPP_
-#define EDIT_ATLAS_SERVICES_DOCUMENT_SERVICE_HPP_
+#ifndef EDIT_ATLAS_SERVICES_DOCUMENT_IMPORT_SERVICE_HPP_
+#define EDIT_ATLAS_SERVICES_DOCUMENT_IMPORT_SERVICE_HPP_
 
 #include <edit_atlas/core/document_pipeline.hpp>
 #include <edit_atlas/core/editorial_timeline.hpp>
@@ -14,47 +14,49 @@
 
 namespace edit_atlas::services {
 
-/// Describes one request to open and import a local document.
-struct OpenDocumentRequest final {
+/// Describes one request to import a local document.
+struct ImportDocumentRequest final {
     std::filesystem::path path;
     std::optional<std::string> format_identifier;
     std::vector<core::MetadataEntry> options;
 };
 
-/// Identifies the stage at which opening a document failed.
-enum class DocumentOpenFailureKind {
+/// Identifies the stage at which importing a document failed.
+enum class DocumentImportFailureKind {
     kOpenFailed,
     kReadFailed,
     kImportFailed,
 };
 
 /// Contains a successfully imported document and its source context.
-struct DocumentSession final {
+struct DocumentImportReceipt final {
     std::filesystem::path path;
     core::TimelineDocument document;
     std::vector<core::Diagnostic> diagnostics;
 };
 
 /// Contains a presentation-neutral filesystem or importer failure.
-struct DocumentOpenFailure final {
+struct DocumentImportFailure final {
     std::filesystem::path path;
-    DocumentOpenFailureKind kind;
+    DocumentImportFailureKind kind;
     std::error_code filesystem_error;
     std::vector<core::Diagnostic> diagnostics;
 };
 
-using OpenDocumentResult = std::expected<DocumentSession, DocumentOpenFailure>;
+using ImportDocumentResult =
+    std::expected<DocumentImportReceipt, DocumentImportFailure>;
 
 /// Coordinates filesystem input with the format-independent import pipeline.
 ///
 /// The registry must outlive the service. Scheduling and user interaction are
 /// responsibilities of the calling frontend.
-class DocumentService final {
+class DocumentImportService final {
   public:
-    explicit DocumentService(const core::FormatRegistry &registry) noexcept;
+    explicit DocumentImportService(
+        const core::FormatRegistry &registry) noexcept;
 
-    [[nodiscard]] OpenDocumentResult
-    OpenDocument(OpenDocumentRequest request) const;
+    [[nodiscard]] ImportDocumentResult
+    ImportDocument(ImportDocumentRequest request) const;
 
   private:
     core::DocumentPipeline pipeline_;
@@ -62,4 +64,4 @@ class DocumentService final {
 
 } // namespace edit_atlas::services
 
-#endif // EDIT_ATLAS_SERVICES_DOCUMENT_SERVICE_HPP_
+#endif // EDIT_ATLAS_SERVICES_DOCUMENT_IMPORT_SERVICE_HPP_

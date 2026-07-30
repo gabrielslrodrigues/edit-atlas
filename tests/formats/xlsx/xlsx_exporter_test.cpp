@@ -276,5 +276,32 @@ TEST(XlsxExporterTest, WritesDiagnosticDetails) {
     EXPECT_NE(shared_strings->find("example.edl"), std::string::npos);
 }
 
+TEST(XlsxExporterTest, OmitsOptionalSheetsWhenRequested) {
+    const XlsxExporter exporter;
+    const auto document = Document();
+    const auto result = exporter.Export(core::ExportRequest{
+        .document = document,
+        .options =
+            {
+                core::MetadataEntry{
+                    .key = std::string{kIncludeTimelineSheetOption},
+                    .value = false,
+                },
+                core::MetadataEntry{
+                    .key = std::string{kIncludeDiagnosticsSheetOption},
+                    .value = false,
+                },
+            },
+    });
+    ASSERT_TRUE(result.artifact.has_value());
+    const TemporaryWorkbook workbook{result.artifact->content};
+
+    const auto workbook_xml = ReadZipEntry(workbook.path(), "xl/workbook.xml");
+    ASSERT_TRUE(workbook_xml.has_value());
+    EXPECT_NE(workbook_xml->find("name=\"Events\""), std::string::npos);
+    EXPECT_EQ(workbook_xml->find("name=\"Timeline\""), std::string::npos);
+    EXPECT_EQ(workbook_xml->find("name=\"Diagnostics\""), std::string::npos);
+}
+
 } // namespace
 } // namespace edit_atlas::formats::xlsx

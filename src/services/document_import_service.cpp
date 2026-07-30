@@ -1,4 +1,4 @@
-#include <edit_atlas/services/document_service.hpp>
+#include <edit_atlas/services/document_import_service.hpp>
 
 #include <edit_atlas/core/format.hpp>
 
@@ -23,13 +23,13 @@ namespace {
                        utf8.size()};
 }
 
-[[nodiscard]] std::unexpected<DocumentOpenFailure>
-FileFailure(const OpenDocumentRequest &request, DocumentOpenFailureKind kind,
-            std::error_code error) {
+[[nodiscard]] std::unexpected<DocumentImportFailure>
+FileFailure(const ImportDocumentRequest &request,
+            DocumentImportFailureKind kind, std::error_code error) {
     if (!error) {
         error = std::make_error_code(std::errc::io_error);
     }
-    return std::unexpected(DocumentOpenFailure{
+    return std::unexpected(DocumentImportFailure{
         .path = request.path,
         .kind = kind,
         .filesystem_error = error,
@@ -39,28 +39,29 @@ FileFailure(const OpenDocumentRequest &request, DocumentOpenFailureKind kind,
 
 } // namespace
 
-DocumentService::DocumentService(const core::FormatRegistry &registry) noexcept
+DocumentImportService::DocumentImportService(
+    const core::FormatRegistry &registry) noexcept
     : pipeline_(registry) {}
 
-OpenDocumentResult
-DocumentService::OpenDocument(OpenDocumentRequest request) const {
+ImportDocumentResult
+DocumentImportService::ImportDocument(ImportDocumentRequest request) const {
     errno = 0;
     std::ifstream input{request.path, std::ios::binary};
     if (!input.is_open()) {
-        return FileFailure(request, DocumentOpenFailureKind::kOpenFailed,
+        return FileFailure(request, DocumentImportFailureKind::kOpenFailed,
                            std::error_code{errno, std::generic_category()});
     }
 
     std::error_code size_error;
     const auto file_size = std::filesystem::file_size(request.path, size_error);
     if (size_error) {
-        return FileFailure(request, DocumentOpenFailureKind::kReadFailed,
+        return FileFailure(request, DocumentImportFailureKind::kReadFailed,
                            size_error);
     }
     if (file_size > std::numeric_limits<std::size_t>::max() ||
         file_size > static_cast<std::uintmax_t>(
                         std::numeric_limits<std::streamsize>::max())) {
-        return FileFailure(request, DocumentOpenFailureKind::kReadFailed,
+        return FileFailure(request, DocumentImportFailureKind::kReadFailed,
                            std::make_error_code(std::errc::value_too_large));
     }
 
@@ -70,9 +71,8 @@ DocumentService::OpenDocument(OpenDocumentRequest request) const {
         input.read(reinterpret_cast<char *>(content.data()),
                    static_cast<std::streamsize>(content.size()));
         if (!input) {
-            return FileFailure(request, DocumentOpenFailureKind::kReadFailed,
-                               std::error_code{errno,
-                                               std::generic_category()});
+            return FileFailure(request, DocumentImportFailureKind::kReadFailed,
+                               std::error_code{errno, std::generic_category()});
         }
     }
 
@@ -92,15 +92,15 @@ DocumentService::OpenDocument(OpenDocumentRequest request) const {
             : std::nullopt;
     auto import_result = pipeline_.Import(import_request, format_identifier);
     if (!import_result.document.has_value()) {
-        return std::unexpected(DocumentOpenFailure{
+        return std::unexpected(DocumentImportFailure{
             .path = std::move(request.path),
-            .kind = DocumentOpenFailureKind::kImportFailed,
+            .kind = DocumentImportFailureKind::kImportFailed,
             .filesystem_error = {},
             .diagnostics = std::move(import_result.diagnostics),
         });
     }
 
-    return DocumentSession{
+    return DocumentImportReceipt{
         .path = std::move(request.path),
         .document = std::move(*import_result.document),
         .diagnostics = std::move(import_result.diagnostics),

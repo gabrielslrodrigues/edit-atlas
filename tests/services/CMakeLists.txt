@@ -4,7 +4,8 @@ target_sources(
     edit_atlas_services_tests
     PRIVATE
         built_in_formats_test.cpp
-        document_service_test.cpp
+        document_export_service_test.cpp
+        document_import_service_test.cpp
         test_main.cpp
 )
 
