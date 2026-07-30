@@ -387,6 +387,8 @@ void MainWindow::StartImport(const QString &path,
 
     services::OpenDocumentRequest request{
         .path = FilesystemPath(path),
+        .format_identifier = {},
+        .options = {},
     };
     if (frame_rate.has_value()) {
         request.options.emplace_back(core::MetadataEntry{

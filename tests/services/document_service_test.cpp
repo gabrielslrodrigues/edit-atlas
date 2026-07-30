@@ -74,6 +74,7 @@ TEST(DocumentServiceTest, OpensDocumentWithStandardCppRequest) {
 
     const auto result = service.OpenDocument(OpenDocumentRequest{
         .path = file.path(),
+        .format_identifier = {},
         .options =
             {
                 core::MetadataEntry{
@@ -105,6 +106,8 @@ TEST(DocumentServiceTest, ReturnsImportFailureWithDiagnostics) {
 
     const auto result = service.OpenDocument(OpenDocumentRequest{
         .path = file.path(),
+        .format_identifier = {},
+        .options = {},
     });
 
     ASSERT_FALSE(result.has_value());
@@ -127,6 +130,8 @@ TEST(DocumentServiceTest, ReturnsOpenFailureForMissingFile) {
 
     const auto result = service.OpenDocument(OpenDocumentRequest{
         .path = path,
+        .format_identifier = {},
+        .options = {},
     });
 
     ASSERT_FALSE(result.has_value());
