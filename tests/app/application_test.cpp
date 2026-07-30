@@ -1,40 +1,19 @@
-#include <edit_atlas/app/application.hpp>
-#include <edit_atlas/app/document_loader.hpp>
 #include <edit_atlas/app/main_window.hpp>
 #include <edit_atlas/app/timeline_event_model.hpp>
 #include <edit_atlas/app/translation.hpp>
 
 #include <edit_atlas/core/editorial_timeline.hpp>
+#include <edit_atlas/core/timecode.hpp>
 
-#include <edit_atlas/formats/cmx3600/cmx3600_importer.hpp>
-#include <edit_atlas/formats/xlsx/xlsx_exporter.hpp>
-
-#include <QByteArray>
-#include <QDir>
 #include <QString>
-#include <QTemporaryFile>
 #include <QTranslator>
-#include <QVariant>
 
 #include <gtest/gtest.h>
 
-#include <algorithm>
-#include <string>
+#include <optional>
 
 namespace edit_atlas::app {
 namespace {
-
-TEST(ApplicationTest, RegistersEveryBuiltInFormatHandler) {
-    const auto registry = CreateFormatRegistry();
-
-    ASSERT_TRUE(registry.has_value());
-    EXPECT_NE(registry->FindImporter(formats::cmx3600::kFormatIdentifier),
-              nullptr);
-    EXPECT_NE(registry->FindExporter(formats::xlsx::kFormatIdentifier),
-              nullptr);
-    EXPECT_EQ(registry->importer_formats().size(), 1);
-    EXPECT_EQ(registry->exporter_formats().size(), 1);
-}
 
 TEST(ApplicationTest, LoadsBrazilianPortugueseTranslations) {
     QTranslator translator;
@@ -44,57 +23,60 @@ TEST(ApplicationTest, LoadsBrazilianPortugueseTranslations) {
     EXPECT_EQ(MainWindow::tr("&File"), QStringLiteral("&Arquivo"));
 }
 
-TEST(ApplicationTest, LoadsCmx3600DocumentFromLocalFile) {
-    auto registry = CreateFormatRegistry();
-    ASSERT_TRUE(registry.has_value());
-    QTemporaryFile file{QDir::tempPath() +
-                        QStringLiteral("/edit-atlas-XXXXXX.edl")};
-    ASSERT_TRUE(file.open());
-    const QByteArray content{"TITLE: APP TEST\n"
-                             "FCM: NON-DROP FRAME\n"
-                             "001 AX V C 00:00:00:00 00:00:01:00 "
-                             "01:00:00:00 01:00:01:00\n"};
-    ASSERT_EQ(file.write(content), content.size());
-    file.close();
-
-    const auto result =
-        LoadDocument(*registry, file.fileName(), std::string{"24"});
-
-    EXPECT_EQ(result.error, DocumentLoadError::kNone);
-    ASSERT_TRUE(result.import_result.document.has_value());
-    EXPECT_EQ(result.import_result.document->title, "APP TEST");
-    EXPECT_EQ(result.import_result.document->events.size(), 1);
-
+TEST(ApplicationTest, PresentsTimelineDocumentInTableModel) {
+    const auto rate = core::FrameRate::Create(24, 1);
+    ASSERT_TRUE(rate.has_value());
+    const auto source_start = core::Timecode::FromFrameCount(
+        0, *rate, core::TimecodeMode::kNonDropFrame);
+    const auto source_end = core::Timecode::FromFrameCount(
+        24, *rate, core::TimecodeMode::kNonDropFrame);
+    const auto record_start = core::Timecode::FromFrameCount(
+        86'400, *rate, core::TimecodeMode::kNonDropFrame);
+    const auto record_end = core::Timecode::FromFrameCount(
+        86'424, *rate, core::TimecodeMode::kNonDropFrame);
+    ASSERT_TRUE(source_start.has_value());
+    ASSERT_TRUE(source_end.has_value());
+    ASSERT_TRUE(record_start.has_value());
+    ASSERT_TRUE(record_end.has_value());
+    const auto source_range =
+        core::TimecodeRange::Create(*source_start, *source_end);
+    const auto record_range =
+        core::TimecodeRange::Create(*record_start, *record_end);
+    ASSERT_TRUE(source_range.has_value());
+    ASSERT_TRUE(record_range.has_value());
+    const core::TimelineDocument document{
+        .title = "APP TEST",
+        .frame_rate = *rate,
+        .timecode_mode = core::TimecodeMode::kNonDropFrame,
+        .events =
+            {
+                core::EditEvent{
+                    .identifier = "001",
+                    .reel = "AX",
+                    .track =
+                        {
+                            .kind = core::TrackKind::kVideo,
+                            .identifier = "V",
+                        },
+                    .edit_type = core::EditType::kCut,
+                    .transition = std::nullopt,
+                    .source_range = *source_range,
+                    .record_range = *record_range,
+                    .comments = {},
+                    .metadata = {},
+                    .provenance = std::nullopt,
+                },
+            },
+        .metadata = {},
+        .diagnostics = {},
+        .provenance = std::nullopt,
+    };
     TimelineEventModel model;
-    model.SetDocument(&*result.import_result.document);
+    model.SetDocument(&document);
+
     EXPECT_EQ(model.rowCount(), 1);
     EXPECT_EQ(model.columnCount(), 11);
     EXPECT_EQ(model.data(model.index(0, 0)).toString(), QStringLiteral("001"));
-}
-
-TEST(ApplicationTest, ReportsMissingFrameRateForNonDropDocument) {
-    auto registry = CreateFormatRegistry();
-    ASSERT_TRUE(registry.has_value());
-    QTemporaryFile file{QDir::tempPath() +
-                        QStringLiteral("/edit-atlas-XXXXXX.edl")};
-    ASSERT_TRUE(file.open());
-    const QByteArray content{"TITLE: APP TEST\n"
-                             "FCM: NON-DROP FRAME\n"
-                             "001 AX V C 00:00:00:00 00:00:01:00 "
-                             "01:00:00:00 01:00:01:00\n"};
-    ASSERT_EQ(file.write(content), content.size());
-    file.close();
-
-    const auto result = LoadDocument(*registry, file.fileName());
-
-    EXPECT_EQ(result.error, DocumentLoadError::kNone);
-    EXPECT_FALSE(result.import_result.document.has_value());
-    EXPECT_TRUE(std::ranges::any_of(
-        result.import_result.diagnostics,
-        [](const core::Diagnostic &diagnostic) {
-            return diagnostic.code ==
-                   formats::cmx3600::diagnostic_code::kMissingFrameRate;
-        }));
 }
 
 } // namespace

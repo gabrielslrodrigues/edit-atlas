@@ -1,19 +1,20 @@
 #ifndef EDIT_ATLAS_APP_MAIN_WINDOW_HPP_
 #define EDIT_ATLAS_APP_MAIN_WINDOW_HPP_
 
-#include <edit_atlas/app/document_loader.hpp>
 #include <edit_atlas/app/translation.hpp>
 
 #include <edit_atlas/core/editorial_timeline.hpp>
 #include <edit_atlas/core/format_registry.hpp>
 
+#include <edit_atlas/services/document_service.hpp>
+
 #include <QFutureWatcher>
 #include <QMainWindow>
-#include <QObject>
 #include <QString>
 
 #include <optional>
 #include <string>
+#include <system_error>
 #include <vector>
 
 class QAction;
@@ -73,22 +74,23 @@ class MainWindow final : public QMainWindow {
     void RetranslateUi(void);
     void RetranslateTimeline(void);
     void SetRememberRecentFiles(bool enabled);
-    void ShowFailure(const DocumentLoadResult &result);
+    void ShowFailure(const services::DocumentOpenFailure &failure);
     void ShowAboutDialog(void);
     void StartImport(const QString &path,
                      std::optional<std::string> frame_rate = std::nullopt);
     void UpdateRecentFilesMenu(void);
 
     const core::FormatRegistry &registry_;
+    services::DocumentService document_service_;
     QTranslator &translator_;
     ApplicationLanguage language_;
     std::optional<core::TimelineDocument> document_;
     QString current_path_;
     std::optional<std::string> requested_frame_rate_;
-    DocumentLoadError last_load_error_ = DocumentLoadError::kNone;
-    QString last_load_error_detail_;
+    std::optional<services::DocumentOpenFailureKind> last_load_error_;
+    std::error_code last_filesystem_error_;
     std::vector<core::Diagnostic> last_diagnostics_;
-    QFutureWatcher<DocumentLoadResult> import_watcher_;
+    QFutureWatcher<services::OpenDocumentResult> import_watcher_;
     QAction *open_action_ = nullptr;
     QAction *remember_recent_action_ = nullptr;
     QAction *exit_action_ = nullptr;
