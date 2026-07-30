@@ -23,6 +23,9 @@ jobs:
     name: Build and package / ${{ matrix.name }}
     runs-on: ${{ matrix.os }}
     timeout-minutes: 180
+    permissions:
+      actions: write
+      contents: read
 
     strategy:
       fail-fast: false
@@ -31,6 +34,9 @@ jobs:
           - name: Linux x64
             os: ubuntu-24.04
             triplet: x64-linux
+            cache_target_triplet_file: vcpkg-triplets/x64-linux.cmake
+            cache_host_triplet_file: vcpkg-triplets/x64-linux.cmake
+            cache_support_file: vcpkg-triplets/x64-linux.cmake
             debug_preset: debug-x64-linux
             release_preset: release-x64-linux
             package_preset: package-release-x64-linux
@@ -39,6 +45,9 @@ jobs:
           - name: macOS Universal
             os: macos-15
             triplet: universal-osx
+            cache_target_triplet_file: vcpkg-triplets/universal-osx.cmake
+            cache_host_triplet_file: vcpkg-triplets/arm64-osx.cmake
+            cache_support_file: cmake/EditAtlasPlatformSupport.cmake
             debug_preset: debug-universal-osx
             release_preset: release-universal-osx
             package_preset: package-release-universal-osx
@@ -47,6 +56,9 @@ jobs:
           - name: Windows x64
             os: windows-2022
             triplet: x64-windows
+            cache_target_triplet_file: vcpkg-triplets/x64-windows.cmake
+            cache_host_triplet_file: vcpkg-triplets/x64-windows.cmake
+            cache_support_file: vcpkg-triplets/x64-windows.cmake
             debug_preset: debug-x64-windows
             release_preset: release-x64-windows
             package_preset: package-release-x64-windows
@@ -102,7 +114,7 @@ jobs:
         uses: actions/cache/restore@v6.1.0
         with:
           path: .cache/vcpkg/archives
-          key: vcpkg-${{ runner.os }}-${{ runner.arch }}-${{ matrix.triplet }}-${{ hashFiles('vcpkg.json', 'vcpkg-overlays/**', 'vcpkg-triplets/**') }}
+          key: vcpkg-${{ runner.os }}-${{ runner.arch }}-${{ matrix.triplet }}-${{ hashFiles('vcpkg.json', 'vcpkg-overlays/**', matrix.cache_target_triplet_file, matrix.cache_host_triplet_file, matrix.cache_support_file) }}
           restore-keys: |
             vcpkg-${{ runner.os }}-${{ runner.arch }}-${{ matrix.triplet }}-
 
@@ -119,11 +131,54 @@ jobs:
         run: cmake --preset ${{ matrix.debug_preset }}
 
       - name: Save vcpkg binary cache
+        id: vcpkg-cache-save
         if: always() && steps.vcpkg-cache.outputs.cache-hit != 'true'
         uses: actions/cache/save@v6.1.0
         with:
           path: .cache/vcpkg/archives
           key: ${{ steps.vcpkg-cache.outputs.cache-primary-key }}
+
+      - name: Delete superseded vcpkg cache
+        if: >-
+          always() &&
+          steps.vcpkg-cache-save.outcome == 'success' &&
+          steps.vcpkg-cache.outputs.cache-matched-key != '' &&
+          steps.vcpkg-cache.outputs.cache-matched-key !=
+            steps.vcpkg-cache.outputs.cache-primary-key &&
+          (
+            github.event_name != 'pull_request' ||
+            github.event.pull_request.head.repo.full_name == github.repository
+          )
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SUPERSEDED_CACHE_KEY: ${{ steps.vcpkg-cache.outputs.cache-matched-key }}
+        run: |
+          $cacheJson = gh cache list `
+            --repo "$env:GITHUB_REPOSITORY" `
+            --ref "$env:GITHUB_REF" `
+            --key "$env:SUPERSEDED_CACHE_KEY" `
+            --limit 100 `
+            --json id,key
+          if ($LASTEXITCODE -ne 0) {
+            throw "Could not list superseded vcpkg caches."
+          }
+
+          $caches = @(
+            $cacheJson |
+              ConvertFrom-Json |
+              Where-Object {
+                $_.key -eq $env:SUPERSEDED_CACHE_KEY
+              }
+          )
+          foreach ($cache in $caches) {
+            gh cache delete "$($cache.id)" `
+              --repo "$env:GITHUB_REPOSITORY"
+            if ($LASTEXITCODE -ne 0) {
+              throw "Could not delete vcpkg cache $($cache.id)."
+            }
+            Write-Host "Deleted superseded vcpkg cache $($cache.id)."
+          }
 
       - name: Clean vcpkg temporary directories
         run: |
