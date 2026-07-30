@@ -11,12 +11,8 @@ set_target_properties(
 target_sources(
     edit_atlas_app
     PRIVATE
-        application.cpp
         application_style.cpp
-        document_loader.cpp
-        include/edit_atlas/app/application.hpp
         include/edit_atlas/app/application_style.hpp
-        include/edit_atlas/app/document_loader.hpp
         include/edit_atlas/app/main_window.hpp
         include/edit_atlas/app/timeline_event_model.hpp
         include/edit_atlas/app/translation.hpp
@@ -34,11 +30,9 @@ target_include_directories(
 target_link_libraries(
     edit_atlas_app
     PUBLIC
-        EditAtlas::Core
+        EditAtlas::Services
         Qt6::Widgets
     PRIVATE
-        EditAtlas::Cmx3600
-        EditAtlas::Xlsx
         Qt6::Concurrent
 )
 

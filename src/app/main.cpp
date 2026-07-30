@@ -1,9 +1,10 @@
-#include <edit_atlas/app/application.hpp>
 #include <edit_atlas/app/application_style.hpp>
 #include <edit_atlas/app/main_window.hpp>
 #include <edit_atlas/app/translation.hpp>
 
 #include <edit_atlas/core/version.hpp>
+
+#include <edit_atlas/services/built_in_formats.hpp>
 
 #include <QApplication>
 #include <QCoreApplication>
@@ -45,7 +46,8 @@ int main(int argc, char *argv[]) {
             edit_atlas::app::SetApplicationLanguage(translator, language));
     }
 
-    auto registry_result = edit_atlas::app::CreateFormatRegistry();
+    auto registry_result =
+        edit_atlas::services::CreateBuiltInFormatRegistry();
     if (!registry_result.has_value()) {
         spdlog::critical("Could not register built-in formats (error {})",
                          static_cast<int>(registry_result.error()));

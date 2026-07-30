@@ -1,17 +1,20 @@
 #include <edit_atlas/app/main_window.hpp>
 
-#include <edit_atlas/app/document_loader.hpp>
 #include <edit_atlas/app/timeline_event_model.hpp>
 
 #include <edit_atlas/core/document_pipeline.hpp>
 #include <edit_atlas/core/editorial_timeline.hpp>
+#include <edit_atlas/core/format.hpp>
 #include <edit_atlas/core/timecode.hpp>
 #include <edit_atlas/core/version.hpp>
 
 #include <edit_atlas/formats/cmx3600/cmx3600_importer.hpp>
 
+#include <edit_atlas/services/document_service.hpp>
+
 #include <QAbstractItemView>
 #include <QAction>
+#include <QByteArray>
 #include <QComboBox>
 #include <QDialog>
 #include <QDragEnterEvent>
@@ -53,6 +56,7 @@
 #include <algorithm>
 #include <array>
 #include <cstddef>
+#include <filesystem>
 #include <optional>
 #include <string>
 #include <string_view>
@@ -71,6 +75,19 @@ constexpr qsizetype kMaximumRecentFiles = 10;
     return QString::fromUtf8(text.data(), static_cast<qsizetype>(text.size()));
 }
 
+[[nodiscard]] std::filesystem::path FilesystemPath(const QString &path) {
+    const auto utf8 = path.toUtf8();
+    return std::filesystem::path{
+        std::u8string{reinterpret_cast<const char8_t *>(utf8.constData()),
+                      static_cast<std::size_t>(utf8.size())}};
+}
+
+[[nodiscard]] QString PathText(const std::filesystem::path &path) {
+    const auto utf8 = path.generic_u8string();
+    return QString::fromUtf8(reinterpret_cast<const char *>(utf8.data()),
+                             static_cast<qsizetype>(utf8.size()));
+}
+
 [[nodiscard]] bool
 HasDiagnosticCode(const std::vector<core::Diagnostic> &diagnostics,
                   std::string_view code) {
@@ -85,15 +102,16 @@ HasDiagnosticCode(const std::vector<core::Diagnostic> &diagnostics,
 MainWindow::MainWindow(const core::FormatRegistry &registry,
                        QTranslator &translator,
                        ApplicationLanguage initial_language, QWidget *parent)
-    : QMainWindow(parent), registry_(registry), translator_(translator),
-      language_(initial_language) {
+    : QMainWindow(parent), registry_(registry), document_service_(registry),
+      translator_(translator), language_(initial_language) {
     setObjectName(QStringLiteral("mainWindow"));
     resize(1100, 700);
     setMinimumSize(760, 500);
     setAcceptDrops(true);
 
-    connect(&import_watcher_, &QFutureWatcher<DocumentLoadResult>::finished,
-            this, &MainWindow::HandleImportFinished);
+    connect(&import_watcher_,
+            &QFutureWatcher<services::OpenDocumentResult>::finished, this,
+            &MainWindow::HandleImportFinished);
 
     BuildMenus();
     BuildUi();
@@ -367,10 +385,19 @@ void MainWindow::StartImport(const QString &path,
     document_stack_->setCurrentIndex(kLoadingPage);
     loading_label_->setText(tr("Opening %1…").arg(QFileInfo{path}.fileName()));
 
-    const auto *registry = &registry_;
+    services::OpenDocumentRequest request{
+        .path = FilesystemPath(path),
+    };
+    if (frame_rate.has_value()) {
+        request.options.emplace_back(core::MetadataEntry{
+            .key = std::string{formats::cmx3600::kFrameRateOption},
+            .value = *frame_rate,
+        });
+    }
+    const auto *document_service = &document_service_;
     import_watcher_.setFuture(QtConcurrent::run(
-        [registry, path, frame_rate = std::move(frame_rate)](void) {
-            return LoadDocument(*registry, path, frame_rate);
+        [document_service, request = std::move(request)](void) mutable {
+            return document_service->OpenDocument(std::move(request));
         }));
 }
 
@@ -379,15 +406,12 @@ void MainWindow::HandleImportFinished(void) {
     empty_open_button_->setEnabled(true);
     auto result = import_watcher_.result();
 
-    if (result.error != DocumentLoadError::kNone) {
-        ShowFailure(result);
-        return;
-    }
-
-    if (!result.import_result.document.has_value() &&
+    if (!result.has_value() &&
+        result.error().kind ==
+            services::DocumentOpenFailureKind::kImportFailed &&
         !requested_frame_rate_.has_value() &&
         HasDiagnosticCode(
-            result.import_result.diagnostics,
+            result.error().diagnostics,
             formats::cmx3600::diagnostic_code::kMissingFrameRate)) {
         const QStringList frame_rate_labels{
             tr("23.976 fps"), tr("24 fps"), tr("25 fps"),    tr("29.97 fps"),
@@ -406,26 +430,26 @@ void MainWindow::HandleImportFinished(void) {
             const auto index = frame_rate_labels.indexOf(selected);
             if (index >= 0) {
                 StartImport(
-                    result.path,
+                    PathText(result.error().path),
                     std::string{kFrameRates[static_cast<std::size_t>(index)]});
                 return;
             }
         }
     }
 
-    if (!result.import_result.document.has_value()) {
-        ShowFailure(result);
+    if (!result.has_value()) {
+        ShowFailure(result.error());
         return;
     }
 
-    document_ = std::move(*result.import_result.document);
-    last_diagnostics_ = std::move(result.import_result.diagnostics);
-    last_load_error_ = DocumentLoadError::kNone;
-    last_load_error_detail_.clear();
+    document_ = std::move(result->document);
+    last_diagnostics_ = std::move(result->diagnostics);
+    last_load_error_.reset();
+    last_filesystem_error_.clear();
     PopulateTimeline();
     PopulateDiagnostics(last_diagnostics_);
     document_stack_->setCurrentIndex(kTimelinePage);
-    RememberRecentFile(result.path);
+    RememberRecentFile(PathText(result->path));
 }
 
 void MainWindow::ClearDocument(void) {
@@ -433,8 +457,8 @@ void MainWindow::ClearDocument(void) {
     document_.reset();
     current_path_.clear();
     requested_frame_rate_.reset();
-    last_load_error_ = DocumentLoadError::kNone;
-    last_load_error_detail_.clear();
+    last_load_error_.reset();
+    last_filesystem_error_.clear();
     last_diagnostics_.clear();
     event_filter_->clear();
     diagnostics_tree_->clear();
@@ -551,21 +575,23 @@ void MainWindow::PopulateDiagnostics(
     diagnostics_tree_->resizeColumnToContents(1);
 }
 
-void MainWindow::ShowFailure(const DocumentLoadResult &result) {
+void MainWindow::ShowFailure(const services::DocumentOpenFailure &failure) {
     event_model_->SetDocument(nullptr);
     document_.reset();
-    current_path_ = result.path;
-    last_load_error_ = result.error;
-    last_load_error_detail_ = result.error_detail;
-    last_diagnostics_ = result.import_result.diagnostics;
+    current_path_ = PathText(failure.path);
+    last_load_error_ = failure.kind;
+    last_filesystem_error_ = failure.filesystem_error;
+    last_diagnostics_ = failure.diagnostics;
     failure_title_label_->setText(tr("Could not open timeline"));
 
-    if (result.error == DocumentLoadError::kOpenFailed) {
+    if (failure.kind == services::DocumentOpenFailureKind::kOpenFailed) {
         failure_description_label_->setText(
-            tr("The file could not be opened: %1").arg(result.error_detail));
-    } else if (result.error == DocumentLoadError::kReadFailed) {
+            tr("The file could not be opened: %1")
+                .arg(Utf8(last_filesystem_error_.message())));
+    } else if (failure.kind == services::DocumentOpenFailureKind::kReadFailed) {
         failure_description_label_->setText(
-            tr("The file could not be read: %1").arg(result.error_detail));
+            tr("The file could not be read: %1")
+                .arg(Utf8(last_filesystem_error_.message())));
     } else {
         failure_description_label_->setText(
             tr("The file is not a supported timeline or contains fatal "
@@ -701,17 +727,14 @@ void MainWindow::RetranslateTimeline(void) {
         return;
     }
     if (document_stack_->currentIndex() == kFailurePage) {
-        DocumentLoadResult result{
-            .path = current_path_,
-            .error = last_load_error_,
-            .error_detail = last_load_error_detail_,
-            .import_result =
-                {
-                    .document = std::nullopt,
-                    .diagnostics = last_diagnostics_,
-                },
+        services::DocumentOpenFailure failure{
+            .path = FilesystemPath(current_path_),
+            .kind = last_load_error_.value_or(
+                services::DocumentOpenFailureKind::kImportFailed),
+            .filesystem_error = last_filesystem_error_,
+            .diagnostics = last_diagnostics_,
         };
-        ShowFailure(result);
+        ShowFailure(failure);
     }
 }
 

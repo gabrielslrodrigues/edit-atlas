@@ -1,14 +1,14 @@
-#include <edit_atlas/app/application.hpp>
+#include <edit_atlas/services/built_in_formats.hpp>
 
 #include <edit_atlas/formats/cmx3600/cmx3600_importer.hpp>
 #include <edit_atlas/formats/xlsx/xlsx_exporter.hpp>
 
 #include <memory>
 
-namespace edit_atlas::app {
+namespace edit_atlas::services {
 
 std::expected<core::FormatRegistry, core::FormatRegistrationError>
-CreateFormatRegistry(void) {
+CreateBuiltInFormatRegistry(void) {
     core::FormatRegistry registry;
     if (const auto result = registry.RegisterImporter(
             std::make_unique<formats::cmx3600::Cmx3600Importer>());
@@ -23,4 +23,4 @@ CreateFormatRegistry(void) {
     return registry;
 }
 
-} // namespace edit_atlas::app
+} // namespace edit_atlas::services

@@ -6,6 +6,10 @@ Edit Atlas is a privacy-first desktop application for inspecting editorial
 timeline interchange files and exporting structured reports. It currently
 supports importing CMX 3600 EDL files and exporting Microsoft Excel workbooks.
 
+The project separates its UI-independent core, built-in formats, application
+services, and frontend adapters. See [Architecture](docs/architecture.md) for
+the dependency direction and extension points.
+
 ## Common requirements
 
 - CMake 4.0 or newer

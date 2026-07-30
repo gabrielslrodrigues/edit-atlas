@@ -11,8 +11,6 @@ target_link_libraries(
     edit_atlas_app_tests
     PRIVATE
         EditAtlas::App
-        EditAtlas::Cmx3600
-        EditAtlas::Xlsx
         GTest::gtest
 )
 
