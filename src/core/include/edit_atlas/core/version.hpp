@@ -5,6 +5,7 @@
 
 namespace edit_atlas::core {
 
+/// Returns the application version compiled into the core library.
 [[nodiscard]] std::string_view Version(void) noexcept;
 
 } // namespace edit_atlas::core

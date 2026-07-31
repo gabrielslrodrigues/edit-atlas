@@ -23,6 +23,33 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
+option(
+    EDIT_ATLAS_BUILD_DOCUMENTATION
+    "Generate public C++ API documentation"
+    OFF
+)
+option(
+    EDIT_ATLAS_DOCUMENTATION_ONLY
+    "Configure only the documentation target"
+    OFF
+)
+
+if(EDIT_ATLAS_DOCUMENTATION_ONLY AND NOT EDIT_ATLAS_BUILD_DOCUMENTATION)
+    message(
+        FATAL_ERROR
+        "EDIT_ATLAS_DOCUMENTATION_ONLY requires "
+        "EDIT_ATLAS_BUILD_DOCUMENTATION=ON."
+    )
+endif()
+
+if(EDIT_ATLAS_BUILD_DOCUMENTATION)
+    add_subdirectory(docs)
+endif()
+
+if(EDIT_ATLAS_DOCUMENTATION_ONLY)
+    return()
+endif()
+
 include(GNUInstallDirs)
 include(CTest)
 

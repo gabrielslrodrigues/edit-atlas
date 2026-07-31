@@ -8,8 +8,11 @@ namespace edit_atlas::core {
 
 /// Identifies why a rational frame rate could not be constructed.
 enum class FrameRateError {
+    /// The numerator is zero or negative.
     kNonPositiveNumerator,
+    /// The denominator is zero or negative.
     kNonPositiveDenominator,
+    /// A normalized component does not fit in the stored representation.
     kValueOutOfRange,
 };
 
@@ -34,6 +37,7 @@ class FrameRate final {
     /// Returns the normalized, positive denominator.
     [[nodiscard]] std::int32_t denominator(void) const noexcept;
 
+    /// Compares normalized rational values.
     bool operator==(const FrameRate &) const = default;
 
   private:
@@ -54,13 +58,21 @@ enum class TimecodeMode {
 
 /// Identifies why a timecode could not be constructed or converted.
 enum class TimecodeError {
+    /// The frame rate has no supported nominal time base.
     kUnsupportedFrameRate,
+    /// Drop-frame numbering is not defined for the supplied frame rate.
     kUnsupportedDropFrameRate,
+    /// The hour is outside the supported 24-hour day.
     kHourOutOfRange,
+    /// The minute is outside `[0, 59]`.
     kMinuteOutOfRange,
+    /// The second is outside `[0, 59]`.
     kSecondOutOfRange,
+    /// The frame is outside the rate's nominal time base.
     kFrameOutOfRange,
+    /// The label is skipped by the drop-frame numbering convention.
     kDroppedFrameLabel,
+    /// The frame count is outside the supported 24-hour day.
     kFrameCountOutOfRange,
 };
 
@@ -112,6 +124,7 @@ class Timecode final {
     /// Returns the zero-based frame count represented by this label.
     [[nodiscard]] std::int64_t ToFrameCount(void) const noexcept;
 
+    /// Compares the label, exact frame rate, and numbering mode.
     bool operator==(const Timecode &) const = default;
 
   private:
@@ -128,8 +141,11 @@ class Timecode final {
 
 /// Identifies why a timecode range could not be constructed.
 enum class TimecodeRangeError {
+    /// The endpoints use different frame rates.
     kMismatchedFrameRate,
+    /// The endpoints use different numbering modes.
     kMismatchedMode,
+    /// The exclusive end precedes the start.
     kEndBeforeStart,
 };
 
@@ -154,6 +170,7 @@ class TimecodeRange final {
     /// Returns `end_exclusive - start` as an exact frame count.
     [[nodiscard]] std::int64_t DurationInFrames(void) const noexcept;
 
+    /// Compares both validated endpoints.
     bool operator==(const TimecodeRange &) const = default;
 
   private:

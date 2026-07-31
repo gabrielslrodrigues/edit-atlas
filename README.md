@@ -232,6 +232,29 @@ To treat project warnings as errors, configure with:
 cmake --preset debug-x64-linux -DEDIT_ATLAS_WARNINGS_AS_ERRORS=ON
 ```
 
+## Generate API documentation
+
+The optional documentation build requires Doxygen 1.9.8 or newer and Graphviz.
+Install both with the platform package manager; they are not required by any
+normal application configure or build preset.
+
+Generate the complete searchable C++ API reference with one command:
+
+```sh
+cmake --workflow --preset documentation
+```
+
+The generated site is written to `build/documentation/docs/html/index.html`.
+The dedicated configure path does not initialize vcpkg or look for Qt. It
+downloads the reproducibly pinned Doxygen Awesome theme into the ignored build
+tree and treats undocumented or malformed public API documentation as an
+error.
+
+Public declarations use LLVM-style `///` comments. The first sentence is a
+brief summary; follow it with parameter, return-value, ownership, lifetime, and
+invariant details where they form part of the contract. Generated HTML, warning
+logs, and downloaded theme files must not be committed.
+
 ## Create installers
 
 Preset-driven packaging creates a Windows installer, a universal macOS

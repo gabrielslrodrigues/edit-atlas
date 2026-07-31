@@ -7,17 +7,23 @@
 
 namespace edit_atlas::formats::xlsx {
 
+/// Stable identifier for the XLSX exporter.
 inline constexpr std::string_view kFormatIdentifier = "xlsx";
+/// Export option controlling inclusion of the timeline summary sheet.
 inline constexpr std::string_view kIncludeTimelineSheetOption =
     "xlsx.include_timeline_sheet";
+/// Export option controlling inclusion of the diagnostics sheet.
 inline constexpr std::string_view kIncludeDiagnosticsSheetOption =
     "xlsx.include_diagnostics_sheet";
+/// Export option containing an IETF workbook presentation language tag.
 inline constexpr std::string_view kWorkbookLanguageOption =
     "xlsx.workbook_language";
 
 /// A presentation language supported by the XLSX report.
 enum class WorkbookLanguage {
+    /// English workbook labels and document properties.
     kEnglish,
+    /// Brazilian Portuguese workbook labels and document properties.
     kBrazilianPortuguese,
 };
 
@@ -33,10 +39,13 @@ WorkbookLanguageTag(WorkbookLanguage language) noexcept {
     return "en";
 }
 
+/// Stable diagnostic codes emitted by the XLSX exporter.
 namespace diagnostic_code {
 
+/// The in-memory workbook could not be created.
 inline constexpr std::string_view kWorkbookCreationFailed =
     "xlsx.workbook_creation_failed";
+/// The completed workbook could not be serialized.
 inline constexpr std::string_view kWorkbookWriteFailed =
     "xlsx.workbook_write_failed";
 
@@ -45,7 +54,9 @@ inline constexpr std::string_view kWorkbookWriteFailed =
 /// Exports an editorial timeline as a structured Microsoft Excel workbook.
 class XlsxExporter final : public core::Exporter {
   public:
+    /// Creates a stateless XLSX exporter.
     XlsxExporter(void) = default;
+    /// Destroys the exporter.
     ~XlsxExporter(void) override = default;
 
     [[nodiscard]] const core::FormatDescriptor &

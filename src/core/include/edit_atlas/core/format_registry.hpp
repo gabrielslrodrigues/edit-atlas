@@ -15,11 +15,17 @@ namespace edit_atlas::core {
 
 /// Identifies why a format handler could not be registered.
 enum class FormatRegistrationError {
+    /// The supplied handler pointer is empty.
     kNullHandler,
+    /// The format identifier is empty or not lowercase ASCII.
     kInvalidIdentifier,
+    /// The human-readable format name is empty.
     kEmptyDisplayName,
+    /// An advertised extension is invalid.
     kInvalidExtension,
+    /// An importer already owns the format identifier.
     kDuplicateImporter,
+    /// An exporter already owns the format identifier.
     kDuplicateExporter,
 };
 
@@ -29,12 +35,18 @@ enum class FormatRegistrationError {
 /// format identifier to have both an importer and an exporter.
 class FormatRegistry final {
   public:
+    /// Creates an empty registry.
     FormatRegistry(void) = default;
+    /// Destroys every registered handler.
     ~FormatRegistry(void) = default;
 
+    /// Registries are non-copyable because they own handlers.
     FormatRegistry(const FormatRegistry &) = delete;
+    /// Registries are non-copy-assignable because they own handlers.
     FormatRegistry &operator=(const FormatRegistry &) = delete;
+    /// Transfers ownership of every registered handler.
     FormatRegistry(FormatRegistry &&) noexcept = default;
+    /// Replaces the registry by moving every owned handler.
     FormatRegistry &operator=(FormatRegistry &&) noexcept = default;
 
     /// Consumes an importer and registers it when its descriptor is valid.

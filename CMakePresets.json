@@ -105,6 +105,17 @@
       }
     },
     {
+      "name": "documentation",
+      "displayName": "API documentation",
+      "description": "Configure the standalone public API documentation",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/documentation",
+      "cacheVariables": {
+        "EDIT_ATLAS_BUILD_DOCUMENTATION": "ON",
+        "EDIT_ATLAS_DOCUMENTATION_ONLY": "ON"
+      }
+    },
+    {
       "name": "debug-x64-linux",
       "inherits": [
         "x64-linux",
@@ -196,6 +207,13 @@
     }
   ],
   "buildPresets": [
+    {
+      "name": "documentation",
+      "configurePreset": "documentation",
+      "targets": [
+        "documentation"
+      ]
+    },
     {
       "name": "debug-x64-linux",
       "configurePreset": "debug-x64-linux"
@@ -368,6 +386,20 @@
     }
   ],
   "workflowPresets": [
+    {
+      "name": "documentation",
+      "displayName": "Generate API documentation",
+      "steps": [
+        {
+          "type": "configure",
+          "name": "documentation"
+        },
+        {
+          "type": "build",
+          "name": "documentation"
+        }
+      ]
+    },
     {
       "name": "create-package-x64-linux",
       "displayName": "Create Package - Linux x64",
