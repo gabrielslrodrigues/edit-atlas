@@ -4,6 +4,8 @@ on:
   push:
     branches:
       - master
+    tags:
+      - "v*"
   pull_request:
     branches:
       - master
@@ -13,8 +15,8 @@ permissions:
   contents: read
 
 concurrency:
-  group: documentation-${{ github.ref }}
-  cancel-in-progress: true
+  group: documentation-${{ github.event_name == 'pull_request' && github.ref || 'pages' }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   generate:
@@ -25,6 +27,8 @@ jobs:
     steps:
       - name: Check out source
         uses: actions/checkout@v7.0.1
+        with:
+          fetch-depth: 0
 
       - name: Install documentation tools
         run: |
@@ -34,8 +38,35 @@ jobs:
       - name: Install CMake and Ninja
         uses: lukka/get-cmake@v4.4.0
 
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
+
+      - name: Restore published Pages source
+        if: github.event_name != 'pull_request'
+        shell: bash
+        run: |
+          mkdir -p build/pages
+          if git fetch origin gh-pages; then
+            git archive FETCH_HEAD | tar -x -C build/pages
+          fi
+
       - name: Generate documentation
         run: cmake --workflow --preset documentation
+
+      - name: Assemble versioned documentation site
+        shell: bash
+        env:
+          DOCUMENTATION_VERSION: ${{ startsWith(github.ref, 'refs/tags/v') && github.ref_name || '' }}
+        run: >-
+          ./scripts/ci/assemble-github-pages-docs.sh
+          build/documentation/docs/html
+          build/pages
+          "$DOCUMENTATION_VERSION"
+
+      - name: Upload GitHub Pages artifact
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: build/pages
 
       - name: Upload documentation
         uses: actions/upload-artifact@v7
@@ -44,3 +75,59 @@ jobs:
           path: build/documentation/docs/html
           if-no-files-found: error
           retention-days: 7
+
+      - name: Upload Pages source
+        uses: actions/upload-artifact@v7
+        with:
+          name: edit-atlas-pages-source
+          path: build/pages
+          if-no-files-found: error
+          retention-days: 7
+
+  publish-source:
+    name: Persist Pages source
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/tags/v'))
+    needs: generate
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    concurrency:
+      group: documentation-pages
+      cancel-in-progress: false
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v7.0.1
+        with:
+          fetch-depth: 0
+
+      - name: Download Pages source
+        uses: actions/download-artifact@v8
+        with:
+          name: edit-atlas-pages-source
+          path: build/pages
+
+      - name: Persist Pages source branch
+        run: ./scripts/ci/persist-github-pages-source.sh build/pages
+
+  deploy:
+    name: Deploy API documentation
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/tags/v'))
+    needs:
+      - generate
+      - publish-source
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      pages: write
+      id-token: write
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

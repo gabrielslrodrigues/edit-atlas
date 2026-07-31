@@ -250,6 +250,14 @@ downloads the reproducibly pinned Doxygen Awesome theme into the ignored build
 tree and treats undocumented or malformed public API documentation as an
 error.
 
+Every successful documentation run on `master` publishes the API reference to
+[GitHub Pages](https://gabrielslrodrigues.github.io/edit-atlas/latest/). Pull
+requests still generate and validate the site without changing the published
+version.
+Release-tag documentation is published under the matching `/vX.Y.Z/` path;
+the [documentation version index](https://gabrielslrodrigues.github.io/edit-atlas/versions.html)
+lists the available releases.
+
 Public declarations use LLVM-style `///` comments. The first sentence is a
 brief summary; follow it with parameter, return-value, ownership, lifetime, and
 invariant details where they form part of the contract. Generated HTML, warning
