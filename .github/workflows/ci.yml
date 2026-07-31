@@ -19,12 +19,226 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  prepare-vcpkg-cache:
+    name: Prepare vcpkg cache / ${{ matrix.name }}
+    # Fork pull requests consume available caches in the build job but never
+    # enter the trusted cache-population path.
+    if: >-
+      github.event_name != 'pull_request' ||
+      github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 120
+    permissions:
+      actions: write
+      contents: read
+    # GitHub Actions has no step-level concurrency. Keep the serialized job
+    # limited to dependency preparation so builds can run in parallel afterward.
+    concurrency:
+      group: vcpkg-cache-${{ matrix.os }}-${{ matrix.triplet }}
+      cancel-in-progress: false
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Linux x64
+            os: ubuntu-24.04
+            triplet: x64-linux
+            cache_target_triplet_file: vcpkg-triplets/x64-linux.cmake
+            cache_host_triplet_file: vcpkg-triplets/x64-linux.cmake
+            cache_support_file: vcpkg-triplets/x64-linux.cmake
+            debug_preset: debug-x64-linux
+          - name: macOS ARM64
+            os: macos-15
+            triplet: arm64-osx
+            cache_target_triplet_file: vcpkg-triplets/arm64-osx.cmake
+            cache_host_triplet_file: vcpkg-triplets/arm64-osx.cmake
+            cache_support_file: cmake/EditAtlasPlatformSupport.cmake
+            debug_preset: debug-arm64-osx
+          - name: macOS x64
+            os: macos-15-intel
+            triplet: x64-osx
+            cache_target_triplet_file: vcpkg-triplets/x64-osx.cmake
+            cache_host_triplet_file: vcpkg-triplets/x64-osx.cmake
+            cache_support_file: cmake/EditAtlasPlatformSupport.cmake
+            debug_preset: debug-x64-osx
+          - name: Windows x64
+            os: windows-2022
+            triplet: x64-windows
+            cache_target_triplet_file: vcpkg-triplets/x64-windows.cmake
+            cache_host_triplet_file: vcpkg-triplets/x64-windows.cmake
+            cache_support_file: vcpkg-triplets/x64-windows.cmake
+            debug_preset: debug-x64-windows
+
+    env:
+      VCPKG_BINARY_SOURCES: clear;files,${{ github.workspace }}/.cache/vcpkg/archives,readwrite
+      VCPKG_DISABLE_METRICS: 1
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v7.0.1
+        with:
+          submodules: recursive
+
+      - name: Free Linux runner disk space
+        if: runner.os == 'Linux'
+        run: |
+          df --human-readable /
+          sudo rm -rf \
+            /opt/ghc \
+            /opt/hostedtoolcache/CodeQL \
+            /usr/local/.ghcup \
+            /usr/local/lib/android \
+            /usr/local/share/boost \
+            /usr/local/share/powershell \
+            /usr/share/dotnet
+          df --human-readable /
+
+      - name: Install Ubuntu host dependencies
+        if: runner.os == 'Linux'
+        run: ./scripts/ci/install-ubuntu-dependencies.sh
+
+      - name: Install macOS host dependencies
+        if: runner.os == 'macOS'
+        env:
+          HOMEBREW_NO_AUTO_UPDATE: 1
+        run: ./scripts/ci/install-macos-dependencies.sh
+
+      - name: Install CMake and Ninja
+        uses: lukka/get-cmake@v4.4.0
+
+      - name: Configure MSVC
+        if: runner.os == 'Windows'
+        uses: ilammy/msvc-dev-cmd@v1.13.0
+        with:
+          arch: x64
+          vsversion: 2022
+
+      - name: Restore vcpkg binary cache
+        id: vcpkg-cache
+        uses: actions/cache/restore@v6.1.0
+        with:
+          path: .cache/vcpkg/archives
+          key: vcpkg-${{ runner.os }}-${{ runner.arch }}-${{ matrix.triplet }}-${{ hashFiles('vcpkg.json', 'vcpkg-overlays/**', matrix.cache_target_triplet_file, matrix.cache_host_triplet_file, matrix.cache_support_file) }}
+          restore-keys: |
+            vcpkg-${{ runner.os }}-${{ runner.arch }}-${{ matrix.triplet }}-${{ hashFiles('vcpkg.json', 'vcpkg-overlays/**', matrix.cache_target_triplet_file, matrix.cache_host_triplet_file, matrix.cache_support_file) }}-partial-
+            vcpkg-${{ runner.os }}-${{ runner.arch }}-${{ matrix.triplet }}-
+
+      - name: Report vcpkg binary cache restore
+        shell: pwsh
+        env:
+          VCPKG_CACHE_EXACT_HIT: ${{ steps.vcpkg-cache.outputs.cache-hit }}
+          VCPKG_CACHE_MATCHED_KEY: ${{ steps.vcpkg-cache.outputs.cache-matched-key }}
+          VCPKG_CACHE_PRIMARY_KEY: ${{ steps.vcpkg-cache.outputs.cache-primary-key }}
+        run: >-
+          ./scripts/ci/report-vcpkg-cache.ps1
+          -PrimaryKey "$env:VCPKG_CACHE_PRIMARY_KEY"
+          -MatchedKey "$env:VCPKG_CACHE_MATCHED_KEY"
+          -ExactHit "$env:VCPKG_CACHE_EXACT_HIT"
+
+      - name: Bootstrap vcpkg
+        if: runner.os != 'Windows'
+        run: ./vcpkg/bootstrap-vcpkg.sh -disableMetrics
+
+      - name: Bootstrap vcpkg
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: .\vcpkg\bootstrap-vcpkg.bat -disableMetrics
+
+      - name: Configure Debug
+        id: configure
+        run: cmake --preset ${{ matrix.debug_preset }}
+
+      - name: Save completed vcpkg binary cache
+        id: vcpkg-cache-save
+        if: >-
+          steps.configure.outcome == 'success' &&
+          steps.vcpkg-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v6.1.0
+        with:
+          path: .cache/vcpkg/archives
+          key: ${{ steps.vcpkg-cache.outputs.cache-primary-key }}
+
+      - name: Save partial vcpkg binary cache
+        # Exact cache keys are immutable. Failed configurations use a fallback
+        # key so a later successful run can still publish the completed cache.
+        if: >-
+          failure() &&
+          steps.configure.outcome == 'failure' &&
+          steps.vcpkg-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v6.1.0
+        with:
+          path: .cache/vcpkg/archives
+          key: ${{ steps.vcpkg-cache.outputs.cache-primary-key }}-partial-${{ github.run_id }}-${{ github.run_attempt }}
+
+      - name: Delete superseded vcpkg cache
+        if: >-
+          steps.vcpkg-cache-save.outcome == 'success' &&
+          steps.vcpkg-cache.outputs.cache-matched-key != '' &&
+          steps.vcpkg-cache.outputs.cache-matched-key !=
+            steps.vcpkg-cache.outputs.cache-primary-key
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SUPERSEDED_CACHE_KEY: ${{ steps.vcpkg-cache.outputs.cache-matched-key }}
+        run: |
+          $cacheJson = gh cache list `
+            --repo "$env:GITHUB_REPOSITORY" `
+            --ref "$env:GITHUB_REF" `
+            --key "$env:SUPERSEDED_CACHE_KEY" `
+            --limit 100 `
+            --json id,key
+          if ($LASTEXITCODE -ne 0) {
+            throw "Could not list superseded vcpkg caches."
+          }
+
+          $caches = @(
+            $cacheJson |
+              ConvertFrom-Json |
+              Where-Object {
+                $_.key -eq $env:SUPERSEDED_CACHE_KEY
+              }
+          )
+          foreach ($cache in $caches) {
+            gh cache delete "$($cache.id)" `
+              --repo "$env:GITHUB_REPOSITORY"
+            if ($LASTEXITCODE -ne 0) {
+              throw "Could not delete vcpkg cache $($cache.id)."
+            }
+            Write-Host "Deleted superseded vcpkg cache $($cache.id)."
+          }
+
+      - name: Upload configuration logs
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: ${{ runner.os }}-${{ runner.arch }}-vcpkg-configuration-logs
+          path: |
+            build/*/CMakeFiles/CMakeConfigureLog.yaml
+            build/*/vcpkg-manifest-install.log
+            vcpkg/buildtrees/**/*.log
+          if-no-files-found: ignore
+          retention-days: 7
+
+      - name: Clean vcpkg temporary directories
+        if: always()
+        run: |
+          cmake -E remove_directory "${{ github.workspace }}/vcpkg/buildtrees"
+          cmake -E remove_directory "${{ github.workspace }}/vcpkg/downloads"
+          cmake -E remove_directory "${{ github.workspace }}/vcpkg/packages"
+
   build-and-package:
     name: Build and package / ${{ matrix.name }}
+    needs: prepare-vcpkg-cache
+    if: >-
+      always() &&
+      (
+        needs.prepare-vcpkg-cache.result == 'success' ||
+        needs.prepare-vcpkg-cache.result == 'skipped'
+      )
     runs-on: ${{ matrix.os }}
     timeout-minutes: 180
     permissions:
-      actions: write
       contents: read
 
     strategy:
@@ -127,6 +341,30 @@ jobs:
           restore-keys: |
             vcpkg-${{ runner.os }}-${{ runner.arch }}-${{ matrix.triplet }}-
 
+      - name: Report vcpkg binary cache restore
+        shell: pwsh
+        env:
+          VCPKG_CACHE_EXACT_HIT: ${{ steps.vcpkg-cache.outputs.cache-hit }}
+          VCPKG_CACHE_MATCHED_KEY: ${{ steps.vcpkg-cache.outputs.cache-matched-key }}
+          VCPKG_CACHE_PRIMARY_KEY: ${{ steps.vcpkg-cache.outputs.cache-primary-key }}
+        run: >-
+          ./scripts/ci/report-vcpkg-cache.ps1
+          -PrimaryKey "$env:VCPKG_CACHE_PRIMARY_KEY"
+          -MatchedKey "$env:VCPKG_CACHE_MATCHED_KEY"
+          -ExactHit "$env:VCPKG_CACHE_EXACT_HIT"
+
+      - name: Verify prepared vcpkg binary cache
+        if: >-
+          github.event_name != 'pull_request' ||
+          github.event.pull_request.head.repo.full_name == github.repository
+        shell: pwsh
+        env:
+          VCPKG_CACHE_EXACT_HIT: ${{ steps.vcpkg-cache.outputs.cache-hit }}
+        run: |
+          if ($env:VCPKG_CACHE_EXACT_HIT -ne "true") {
+            throw "The prepared vcpkg binary cache was not restored."
+          }
+
       - name: Bootstrap vcpkg
         if: runner.os != 'Windows'
         run: ./vcpkg/bootstrap-vcpkg.sh -disableMetrics
@@ -138,56 +376,6 @@ jobs:
 
       - name: Configure Debug
         run: cmake --preset ${{ matrix.debug_preset }}
-
-      - name: Save vcpkg binary cache
-        id: vcpkg-cache-save
-        if: always() && steps.vcpkg-cache.outputs.cache-hit != 'true'
-        uses: actions/cache/save@v6.1.0
-        with:
-          path: .cache/vcpkg/archives
-          key: ${{ steps.vcpkg-cache.outputs.cache-primary-key }}
-
-      - name: Delete superseded vcpkg cache
-        if: >-
-          always() &&
-          steps.vcpkg-cache-save.outcome == 'success' &&
-          steps.vcpkg-cache.outputs.cache-matched-key != '' &&
-          steps.vcpkg-cache.outputs.cache-matched-key !=
-            steps.vcpkg-cache.outputs.cache-primary-key &&
-          (
-            github.event_name != 'pull_request' ||
-            github.event.pull_request.head.repo.full_name == github.repository
-          )
-        shell: pwsh
-        env:
-          GH_TOKEN: ${{ github.token }}
-          SUPERSEDED_CACHE_KEY: ${{ steps.vcpkg-cache.outputs.cache-matched-key }}
-        run: |
-          $cacheJson = gh cache list `
-            --repo "$env:GITHUB_REPOSITORY" `
-            --ref "$env:GITHUB_REF" `
-            --key "$env:SUPERSEDED_CACHE_KEY" `
-            --limit 100 `
-            --json id,key
-          if ($LASTEXITCODE -ne 0) {
-            throw "Could not list superseded vcpkg caches."
-          }
-
-          $caches = @(
-            $cacheJson |
-              ConvertFrom-Json |
-              Where-Object {
-                $_.key -eq $env:SUPERSEDED_CACHE_KEY
-              }
-          )
-          foreach ($cache in $caches) {
-            gh cache delete "$($cache.id)" `
-              --repo "$env:GITHUB_REPOSITORY"
-            if ($LASTEXITCODE -ne 0) {
-              throw "Could not delete vcpkg cache $($cache.id)."
-            }
-            Write-Host "Deleted superseded vcpkg cache $($cache.id)."
-          }
 
       - name: Clean vcpkg temporary directories
         run: |
