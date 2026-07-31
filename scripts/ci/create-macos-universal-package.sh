@@ -75,8 +75,8 @@ fi
 
 # Qt deployment can provide both a versioned dylib and a compatibility-name
 # dylib as regular files. Loading both copies makes Cocoa register every Qt
-# Objective-C class twice and abort during application startup. Preserve the
-# compatibility name, but make it an alias of the single universal binary.
+# Objective-C class twice and abort during application startup. The deployed
+# binaries use the versioned install names, so remove the redundant aliases.
 frameworks_dir="$universal_app/Contents/Frameworks"
 for library in libQt6Concurrent libQt6Core libQt6Gui libQt6Widgets libxlsxwriter; do
   compatibility_library="$frameworks_dir/$library.dylib"
@@ -89,7 +89,6 @@ for library in libQt6Concurrent libQt6Core libQt6Gui libQt6Widgets libxlsxwriter
   } | sort | head -n 1)"
   if [[ -f "$compatibility_library" && -n "$versioned_library" ]]; then
     rm "$compatibility_library"
-    ln -s "$(basename "$versioned_library")" "$compatibility_library"
   fi
 done
 
