@@ -16,6 +16,8 @@ target_sources(
     edit_atlas_xlsx
     PRIVATE
         xlsx_exporter.cpp
+        xlsx_workbook_text.cpp
+        include/edit_atlas/formats/xlsx/detail/xlsx_workbook_text.hpp
     PUBLIC
         FILE_SET HEADERS
         BASE_DIRS include

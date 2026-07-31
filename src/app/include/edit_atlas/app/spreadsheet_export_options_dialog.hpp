@@ -1,0 +1,46 @@
+#ifndef EDIT_ATLAS_APP_SPREADSHEET_EXPORT_OPTIONS_DIALOG_HPP_
+#define EDIT_ATLAS_APP_SPREADSHEET_EXPORT_OPTIONS_DIALOG_HPP_
+
+#include <edit_atlas/app/translation.hpp>
+
+#include <edit_atlas/core/editorial_timeline.hpp>
+
+#include <QDialog>
+
+#include <vector>
+
+class QCheckBox;
+class QComboBox;
+class QWidget;
+
+namespace edit_atlas::app {
+
+/// Collects XLSX presentation options without exposing widget details to the
+/// main application window.
+class SpreadsheetExportOptionsDialog final : public QDialog {
+    Q_OBJECT
+
+  public:
+    explicit SpreadsheetExportOptionsDialog(
+        ApplicationLanguage application_language, QWidget *parent = nullptr);
+    ~SpreadsheetExportOptionsDialog(void) override = default;
+
+    [[nodiscard]] std::vector<core::MetadataEntry> Options(void) const;
+
+    SpreadsheetExportOptionsDialog(const SpreadsheetExportOptionsDialog &) =
+        delete;
+    SpreadsheetExportOptionsDialog &
+    operator=(const SpreadsheetExportOptionsDialog &) = delete;
+    SpreadsheetExportOptionsDialog(SpreadsheetExportOptionsDialog &&) = delete;
+    SpreadsheetExportOptionsDialog &
+    operator=(SpreadsheetExportOptionsDialog &&) = delete;
+
+  private:
+    QComboBox *workbook_language_ = nullptr;
+    QCheckBox *timeline_ = nullptr;
+    QCheckBox *diagnostics_ = nullptr;
+};
+
+} // namespace edit_atlas::app
+
+#endif // EDIT_ATLAS_APP_SPREADSHEET_EXPORT_OPTIONS_DIALOG_HPP_

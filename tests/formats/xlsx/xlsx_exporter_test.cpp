@@ -180,6 +180,10 @@ ReadZipEntry(const std::filesystem::path &path, std::string_view entry_name) {
                     .key = "playback_speed",
                     .value = 1.25,
                 },
+                core::MetadataEntry{
+                    .key = "interlaced",
+                    .value = false,
+                },
             },
         .diagnostics =
             {
@@ -199,13 +203,23 @@ ReadZipEntry(const std::filesystem::path &path, std::string_view entry_name) {
     };
 }
 
-[[nodiscard]] core::ExportResult ExportDocument(void) {
+[[nodiscard]] core::ExportResult ExportDocument(WorkbookLanguage language) {
     const XlsxExporter exporter;
     const auto document = Document();
     return exporter.Export(core::ExportRequest{
         .document = document,
-        .options = {},
+        .options =
+            {
+                core::MetadataEntry{
+                    .key = std::string{kWorkbookLanguageOption},
+                    .value = std::string{WorkbookLanguageTag(language)},
+                },
+            },
     });
+}
+
+[[nodiscard]] core::ExportResult ExportDocument(void) {
+    return ExportDocument(WorkbookLanguage::kEnglish);
 }
 
 TEST(XlsxExporterTest, DescribesAndExportsTheFormat) {
@@ -234,8 +248,11 @@ TEST(XlsxExporterTest, WritesStableSheetsAndTimelineValues) {
     const auto workbook_xml = ReadZipEntry(workbook.path(), "xl/workbook.xml");
     const auto shared_strings =
         ReadZipEntry(workbook.path(), "xl/sharedStrings.xml");
+    const auto timeline =
+        ReadZipEntry(workbook.path(), "xl/worksheets/sheet2.xml");
     ASSERT_TRUE(workbook_xml.has_value());
     ASSERT_TRUE(shared_strings.has_value());
+    ASSERT_TRUE(timeline.has_value());
     EXPECT_NE(workbook_xml->find("name=\"Events\""), std::string::npos);
     EXPECT_NE(workbook_xml->find("name=\"Timeline\""), std::string::npos);
     EXPECT_NE(workbook_xml->find("name=\"Diagnostics\""), std::string::npos);
@@ -244,7 +261,47 @@ TEST(XlsxExporterTest, WritesStableSheetsAndTimelineValues) {
     EXPECT_NE(shared_strings->find("Drop Frame"), std::string::npos);
     EXPECT_NE(shared_strings->find("cmx-3600"), std::string::npos);
     EXPECT_NE(shared_strings->find("playback_speed"), std::string::npos);
-    EXPECT_NE(shared_strings->find("1.25"), std::string::npos);
+    EXPECT_NE(timeline->find("<v>1</v>"), std::string::npos);
+    EXPECT_NE(timeline->find("<v>1.25</v>"), std::string::npos);
+}
+
+TEST(XlsxExporterTest, LocalizesBrazilianPortuguesePresentation) {
+    const auto result = ExportDocument(WorkbookLanguage::kBrazilianPortuguese);
+    ASSERT_TRUE(result.artifact.has_value());
+    const TemporaryWorkbook workbook{result.artifact->content};
+
+    const auto workbook_xml = ReadZipEntry(workbook.path(), "xl/workbook.xml");
+    const auto shared_strings =
+        ReadZipEntry(workbook.path(), "xl/sharedStrings.xml");
+    const auto properties = ReadZipEntry(workbook.path(), "docProps/core.xml");
+    const auto timeline =
+        ReadZipEntry(workbook.path(), "xl/worksheets/sheet2.xml");
+    ASSERT_TRUE(workbook_xml.has_value());
+    ASSERT_TRUE(shared_strings.has_value());
+    ASSERT_TRUE(properties.has_value());
+    ASSERT_TRUE(timeline.has_value());
+
+    EXPECT_NE(workbook_xml->find("name=\"Eventos\""), std::string::npos);
+    EXPECT_NE(workbook_xml->find("name=\"Linha do tempo\""), std::string::npos);
+    EXPECT_NE(workbook_xml->find("name=\"Diagnósticos\""), std::string::npos);
+    EXPECT_NE(shared_strings->find("Tipo de edição"), std::string::npos);
+    EXPECT_NE(shared_strings->find("Dissolução"), std::string::npos);
+    EXPECT_NE(shared_strings->find("Taxa de quadros"), std::string::npos);
+    EXPECT_NE(shared_strings->find("Aviso"), std::string::npos);
+    EXPECT_NE(properties->find("Relatório de linha do tempo editorial"),
+              std::string::npos);
+    EXPECT_NE(properties->find("Criado pelo Edit Atlas"), std::string::npos);
+
+    EXPECT_NE(shared_strings->find("=SUM(A1:A2)"), std::string::npos);
+    EXPECT_NE(shared_strings->find("Opening shot"), std::string::npos);
+    EXPECT_NE(shared_strings->find("opening.mov"), std::string::npos);
+    EXPECT_NE(shared_strings->find("Example Timeline"), std::string::npos);
+    EXPECT_NE(shared_strings->find("cmx3600.unknown_content"),
+              std::string::npos);
+    EXPECT_NE(shared_strings->find("An unknown source line was preserved."),
+              std::string::npos);
+    EXPECT_NE(timeline->find("<v>0</v>"), std::string::npos);
+    EXPECT_NE(timeline->find("<v>1.25</v>"), std::string::npos);
 }
 
 TEST(XlsxExporterTest, PreservesEventValuesAsLiteralText) {
@@ -263,6 +320,7 @@ TEST(XlsxExporterTest, PreservesEventValuesAsLiteralText) {
     EXPECT_NE(shared_strings->find("=SUM(A1:A2)"), std::string::npos);
     EXPECT_NE(shared_strings->find("Opening shot"), std::string::npos);
     EXPECT_NE(shared_strings->find("opening.mov"), std::string::npos);
+    EXPECT_NE(events->find("<v>12</v>"), std::string::npos);
     EXPECT_EQ(events->find("<f>"), std::string::npos);
 }
 

@@ -12,6 +12,26 @@ inline constexpr std::string_view kIncludeTimelineSheetOption =
     "xlsx.include_timeline_sheet";
 inline constexpr std::string_view kIncludeDiagnosticsSheetOption =
     "xlsx.include_diagnostics_sheet";
+inline constexpr std::string_view kWorkbookLanguageOption =
+    "xlsx.workbook_language";
+
+/// A presentation language supported by the XLSX report.
+enum class WorkbookLanguage {
+    kEnglish,
+    kBrazilianPortuguese,
+};
+
+/// Returns the stable IETF language tag stored in export options.
+[[nodiscard]] constexpr std::string_view
+WorkbookLanguageTag(WorkbookLanguage language) noexcept {
+    switch (language) {
+    case WorkbookLanguage::kEnglish:
+        return "en";
+    case WorkbookLanguage::kBrazilianPortuguese:
+        return "pt-BR";
+    }
+    return "en";
+}
 
 namespace diagnostic_code {
 

@@ -188,6 +188,12 @@ The interface defaults to Brazilian Portuguese on first launch. The language
 selector in the top-right switches between Brazilian Portuguese and English
 and remembers the choice for subsequent launches.
 
+Spreadsheet export can follow the active interface language or explicitly use
+English or Brazilian Portuguese. The selected language changes workbook sheet
+names, headings, generated labels, and document properties. Imported titles,
+identifiers, comments, file paths, timecodes, metadata keys, and diagnostic
+details remain unchanged, while numeric values remain numeric cells.
+
 Open a CMX 3600 EDL with **File → Open Timeline**, the standard open shortcut,
 or by dropping the file onto the window. Non-drop-frame EDLs that omit their
 frame rate prompt for it before import. Parsed events can be sorted by any

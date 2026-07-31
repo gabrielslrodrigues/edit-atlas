@@ -1,5 +1,7 @@
 #include <edit_atlas/formats/xlsx/xlsx_exporter.hpp>
 
+#include <edit_atlas/formats/xlsx/detail/xlsx_workbook_text.hpp>
+
 #include <edit_atlas/core/editorial_timeline.hpp>
 #include <edit_atlas/core/timecode.hpp>
 
@@ -12,7 +14,6 @@
 #include <cstdint>
 #include <cstdlib>
 #include <ctime>
-#include <optional>
 #include <string>
 #include <string_view>
 #include <type_traits>
@@ -26,6 +27,8 @@ namespace {
 constexpr std::string_view kMediaType =
     "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
 constexpr std::time_t kCreationTime = 946'684'800;
+
+using detail::WorkbookText;
 
 struct WriteStatus final {
     lxw_error error = LXW_NO_ERROR;
@@ -111,47 +114,50 @@ template <typename Integer>
         value);
 }
 
-[[nodiscard]] std::string_view TrackKindText(core::TrackKind kind) noexcept {
+[[nodiscard]] std::string_view
+TrackKindText(core::TrackKind kind, const WorkbookText &text) noexcept {
     switch (kind) {
     case core::TrackKind::kVideo:
-        return "Video";
+        return text.video;
     case core::TrackKind::kAudio:
-        return "Audio";
+        return text.audio;
     case core::TrackKind::kData:
-        return "Data";
+        return text.data;
     case core::TrackKind::kOther:
-        return "Other";
+        return text.other;
     }
-    return "Other";
+    return text.other;
 }
 
-[[nodiscard]] std::string_view EditTypeText(core::EditType type) noexcept {
+[[nodiscard]] std::string_view EditTypeText(core::EditType type,
+                                            const WorkbookText &text) noexcept {
     switch (type) {
     case core::EditType::kCut:
-        return "Cut";
+        return text.cut;
     case core::EditType::kDissolve:
-        return "Dissolve";
+        return text.dissolve;
     case core::EditType::kWipe:
-        return "Wipe";
+        return text.wipe;
     case core::EditType::kKey:
-        return "Key";
+        return text.key;
     case core::EditType::kOther:
-        return "Other";
+        return text.other;
     }
-    return "Other";
+    return text.other;
 }
 
 [[nodiscard]] std::string_view
-DiagnosticSeverityText(core::DiagnosticSeverity severity) noexcept {
+DiagnosticSeverityText(core::DiagnosticSeverity severity,
+                       const WorkbookText &text) noexcept {
     switch (severity) {
     case core::DiagnosticSeverity::kInfo:
-        return "Info";
+        return text.info;
     case core::DiagnosticSeverity::kWarning:
-        return "Warning";
+        return text.warning;
     case core::DiagnosticSeverity::kError:
-        return "Error";
+        return text.error;
     }
-    return "Error";
+    return text.error;
 }
 
 [[nodiscard]] std::string
@@ -192,6 +198,21 @@ BooleanOption(const std::vector<core::MetadataEntry> &options,
     return default_value;
 }
 
+[[nodiscard]] WorkbookLanguage
+LanguageOption(const std::vector<core::MetadataEntry> &options) {
+    const auto option = std::ranges::find(options, kWorkbookLanguageOption,
+                                          &core::MetadataEntry::key);
+    if (option == options.end()) {
+        return WorkbookLanguage::kEnglish;
+    }
+    const auto *value = std::get_if<std::string>(&option->value);
+    if (value != nullptr &&
+        *value == WorkbookLanguageTag(WorkbookLanguage::kBrazilianPortuguese)) {
+        return WorkbookLanguage::kBrazilianPortuguese;
+    }
+    return WorkbookLanguage::kEnglish;
+}
+
 void WriteString(WriteStatus &status, lxw_worksheet *worksheet, lxw_row_t row,
                  lxw_col_t column, std::string_view value,
                  lxw_format *format = nullptr) {
@@ -204,6 +225,30 @@ void WriteNumber(WriteStatus &status, lxw_worksheet *worksheet, lxw_row_t row,
                  lxw_col_t column, double value, lxw_format *format = nullptr) {
     status.Record(
         worksheet_write_number(worksheet, row, column, value, format));
+}
+
+void WriteBoolean(WriteStatus &status, lxw_worksheet *worksheet, lxw_row_t row,
+                  lxw_col_t column, bool value, lxw_format *format = nullptr) {
+    status.Record(
+        worksheet_write_boolean(worksheet, row, column, value ? 1 : 0, format));
+}
+
+void WriteMetadataValue(WriteStatus &status, lxw_worksheet *worksheet,
+                        lxw_row_t row, lxw_col_t column,
+                        const core::MetadataValue &value) {
+    std::visit(
+        [&](const auto &item) {
+            using Value = std::remove_cvref_t<decltype(item)>;
+            if constexpr (std::is_same_v<Value, bool>) {
+                WriteBoolean(status, worksheet, row, column, item);
+            } else if constexpr (std::is_same_v<Value, std::string>) {
+                WriteString(status, worksheet, row, column, item);
+            } else {
+                WriteNumber(status, worksheet, row, column,
+                            static_cast<double>(item));
+            }
+        },
+        value);
 }
 
 template <std::size_t Size>
@@ -235,14 +280,9 @@ void ConfigureEventsSheet(WriteStatus &status, lxw_worksheet *worksheet,
 
 void WriteEventsSheet(WriteStatus &status, lxw_worksheet *worksheet,
                       const core::TimelineDocument &document,
-                      lxw_format *header_format, lxw_format *wrapped_format) {
-    constexpr std::array<std::string_view, 16> kColumns{
-        "Event",      "Reel",        "Track Type",        "Track",
-        "Edit Type",  "Transition",  "Transition Frames", "Source In",
-        "Source Out", "Record In",   "Record Out",        "Duration Frames",
-        "Clip Name",  "Source File", "Comments",          "Source Line",
-    };
-    WriteHeader(status, worksheet, kColumns, header_format);
+                      const WorkbookText &text, lxw_format *header_format,
+                      lxw_format *wrapped_format) {
+    WriteHeader(status, worksheet, text.event_columns, header_format);
     ConfigureEventsSheet(status, worksheet, wrapped_format,
                          document.events.size());
 
@@ -251,9 +291,11 @@ void WriteEventsSheet(WriteStatus &status, lxw_worksheet *worksheet,
         const auto row = static_cast<lxw_row_t>(index + 1);
         WriteString(status, worksheet, row, 0, event.identifier);
         WriteString(status, worksheet, row, 1, event.reel);
-        WriteString(status, worksheet, row, 2, TrackKindText(event.track.kind));
+        WriteString(status, worksheet, row, 2,
+                    TrackKindText(event.track.kind, text));
         WriteString(status, worksheet, row, 3, event.track.identifier);
-        WriteString(status, worksheet, row, 4, EditTypeText(event.edit_type));
+        WriteString(status, worksheet, row, 4,
+                    EditTypeText(event.edit_type, text));
         if (event.transition.has_value()) {
             WriteString(status, worksheet, row, 5,
                         event.transition->identifier);
@@ -286,9 +328,8 @@ void WriteEventsSheet(WriteStatus &status, lxw_worksheet *worksheet,
 
 void WriteTimelineSheet(WriteStatus &status, lxw_worksheet *worksheet,
                         const core::TimelineDocument &document,
-                        lxw_format *header_format) {
-    constexpr std::array<std::string_view, 2> kColumns{"Property", "Value"};
-    WriteHeader(status, worksheet, kColumns, header_format);
+                        const WorkbookText &text, lxw_format *header_format) {
+    WriteHeader(status, worksheet, text.timeline_columns, header_format);
     worksheet_freeze_panes(worksheet, 1, 0);
     status.Record(worksheet_set_column(worksheet, 0, 0, 28.0, nullptr));
     status.Record(worksheet_set_column(worksheet, 1, 1, 48.0, nullptr));
@@ -301,18 +342,23 @@ void WriteTimelineSheet(WriteStatus &status, lxw_worksheet *worksheet,
         ++row;
     };
 
-    write_property("Title", document.title);
-    write_property("Frame Rate",
+    write_property(text.title, document.title);
+    write_property(text.frame_rate,
                    IntegerText(document.frame_rate.numerator()) + "/" +
                        IntegerText(document.frame_rate.denominator()));
-    write_property("Timecode Mode",
+    write_property(text.timecode_mode,
                    document.timecode_mode == core::TimecodeMode::kDropFrame
-                       ? "Drop Frame"
-                       : "Non-Drop Frame");
-    write_property("Event Count", IntegerText(document.events.size()));
+                       ? text.drop_frame
+                       : text.non_drop_frame);
+    WriteString(status, worksheet, row, 0, text.event_count);
+    WriteNumber(status, worksheet, row, 1,
+                static_cast<double>(document.events.size()));
+    ++row;
 
     for (const auto &entry : document.metadata) {
-        write_property(entry.key, MetadataValueText(entry.value));
+        WriteString(status, worksheet, row, 0, entry.key);
+        WriteMetadataValue(status, worksheet, row, 1, entry.value);
+        ++row;
     }
 
     status.Record(worksheet_autofilter(worksheet, 0, 0, row - 1, 1));
@@ -320,12 +366,9 @@ void WriteTimelineSheet(WriteStatus &status, lxw_worksheet *worksheet,
 
 void WriteDiagnosticsSheet(WriteStatus &status, lxw_worksheet *worksheet,
                            const core::TimelineDocument &document,
-                           lxw_format *header_format,
+                           const WorkbookText &text, lxw_format *header_format,
                            lxw_format *wrapped_format) {
-    constexpr std::array<std::string_view, 6> kColumns{
-        "Severity", "Code", "Message", "Source", "Line", "Column",
-    };
-    WriteHeader(status, worksheet, kColumns, header_format);
+    WriteHeader(status, worksheet, text.diagnostic_columns, header_format);
     worksheet_freeze_panes(worksheet, 1, 0);
     status.Record(worksheet_set_column(worksheet, 0, 1, 20.0, nullptr));
     status.Record(worksheet_set_column(worksheet, 2, 2, 60.0, wrapped_format));
@@ -336,7 +379,7 @@ void WriteDiagnosticsSheet(WriteStatus &status, lxw_worksheet *worksheet,
         const auto &diagnostic = document.diagnostics[index];
         const auto row = static_cast<lxw_row_t>(index + 1);
         WriteString(status, worksheet, row, 0,
-                    DiagnosticSeverityText(diagnostic.severity));
+                    DiagnosticSeverityText(diagnostic.severity, text));
         WriteString(status, worksheet, row, 1, diagnostic.code);
         WriteString(status, worksheet, row, 2, diagnostic.message,
                     wrapped_format);
@@ -377,6 +420,7 @@ const core::FormatDescriptor &XlsxExporter::descriptor(void) const noexcept {
 
 core::ExportResult
 XlsxExporter::Export(const core::ExportRequest &request) const {
+    const auto &text = detail::WorkbookTextFor(LanguageOption(request.options));
     const char *output_buffer = nullptr;
     std::size_t output_size = 0;
     lxw_workbook_options options{
@@ -398,13 +442,13 @@ XlsxExporter::Export(const core::ExportRequest &request) const {
 
     lxw_doc_properties properties{
         .title = request.document.title.c_str(),
-        .subject = "Editorial timeline report",
+        .subject = text.subject.data(),
         .author = "Edit Atlas",
         .manager = nullptr,
         .company = nullptr,
-        .category = "Editorial",
-        .keywords = "EDL, editorial, timeline",
-        .comments = "Created by Edit Atlas",
+        .category = text.category.data(),
+        .keywords = text.keywords.data(),
+        .comments = text.comments.data(),
         .status = nullptr,
         .hyperlink_base = nullptr,
         .created = kCreationTime,
@@ -412,17 +456,19 @@ XlsxExporter::Export(const core::ExportRequest &request) const {
     WriteStatus status{};
     status.Record(workbook_set_properties(workbook, &properties));
 
-    auto *events = workbook_add_worksheet(workbook, "Events");
+    auto *events = workbook_add_worksheet(workbook, text.events_sheet.data());
     const auto include_timeline =
         BooleanOption(request.options, kIncludeTimelineSheetOption, true);
     const auto include_diagnostics =
         BooleanOption(request.options, kIncludeDiagnosticsSheetOption, true);
-    auto *timeline = include_timeline
-                         ? workbook_add_worksheet(workbook, "Timeline")
-                         : nullptr;
-    auto *diagnostics = include_diagnostics
-                            ? workbook_add_worksheet(workbook, "Diagnostics")
-                            : nullptr;
+    auto *timeline =
+        include_timeline
+            ? workbook_add_worksheet(workbook, text.timeline_sheet.data())
+            : nullptr;
+    auto *diagnostics =
+        include_diagnostics
+            ? workbook_add_worksheet(workbook, text.diagnostics_sheet.data())
+            : nullptr;
     auto *header_format = workbook_add_format(workbook);
     auto *wrapped_format = workbook_add_format(workbook);
     if (events == nullptr || (include_timeline && timeline == nullptr) ||
@@ -445,13 +491,14 @@ XlsxExporter::Export(const core::ExportRequest &request) const {
     format_set_text_wrap(wrapped_format);
     format_set_align(wrapped_format, LXW_ALIGN_VERTICAL_TOP);
 
-    WriteEventsSheet(status, events, request.document, header_format,
+    WriteEventsSheet(status, events, request.document, text, header_format,
                      wrapped_format);
     if (timeline != nullptr) {
-        WriteTimelineSheet(status, timeline, request.document, header_format);
+        WriteTimelineSheet(status, timeline, request.document, text,
+                           header_format);
     }
     if (diagnostics != nullptr) {
-        WriteDiagnosticsSheet(status, diagnostics, request.document,
+        WriteDiagnosticsSheet(status, diagnostics, request.document, text,
                               header_format, wrapped_format);
     }
 
