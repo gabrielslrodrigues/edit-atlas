@@ -47,9 +47,23 @@ import, atomic export, and built-in format composition by linking
 ## Frontends
 
 Frontends adapt platform-specific values at the application-services boundary.
-The Qt desktop frontend owns dialogs, background scheduling, models, widgets,
-translations, recent-file settings, and other desktop integration. A future
-CLI can provide terminal input and output while invoking the same services.
+The Qt desktop frontend separates its shell, presentation, and asynchronous
+workflow adapters:
+
+- `MainWindow` composes the desktop UI and handles top-level navigation,
+  language changes, and status presentation.
+- `ApplicationMenuBar` owns actions, language selection, and recent-file
+  settings.
+- `DocumentView` presents empty, loading, timeline, and import-failure states.
+- `DocumentController` and `SupportBundleController` coordinate localized
+  dialogs and translate user actions into workflow requests.
+- `DocumentWorkflow` and `SupportBundleWorkflow` schedule UI-independent
+  services and report completion through Qt signals.
+
+This keeps widget construction, document presentation, persistent desktop
+settings, workflow policy, and background execution out of the top-level
+window. A future CLI can provide terminal input and output while invoking the
+same services without depending on these Qt desktop components.
 
 Dependencies point inward: frontends may depend on application services, which
 may depend on core and format targets. Core and format targets never depend on
