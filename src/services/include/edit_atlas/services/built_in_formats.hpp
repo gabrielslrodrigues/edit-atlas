@@ -8,6 +8,8 @@
 namespace edit_atlas::services {
 
 /// Creates a registry containing every format built into Edit Atlas.
+///
+/// \returns The populated registry or the first registration error.
 [[nodiscard]] std::expected<core::FormatRegistry, core::FormatRegistrationError>
 CreateBuiltInFormatRegistry(void);
 

@@ -1,0 +1,46 @@
+name: Documentation
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: documentation-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  generate:
+    name: Generate API documentation
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v7.0.1
+
+      - name: Install documentation tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes --no-install-recommends doxygen graphviz
+
+      - name: Install CMake and Ninja
+        uses: lukka/get-cmake@v4.4.0
+
+      - name: Generate documentation
+        run: cmake --workflow --preset documentation
+
+      - name: Upload documentation
+        uses: actions/upload-artifact@v7
+        with:
+          name: edit-atlas-api-documentation
+          path: build/documentation/docs/html
+          if-no-files-found: error
+          retention-days: 7

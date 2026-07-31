@@ -1,0 +1,45 @@
+# API architecture {#api_architecture}
+
+The public API follows one inward dependency direction:
+
+```text
+frontend -> application services -> core
+                              |----> built-in formats -> core
+frontend -> diagnostic support
+```
+
+## Core model and pipeline
+
+The `edit_atlas::core` namespace contains exact timecode types, the editorial
+timeline model, format interfaces, `edit_atlas::core::FormatRegistry`, and the
+in-memory `edit_atlas::core::DocumentPipeline`. Core code does not open files,
+schedule work, or depend on a user-interface framework.
+
+## Format extensions
+
+An importer implements `edit_atlas::core::Importer`; an exporter implements
+`edit_atlas::core::Exporter`. Handlers exchange byte spans, domain objects,
+export artifacts, and structured diagnostics. Built-in implementations live in
+the `edit_atlas::formats` namespace and obey the same interfaces available to
+future formats.
+
+## Application services
+
+The `edit_atlas::services` namespace adapts local filesystem operations to the
+in-memory pipeline. Services return presentation-neutral receipts or failures,
+leaving scheduling, overwrite confirmation, localization, and user feedback to
+the caller. A desktop frontend and a future CLI can therefore share the same
+workflows.
+
+## Diagnostic support
+
+The `edit_atlas::support` namespace owns bounded application logging and
+privacy-limited support bundles. Callers provide explicit paths and diagnostic
+metadata; support code does not inspect user documents or arbitrary environment
+state.
+
+## Frontend boundary
+
+Qt desktop classes are adapters rather than public application services. They
+are intentionally absent from this reference because callers should integrate
+through the standard C++ domain, format, service, and support interfaces.

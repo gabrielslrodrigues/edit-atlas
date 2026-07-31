@@ -1,0 +1,88 @@
+include(FetchContent)
+
+find_package(Doxygen 1.9.8 REQUIRED COMPONENTS doxygen dot)
+
+FetchContent_Declare(
+    doxygen_awesome_css
+    GIT_REPOSITORY https://github.com/jothepro/doxygen-awesome-css.git
+    GIT_TAG d52eafe3e9303399fda15661f3d7bb8fe3d7eabc
+    GIT_SHALLOW FALSE
+)
+FetchContent_MakeAvailable(doxygen_awesome_css)
+FetchContent_GetProperties(
+    doxygen_awesome_css
+    SOURCE_DIR edit_atlas_doxygen_awesome_directory
+)
+
+set(DOXYGEN_PROJECT_NAME "Edit Atlas")
+set(DOXYGEN_PROJECT_NUMBER "${PROJECT_VERSION}")
+set(DOXYGEN_PROJECT_BRIEF "Public C++ API reference")
+set(DOXYGEN_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
+set(DOXYGEN_CREATE_SUBDIRS NO)
+set(DOXYGEN_GENERATE_HTML YES)
+set(DOXYGEN_GENERATE_LATEX NO)
+set(DOXYGEN_GENERATE_TREEVIEW YES)
+set(DOXYGEN_DISABLE_INDEX NO)
+set(DOXYGEN_FULL_SIDEBAR NO)
+set(DOXYGEN_SEARCHENGINE YES)
+set(DOXYGEN_HTML_COLORSTYLE LIGHT)
+set(
+    DOXYGEN_HTML_EXTRA_STYLESHEET
+    "${edit_atlas_doxygen_awesome_directory}/doxygen-awesome.css"
+)
+
+set(DOXYGEN_MARKDOWN_SUPPORT YES)
+set(DOXYGEN_AUTOLINK_SUPPORT YES)
+set(DOXYGEN_JAVADOC_AUTOBRIEF YES)
+set(DOXYGEN_BUILTIN_STL_SUPPORT YES)
+set(DOXYGEN_CPP_CLI_SUPPORT NO)
+set(DOXYGEN_EXTRACT_ALL NO)
+set(DOXYGEN_EXTRACT_PRIVATE NO)
+set(DOXYGEN_EXTRACT_STATIC NO)
+set(DOXYGEN_HIDE_UNDOC_MEMBERS NO)
+set(DOXYGEN_HIDE_UNDOC_CLASSES NO)
+set(DOXYGEN_RECURSIVE YES)
+set(DOXYGEN_FILE_PATTERNS "*.hpp" "*.md")
+set(DOXYGEN_EXCLUDE_PATTERNS "*/detail/*")
+set(DOXYGEN_USE_MDFILE_AS_MAINPAGE "${CMAKE_CURRENT_SOURCE_DIR}/api/index.md")
+
+set(DOXYGEN_WARNINGS YES)
+set(DOXYGEN_WARN_IF_UNDOCUMENTED YES)
+set(DOXYGEN_WARN_IF_DOC_ERROR YES)
+set(DOXYGEN_WARN_IF_INCOMPLETE_DOC YES)
+set(DOXYGEN_WARN_NO_PARAMDOC NO)
+set(DOXYGEN_WARN_IF_UNDOC_ENUM_VAL YES)
+set(DOXYGEN_WARN_AS_ERROR FAIL_ON_WARNINGS_PRINT)
+set(DOXYGEN_WARN_LOGFILE "${CMAKE_CURRENT_BINARY_DIR}/doxygen-warnings.log")
+
+set(DOXYGEN_HAVE_DOT YES)
+set(DOXYGEN_CLASS_DIAGRAMS YES)
+set(DOXYGEN_CLASS_GRAPH YES)
+set(DOXYGEN_COLLABORATION_GRAPH YES)
+set(DOXYGEN_DIRECTORY_GRAPH YES)
+set(DOXYGEN_DOT_IMAGE_FORMAT svg)
+set(DOXYGEN_DOT_TRANSPARENT YES)
+set(DOXYGEN_INTERACTIVE_SVG NO)
+
+set(DOXYGEN_SOURCE_BROWSER YES)
+set(DOXYGEN_INLINE_SOURCES NO)
+set(DOXYGEN_STRIP_FROM_PATH "${PROJECT_SOURCE_DIR}")
+set(DOXYGEN_STRIP_FROM_INC_PATH
+    "${PROJECT_SOURCE_DIR}/src/core/include"
+    "${PROJECT_SOURCE_DIR}/src/formats/cmx3600/include"
+    "${PROJECT_SOURCE_DIR}/src/formats/xlsx/include"
+    "${PROJECT_SOURCE_DIR}/src/services/include"
+    "${PROJECT_SOURCE_DIR}/src/support/include"
+)
+
+doxygen_add_docs(
+    documentation
+    "${CMAKE_CURRENT_SOURCE_DIR}/api"
+    "${PROJECT_SOURCE_DIR}/src/core/include"
+    "${PROJECT_SOURCE_DIR}/src/formats/cmx3600/include"
+    "${PROJECT_SOURCE_DIR}/src/formats/xlsx/include"
+    "${PROJECT_SOURCE_DIR}/src/services/include"
+    "${PROJECT_SOURCE_DIR}/src/support/include"
+    WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
+    COMMENT "Generating Edit Atlas public API documentation"
+)
