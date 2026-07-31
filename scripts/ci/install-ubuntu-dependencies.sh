@@ -38,6 +38,7 @@ sudo apt-get install --yes --no-install-recommends \
   libxcb-xkb-dev \
   libxcb1-dev \
   libwayland-dev \
+  mono-complete \
   pkg-config \
   rpm \
   wayland-protocols
