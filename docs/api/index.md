@@ -7,7 +7,7 @@ formats, and privacy-limited diagnostic support.
 
 ## Start here
 
-- [Architecture and dependency direction](architecture.md)
+- @ref api_architecture "Architecture and dependency direction"
 - `edit_atlas::core::TimelineDocument` is the shared editorial model.
 - `edit_atlas::core::Importer` and `edit_atlas::core::Exporter` are the format
   extension points.
