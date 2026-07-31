@@ -151,6 +151,31 @@ packages and treat them like end-user downloads:
   Qt and the Windows platform plugin, confirms the uninstall registry entry,
   runs the uninstaller, and confirms the executable was removed.
 
+### Dependency cache lifecycle
+
+Each native `build-and-package` job restores, populates, and consumes its
+vcpkg binary cache on the same runner. Jobs for the same platform and triplet
+are serialized so they cannot publish competing cache generations; different
+triplets continue to run concurrently.
+
+Cache identities include the dependency manifest, presets, overlays,
+triplets, platform-support inputs, host-dependency setup, vcpkg revision,
+runner image, compiler binary, SDK, CMake, Ninja, and a cache-schema version.
+Changing application source alone does not select a new dependency cache.
+
+The workflow first restores the latest compatible archive collection. vcpkg
+then validates every binary using its own package ABI. If it must build a
+missing ABI, the job publishes an augmented immutable cache generation before
+continuing to build the application. Superseded generations on the same Git
+reference are removed only after the replacement is saved successfully.
+Failed dependency configurations may publish a partial generation so a later
+run can resume completed packages. Fork pull requests may restore accessible
+caches but cannot publish or delete them.
+
+The job summary reports the outer archive-cache restore separately from the
+number of packages vcpkg actually restored or built. An Actions cache hit
+therefore is not presented as proof of vcpkg ABI compatibility.
+
 The package checks are scripts rather than embedded workflow fragments, so the
 same checks can be run locally after creating the matching package:
 
