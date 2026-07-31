@@ -1,24 +1,20 @@
 param(
   [Parameter(Mandatory = $true)]
-  [string]$PrimaryKey,
-  [string]$MatchedKey = "",
-  [string]$ExactHit = ""
+  [string]$RequestedKey,
+  [string]$MatchedKey = ""
 )
 
 $ErrorActionPreference = "Stop"
 
-if ($ExactHit -eq "true") {
-  $status = "exact hit"
-  $detail = $PrimaryKey
-} elseif ($MatchedKey) {
-  $status = "fallback hit"
-  $detail = "$MatchedKey (requested $PrimaryKey)"
+if ($MatchedKey) {
+  $status = "restored generation"
+  $detail = "$MatchedKey (next generation $RequestedKey)"
 } else {
   $status = "miss"
-  $detail = $PrimaryKey
+  $detail = $RequestedKey
 }
 
-$message = "vcpkg binary cache: $status - $detail"
+$message = "vcpkg archive cache: $status - $detail"
 Write-Host $message
 
 if ($env:GITHUB_STEP_SUMMARY) {
