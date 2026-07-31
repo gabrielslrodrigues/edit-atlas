@@ -38,9 +38,6 @@ jobs:
       - name: Install CMake and Ninja
         uses: lukka/get-cmake@v4.4.0
 
-      - name: Configure GitHub Pages
-        uses: actions/configure-pages@v5
-
       - name: Restore published Pages source
         if: github.event_name != 'pull_request'
         shell: bash
@@ -128,6 +125,9 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
 
     steps:
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
+
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
