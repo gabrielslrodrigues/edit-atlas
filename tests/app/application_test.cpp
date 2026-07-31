@@ -1,4 +1,5 @@
 #include <edit_atlas/app/main_window.hpp>
+#include <edit_atlas/app/spreadsheet_export_options_dialog.hpp>
 #include <edit_atlas/app/timeline_event_model.hpp>
 #include <edit_atlas/app/translation.hpp>
 
@@ -23,6 +24,10 @@ TEST(ApplicationTest, LoadsBrazilianPortugueseTranslations) {
     EXPECT_EQ(MainWindow::tr("&File"), QStringLiteral("&Arquivo"));
     EXPECT_EQ(MainWindow::tr("&Export Spreadsheet"),
               QStringLiteral("&Exportar planilha"));
+    EXPECT_EQ(SpreadsheetExportOptionsDialog::tr("Workbook language"),
+              QStringLiteral("Idioma da pasta de trabalho"));
+    EXPECT_EQ(SpreadsheetExportOptionsDialog::tr("Same as application"),
+              QStringLiteral("Mesmo idioma do aplicativo"));
     EXPECT_EQ(MainWindow::tr("Export Diagnostic &Logs"),
               QStringLiteral("Exportar &logs de diagnóstico"));
 }

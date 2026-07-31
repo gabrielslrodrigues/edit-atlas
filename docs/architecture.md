@@ -35,7 +35,10 @@ frontend-specific text.
 Document exports use the same boundary. `DocumentExportService` selects a
 registered exporter, writes its artifact beside the destination, and atomically
 commits the completed file. It never replaces an existing destination unless
-the frontend explicitly authorizes replacement.
+the frontend explicitly authorizes replacement. Format-specific export options
+use stable metadata keys and values. For example, the XLSX language option uses
+IETF language tags and is resolved by the frontend before the service call, so
+the exporter remains independent from Qt and the active interface language.
 
 The services target has no Qt dependency. Any executable can use document
 import, atomic export, and built-in format composition by linking
