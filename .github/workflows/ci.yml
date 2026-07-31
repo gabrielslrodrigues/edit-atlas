@@ -19,16 +19,16 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  # Each triplet restores, populates, and consumes its cache on one runner.
+  # Each triplet restores, populates, and consumes its package feed on one runner.
   build-and-package:
     name: Build and package / ${{ matrix.name }}
     runs-on: ${{ matrix.os }}
     timeout-minutes: 180
     permissions:
-      actions: write
       contents: read
-    # GitHub applies concurrency to whole jobs, so serialize the complete
-    # restore/populate/consume lifecycle for each triplet.
+      packages: write
+    # Serialize publication for each triplet while allowing different
+    # triplets to run concurrently.
     concurrency:
       group: vcpkg-cache-${{ matrix.os }}-${{ matrix.triplet }}
       cancel-in-progress: false
@@ -40,10 +40,6 @@ jobs:
           - name: Linux x64
             os: ubuntu-24.04
             triplet: x64-linux
-            cache_target_triplet_file: vcpkg-triplets/x64-linux.cmake
-            cache_host_triplet_file: vcpkg-triplets/x64-linux.cmake
-            cache_support_file: vcpkg-triplets/x64-linux.cmake
-            cache_host_dependencies_file: scripts/ci/install-ubuntu-dependencies.sh
             debug_preset: debug-x64-linux
             release_preset: release-x64-linux
             package_preset: package-release-x64-linux
@@ -52,10 +48,6 @@ jobs:
           - name: macOS ARM64
             os: macos-15
             triplet: arm64-osx
-            cache_target_triplet_file: vcpkg-triplets/arm64-osx.cmake
-            cache_host_triplet_file: vcpkg-triplets/arm64-osx.cmake
-            cache_support_file: cmake/EditAtlasPlatformSupport.cmake
-            cache_host_dependencies_file: scripts/ci/install-macos-dependencies.sh
             debug_preset: debug-arm64-osx
             release_preset: release-arm64-osx
             executable_suffix: src/app/edit-atlas.app/Contents/MacOS/edit-atlas
@@ -63,10 +55,6 @@ jobs:
           - name: macOS x64
             os: macos-15-intel
             triplet: x64-osx
-            cache_target_triplet_file: vcpkg-triplets/x64-osx.cmake
-            cache_host_triplet_file: vcpkg-triplets/x64-osx.cmake
-            cache_support_file: cmake/EditAtlasPlatformSupport.cmake
-            cache_host_dependencies_file: scripts/ci/install-macos-dependencies.sh
             debug_preset: debug-x64-osx
             release_preset: release-x64-osx
             executable_suffix: src/app/edit-atlas.app/Contents/MacOS/edit-atlas
@@ -74,10 +62,6 @@ jobs:
           - name: Windows x64
             os: windows-2022
             triplet: x64-windows
-            cache_target_triplet_file: vcpkg-triplets/x64-windows.cmake
-            cache_host_triplet_file: vcpkg-triplets/x64-windows.cmake
-            cache_support_file: vcpkg-triplets/x64-windows.cmake
-            cache_host_dependencies_file: vcpkg-triplets/x64-windows.cmake
             debug_preset: debug-x64-windows
             release_preset: release-x64-windows
             package_preset: package-release-x64-windows
@@ -85,8 +69,12 @@ jobs:
             staged_executable_suffix: bin/edit-atlas.exe
 
     env:
-      VCPKG_BINARY_SOURCES: clear;files,${{ github.workspace }}/.cache/vcpkg/archives,readwrite
+      FEED_URL: https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json
+      VCPKG_BINARY_SOURCES: clear;nuget,https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json,readwrite
       VCPKG_DISABLE_METRICS: 1
+      VCPKG_EXE: ${{ github.workspace }}/vcpkg/vcpkg
+      VCPKG_USERNAME: ${{ github.repository_owner }}
+      X_VCPKG_NUGET_ID_PREFIX: edit-atlas-
 
     steps:
       - name: Check out source
@@ -128,58 +116,6 @@ jobs:
           arch: x64
           vsversion: 2022
 
-      - name: Calculate vcpkg cache context
-        id: vcpkg-context
-        shell: pwsh
-        env:
-          VCPKG_DEPENDENCY_HASH: >-
-            ${{ hashFiles(
-              'CMakePresets.json',
-              'vcpkg.json',
-              'vcpkg-configuration.json',
-              'vcpkg-overlays/**',
-              matrix.cache_target_triplet_file,
-              matrix.cache_host_triplet_file,
-              matrix.cache_support_file,
-              matrix.cache_host_dependencies_file
-            ) }}
-        run: >-
-          ./scripts/ci/get-vcpkg-cache-context.ps1
-          -Triplet "${{ matrix.triplet }}"
-          -DependencyHash "$env:VCPKG_DEPENDENCY_HASH"
-
-      - name: Restore vcpkg binary cache
-        id: vcpkg-cache
-        uses: actions/cache/restore@v6.1.0
-        with:
-          path: .cache/vcpkg/archives
-          # Actions caches are immutable. Every writer publishes a new
-          # generation after augmenting the restored archive collection.
-          key: ${{ steps.vcpkg-context.outputs.key-prefix }}-complete-${{ github.run_id }}-${{ github.run_attempt }}
-          restore-keys: |
-            ${{ steps.vcpkg-context.outputs.key-prefix }}-complete-
-            ${{ steps.vcpkg-context.outputs.key-prefix }}-partial-
-            ${{ steps.vcpkg-context.outputs.compatibility-prefix }}-
-            vcpkg-v2-${{ runner.os }}-${{ runner.arch }}-${{ matrix.triplet }}-
-            vcpkg-${{ runner.os }}-${{ runner.arch }}-${{ matrix.triplet }}-
-
-      - name: Report vcpkg binary cache restore
-        shell: pwsh
-        env:
-          VCPKG_CACHE_MATCHED_KEY: ${{ steps.vcpkg-cache.outputs.cache-matched-key }}
-          VCPKG_CACHE_PRIMARY_KEY: ${{ steps.vcpkg-cache.outputs.cache-primary-key }}
-        run: >-
-          ./scripts/ci/report-vcpkg-cache.ps1
-          -RequestedKey "$env:VCPKG_CACHE_PRIMARY_KEY"
-          -MatchedKey "$env:VCPKG_CACHE_MATCHED_KEY"
-
-      - name: Inventory restored vcpkg binary cache
-        id: vcpkg-inventory-before
-        shell: pwsh
-        run: >-
-          ./scripts/ci/get-vcpkg-cache-inventory.ps1
-          -CacheDirectory "${{ github.workspace }}/.cache/vcpkg/archives"
-
       - name: Bootstrap vcpkg
         if: runner.os != 'Windows'
         run: ./vcpkg/bootstrap-vcpkg.sh -disableMetrics
@@ -188,6 +124,36 @@ jobs:
         if: runner.os == 'Windows'
         shell: pwsh
         run: .\vcpkg\bootstrap-vcpkg.bat -disableMetrics
+
+      - name: Configure GitHub Packages NuGet source
+        if: runner.os == 'Windows'
+        shell: pwsh
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          $nuget = (& $env:VCPKG_EXE fetch nuget | Select-Object -Last 1).Trim()
+          & $nuget sources add `
+            -Source $env:FEED_URL `
+            -StorePasswordInClearText `
+            -Name GitHubPackages `
+            -UserName $env:VCPKG_USERNAME `
+            -Password $env:GITHUB_TOKEN
+          & $nuget setapikey $env:GITHUB_TOKEN -Source $env:FEED_URL
+
+      - name: Configure GitHub Packages NuGet source
+        if: runner.os != 'Windows'
+        shell: bash
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          nuget_path="$("$VCPKG_EXE" fetch nuget | tail -n 1)"
+          mono "$nuget_path" sources add \
+            -Source "$FEED_URL" \
+            -StorePasswordInClearText \
+            -Name GitHubPackages \
+            -UserName "$VCPKG_USERNAME" \
+            -Password "$GITHUB_TOKEN"
+          mono "$nuget_path" setapikey "$GITHUB_TOKEN" -Source "$FEED_URL"
 
       - name: Configure Debug
         id: configure
@@ -199,69 +165,6 @@ jobs:
         run: >-
           ./scripts/ci/report-vcpkg-install.ps1
           -BuildDirectory "${{ github.workspace }}/build/${{ matrix.debug_preset }}"
-
-      - name: Inventory populated vcpkg binary cache
-        id: vcpkg-inventory-after
-        if: always()
-        shell: pwsh
-        run: >-
-          ./scripts/ci/get-vcpkg-cache-inventory.ps1
-          -CacheDirectory "${{ github.workspace }}/.cache/vcpkg/archives"
-          -BeforeFingerprint "${{ steps.vcpkg-inventory-before.outputs.fingerprint }}"
-
-      - name: Save completed vcpkg binary cache
-        id: vcpkg-cache-save
-        if: >-
-          steps.configure.outcome == 'success' &&
-          (
-            github.event_name != 'pull_request' ||
-            github.event.pull_request.head.repo.full_name == github.repository
-          ) &&
-          (
-            steps.vcpkg-inventory-after.outputs.changed == 'true' ||
-            (
-              github.event_name != 'pull_request' &&
-              !startsWith(
-                steps.vcpkg-cache.outputs.cache-matched-key,
-                format(
-                  '{0}-complete-',
-                  steps.vcpkg-context.outputs.key-prefix
-                )
-              )
-            )
-          )
-        uses: actions/cache/save@v6.1.0
-        with:
-          path: .cache/vcpkg/archives
-          key: ${{ steps.vcpkg-cache.outputs.cache-primary-key }}
-
-      - name: Save partial vcpkg binary cache
-        if: >-
-          failure() &&
-          steps.configure.outcome == 'failure' &&
-          steps.vcpkg-inventory-after.outputs.changed == 'true' &&
-          (
-            github.event_name != 'pull_request' ||
-            github.event.pull_request.head.repo.full_name == github.repository
-          )
-        uses: actions/cache/save@v6.1.0
-        with:
-          path: .cache/vcpkg/archives
-          key: ${{ steps.vcpkg-context.outputs.key-prefix }}-partial-${{ github.run_id }}-${{ github.run_attempt }}
-
-      - name: Delete superseded vcpkg cache
-        if: steps.vcpkg-cache-save.outcome == 'success'
-        shell: pwsh
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: >-
-          ./scripts/ci/remove-superseded-vcpkg-cache.ps1
-          -Repository "$env:GITHUB_REPOSITORY"
-          -Ref "$env:GITHUB_REF"
-          -CurrentKey "${{ steps.vcpkg-cache.outputs.cache-primary-key }}"
-          -KeyPrefix
-          "vcpkg-v2-${{ runner.os }}-${{ runner.arch }}-${{ matrix.triplet }}-",
-          "vcpkg-${{ runner.os }}-${{ runner.arch }}-${{ matrix.triplet }}-"
 
       - name: Clean vcpkg temporary directories
         run: |

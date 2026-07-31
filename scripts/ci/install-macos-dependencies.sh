@@ -7,4 +7,5 @@ brew install \
   autoconf-archive \
   automake \
   libtool \
+  mono \
   pkg-config

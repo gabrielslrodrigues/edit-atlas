@@ -153,28 +153,23 @@ packages and treat them like end-user downloads:
 
 ### Dependency cache lifecycle
 
-Each native `build-and-package` job restores, populates, and consumes its
-vcpkg binary cache on the same runner. Jobs for the same platform and triplet
-are serialized so they cannot publish competing cache generations; different
-triplets continue to run concurrently.
+CI uses the repository's public GitHub Packages NuGet feed as the vcpkg binary
+cache. vcpkg stores each built dependency using its package ABI, so compatible
+binaries can be reused across branches and runner images while incompatible
+compiler or SDK combinations remain separate. The feed is configured with the
+workflow-provided `GITHUB_TOKEN`, and the package IDs use an Edit Atlas prefix
+to keep them distinct from caches owned by other repositories. No personal
+token is required.
 
-Cache identities include the dependency manifest, presets, overlays,
-triplets, platform-support inputs, host-dependency setup, vcpkg revision,
-runner image, compiler binary, SDK, CMake, Ninja, and a cache-schema version.
-Changing application source alone does not select a new dependency cache.
+Jobs for the same platform and triplet are serialized to avoid competing
+uploads of the same package, while different triplets continue to run
+concurrently. Fork pull requests can read packages but cannot publish them.
+The job summary reports the number of packages restored and built by vcpkg.
 
-The workflow first restores the latest compatible archive collection. vcpkg
-then validates every binary using its own package ABI. If it must build a
-missing ABI, the job publishes an augmented immutable cache generation before
-continuing to build the application. Superseded generations on the same Git
-reference are removed only after the replacement is saved successfully.
-Failed dependency configurations may publish a partial generation so a later
-run can resume completed packages. Fork pull requests may restore accessible
-caches but cannot publish or delete them.
-
-The job summary reports the outer archive-cache restore separately from the
-number of packages vcpkg actually restored or built. An Actions cache hit
-therefore is not presented as proof of vcpkg ABI compatibility.
+The packages are CI implementation details, not application dependencies for
+end users. Public package storage and transfer are free for this public
+repository. Old ABI versions may remain in the feed until package-retention
+automation is added.
 
 The package checks are scripts rather than embedded workflow fragments, so the
 same checks can be run locally after creating the matching package:
