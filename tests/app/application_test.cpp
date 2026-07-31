@@ -1,4 +1,6 @@
-#include <edit_atlas/app/main_window.hpp>
+#include <edit_atlas/app/application_menu_bar.hpp>
+#include <edit_atlas/app/diagnostic_text.hpp>
+#include <edit_atlas/app/document_view.hpp>
 #include <edit_atlas/app/spreadsheet_export_options_dialog.hpp>
 #include <edit_atlas/app/timeline_event_model.hpp>
 #include <edit_atlas/app/translation.hpp>
@@ -6,12 +8,15 @@
 #include <edit_atlas/core/editorial_timeline.hpp>
 #include <edit_atlas/core/timecode.hpp>
 
+#include <edit_atlas/formats/cmx3600/cmx3600_importer.hpp>
+
 #include <QString>
 #include <QTranslator>
 
 #include <gtest/gtest.h>
 
 #include <optional>
+#include <string>
 
 namespace edit_atlas::app {
 namespace {
@@ -21,15 +26,28 @@ TEST(ApplicationTest, LoadsBrazilianPortugueseTranslations) {
 
     ASSERT_TRUE(SetApplicationLanguage(
         translator, ApplicationLanguage::kBrazilianPortuguese));
-    EXPECT_EQ(MainWindow::tr("&File"), QStringLiteral("&Arquivo"));
-    EXPECT_EQ(MainWindow::tr("&Export Spreadsheet"),
+    EXPECT_EQ(ApplicationMenuBar::tr("&File"), QStringLiteral("&Arquivo"));
+    EXPECT_EQ(ApplicationMenuBar::tr("&Export Spreadsheet"),
               QStringLiteral("&Exportar planilha"));
+    EXPECT_EQ(DocumentView::tr("No timeline open"),
+              QStringLiteral("Nenhuma linha do tempo aberta"));
     EXPECT_EQ(SpreadsheetExportOptionsDialog::tr("Workbook language"),
               QStringLiteral("Idioma da pasta de trabalho"));
     EXPECT_EQ(SpreadsheetExportOptionsDialog::tr("Same as application"),
               QStringLiteral("Mesmo idioma do aplicativo"));
-    EXPECT_EQ(MainWindow::tr("Export Diagnostic &Logs"),
+    EXPECT_EQ(ApplicationMenuBar::tr("Export Diagnostic &Logs"),
               QStringLiteral("Exportar &logs de diagnóstico"));
+
+    const core::Diagnostic diagnostic{
+        .severity = core::DiagnosticSeverity::kWarning,
+        .code =
+            std::string{formats::cmx3600::diagnostic_code::kMissingFrameRate},
+        .message = "untranslated fallback",
+        .location = std::nullopt,
+    };
+    EXPECT_EQ(diagnostic_text::Message(diagnostic),
+              QStringLiteral("Uma taxa de quadros é necessária para esta EDL "
+                             "non-drop-frame."));
 }
 
 TEST(ApplicationTest, PresentsTimelineDocumentInTableModel) {

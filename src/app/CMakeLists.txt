@@ -12,15 +12,31 @@ target_sources(
     edit_atlas_app
     PRIVATE
         application_style.cpp
+        application_menu_bar.cpp
+        desktop_integration.cpp
         diagnostic_support.cpp
+        diagnostic_text.cpp
+        document_controller.cpp
+        document_view.cpp
+        document_workflow.cpp
         include/edit_atlas/app/application_style.hpp
+        include/edit_atlas/app/application_menu_bar.hpp
+        include/edit_atlas/app/desktop_integration.hpp
         include/edit_atlas/app/diagnostic_support.hpp
+        include/edit_atlas/app/diagnostic_text.hpp
+        include/edit_atlas/app/document_controller.hpp
+        include/edit_atlas/app/document_view.hpp
+        include/edit_atlas/app/document_workflow.hpp
         include/edit_atlas/app/main_window.hpp
         include/edit_atlas/app/spreadsheet_export_options_dialog.hpp
+        include/edit_atlas/app/support_bundle_controller.hpp
+        include/edit_atlas/app/support_bundle_workflow.hpp
         include/edit_atlas/app/timeline_event_model.hpp
         include/edit_atlas/app/translation.hpp
         main_window.cpp
         spreadsheet_export_options_dialog.cpp
+        support_bundle_controller.cpp
+        support_bundle_workflow.cpp
         timeline_event_model.cpp
         translation.cpp
 )
