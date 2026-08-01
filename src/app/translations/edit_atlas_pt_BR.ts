@@ -138,6 +138,10 @@
 <context>
     <name>edit_atlas::app::DocumentController</name>
     <message>
+        <source>Condition %1 has an invalid regular expression: %2</source>
+        <translation>A condição %1 contém uma expressão regular inválida: %2</translation>
+    </message>
+    <message>
         <source>Could not export spreadsheet</source>
         <translation>Não foi possível exportar a planilha</translation>
     </message>
@@ -311,14 +315,6 @@
         <translation>Abrindo linha do tempo</translation>
     </message>
     <message>
-        <source>Filter events…</source>
-        <translation>Filtrar eventos…</translation>
-    </message>
-    <message>
-        <source>Filter timeline events</source>
-        <translation>Filtrar eventos da linha do tempo</translation>
-    </message>
-    <message>
         <source>Timeline edit events</source>
         <translation>Eventos de edição da linha do tempo</translation>
     </message>
@@ -331,8 +327,8 @@
         <translation>Exportar planilha</translation>
     </message>
     <message>
-        <source>Export the open timeline as an Excel workbook.</source>
-        <translation>Exporte a linha do tempo aberta como uma pasta de trabalho do Excel.</translation>
+        <source>Export the currently shown timeline events as an Excel workbook.</source>
+        <translation>Exporte os eventos da linha do tempo exibidos no momento como uma pasta de trabalho do Excel.</translation>
     </message>
     <message>
         <source>Your media and timeline data stay on this computer.</source>
@@ -377,6 +373,10 @@
     <message>
         <source>%1 events · %2 fps · %3</source>
         <translation>%1 eventos · %2 fps · %3</translation>
+    </message>
+    <message>
+        <source>Showing %1 of %2 events</source>
+        <translation>Exibindo %1 de %2 eventos</translation>
     </message>
     <message>
         <source>drop-frame</source>
@@ -560,6 +560,145 @@ Inspecione linhas do tempo editoriais e exporte relatórios estruturados.</trans
     <message>
         <source>Could Not Export Diagnostic Logs</source>
         <translation>Não foi possível exportar os logs de diagnóstico</translation>
+    </message>
+</context>
+<context>
+    <name>edit_atlas::app::TimelineFilterWidget</name>
+    <message>
+        <source>Match</source>
+        <translation>Corresponder</translation>
+    </message>
+    <message>
+        <source>All conditions</source>
+        <translation>Todas as condições</translation>
+    </message>
+    <message>
+        <source>Any condition</source>
+        <translation>Qualquer condição</translation>
+    </message>
+    <message>
+        <source>Filter combination</source>
+        <translation>Combinação de filtros</translation>
+    </message>
+    <message>
+        <source>Add condition</source>
+        <translation>Adicionar condição</translation>
+    </message>
+    <message>
+        <source>Clear filters</source>
+        <translation>Limpar filtros</translation>
+    </message>
+    <message>
+        <source>Contains text…</source>
+        <translation>Contém o texto…</translation>
+    </message>
+    <message>
+        <source>Regular expression…</source>
+        <translation>Expressão regular…</translation>
+    </message>
+    <message>
+        <source>Match case</source>
+        <translation>Diferenciar maiúsculas de minúsculas</translation>
+    </message>
+    <message>
+        <source>Match whole word</source>
+        <translation>Corresponder à palavra inteira</translation>
+    </message>
+    <message>
+        <source>Use regular expression</source>
+        <translation>Usar expressão regular</translation>
+    </message>
+    <message>
+        <source>Remove</source>
+        <translation>Remover</translation>
+    </message>
+    <message>
+        <source>Event</source>
+        <translation>Evento</translation>
+    </message>
+    <message>
+        <source>Reel</source>
+        <translation>Rolo</translation>
+    </message>
+    <message>
+        <source>Track type</source>
+        <translation>Tipo de faixa</translation>
+    </message>
+    <message>
+        <source>Track ID</source>
+        <translation>ID da faixa</translation>
+    </message>
+    <message>
+        <source>Edit type</source>
+        <translation>Tipo de edição</translation>
+    </message>
+    <message>
+        <source>Clip</source>
+        <translation>Clipe</translation>
+    </message>
+    <message>
+        <source>Source In</source>
+        <translation>Entrada da fonte</translation>
+    </message>
+    <message>
+        <source>Source Out</source>
+        <translation>Saída da fonte</translation>
+    </message>
+    <message>
+        <source>Record In</source>
+        <translation>Entrada da gravação</translation>
+    </message>
+    <message>
+        <source>Record Out</source>
+        <translation>Saída da gravação</translation>
+    </message>
+    <message>
+        <source>Duration</source>
+        <translation>Duração</translation>
+    </message>
+    <message>
+        <source>Comments</source>
+        <translation>Comentários</translation>
+    </message>
+    <message>
+        <source>Cut</source>
+        <translation>Corte</translation>
+    </message>
+    <message>
+        <source>Dissolve</source>
+        <translation>Dissolução</translation>
+    </message>
+    <message>
+        <source>Wipe</source>
+        <translation>Transição wipe</translation>
+    </message>
+    <message>
+        <source>Key</source>
+        <translation>Chave</translation>
+    </message>
+    <message>
+        <source>Other</source>
+        <translation>Outro</translation>
+    </message>
+    <message>
+        <source>Video</source>
+        <translation>Vídeo</translation>
+    </message>
+    <message>
+        <source>Audio</source>
+        <translation>Áudio</translation>
+    </message>
+    <message>
+        <source>Data</source>
+        <translation>Dados</translation>
+    </message>
+    <message>
+        <source>Exact duration in frames</source>
+        <translation>Duração exata em quadros</translation>
+    </message>
+    <message>
+        <source>Exact timecode (HH:MM:SS:FF)</source>
+        <translation>Timecode exato (HH:MM:SS:FF)</translation>
     </message>
 </context>
 <context>

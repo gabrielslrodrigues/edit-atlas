@@ -44,6 +44,17 @@ The services target has no Qt dependency. Any executable can use document
 import, atomic export, and built-in format composition by linking
 `EditAtlas::Services`.
 
+Timeline filtering is also an application service. A `TimelineFilterQuery`
+combines presentation-independent field conditions and produces ordered source
+event indices. Frontends use the same selection for presentation and create a
+filtered document copy for export, leaving the imported domain object intact.
+Conditions are strongly typed: only free-text fields expose literal or RE2
+matching, while track kind, edit type, timecode, and duration conditions compare
+domain values exactly. The service prepares each regular expression once per
+evaluation and reports invalid expressions without exposing UI types. Case and
+Unicode whole-word matching remain explicit text-condition properties so future
+frontends and saved filter templates share the same semantics.
+
 ## Frontends
 
 Frontends adapt platform-specific values at the application-services boundary.

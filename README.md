@@ -5,6 +5,8 @@
 Edit Atlas is a privacy-first desktop application for inspecting editorial
 timeline interchange files and exporting structured reports. It currently
 supports importing CMX 3600 EDL files and exporting Microsoft Excel workbooks.
+The desktop interface can combine field-specific event filters and exports
+exactly the currently matching rows without modifying the imported timeline.
 
 The project separates its UI-independent core, built-in formats, application
 services, and frontend adapters. See [Architecture](docs/architecture.md) for
@@ -197,8 +199,11 @@ details remain unchanged, while numeric values remain numeric cells.
 Open a CMX 3600 EDL with **File → Open Timeline**, the standard open shortcut,
 or by dropping the file onto the window. Non-drop-frame EDLs that omit their
 frame rate prompt for it before import. Parsed events can be sorted by any
-column and filtered using the field above the table; importer warnings and
-errors retain their source line numbers.
+column and filtered with one or more field-specific conditions above the table.
+Free-text fields support case matching, whole-word matching, and RE2 regular
+expressions; categorical, timecode, and duration fields use typed exact values.
+Conditions can be combined by matching all or any condition. Importer warnings
+and errors retain their source line numbers.
 
 Recent-file history is disabled by default. Enabling **Remember Recent Files**
 stores only local file paths in the platform settings. Disabling it clears the

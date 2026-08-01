@@ -135,17 +135,21 @@ if(WIN32)
 
     set(
         edit_atlas_third_party_runtime_descriptions
+        abseil
         spdlog
         fmt
         libxlsxwriter
         minizip
+        re2
     )
     set(
         edit_atlas_third_party_runtime_patterns
+        "*abseil*.dll"
         "*spdlog*.dll"
         "*fmt*.dll"
         "*xlsxwriter*.dll"
         "*minizip*.dll"
+        "*re2*.dll"
     )
 elseif(APPLE)
     edit_atlas_require_deployed_file(
@@ -159,6 +163,7 @@ elseif(APPLE)
         fmt
         libxlsxwriter
         minizip
+        re2
     )
     set(
         edit_atlas_third_party_runtime_patterns
@@ -166,6 +171,7 @@ elseif(APPLE)
         "*libfmt*.dylib"
         "*libxlsxwriter*.dylib"
         "*libminizip*.dylib"
+        "*libre2*.dylib"
     )
 elseif(UNIX)
     edit_atlas_require_deployed_file(
@@ -183,6 +189,7 @@ elseif(UNIX)
         fmt
         libxlsxwriter
         minizip
+        re2
     )
     set(
         edit_atlas_third_party_runtime_patterns
@@ -190,6 +197,7 @@ elseif(UNIX)
         "*libfmt.so*"
         "*libxlsxwriter.so*"
         "*libminizip.so*"
+        "*libre2.so*"
     )
 endif()
 
@@ -280,7 +288,7 @@ edit_atlas_require_deployed_file(
 )
 foreach(
     edit_atlas_notice_package
-    IN ITEMS cli11 spdlog fmt libxlsxwriter minizip zlib
+    IN ITEMS abseil cli11 spdlog fmt libxlsxwriter minizip re2 zlib
 )
     edit_atlas_require_deployed_file(
         "the ${edit_atlas_notice_package} license notices"

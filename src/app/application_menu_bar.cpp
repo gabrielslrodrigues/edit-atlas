@@ -75,6 +75,11 @@ void ApplicationMenuBar::SetDocumentAvailable(bool available) {
     UpdateActions();
 }
 
+void ApplicationMenuBar::SetExportAvailable(bool available) {
+    export_available_ = available;
+    UpdateActions();
+}
+
 void ApplicationMenuBar::SetLanguage(ApplicationLanguage language) {
     const QSignalBlocker blocker{language_selector_};
     language_selector_->setCurrentIndex(
@@ -155,7 +160,8 @@ void ApplicationMenuBar::SetRememberRecentFiles(bool enabled) {
 void ApplicationMenuBar::UpdateActions(void) {
     open_action_->setEnabled(!busy_);
     recent_files_menu_->setEnabled(!busy_);
-    export_action_->setEnabled(!busy_ && document_available_);
+    export_action_->setEnabled(!busy_ && document_available_ &&
+                               export_available_);
     export_logs_action_->setEnabled(!busy_);
 }
 

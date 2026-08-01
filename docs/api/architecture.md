@@ -29,7 +29,12 @@ The `edit_atlas::services` namespace adapts local filesystem operations to the
 in-memory pipeline. Services return presentation-neutral receipts or failures,
 leaving scheduling, overwrite confirmation, localization, and user feedback to
 the caller. The desktop frontend and CLI therefore share the same
-workflows.
+workflows. Timeline filter queries and event selections also live here so a
+frontend can present and export the same result set without modifying its
+imported document. Free-text conditions support literal or RE2 matching with
+optional case and Unicode whole-word constraints. Categorical, timecode, and
+duration conditions carry typed exact values, and invalid expressions produce
+structured validation failures.
 
 ## Diagnostic support
 

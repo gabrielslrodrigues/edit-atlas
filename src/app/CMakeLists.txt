@@ -37,6 +37,8 @@ target_sources(
         spreadsheet_export_options_dialog.cpp
         support_bundle_controller.cpp
         support_bundle_workflow.cpp
+        timeline_filter_widget.cpp
+        timeline_filter_widget.hpp
         timeline_event_model.cpp
         translation.cpp
 )

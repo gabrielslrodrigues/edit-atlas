@@ -14,8 +14,10 @@
 #include <algorithm>
 #include <cstddef>
 #include <limits>
+#include <numeric>
 #include <string>
 #include <string_view>
+#include <utility>
 #include <variant>
 
 namespace edit_atlas::app {
@@ -82,7 +84,7 @@ int TimelineEventModel::rowCount(const QModelIndex &parent) const {
     }
     const auto maximum =
         static_cast<std::size_t>(std::numeric_limits<int>::max());
-    return static_cast<int>(std::min(document_->events.size(), maximum));
+    return static_cast<int>(std::min(event_indices_.size(), maximum));
 }
 
 int TimelineEventModel::columnCount(const QModelIndex &parent) const {
@@ -95,8 +97,12 @@ QVariant TimelineEventModel::data(const QModelIndex &index, int role) const {
         return {};
     }
 
-    const auto &event =
-        document_->events[static_cast<std::size_t>(index.row())];
+    const auto source_index =
+        event_indices_[static_cast<std::size_t>(index.row())];
+    if (source_index >= document_->events.size()) {
+        return {};
+    }
+    const auto &event = document_->events[source_index];
     if (role == Qt::ToolTipRole && event.provenance.has_value()) {
         return tr("Source line %1")
             .arg(static_cast<qulonglong>(event.provenance->location.line));
@@ -208,6 +214,18 @@ QString TimelineEventModel::TrackText(const core::EditEvent &event) const {
 void TimelineEventModel::SetDocument(const core::TimelineDocument *document) {
     beginResetModel();
     document_ = document;
+    event_indices_.clear();
+    if (document_ != nullptr) {
+        event_indices_.resize(document_->events.size());
+        std::iota(event_indices_.begin(), event_indices_.end(), 0);
+    }
+    endResetModel();
+}
+
+void TimelineEventModel::SetEventSelection(
+    std::vector<std::size_t> event_indices) {
+    beginResetModel();
+    event_indices_ = std::move(event_indices);
     endResetModel();
 }
 
