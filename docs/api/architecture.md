@@ -28,7 +28,7 @@ future formats.
 The `edit_atlas::services` namespace adapts local filesystem operations to the
 in-memory pipeline. Services return presentation-neutral receipts or failures,
 leaving scheduling, overwrite confirmation, localization, and user feedback to
-the caller. A desktop frontend and a future CLI can therefore share the same
+the caller. The desktop frontend and CLI therefore share the same
 workflows.
 
 ## Diagnostic support
@@ -40,6 +40,7 @@ state.
 
 ## Frontend boundary
 
-Qt desktop classes are adapters rather than public application services. They
-are intentionally absent from this reference because callers should integrate
-through the standard C++ domain, format, service, and support interfaces.
+Qt desktop classes are adapters rather than public application services. The
+`edit_atlas::cli` namespace provides the corresponding terminal adapter and
+stable process outcomes. Callers should integrate reusable workflows through
+the standard C++ domain, format, service, and support interfaces.

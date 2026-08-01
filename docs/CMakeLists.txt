@@ -69,6 +69,7 @@ set(DOXYGEN_INLINE_SOURCES NO)
 set(DOXYGEN_STRIP_FROM_PATH "${PROJECT_SOURCE_DIR}")
 set(DOXYGEN_STRIP_FROM_INC_PATH
     "${PROJECT_SOURCE_DIR}/src/core/include"
+    "${PROJECT_SOURCE_DIR}/src/cli/include"
     "${PROJECT_SOURCE_DIR}/src/formats/cmx3600/include"
     "${PROJECT_SOURCE_DIR}/src/formats/xlsx/include"
     "${PROJECT_SOURCE_DIR}/src/services/include"
@@ -78,6 +79,8 @@ set(DOXYGEN_STRIP_FROM_INC_PATH
 doxygen_add_docs(
     documentation
     "${CMAKE_CURRENT_SOURCE_DIR}/api"
+    "${CMAKE_CURRENT_SOURCE_DIR}/cli.md"
+    "${PROJECT_SOURCE_DIR}/src/cli/include"
     "${PROJECT_SOURCE_DIR}/src/core/include"
     "${PROJECT_SOURCE_DIR}/src/formats/cmx3600/include"
     "${PROJECT_SOURCE_DIR}/src/formats/xlsx/include"
