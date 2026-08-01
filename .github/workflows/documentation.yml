@@ -89,9 +89,6 @@ jobs:
     timeout-minutes: 10
     permissions:
       contents: write
-    concurrency:
-      group: documentation-pages
-      cancel-in-progress: false
 
     steps:
       - name: Check out source
