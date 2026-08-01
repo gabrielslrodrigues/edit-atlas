@@ -4,10 +4,10 @@ Edit Atlas separates format processing from application workflows and user
 interfaces:
 
 ```text
-Qt desktop frontend ─┐
-future CLI frontend ─┼─> application services ─┬─> core
+Qt desktop frontend ─┬─> application services ─┬─> core
                      │                         └─> built-in formats ─> core
                      └─> diagnostic support
+CLI frontend ───────────> application services
 ```
 
 ## Core
@@ -62,8 +62,13 @@ workflow adapters:
 
 This keeps widget construction, document presentation, persistent desktop
 settings, workflow policy, and background execution out of the top-level
-window. A future CLI can provide terminal input and output while invoking the
-same services without depending on these Qt desktop components.
+window.
+
+The command-line frontend links `EditAtlas::Services` without Qt. It adapts
+UTF-8 command arguments, local paths, stable process exit codes, and terminal
+diagnostics to the same synchronous document import and export services used
+by the desktop workflow. Format serialization remains owned by the registered
+format implementations rather than either frontend.
 
 Dependencies point inward: frontends may depend on application services, which
 may depend on core and format targets. Core and format targets never depend on

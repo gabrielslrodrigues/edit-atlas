@@ -103,6 +103,7 @@ add_subdirectory(src/formats/xlsx)
 add_subdirectory(src/services)
 add_subdirectory(src/support)
 add_subdirectory(src/app)
+add_subdirectory(src/cli)
 
 if(BUILD_TESTING)
     find_package(GTest CONFIG REQUIRED)

@@ -210,6 +210,45 @@ disclosing its contents. See
 [Diagnostic logging and support bundles](docs/diagnostic-support.md) for the
 logged metadata and exact bundle contents.
 
+## Use the command-line interface
+
+The Qt-free `edit-atlas-cli` executable converts local CMX 3600 EDL files to
+XLSX reports through the same application services as the desktop frontend. A
+non-drop-frame EDL needs an explicit frame rate:
+
+```sh
+./build/debug-x64-linux/src/cli/edit-atlas-cli \
+  convert --fps 24 timeline.edl report.xlsx
+```
+
+Use a rational value for fractional rates:
+
+```sh
+edit-atlas-cli convert --fps 30000/1001 timeline.edl report.xlsx
+```
+
+Existing output files are preserved unless `--force` is supplied. Workbook
+language and sheet inclusion can be selected with the same options exposed by
+the desktop application. Paths and imported content remain UTF-8 across Linux,
+macOS, and Windows. Conversion performs only local filesystem operations and
+has no telemetry or network behavior.
+
+The process exit codes are stable:
+
+| Code | Meaning |
+| ---: | --- |
+| `0` | Conversion completed without warnings or errors |
+| `1` | Conversion completed with warnings |
+| `2` | Invalid command-line usage |
+| `3` | The readable input contains import errors |
+| `4` | The destination exists and replacement was not authorized |
+| `5` | A filesystem or application operation failed |
+
+Run `edit-atlas-cli --help` for the command summary,
+`edit-atlas-cli convert --help` for conversion options, and
+`edit-atlas-cli --version` for the installed version. See the [CLI
+reference](docs/cli.md) for all conversion options and platform paths.
+
 ## Run tests
 
 Tests are built by default and use GoogleTest with CTest discovery. Run the

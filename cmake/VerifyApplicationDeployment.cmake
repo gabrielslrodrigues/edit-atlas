@@ -4,6 +4,76 @@ endif()
 
 include("${CMAKE_CURRENT_LIST_DIR}/VerifyDynamicQtBinary.cmake")
 
+get_filename_component(
+    edit_atlas_executable_directory
+    "${EDIT_ATLAS_EXECUTABLE}"
+    DIRECTORY
+)
+set(edit_atlas_cli_filename "edit-atlas-cli")
+if(WIN32)
+    string(APPEND edit_atlas_cli_filename ".exe")
+endif()
+set(
+    edit_atlas_cli_executable
+    "${edit_atlas_executable_directory}/${edit_atlas_cli_filename}"
+)
+
+if(NOT EXISTS "${edit_atlas_cli_executable}")
+    message(
+        FATAL_ERROR
+        "The staged command-line executable is missing: "
+        "${edit_atlas_cli_executable}"
+    )
+endif()
+
+execute_process(
+    COMMAND ${edit_atlas_dependency_command} "${edit_atlas_cli_executable}"
+    RESULT_VARIABLE edit_atlas_cli_dependency_result
+    OUTPUT_VARIABLE edit_atlas_cli_dependencies
+    ERROR_VARIABLE edit_atlas_cli_dependency_error
+)
+if(NOT edit_atlas_cli_dependency_result EQUAL 0)
+    message(
+        FATAL_ERROR
+        "Failed to inspect ${edit_atlas_cli_executable}:\n"
+        "${edit_atlas_cli_dependency_error}"
+    )
+endif()
+if(edit_atlas_cli_dependencies MATCHES "Qt6")
+    message(
+        FATAL_ERROR
+        "The command-line executable unexpectedly depends on Qt:\n"
+        "${edit_atlas_cli_dependencies}"
+    )
+endif()
+
+execute_process(
+    COMMAND "${edit_atlas_cli_executable}" --version
+    RESULT_VARIABLE edit_atlas_cli_smoke_result
+    OUTPUT_VARIABLE edit_atlas_cli_version
+    ERROR_VARIABLE edit_atlas_cli_smoke_error
+    TIMEOUT 15
+)
+if(NOT edit_atlas_cli_smoke_result EQUAL 0)
+    message(
+        FATAL_ERROR
+        "The staged command-line executable failed its smoke test:\n"
+        "${edit_atlas_cli_smoke_error}"
+    )
+endif()
+if(NOT edit_atlas_cli_version MATCHES "^Edit Atlas [0-9]+\\.[0-9]+\\.[0-9]+")
+    message(
+        FATAL_ERROR
+        "The staged command-line executable returned an unexpected version: "
+        "${edit_atlas_cli_version}"
+    )
+endif()
+
+message(
+    STATUS
+    "Verified Qt-free command-line executable: ${edit_atlas_cli_executable}"
+)
+
 function(edit_atlas_require_deployed_file description)
     set(edit_atlas_deployed_files)
     foreach(edit_atlas_deployed_pattern IN LISTS ARGN)
@@ -210,7 +280,7 @@ edit_atlas_require_deployed_file(
 )
 foreach(
     edit_atlas_notice_package
-    IN ITEMS spdlog fmt libxlsxwriter minizip zlib
+    IN ITEMS cli11 spdlog fmt libxlsxwriter minizip zlib
 )
     edit_atlas_require_deployed_file(
         "the ${edit_atlas_notice_package} license notices"
@@ -222,4 +292,4 @@ edit_atlas_require_deployed_file(
     "*QT_SOURCE_OFFER.md"
 )
 
-message(STATUS "Verified staged Qt runtime and compliance materials.")
+message(STATUS "Verified staged application runtime and compliance materials.")

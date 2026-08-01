@@ -4,6 +4,9 @@
 /// Public C++ interfaces for Edit Atlas.
 namespace edit_atlas {
 
+/// Cross-platform command-line frontend.
+namespace cli {}
+
 /// Format-independent editorial domain types and in-memory pipelines.
 namespace core {}
 
