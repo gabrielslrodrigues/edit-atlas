@@ -73,6 +73,62 @@ if (( mach_o_count == 0 )); then
   exit 1
 fi
 
+# Cached deployment packages can flatten dylib symlinks into regular files.
+# Restore each compatibility name as a relative symlink so dyld resolves both
+# names to one physical universal binary.
+frameworks_dir="$universal_app/Contents/Frameworks"
+normalize_dylib_alias() {
+  local compatibility_library="$1"
+  shift
+
+  if [[ -L "$compatibility_library" || ! -e "$compatibility_library" ]]; then
+    return
+  fi
+
+  local versioned_library=""
+  local candidate
+  for candidate in "$@"; do
+    if [[ ! -f "$candidate" ]]; then
+      continue
+    fi
+    if [[ -n "$versioned_library" ]]; then
+      echo \
+        "Multiple versioned dylibs match $compatibility_library." \
+        >&2
+      exit 1
+    fi
+    versioned_library="$candidate"
+  done
+
+  if [[ -z "$versioned_library" ]]; then
+    echo "No versioned dylib matches $compatibility_library." >&2
+    exit 1
+  fi
+  if ! cmp -s "$compatibility_library" "$versioned_library"; then
+    echo \
+      "Compatibility dylib differs from $versioned_library: " \
+      "$compatibility_library" \
+      >&2
+    exit 1
+  fi
+
+  rm "$compatibility_library"
+  ln -s "$(basename "$versioned_library")" "$compatibility_library"
+}
+
+normalize_dylib_alias \
+  "$frameworks_dir/libQt6Concurrent.6.dylib" \
+  "$frameworks_dir"/libQt6Concurrent.6.*.dylib
+normalize_dylib_alias \
+  "$frameworks_dir/libQt6Core.6.dylib" \
+  "$frameworks_dir"/libQt6Core.6.*.dylib
+normalize_dylib_alias \
+  "$frameworks_dir/libQt6Gui.6.dylib" \
+  "$frameworks_dir"/libQt6Gui.6.*.dylib
+normalize_dylib_alias \
+  "$frameworks_dir/libQt6Widgets.6.dylib" \
+  "$frameworks_dir"/libQt6Widgets.6.*.dylib
+
 codesign --force --deep --sign - "$universal_app"
 
 cmake \
