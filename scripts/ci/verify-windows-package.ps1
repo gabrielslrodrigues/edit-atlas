@@ -44,6 +44,15 @@ function Get-EditAtlasUninstallEntry {
     Select-Object -First 1
 }
 
+Add-Type -TypeDefinition @"
+using System.Runtime.InteropServices;
+
+public static class EditAtlasNativeMethods {
+  [DllImport("kernel32.dll")]
+  public static extern uint SetErrorMode(uint errorMode);
+}
+"@
+
 $sourceDirectory = (
   Resolve-Path (Join-Path $PSScriptRoot "../..")
 ).Path
@@ -107,10 +116,17 @@ try {
     throw "The Edit Atlas uninstall registry entry was not found."
   }
 
-  $process = Start-Process -FilePath $executable -PassThru
-  Start-Sleep -Seconds 5
-  if ($process.HasExited) {
-    throw "The installed application exited during its launch smoke test."
+  $previousErrorMode = [EditAtlasNativeMethods]::SetErrorMode(0x8003)
+  try {
+    $process = Start-Process -FilePath $executable -PassThru
+  } finally {
+    $null = [EditAtlasNativeMethods]::SetErrorMode($previousErrorMode)
+  }
+  if ($process.WaitForExit(5000)) {
+    throw (
+      "The installed application exited during its launch smoke test " +
+      "with code $($process.ExitCode)."
+    )
   }
   Stop-Process -Id $process.Id -Force
   if (-not $process.WaitForExit(30000)) {

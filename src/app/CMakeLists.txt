@@ -150,8 +150,17 @@ qt_add_translations(
     RESOURCE_PREFIX "/i18n"
 )
 
+set(edit_atlas_runtime_dependency_arguments)
+if(WIN32)
+    list(
+        APPEND edit_atlas_runtime_dependency_arguments
+        RUNTIME_DEPENDENCY_SET edit_atlas_runtime_dependencies
+    )
+endif()
+
 install(
     TARGETS edit_atlas
+    ${edit_atlas_runtime_dependency_arguments}
     BUNDLE
         DESTINATION "."
         COMPONENT Runtime
@@ -159,6 +168,21 @@ install(
         DESTINATION "${CMAKE_INSTALL_BINDIR}"
         COMPONENT Runtime
 )
+
+if(WIN32)
+    install(
+        RUNTIME_DEPENDENCY_SET edit_atlas_runtime_dependencies
+        DESTINATION "${CMAKE_INSTALL_BINDIR}"
+        COMPONENT Runtime
+        DIRECTORIES
+            "$<IF:$<CONFIG:Debug>,${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/debug/bin,${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/bin>"
+        PRE_EXCLUDE_REGEXES
+            "api-ms-.*"
+            "ext-ms-.*"
+        POST_EXCLUDE_REGEXES
+            ".*[/\\\\][Ww][Ii][Nn][Dd][Oo][Ww][Ss][/\\\\][Ss][Yy][Ss][Tt][Ee][Mm]32[/\\\\].*"
+    )
+endif()
 
 if(APPLE)
     install(
