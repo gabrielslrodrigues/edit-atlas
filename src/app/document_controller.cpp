@@ -13,6 +13,7 @@
 
 #include <edit_atlas/services/document_export_service.hpp>
 #include <edit_atlas/services/document_import_service.hpp>
+#include <edit_atlas/services/timeline_filter.hpp>
 
 #include <QDialog>
 #include <QDir>
@@ -91,10 +92,42 @@ DocumentController::DocumentController(const core::FormatRegistry &registry,
             [this](void) { OpenDocument(); });
     connect(&view_, &DocumentView::ExportRequested, this,
             &DocumentController::ExportSpreadsheet);
+    connect(&view_, &DocumentView::FilterChanged, this,
+            &DocumentController::ApplyFilter);
+}
+
+void DocumentController::ApplyFilter(void) {
+    filter_query_ = view_.FilterQuery();
+    if (!document_.has_value()) {
+        event_selection_.clear();
+        filter_valid_ = true;
+        view_.SetFilterError({});
+        menu_bar_.SetExportAvailable(true);
+        return;
+    }
+    auto result = services::FilterTimelineEvents(*document_, filter_query_);
+    if (!result.has_value()) {
+        event_selection_.clear();
+        filter_valid_ = false;
+        view_.SetEventSelection(event_selection_);
+        view_.SetFilterError(
+            tr("Condition %1 has an invalid regular expression: %2")
+                .arg(
+                    static_cast<qulonglong>(result.error().condition_index + 1))
+                .arg(Utf8(result.error().message)));
+        menu_bar_.SetExportAvailable(false);
+        return;
+    }
+    event_selection_ = std::move(*result);
+    filter_valid_ = true;
+    view_.SetFilterError({});
+    view_.SetEventSelection(event_selection_);
+    menu_bar_.SetExportAvailable(true);
 }
 
 void DocumentController::ExportSpreadsheet(void) {
-    if (!interactions_enabled_ || !document_.has_value() || IsBusy()) {
+    if (!interactions_enabled_ || !document_.has_value() || !filter_valid_ ||
+        IsBusy()) {
         return;
     }
 
@@ -178,11 +211,13 @@ void DocumentController::ExportSpreadsheet(void) {
     services::ExportDocumentRequest request{
         .path = FilesystemPath(destination),
         .format_identifier = exporters.front()->descriptor().identifier,
-        .document = *document_,
+        .document =
+            services::SelectTimelineEvents(*document_, event_selection_),
         .options = std::move(options),
         .replace_existing = replace_existing,
     };
-    SPDLOG_INFO("Spreadsheet export started");
+    SPDLOG_INFO("Spreadsheet export started with {} of {} event(s)",
+                event_selection_.size(), document_->events.size());
     emit BusyChanged(true);
     emit StatusMessageChanged(
         tr("Exporting %1…").arg(QFileInfo{destination}.fileName()));
@@ -234,6 +269,7 @@ void DocumentController::SetInteractionsEnabled(bool enabled) {
 
 void DocumentController::SetLanguage(ApplicationLanguage language) {
     language_ = language;
+    ApplyFilter();
     if (workflow_->IsExporting()) {
         emit StatusMessageChanged(tr("Exporting spreadsheet…"));
     }
@@ -241,8 +277,12 @@ void DocumentController::SetLanguage(ApplicationLanguage language) {
 
 void DocumentController::ClearDocument(void) {
     menu_bar_.SetDocumentAvailable(false);
+    menu_bar_.SetExportAvailable(true);
     view_.Clear();
     document_.reset();
+    filter_query_ = {};
+    event_selection_.clear();
+    filter_valid_ = true;
     current_path_.clear();
     requested_frame_rate_.reset();
 }
@@ -344,6 +384,7 @@ void DocumentController::HandleImportFinished(void) {
     auto diagnostics = std::move(result->diagnostics);
     view_.ShowDocument(*document_, QFileInfo{current_path_}.fileName(),
                        diagnostics);
+    ApplyFilter();
     menu_bar_.SetDocumentAvailable(true);
     SPDLOG_INFO("Timeline import completed with {} event(s) and {} "
                 "diagnostic(s)",

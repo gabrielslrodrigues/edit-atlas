@@ -10,6 +10,9 @@
 #include <QVariant>
 #include <Qt>
 
+#include <cstddef>
+#include <vector>
+
 namespace edit_atlas::app {
 
 /// Presents timeline events lazily for sorting and filtering in the desktop UI.
@@ -37,12 +40,15 @@ class TimelineEventModel final : public QAbstractTableModel {
 
     /// Changes the non-owning document displayed by the model.
     void SetDocument(const core::TimelineDocument *document);
+    /// Selects source-document event indices to display in the supplied order.
+    void SetEventSelection(std::vector<std::size_t> event_indices);
 
   private:
     [[nodiscard]] QString EditTypeText(core::EditType edit_type) const;
     [[nodiscard]] QString TrackText(const core::EditEvent &event) const;
 
     const core::TimelineDocument *document_ = nullptr;
+    std::vector<std::size_t> event_indices_;
 };
 
 } // namespace edit_atlas::app

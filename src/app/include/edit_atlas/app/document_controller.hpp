@@ -8,6 +8,7 @@
 
 #include <edit_atlas/services/document_export_service.hpp>
 #include <edit_atlas/services/document_import_service.hpp>
+#include <edit_atlas/services/timeline_filter.hpp>
 
 #include <QObject>
 #include <QString>
@@ -51,6 +52,7 @@ class DocumentController final : public QObject {
     void StatusMessageCleared(void);
 
   private:
+    void ApplyFilter(void);
     void ClearDocument(void);
     void HandleExportFinished(void);
     void HandleImportFinished(void);
@@ -65,7 +67,10 @@ class DocumentController final : public QObject {
     QWidget &window_;
     DocumentWorkflow *workflow_ = nullptr;
     bool interactions_enabled_ = true;
+    bool filter_valid_ = true;
     std::optional<core::TimelineDocument> document_;
+    services::TimelineFilterQuery filter_query_;
+    services::TimelineEventSelection event_selection_;
     QString current_path_;
     std::optional<std::string> requested_frame_rate_;
 };

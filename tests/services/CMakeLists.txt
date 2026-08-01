@@ -7,6 +7,7 @@ target_sources(
         document_export_service_test.cpp
         document_import_service_test.cpp
         test_main.cpp
+        timeline_filter_test.cpp
 )
 
 target_link_libraries(

@@ -4,16 +4,18 @@
 #include <edit_atlas/core/editorial_timeline.hpp>
 
 #include <edit_atlas/services/document_import_service.hpp>
+#include <edit_atlas/services/timeline_filter.hpp>
 
 #include <QString>
 #include <QWidget>
 
+#include <cstddef>
 #include <optional>
+#include <span>
 #include <vector>
 
 class QGroupBox;
 class QLabel;
-class QLineEdit;
 class QPushButton;
 class QSortFilterProxyModel;
 class QStackedWidget;
@@ -23,6 +25,7 @@ class QTreeWidget;
 namespace edit_atlas::app {
 
 class TimelineEventModel;
+class TimelineFilterWidget;
 
 /// Presents empty, loading, timeline, and import-failure document states.
 class DocumentView final : public QWidget {
@@ -38,8 +41,11 @@ class DocumentView final : public QWidget {
     DocumentView &operator=(DocumentView &&) = delete;
 
     void Clear(void);
+    [[nodiscard]] services::TimelineFilterQuery FilterQuery(void) const;
     void RetranslateUi(void);
     void SetBusy(bool busy);
+    void SetEventSelection(std::span<const std::size_t> event_indices);
+    void SetFilterError(QString error);
     void ShowDocument(const core::TimelineDocument &document,
                       QString fallback_title,
                       const std::vector<core::Diagnostic> &diagnostics);
@@ -48,6 +54,7 @@ class DocumentView final : public QWidget {
 
   signals:
     void ExportRequested(void);
+    void FilterChanged(void);
     void OpenRequested(void);
 
   private:
@@ -58,6 +65,7 @@ class DocumentView final : public QWidget {
     void UpdateControls(void);
 
     bool busy_ = false;
+    bool filter_valid_ = true;
     const core::TimelineDocument *document_ = nullptr;
     QString fallback_title_;
     QString loading_file_name_;
@@ -76,7 +84,8 @@ class DocumentView final : public QWidget {
     QLabel *timeline_title_label_ = nullptr;
     QPushButton *timeline_export_button_ = nullptr;
     QLabel *timeline_summary_label_ = nullptr;
-    QLineEdit *event_filter_ = nullptr;
+    TimelineFilterWidget *timeline_filter_ = nullptr;
+    QLabel *filter_result_label_ = nullptr;
     QTableView *event_table_ = nullptr;
     TimelineEventModel *event_model_ = nullptr;
     QSortFilterProxyModel *event_proxy_model_ = nullptr;

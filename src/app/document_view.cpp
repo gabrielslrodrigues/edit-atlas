@@ -3,21 +3,22 @@
 #include <edit_atlas/app/diagnostic_text.hpp>
 #include <edit_atlas/app/timeline_event_model.hpp>
 
+#include "timeline_filter_widget.hpp"
+
 #include <edit_atlas/core/editorial_timeline.hpp>
 #include <edit_atlas/core/timecode.hpp>
 
 #include <edit_atlas/services/document_import_service.hpp>
 
 #include <QAbstractItemView>
-#include <QFileInfo>
 #include <QFont>
 #include <QGroupBox>
 #include <QHBoxLayout>
 #include <QHeaderView>
 #include <QLabel>
-#include <QLineEdit>
 #include <QProgressBar>
 #include <QPushButton>
+#include <QSignalBlocker>
 #include <QSortFilterProxyModel>
 #include <QStackedWidget>
 #include <QString>
@@ -29,6 +30,7 @@
 #include <Qt>
 
 #include <cstddef>
+#include <span>
 #include <string>
 #include <utility>
 #include <vector>
@@ -55,11 +57,24 @@ void DocumentView::Clear(void) {
     import_failure_.reset();
     diagnostics_.clear();
     event_model_->SetDocument(nullptr);
-    event_filter_->clear();
+    const QSignalBlocker filter_blocker{timeline_filter_};
+    timeline_filter_->Clear();
+    filter_valid_ = true;
+    filter_result_label_->clear();
     diagnostics_tree_->clear();
     diagnostics_group_->setVisible(false);
     document_stack_->setCurrentWidget(empty_page_);
     UpdateControls();
+}
+
+void DocumentView::SetFilterError(QString error) {
+    filter_valid_ = error.isEmpty();
+    timeline_filter_->SetError(std::move(error));
+    UpdateControls();
+}
+
+services::TimelineFilterQuery DocumentView::FilterQuery(void) const {
+    return timeline_filter_->Query();
 }
 
 void DocumentView::RetranslateUi(void) {
@@ -70,13 +85,12 @@ void DocumentView::RetranslateUi(void) {
         tr("Open or drop a CMX 3600 EDL to inspect its edit events."));
     empty_open_button_->setText(tr("Open Timeline…"));
     loading_label_->setAccessibleName(tr("Opening timeline"));
-    event_filter_->setPlaceholderText(tr("Filter events…"));
-    event_filter_->setAccessibleName(tr("Filter timeline events"));
+    timeline_filter_->RetranslateUi();
     event_table_->setAccessibleName(tr("Timeline edit events"));
     diagnostics_tree_->setAccessibleName(tr("Import diagnostics"));
     timeline_export_button_->setText(tr("Export Spreadsheet"));
     timeline_export_button_->setToolTip(
-        tr("Export the open timeline as an Excel workbook."));
+        tr("Export the currently shown timeline events as an Excel workbook."));
     privacy_label_->setText(
         tr("Your media and timeline data stay on this computer."));
     failure_open_button_->setText(tr("Open Another Timeline…"));
@@ -91,6 +105,18 @@ void DocumentView::RetranslateUi(void) {
         RenderImportFailure();
         PopulateDiagnostics(diagnostics_);
     }
+}
+
+void DocumentView::SetEventSelection(
+    std::span<const std::size_t> event_indices) {
+    event_model_->SetEventSelection(
+        std::vector<std::size_t>{event_indices.begin(), event_indices.end()});
+    const auto total =
+        document_ == nullptr ? std::size_t{0} : document_->events.size();
+    filter_result_label_->setText(
+        tr("Showing %1 of %2 events")
+            .arg(static_cast<qulonglong>(event_indices.size()))
+            .arg(static_cast<qulonglong>(total)));
 }
 
 void DocumentView::SetBusy(bool busy) {
@@ -216,17 +242,17 @@ void DocumentView::BuildUi(void) {
     timeline_summary_label_ = new QLabel{timeline_page_};
     timeline_summary_label_->setObjectName(QStringLiteral("timelineSummary"));
     timeline_layout->addWidget(timeline_summary_label_);
-    event_filter_ = new QLineEdit{timeline_page_};
-    event_filter_->setObjectName(QStringLiteral("eventFilter"));
-    event_filter_->setClearButtonEnabled(true);
-    timeline_layout->addWidget(event_filter_);
+    timeline_filter_ = new TimelineFilterWidget{timeline_page_};
+    timeline_filter_->setObjectName(QStringLiteral("timelineFilter"));
+    connect(timeline_filter_, &TimelineFilterWidget::QueryChanged, this,
+            &DocumentView::FilterChanged);
+    timeline_layout->addWidget(timeline_filter_);
+    filter_result_label_ = new QLabel{timeline_page_};
+    filter_result_label_->setObjectName(QStringLiteral("filterResultLabel"));
+    timeline_layout->addWidget(filter_result_label_);
     event_model_ = new TimelineEventModel{this};
     event_proxy_model_ = new QSortFilterProxyModel{this};
     event_proxy_model_->setSourceModel(event_model_);
-    event_proxy_model_->setFilterCaseSensitivity(Qt::CaseInsensitive);
-    event_proxy_model_->setFilterKeyColumn(-1);
-    connect(event_filter_, &QLineEdit::textChanged, event_proxy_model_,
-            &QSortFilterProxyModel::setFilterFixedString);
     event_table_ = new QTableView{timeline_page_};
     event_table_->setObjectName(QStringLiteral("eventTable"));
     event_table_->setModel(event_proxy_model_);
@@ -338,6 +364,10 @@ void DocumentView::RenderDocument(void) {
                      : tr("non-drop-frame")));
 
     event_model_->SetDocument(document_);
+    filter_result_label_->setText(
+        tr("Showing %1 of %2 events")
+            .arg(static_cast<qulonglong>(document_->events.size()))
+            .arg(static_cast<qulonglong>(document_->events.size())));
     event_table_->resizeColumnsToContents();
 }
 
@@ -364,7 +394,9 @@ void DocumentView::RenderImportFailure(void) {
 void DocumentView::UpdateControls(void) {
     empty_open_button_->setEnabled(!busy_);
     failure_open_button_->setEnabled(!busy_);
-    timeline_export_button_->setEnabled(!busy_ && document_ != nullptr);
+    timeline_export_button_->setEnabled(!busy_ && document_ != nullptr &&
+                                        filter_valid_);
+    timeline_filter_->setEnabled(!busy_ && document_ != nullptr);
 }
 
 } // namespace edit_atlas::app

@@ -41,6 +41,7 @@
       "name": "qttools",
       "default-features": false
     },
+    "re2",
     "spdlog"
   ]
 }

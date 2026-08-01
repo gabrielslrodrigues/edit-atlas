@@ -10,6 +10,7 @@
 
 #include <edit_atlas/formats/cmx3600/cmx3600_importer.hpp>
 
+#include <QCoreApplication>
 #include <QString>
 #include <QTranslator>
 
@@ -31,6 +32,18 @@ TEST(ApplicationTest, LoadsBrazilianPortugueseTranslations) {
               QStringLiteral("&Exportar planilha"));
     EXPECT_EQ(DocumentView::tr("No timeline open"),
               QStringLiteral("Nenhuma linha do tempo aberta"));
+    EXPECT_EQ(DocumentView::tr("Showing %1 of %2 events"),
+              QStringLiteral("Exibindo %1 de %2 eventos"));
+    EXPECT_EQ(QCoreApplication::translate(
+                  "edit_atlas::app::TimelineFilterWidget", "Clear filters"),
+              QStringLiteral("Limpar filtros"));
+    EXPECT_EQ(
+        QCoreApplication::translate("edit_atlas::app::TimelineFilterWidget",
+                                    "Use regular expression"),
+        QStringLiteral("Usar expressão regular"));
+    EXPECT_EQ(QCoreApplication::translate(
+                  "edit_atlas::app::TimelineFilterWidget", "Track type"),
+              QStringLiteral("Tipo de faixa"));
     EXPECT_EQ(SpreadsheetExportOptionsDialog::tr("Workbook language"),
               QStringLiteral("Idioma da pasta de trabalho"));
     EXPECT_EQ(SpreadsheetExportOptionsDialog::tr("Same as application"),
@@ -104,6 +117,9 @@ TEST(ApplicationTest, PresentsTimelineDocumentInTableModel) {
     EXPECT_EQ(model.rowCount(), 1);
     EXPECT_EQ(model.columnCount(), 11);
     EXPECT_EQ(model.data(model.index(0, 0)).toString(), QStringLiteral("001"));
+
+    model.SetEventSelection({});
+    EXPECT_EQ(model.rowCount(), 0);
 }
 
 } // namespace

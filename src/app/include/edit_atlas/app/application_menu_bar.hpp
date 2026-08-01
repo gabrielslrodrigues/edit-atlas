@@ -31,6 +31,7 @@ class ApplicationMenuBar final : public QMenuBar {
     void RetranslateUi(void);
     void SetBusy(bool busy);
     void SetDocumentAvailable(bool available);
+    void SetExportAvailable(bool available);
     void SetLanguage(ApplicationLanguage language);
 
   signals:
@@ -50,6 +51,7 @@ class ApplicationMenuBar final : public QMenuBar {
 
     bool busy_ = false;
     bool document_available_ = false;
+    bool export_available_ = true;
     QMenu *file_menu_ = nullptr;
     QAction *open_action_ = nullptr;
     QMenu *recent_files_menu_ = nullptr;
