@@ -118,7 +118,7 @@ Remove the extracted directory to uninstall it.
 Install and uninstall with APT:
 
 ```sh
-sudo apt install ./edit-atlas-0.1.0-linux-x86_64.deb
+sudo apt install ./edit-atlas-0.1.1-linux-x86_64.deb
 sudo apt remove edit-atlas
 ```
 
@@ -127,7 +127,7 @@ sudo apt remove edit-atlas
 Install and uninstall with DNF:
 
 ```sh
-sudo dnf install ./edit-atlas-0.1.0-linux-x86_64.rpm
+sudo dnf install ./edit-atlas-0.1.1-linux-x86_64.rpm
 sudo dnf remove edit-atlas
 ```
 

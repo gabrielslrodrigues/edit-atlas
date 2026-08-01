@@ -62,10 +62,40 @@ if(WIN32)
         "the Windows Qt platform plugin"
         "*qwindows.dll"
     )
+
+    set(
+        edit_atlas_third_party_runtime_descriptions
+        spdlog
+        fmt
+        libxlsxwriter
+        minizip
+    )
+    set(
+        edit_atlas_third_party_runtime_patterns
+        "*spdlog*.dll"
+        "*fmt*.dll"
+        "*xlsxwriter*.dll"
+        "*minizip*.dll"
+    )
 elseif(APPLE)
     edit_atlas_require_deployed_file(
         "the Cocoa Qt platform plugin"
         "*libqcocoa.dylib"
+    )
+
+    set(
+        edit_atlas_third_party_runtime_descriptions
+        spdlog
+        fmt
+        libxlsxwriter
+        minizip
+    )
+    set(
+        edit_atlas_third_party_runtime_patterns
+        "*libspdlog*.dylib"
+        "*libfmt*.dylib"
+        "*libxlsxwriter*.dylib"
+        "*libminizip*.dylib"
     )
 elseif(UNIX)
     edit_atlas_require_deployed_file(
@@ -76,6 +106,94 @@ elseif(UNIX)
         "a Wayland Qt platform plugin"
         "*libqwayland*.so"
     )
+
+    set(
+        edit_atlas_third_party_runtime_descriptions
+        spdlog
+        fmt
+        libxlsxwriter
+        minizip
+    )
+    set(
+        edit_atlas_third_party_runtime_patterns
+        "*libspdlog.so*"
+        "*libfmt.so*"
+        "*libxlsxwriter.so*"
+        "*libminizip.so*"
+    )
+endif()
+
+foreach(
+    edit_atlas_third_party_runtime_description
+    edit_atlas_third_party_runtime_pattern
+    IN ZIP_LISTS
+        edit_atlas_third_party_runtime_descriptions
+        edit_atlas_third_party_runtime_patterns
+)
+    edit_atlas_require_deployed_file(
+        "the ${edit_atlas_third_party_runtime_description} runtime library"
+        "${edit_atlas_third_party_runtime_pattern}"
+    )
+endforeach()
+
+if(WIN32)
+    get_filename_component(
+        edit_atlas_executable_directory
+        "${EDIT_ATLAS_EXECUTABLE}"
+        DIRECTORY
+    )
+    file(
+        GET_RUNTIME_DEPENDENCIES
+        EXECUTABLES "${EDIT_ATLAS_EXECUTABLE}"
+        DIRECTORIES "${edit_atlas_executable_directory}"
+        RESOLVED_DEPENDENCIES_VAR edit_atlas_resolved_dependencies
+        UNRESOLVED_DEPENDENCIES_VAR edit_atlas_unresolved_dependencies
+        PRE_EXCLUDE_REGEXES
+            "api-ms-.*"
+            "ext-ms-.*"
+        POST_EXCLUDE_REGEXES
+            ".*[/\\\\][Ww][Ii][Nn][Dd][Oo][Ww][Ss][/\\\\][Ss][Yy][Ss][Tt][Ee][Mm]32[/\\\\].*"
+    )
+
+    if(edit_atlas_unresolved_dependencies)
+        list(
+            JOIN edit_atlas_unresolved_dependencies
+            "\n  "
+            edit_atlas_unresolved_text
+        )
+        message(
+            FATAL_ERROR
+            "The staged application has unresolved runtime dependencies:\n  "
+            "${edit_atlas_unresolved_text}"
+        )
+    endif()
+
+    file(
+        REAL_PATH "${EDIT_ATLAS_DEPLOYMENT_ROOT}"
+        edit_atlas_deployment_root
+    )
+    foreach(
+        edit_atlas_resolved_dependency
+        IN LISTS edit_atlas_resolved_dependencies
+    )
+        file(
+            REAL_PATH "${edit_atlas_resolved_dependency}"
+            edit_atlas_resolved_dependency_path
+        )
+        cmake_path(
+            IS_PREFIX edit_atlas_deployment_root
+            "${edit_atlas_resolved_dependency_path}"
+            NORMALIZE
+            edit_atlas_dependency_is_deployed
+        )
+        if(NOT edit_atlas_dependency_is_deployed)
+            message(
+                FATAL_ERROR
+                "Runtime dependency resolved outside the staged application: "
+                "${edit_atlas_resolved_dependency_path}"
+            )
+        endif()
+    endforeach()
 endif()
 
 edit_atlas_require_deployed_file(

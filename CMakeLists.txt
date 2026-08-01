@@ -13,7 +13,7 @@ endif()
 
 project(
     EditAtlas
-    VERSION 0.1.0
+    VERSION 0.1.1
     DESCRIPTION "Inspect editorial timelines and export structured reports"
     LANGUAGES CXX
 )
