@@ -118,7 +118,7 @@ Remove the extracted directory to uninstall it.
 Install and uninstall with APT:
 
 ```sh
-sudo apt install ./edit-atlas-0.1.1-linux-x86_64.deb
+sudo apt install ./edit-atlas-0.1.2-linux-x86_64.deb
 sudo apt remove edit-atlas
 ```
 
@@ -127,7 +127,7 @@ sudo apt remove edit-atlas
 Install and uninstall with DNF:
 
 ```sh
-sudo dnf install ./edit-atlas-0.1.1-linux-x86_64.rpm
+sudo dnf install ./edit-atlas-0.1.2-linux-x86_64.rpm
 sudo dnf remove edit-atlas
 ```
 
@@ -222,8 +222,17 @@ workflows.
 After approval, the workflow builds and tests Linux x64, macOS ARM64 and x64,
 and Windows x64 from the tag. It then assembles the universal macOS package,
 validates every package on the supported verification systems, and uploads
-the five installers/archives to a draft GitHub Release. The draft also contains
-`SHA256SUMS`, `LICENSE`, and `THIRD_PARTY_NOTICES.md`.
+the five installers/archives to a draft GitHub Release. The workflow also
+downloads the exact Qt Base source archive selected by the pinned vcpkg port,
+verifies its SHA-512 digest, and packages it with the complete port and patch
+set, vcpkg commit, manifest, triplets, and relevant build configuration. The
+draft contains that corresponding-source archive, `SHA256SUMS`, `LICENSE`, and
+`THIRD_PARTY_NOTICES.md`.
+
+Each binary package installs a version-specific `QT_SOURCE_OFFER.md` that links
+to the corresponding-source asset in its GitHub Release and explains how to
+rebuild and replace the bundled Qt libraries. `SHA256SUMS` covers both the
+application packages and the Qt source archive.
 
 The draft is created before platform builds begin. If a build or verification
 job fails, the draft remains unpublished and can be inspected as an

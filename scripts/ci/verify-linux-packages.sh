@@ -76,7 +76,7 @@ verify_deployment() {
   cmake \
     "-DEDIT_ATLAS_DEPLOYMENT_ROOT=$deployment_root" \
     "-DEDIT_ATLAS_EXECUTABLE=$executable" \
-    -P "$source_dir/cmake/VerifyQtDeployment.cmake"
+    -P "$source_dir/cmake/VerifyApplicationDeployment.cmake"
 }
 
 trap cleanup EXIT

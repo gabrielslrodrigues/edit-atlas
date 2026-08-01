@@ -107,7 +107,7 @@ try {
   & cmake `
     "-DEDIT_ATLAS_DEPLOYMENT_ROOT=$InstallDirectory" `
     "-DEDIT_ATLAS_EXECUTABLE=$executable" `
-    -P "$sourceDirectory/cmake/VerifyQtDeployment.cmake"
+    -P "$sourceDirectory/cmake/VerifyApplicationDeployment.cmake"
   if ($LASTEXITCODE -ne 0) {
     throw "The installed Qt deployment verification failed."
   }

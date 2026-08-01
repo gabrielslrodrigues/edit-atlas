@@ -13,7 +13,7 @@ endif()
 
 project(
     EditAtlas
-    VERSION 0.1.1
+    VERSION 0.1.2
     DESCRIPTION "Inspect editorial timelines and export structured reports"
     LANGUAGES CXX
 )
@@ -68,6 +68,21 @@ find_package(spdlog CONFIG REQUIRED)
 
 edit_atlas_require_dynamic_qt()
 
+file(READ "${CMAKE_CURRENT_SOURCE_DIR}/vcpkg.json" edit_atlas_vcpkg_manifest)
+string(
+    JSON edit_atlas_vcpkg_baseline
+    GET "${edit_atlas_vcpkg_manifest}"
+    builtin-baseline
+)
+set(EDIT_ATLAS_VERSION "${PROJECT_VERSION}")
+set(EDIT_ATLAS_QT_VERSION "${Qt6_VERSION}")
+set(EDIT_ATLAS_VCPKG_BASELINE "${edit_atlas_vcpkg_baseline}")
+configure_file(
+    "${CMAKE_CURRENT_SOURCE_DIR}/docs/qt-source-offer.md.in"
+    "${PROJECT_BINARY_DIR}/QT_SOURCE_OFFER.md"
+    @ONLY
+)
+
 set(edit_atlas_vcpkg_share_directory
     "${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/share"
 )
@@ -110,6 +125,7 @@ install(
     FILES
         "${CMAKE_CURRENT_SOURCE_DIR}/LICENSE"
         "${CMAKE_CURRENT_SOURCE_DIR}/THIRD_PARTY_NOTICES.md"
+        "${PROJECT_BINARY_DIR}/QT_SOURCE_OFFER.md"
     DESTINATION "${edit_atlas_license_install_dir}"
     COMPONENT Runtime
 )

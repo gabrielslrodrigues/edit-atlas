@@ -20,5 +20,16 @@ Binary distributions must include:
 - instructions that preserve the user's ability to replace the bundled Qt
   libraries with interface-compatible modified versions.
 
+The version-specific `QT_SOURCE_OFFER.md` installed with each binary package
+identifies the corresponding source archive controlled by the Edit Atlas
+project and provides rebuilding and replacement instructions.
+
+## Other runtime libraries
+
+Edit Atlas also dynamically links to spdlog and fmt under the MIT License,
+libxlsxwriter under the BSD 2-Clause License, and minizip and zlib under their
+respective zlib-style licenses. Binary distributions include the copyright
+and license notice supplied by vcpkg for each exact dependency version.
+
 The Apache-2.0 license for Edit Atlas applies only to Edit Atlas itself. It does
 not replace or restrict the licenses of bundled third-party software.
