@@ -1,0 +1,11 @@
+<map id="edit_atlas::core::ExportResult" name="edit_atlas::core::ExportResult">
+<area shape="rect" id="Node000001" title="The result of exporting an editorial document." alt="" coords="19,388,191,428"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="19,285,190,325"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="107,339,107,388,102,388,102,339"/>
+<area shape="rect" id="Node000003" href="$structedit__atlas_1_1core_1_1Diagnostic.html" title="A machine&#45;identifiable diagnostic with a human&#45;readable explanation." alt="" coords="5,197,204,223"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="107,236,107,285,102,285,102,236"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="61,95,148,120"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="107,134,107,197,102,197,102,134"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="35,5,174,45"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="107,59,107,94,102,94,102,59"/>
+</map>

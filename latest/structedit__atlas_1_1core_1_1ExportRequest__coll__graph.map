@@ -1,0 +1,38 @@
+<map id="edit_atlas::core::ExportRequest" name="edit_atlas::core::ExportRequest">
+<area shape="rect" id="Node000001" title="A document and format&#45;specific options passed to an exporter." alt="" coords="2164,427,2336,467"/>
+<area shape="rect" id="Node000002" href="$structedit__atlas_1_1core_1_1TimelineDocument.html" title="A format&#45;independent editorial timeline and its import diagnostics." alt="" coords="1860,245,2047,285"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="2000,290,2217,424,2215,429,1997,295"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="193,254,280,279"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="257,242,296,204,350,163,382,144,416,129,452,118,489,115,1635,115,1680,119,1725,129,1768,145,1809,164,1879,206,1930,243,1926,247,1876,210,1806,168,1766,150,1723,134,1680,124,1635,120,489,120,453,124,418,134,385,149,353,167,299,208,260,246"/>
+<area shape="rect" id="Node000007" href="$structedit__atlas_1_1core_1_1EditEvent.html" title="A single editorial event with source and destination ranges." alt="" coords="1215,283,1407,309"/>
+<area shape="poly" id="edge7_Node000007_Node000003" title=" " alt="" coords="295,266,1214,291,1214,296,294,271"/>
+<area shape="rect" id="Node000008" href="$structedit__atlas_1_1core_1_1Track.html" title="A format&#45;independent track category and its source identifier." alt="" coords="613,334,777,359"/>
+<area shape="poly" id="edge9_Node000008_Node000003" title=" " alt="" coords="257,288,279,310,305,327,343,341,383,351,466,361,544,361,613,356,613,362,545,367,465,366,383,356,342,346,303,332,275,314,253,292"/>
+<area shape="rect" id="Node000011" href="$structedit__atlas_1_1core_1_1Comment.html" title="A human&#45;authored annotation associated with an edit event." alt="" coords="393,227,587,253"/>
+<area shape="poly" id="edge13_Node000011_Node000003" title=" " alt="" coords="294,258,392,248,393,253,294,263"/>
+<area shape="rect" id="Node000013" href="$structedit__atlas_1_1core_1_1MetadataEntry.html" title="A metadata property." alt="" coords="394,387,586,427"/>
+<area shape="poly" id="edge16_Node000013_Node000003" title=" " alt="" coords="246,292,267,343,283,368,306,388,326,399,348,407,394,413,393,418,346,412,324,404,302,393,279,372,262,345,241,294"/>
+<area shape="rect" id="Node000015" href="$structedit__atlas_1_1core_1_1Diagnostic.html" title="A machine&#45;identifiable diagnostic with a human&#45;readable explanation." alt="" coords="391,54,589,79"/>
+<area shape="poly" id="edge20_Node000015_Node000003" title=" " alt="" coords="238,240,244,207,256,168,274,130,302,98,322,85,344,75,390,64,391,69,346,80,325,89,306,102,279,133,261,170,249,208,243,241"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="5,247,144,287"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="157,264,193,264,193,269,157,269"/>
+<area shape="rect" id="Node000005" href="$classedit__atlas_1_1core_1_1FrameRate.html" title="An exact, positive rational number of frames per second." alt="" coords="1533,226,1735,251"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="1749,246,1860,255,1860,260,1749,251"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="1549,276,1719,316"/>
+<area shape="poly" id="edge5_Node000002_Node000006" title=" " alt="" coords="1733,284,1860,272,1860,277,1733,289"/>
+<area shape="poly" id="edge6_Node000006_Node000007" title=" " alt="" coords="1420,293,1548,293,1548,299,1420,299"/>
+<area shape="poly" id="edge8_Node000007_Node000008" title=" " alt="" coords="791,341,976,331,1190,312,1234,306,1235,311,1191,317,977,336,792,346"/>
+<area shape="rect" id="Node000009" href="$classedit__atlas_1_1core_1_1TimecodeRange.html" title="A validated half&#45;open timecode range of [start, end_exclusive)." alt="" coords="801,155,996,195"/>
+<area shape="poly" id="edge10_Node000007_Node000009" title=" " alt="" coords="1010,187,1100,206,1192,232,1246,256,1290,281,1287,285,1243,261,1190,237,1098,211,1009,193"/>
+<area shape="rect" id="Node000010" title=" " alt="" coords="813,219,984,259"/>
+<area shape="poly" id="edge11_Node000007_Node000010" title=" " alt="" coords="998,248,1191,275,1231,281,1230,286,1190,280,997,254"/>
+<area shape="poly" id="edge12_Node000010_Node000011" title=" " alt="" coords="601,237,813,236,813,242,601,242"/>
+<area shape="rect" id="Node000012" title=" " alt="" coords="810,396,987,436"/>
+<area shape="poly" id="edge21_Node000001_Node000012" title=" " alt="" coords="1001,433,1147,455,1228,462,1309,465,1955,465,2064,462,2164,453,2164,459,2064,467,1955,471,1309,471,1228,468,1146,460,1000,439"/>
+<area shape="poly" id="edge17_Node000002_Node000012" title=" " alt="" coords="1001,409,1145,400,1329,384,1532,360,1734,325,1816,305,1891,283,1892,288,1818,310,1735,331,1532,365,1329,390,1146,406,1001,414"/>
+<area shape="poly" id="edge14_Node000007_Node000012" title=" " alt="" coords="1001,400,1118,382,1190,368,1248,338,1292,307,1295,311,1250,343,1192,373,1118,388,1002,405"/>
+<area shape="poly" id="edge15_Node000012_Node000013" title=" " alt="" coords="599,406,810,411,810,417,599,412"/>
+<area shape="rect" id="Node000014" title=" " alt="" coords="1020,47,1191,87"/>
+<area shape="poly" id="edge18_Node000002_Node000014" title=" " alt="" coords="1204,42,1337,24,1416,18,1500,17,1587,23,1674,37,1758,61,1837,96,1859,111,1878,128,1909,169,1932,210,1947,244,1942,246,1928,212,1905,172,1874,132,1855,115,1835,101,1756,66,1672,42,1586,28,1500,23,1416,24,1337,29,1205,48"/>
+<area shape="poly" id="edge19_Node000014_Node000015" title=" " alt="" coords="603,64,1020,64,1020,69,603,69"/>
+</map>

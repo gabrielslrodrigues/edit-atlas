@@ -1,0 +1,9 @@
+<map id="edit_atlas::core::ExportArtifact" name="edit_atlas::core::ExportArtifact">
+<area shape="rect" id="Node000001" title="Bytes produced by an exporter and their suggested file information." alt="" coords="50,197,222,237"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,95,184,120"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="106,132,131,196,126,198,101,134"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="209,95,295,120"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="231,131,158,199,155,195,228,127"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="183,5,321,45"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="255,59,255,94,249,94,249,59"/>
+</map>
