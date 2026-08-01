@@ -70,6 +70,7 @@ struct TimelineTrackKindFilterCondition final {
     /// Required domain track kind.
     core::TrackKind track_kind = core::TrackKind::kVideo;
 
+    /// Compares the required track kind.
     bool operator==(const TimelineTrackKindFilterCondition &) const = default;
 };
 
@@ -78,6 +79,7 @@ struct TimelineEditTypeFilterCondition final {
     /// Required domain edit type.
     core::EditType edit_type = core::EditType::kCut;
 
+    /// Compares the required edit type.
     bool operator==(const TimelineEditTypeFilterCondition &) const = default;
 };
 
@@ -88,6 +90,7 @@ struct TimelineTimecodeFilterCondition final {
     /// Canonical `HH:MM:SS:FF` or drop-frame `HH:MM:SS;FF` text.
     std::string timecode;
 
+    /// Compares the timeline endpoint and canonical timecode.
     bool operator==(const TimelineTimecodeFilterCondition &) const = default;
 };
 
@@ -96,6 +99,7 @@ struct TimelineDurationFilterCondition final {
     /// Empty conditions are ignored.
     std::optional<std::int64_t> frames = std::nullopt;
 
+    /// Compares the optional frame duration.
     bool operator==(const TimelineDurationFilterCondition &) const = default;
 };
 
