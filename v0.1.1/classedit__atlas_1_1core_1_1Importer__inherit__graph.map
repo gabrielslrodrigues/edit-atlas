@@ -1,5 +1,0 @@
-<map id="edit_atlas::core::Importer" name="edit_atlas::core::Importer">
-<area shape="rect" id="Node000001" title="Converts in&#45;memory content into the format&#45;independent timeline model." alt="" coords="20,5,207,31"/>
-<area shape="rect" id="Node000002" href="$classedit__atlas_1_1formats_1_1cmx3600_1_1Cmx3600Importer.html" title="Imports CMX 3600 edit decision lists into the shared timeline model." alt="" coords="5,79,221,119"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="116,44,116,79,111,79,111,44"/>
-</map>

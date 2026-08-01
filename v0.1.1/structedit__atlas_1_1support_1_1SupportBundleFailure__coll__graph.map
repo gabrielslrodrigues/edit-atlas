@@ -1,9 +1,0 @@
-<map id="edit_atlas::support::SupportBundleFailure" name="edit_atlas::support::SupportBundleFailure">
-<area shape="rect" id="Node000001" title="Contains a presentation&#45;neutral support&#45;bundle failure." alt="" coords="51,183,219,223"/>
-<area shape="rect" id="Node000002" title=" " alt="" coords="5,95,124,120"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="63,133,68,158,78,170,92,180,88,185,75,174,64,160,58,135"/>
-<area shape="rect" id="Node000003" title=" " alt="" coords="163,95,249,120"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="196,134,179,160,158,184,154,180,175,157,191,131"/>
-<area shape="rect" id="Node000004" title=" " alt="" coords="137,5,275,45"/>
-<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="209,59,209,94,203,94,203,59"/>
-</map>
