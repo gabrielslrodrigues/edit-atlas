@@ -4,6 +4,8 @@ on:
   push:
     branches:
       - master
+    tags:
+      - 'v*'
   pull_request:
     branches:
       - master
@@ -19,9 +21,67 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  validate-release-tag:
+    name: Validate release tag
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+
+    steps:
+      - name: Check out tagged source
+        uses: actions/checkout@v7.0.1
+        with:
+          fetch-depth: 0
+
+      - name: Validate tag and project version
+        run: ./scripts/ci/validate-release-tag.sh
+
+  create-release:
+    name: Create draft release
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: validate-release-tag
+    runs-on: ubuntu-24.04
+    environment: edit-atlas-release
+    permissions:
+      contents: write
+
+    steps:
+      - name: Create or resume draft release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if release_is_draft="$(
+            gh release view "$GITHUB_REF_NAME" \
+              --repo "$GITHUB_REPOSITORY" \
+              --json isDraft \
+              --jq .isDraft \
+              2>/dev/null
+          )"; then
+            if [[ "$release_is_draft" != "true" ]]; then
+              echo "Release $GITHUB_REF_NAME is already published." >&2
+              exit 1
+            fi
+            echo "Resuming draft release $GITHUB_REF_NAME."
+          else
+            gh release create "$GITHUB_REF_NAME" \
+              --repo "$GITHUB_REPOSITORY" \
+              --draft \
+              --title "Edit Atlas $GITHUB_REF_NAME" \
+              --generate-notes
+          fi
+
   # Each triplet restores, populates, and consumes its package feed on one runner.
   build-and-package:
     name: Build and package / ${{ matrix.name }}
+    needs:
+      - validate-release-tag
+      - create-release
+    if: >-
+      always() &&
+      (!startsWith(github.ref, 'refs/tags/v') ||
+      (needs['validate-release-tag'].result == 'success' &&
+      needs['create-release'].result == 'success'))
     runs-on: ${{ matrix.os }}
     timeout-minutes: 180
     permissions:
@@ -287,6 +347,7 @@ jobs:
   package-macos-universal:
     name: Package / macOS Universal
     needs: build-and-package
+    if: always() && needs['build-and-package'].result == 'success'
     runs-on: macos-15
     timeout-minutes: 20
 
@@ -327,6 +388,7 @@ jobs:
   verify-linux-packages:
     name: Verify Linux packages / ${{ matrix.name }}
     needs: build-and-package
+    if: always() && needs['build-and-package'].result == 'success'
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     container: ${{ matrix.container }}
@@ -388,6 +450,7 @@ jobs:
   verify-macos-package:
     name: Verify macOS package / ${{ matrix.name }}
     needs: package-macos-universal
+    if: always() && needs['package-macos-universal'].result == 'success'
     runs-on: ${{ matrix.os }}
     timeout-minutes: 20
 
@@ -419,6 +482,7 @@ jobs:
   verify-windows-package:
     name: Verify Windows package / Windows x64
     needs: build-and-package
+    if: always() && needs['build-and-package'].result == 'success'
     runs-on: windows-2022
     timeout-minutes: 20
 
@@ -455,3 +519,51 @@ jobs:
           path: build/package-check-windows/*.log
           if-no-files-found: ignore
           retention-days: 7
+
+  publish-release:
+    name: Publish release assets
+    if: >-
+      always() &&
+      needs['create-release'].result == 'success' &&
+      needs['verify-linux-packages'].result == 'success' &&
+      needs['verify-macos-package'].result == 'success' &&
+      needs['verify-windows-package'].result == 'success'
+    needs:
+      - create-release
+      - verify-linux-packages
+      - verify-macos-package
+      - verify-windows-package
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+
+    steps:
+      - name: Check out tagged source
+        uses: actions/checkout@v7.0.1
+        with:
+          fetch-depth: 0
+
+      - name: Download release packages
+        uses: actions/download-artifact@v8
+        with:
+          pattern: edit-atlas-*-packages
+          path: build/release-artifacts
+          merge-multiple: true
+
+      - name: Prepare release assets
+        run: >-
+          ./scripts/ci/prepare-release-assets.sh
+          build/release-artifacts
+          build/release-assets
+
+      - name: Upload assets and publish draft release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: >-
+          gh release upload "$GITHUB_REF_NAME"
+          build/release-assets/*
+          --repo "$GITHUB_REPOSITORY"
+          --clobber
+          && gh release edit "$GITHUB_REF_NAME"
+          --repo "$GITHUB_REPOSITORY"
+          --draft=false
