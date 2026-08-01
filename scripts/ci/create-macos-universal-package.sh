@@ -73,24 +73,64 @@ if (( mach_o_count == 0 )); then
   exit 1
 fi
 
-# Qt deployment can provide both a versioned dylib and a compatibility-name
-# dylib as regular files. Loading both copies makes Cocoa register every Qt
-# Objective-C class twice and abort during application startup. The deployed
-# binaries use the versioned install names, so remove the redundant aliases.
+# Cached deployment packages can flatten dylib symlinks into regular files.
+# Restore each compatibility name as a relative symlink so dyld resolves both
+# names to one physical universal binary.
 frameworks_dir="$universal_app/Contents/Frameworks"
-for library in libQt6Concurrent libQt6Core libQt6Gui libQt6Widgets libxlsxwriter; do
-  compatibility_library="$frameworks_dir/$library.dylib"
-  versioned_library=""
-  for candidate in "$frameworks_dir/$library".*.dylib; do
-    if [[ -f "$candidate" ]]; then
-      versioned_library="$candidate"
-      break
-    fi
-  done
-  if [[ -f "$compatibility_library" && -n "$versioned_library" ]]; then
-    rm "$compatibility_library"
+normalize_dylib_alias() {
+  local compatibility_library="$1"
+  shift
+
+  if [[ -L "$compatibility_library" || ! -e "$compatibility_library" ]]; then
+    return
   fi
-done
+
+  local versioned_library=""
+  local candidate
+  for candidate in "$@"; do
+    if [[ ! -f "$candidate" ]]; then
+      continue
+    fi
+    if [[ -n "$versioned_library" ]]; then
+      echo \
+        "Multiple versioned dylibs match $compatibility_library." \
+        >&2
+      exit 1
+    fi
+    versioned_library="$candidate"
+  done
+
+  if [[ -z "$versioned_library" ]]; then
+    echo "No versioned dylib matches $compatibility_library." >&2
+    exit 1
+  fi
+  if ! cmp -s "$compatibility_library" "$versioned_library"; then
+    echo \
+      "Compatibility dylib differs from $versioned_library: " \
+      "$compatibility_library" \
+      >&2
+    exit 1
+  fi
+
+  rm "$compatibility_library"
+  ln -s "$(basename "$versioned_library")" "$compatibility_library"
+}
+
+normalize_dylib_alias \
+  "$frameworks_dir/libQt6Concurrent.6.dylib" \
+  "$frameworks_dir"/libQt6Concurrent.6.*.dylib
+normalize_dylib_alias \
+  "$frameworks_dir/libQt6Core.6.dylib" \
+  "$frameworks_dir"/libQt6Core.6.*.dylib
+normalize_dylib_alias \
+  "$frameworks_dir/libQt6Gui.6.dylib" \
+  "$frameworks_dir"/libQt6Gui.6.*.dylib
+normalize_dylib_alias \
+  "$frameworks_dir/libQt6Widgets.6.dylib" \
+  "$frameworks_dir"/libQt6Widgets.6.*.dylib
+normalize_dylib_alias \
+  "$frameworks_dir/libxlsxwriter.dylib" \
+  "$frameworks_dir"/libxlsxwriter.*.dylib
 
 codesign --force --deep --sign - "$universal_app"
 
