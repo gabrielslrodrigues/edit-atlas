@@ -71,7 +71,7 @@ var NAVTREEINDEX =
 [
 "annotated.html",
 "namespaceedit__atlas_1_1core.html#abd14a5cbfe0d6ac7f2b423495a09b6cbae3587c730cc1aa530fa4ddc9c4204e97",
-"structedit__atlas_1_1services_1_1DocumentExportFailure.html#a250f4e895e30218a7b3d47469b46b373"
+"structedit__atlas_1_1core_1_1Track.html#a09fbc2df70b9ca4dbc11711759eaf617"
 ];
 
 var SYNCONMSG = 'click to disable panel synchronisation';

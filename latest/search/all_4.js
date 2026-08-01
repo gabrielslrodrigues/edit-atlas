@@ -12,7 +12,7 @@ var searchData=
   ['edit_5fatlas_3a_3aformats_3a_3axlsx_3a_3adiagnostic_5fcode_9',['diagnostic_code',['../namespaceedit__atlas_1_1formats_1_1xlsx_1_1diagnostic__code.html',1,'edit_atlas::formats::xlsx']]],
   ['edit_5fatlas_3a_3aservices_10',['services',['../namespaceedit__atlas_1_1services.html',1,'edit_atlas']]],
   ['edit_5fatlas_3a_3asupport_11',['support',['../namespaceedit__atlas_1_1support.html',1,'edit_atlas']]],
-  ['edit_5ftype_12',['edit_type',['../structedit__atlas_1_1core_1_1EditEvent.html#aadf9b26bd90797d922b1e83a02c99117',1,'edit_atlas::core::EditEvent']]],
+  ['edit_5ftype_12',['edit_type',['../structedit__atlas_1_1services_1_1TimelineEditTypeFilterCondition.html#ac50e7b28376b683b93a68f77389aa93b',1,'edit_atlas::services::TimelineEditTypeFilterCondition::edit_type'],['../structedit__atlas_1_1core_1_1EditEvent.html#aadf9b26bd90797d922b1e83a02c99117',1,'edit_atlas::core::EditEvent::edit_type']]],
   ['editevent_13',['EditEvent',['../structedit__atlas_1_1core_1_1EditEvent.html',1,'edit_atlas::core']]],
   ['edittype_14',['EditType',['../namespaceedit__atlas_1_1core.html#ad0fa137faa3ebab8379d383b0e43cdeb',1,'edit_atlas::core']]],
   ['edl_15',['Convert an EDL',['../md_docs_2cli.html#autotoc_md9',1,'']]],

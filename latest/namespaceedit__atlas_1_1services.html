@@ -129,6 +129,27 @@ Classes</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structedit__atlas_1_1services_1_1ImportDocumentRequest.html">ImportDocumentRequest</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Describes one request to import a local document.  <a href="structedit__atlas_1_1services_1_1ImportDocumentRequest.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structedit__atlas_1_1services_1_1TimelineDurationFilterCondition.html">TimelineDurationFilterCondition</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Selects events with an exact record duration in frames.  <a href="structedit__atlas_1_1services_1_1TimelineDurationFilterCondition.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structedit__atlas_1_1services_1_1TimelineEditTypeFilterCondition.html">TimelineEditTypeFilterCondition</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Selects events with one exact edit type.  <a href="structedit__atlas_1_1services_1_1TimelineEditTypeFilterCondition.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structedit__atlas_1_1services_1_1TimelineFilterError.html">TimelineFilterError</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Describes a filter condition that could not be prepared.  <a href="structedit__atlas_1_1services_1_1TimelineFilterError.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structedit__atlas_1_1services_1_1TimelineFilterQuery.html">TimelineFilterQuery</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">A reusable, presentation-independent timeline event query.  <a href="structedit__atlas_1_1services_1_1TimelineFilterQuery.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structedit__atlas_1_1services_1_1TimelineTextFilterCondition.html">TimelineTextFilterCondition</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">A text-search condition over a free-text event field.  <a href="structedit__atlas_1_1services_1_1TimelineTextFilterCondition.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structedit__atlas_1_1services_1_1TimelineTimecodeFilterCondition.html">TimelineTimecodeFilterCondition</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Selects events with an exact timecode in one timeline range field.  <a href="structedit__atlas_1_1services_1_1TimelineTimecodeFilterCondition.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structedit__atlas_1_1services_1_1TimelineTrackKindFilterCondition.html">TimelineTrackKindFilterCondition</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Selects events with one exact track kind.  <a href="structedit__atlas_1_1services_1_1TimelineTrackKindFilterCondition.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="typedef-members" name="typedef-members"></a>
 Typedefs</h2></td></tr>
@@ -138,6 +159,15 @@ Typedefs</h2></td></tr>
 <tr class="memitem:af51498181b13043b025fdccb63493b7c" id="r_af51498181b13043b025fdccb63493b7c"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceedit__atlas_1_1services.html#af51498181b13043b025fdccb63493b7c">ImportDocumentResult</a> = std::expected&lt; <a class="el" href="structedit__atlas_1_1services_1_1DocumentImportReceipt.html">DocumentImportReceipt</a>, <a class="el" href="structedit__atlas_1_1services_1_1DocumentImportFailure.html">DocumentImportFailure</a> &gt;</td></tr>
 <tr class="memdesc:af51498181b13043b025fdccb63493b7c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Either an imported document receipt or a presentation-neutral failure.  <br /></td></tr>
 <tr class="separator:af51498181b13043b025fdccb63493b7c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1b72f32b86fa278303665df2b69bb2f5" id="r_a1b72f32b86fa278303665df2b69bb2f5"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceedit__atlas_1_1services.html#a1b72f32b86fa278303665df2b69bb2f5">TimelineFilterCondition</a> = std::variant&lt; <a class="el" href="structedit__atlas_1_1services_1_1TimelineTextFilterCondition.html">TimelineTextFilterCondition</a>, <a class="el" href="structedit__atlas_1_1services_1_1TimelineTrackKindFilterCondition.html">TimelineTrackKindFilterCondition</a>, <a class="el" href="structedit__atlas_1_1services_1_1TimelineEditTypeFilterCondition.html">TimelineEditTypeFilterCondition</a>, <a class="el" href="structedit__atlas_1_1services_1_1TimelineTimecodeFilterCondition.html">TimelineTimecodeFilterCondition</a>, <a class="el" href="structedit__atlas_1_1services_1_1TimelineDurationFilterCondition.html">TimelineDurationFilterCondition</a> &gt;</td></tr>
+<tr class="memdesc:a1b72f32b86fa278303665df2b69bb2f5"><td class="mdescLeft">&#160;</td><td class="mdescRight">One strongly typed timeline filter condition.  <br /></td></tr>
+<tr class="separator:a1b72f32b86fa278303665df2b69bb2f5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa1ea8b9848e624b54ce625d826a79ad2" id="r_aa1ea8b9848e624b54ce625d826a79ad2"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceedit__atlas_1_1services.html#aa1ea8b9848e624b54ce625d826a79ad2">TimelineEventSelection</a> = std::vector&lt; std::size_t &gt;</td></tr>
+<tr class="memdesc:aa1ea8b9848e624b54ce625d826a79ad2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Ordered indices of events selected from an unchanged source document.  <br /></td></tr>
+<tr class="separator:aa1ea8b9848e624b54ce625d826a79ad2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab697ed6d82e68747bc181eed79e8dfd0" id="r_ab697ed6d82e68747bc181eed79e8dfd0"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceedit__atlas_1_1services.html#ab697ed6d82e68747bc181eed79e8dfd0">TimelineFilterResult</a> = std::expected&lt; <a class="el" href="namespaceedit__atlas_1_1services.html#aa1ea8b9848e624b54ce625d826a79ad2">TimelineEventSelection</a>, <a class="el" href="structedit__atlas_1_1services_1_1TimelineFilterError.html">TimelineFilterError</a> &gt;</td></tr>
+<tr class="memdesc:ab697ed6d82e68747bc181eed79e8dfd0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Either an ordered event selection or a filter validation error.  <br /></td></tr>
+<tr class="separator:ab697ed6d82e68747bc181eed79e8dfd0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="enum-members" name="enum-members"></a>
 Enumerations</h2></td></tr>
@@ -154,12 +184,41 @@ Enumerations</h2></td></tr>
  }</td></tr>
 <tr class="memdesc:a1e0028b845e8e21625f7d8d8ba371ee8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Identifies the stage at which importing a document failed.  <a href="namespaceedit__atlas_1_1services.html#a1e0028b845e8e21625f7d8d8ba371ee8">More...</a><br /></td></tr>
 <tr class="separator:a1e0028b845e8e21625f7d8d8ba371ee8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1a61f06d63b12c314de5cceb7befb66b" id="r_a1a61f06d63b12c314de5cceb7befb66b"><td class="memItemLeft" align="right" valign="top">enum class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceedit__atlas_1_1services.html#a1a61f06d63b12c314de5cceb7befb66b">TimelineTextFilterField</a> { <br />
+&#160;&#160;<a class="el" href="namespaceedit__atlas_1_1services.html#a1a61f06d63b12c314de5cceb7befb66ba5ee6f8647b008eed1cd49fe6851f561c">kEventIdentifier</a>
+, <a class="el" href="namespaceedit__atlas_1_1services.html#a1a61f06d63b12c314de5cceb7befb66bab2c1da196107285d9a6bfa45433c3411">kReel</a>
+, <a class="el" href="namespaceedit__atlas_1_1services.html#a1a61f06d63b12c314de5cceb7befb66ba2d2ba14f33e51f326b34f35f4c954f38">kTrackIdentifier</a>
+, <a class="el" href="namespaceedit__atlas_1_1services.html#a1a61f06d63b12c314de5cceb7befb66bae2867cadc2a39b014e89d241b72f3a75">kClip</a>
+, <br />
+&#160;&#160;<a class="el" href="namespaceedit__atlas_1_1services.html#a1a61f06d63b12c314de5cceb7befb66ba8a531c1d62341ca4bc39616ff0d58bdf">kComments</a>
+<br />
+ }</td></tr>
+<tr class="memdesc:a1a61f06d63b12c314de5cceb7befb66b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Identifies a field that supports free-text matching.  <a href="namespaceedit__atlas_1_1services.html#a1a61f06d63b12c314de5cceb7befb66b">More...</a><br /></td></tr>
+<tr class="separator:a1a61f06d63b12c314de5cceb7befb66b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a298a07fbf5852fa216ec03a0f63df224" id="r_a298a07fbf5852fa216ec03a0f63df224"><td class="memItemLeft" align="right" valign="top">enum class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceedit__atlas_1_1services.html#a298a07fbf5852fa216ec03a0f63df224">TimelineTimecodeFilterField</a> { <a class="el" href="namespaceedit__atlas_1_1services.html#a298a07fbf5852fa216ec03a0f63df224ad8691aca9b3e0e9a830927153f71b7ec">kSourceIn</a>
+, <a class="el" href="namespaceedit__atlas_1_1services.html#a298a07fbf5852fa216ec03a0f63df224afd9c91dcd454e109bcc4b6af841c1f69">kSourceOut</a>
+, <a class="el" href="namespaceedit__atlas_1_1services.html#a298a07fbf5852fa216ec03a0f63df224ad48955dd6530d928240c912332db450f">kRecordIn</a>
+, <a class="el" href="namespaceedit__atlas_1_1services.html#a298a07fbf5852fa216ec03a0f63df224ada0dda1d6a6ff6e63864afb7a028cbb6">kRecordOut</a>
+ }</td></tr>
+<tr class="memdesc:a298a07fbf5852fa216ec03a0f63df224"><td class="mdescLeft">&#160;</td><td class="mdescRight">Identifies a field that supports exact timecode matching.  <a href="namespaceedit__atlas_1_1services.html#a298a07fbf5852fa216ec03a0f63df224">More...</a><br /></td></tr>
+<tr class="separator:a298a07fbf5852fa216ec03a0f63df224"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a86889d992a4a1acffa24c2a0b204bdcb" id="r_a86889d992a4a1acffa24c2a0b204bdcb"><td class="memItemLeft" align="right" valign="top">enum class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceedit__atlas_1_1services.html#a86889d992a4a1acffa24c2a0b204bdcb">TimelineFilterCombination</a> { <a class="el" href="namespaceedit__atlas_1_1services.html#a86889d992a4a1acffa24c2a0b204bdcba34bdbffdb1c0e1b603f58fc0d49548b6">kAll</a>
+, <a class="el" href="namespaceedit__atlas_1_1services.html#a86889d992a4a1acffa24c2a0b204bdcba198158a4155a179dc73ad4bea1159c1d">kAny</a>
+ }</td></tr>
+<tr class="memdesc:a86889d992a4a1acffa24c2a0b204bdcb"><td class="mdescLeft">&#160;</td><td class="mdescRight">Selects how multiple non-empty filter conditions are combined.  <a href="namespaceedit__atlas_1_1services.html#a86889d992a4a1acffa24c2a0b204bdcb">More...</a><br /></td></tr>
+<tr class="separator:a86889d992a4a1acffa24c2a0b204bdcb"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
 <tr class="memitem:a13782bb5f3054df75536d5a2d53dba00" id="r_a13782bb5f3054df75536d5a2d53dba00"><td class="memItemLeft" align="right" valign="top">std::expected&lt; <a class="el" href="classedit__atlas_1_1core_1_1FormatRegistry.html">core::FormatRegistry</a>, <a class="el" href="namespaceedit__atlas_1_1core.html#aed416f0910b40710396c706c024f54fe">core::FormatRegistrationError</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceedit__atlas_1_1services.html#a13782bb5f3054df75536d5a2d53dba00">CreateBuiltInFormatRegistry</a> (void)</td></tr>
 <tr class="memdesc:a13782bb5f3054df75536d5a2d53dba00"><td class="mdescLeft">&#160;</td><td class="mdescRight">Creates a registry containing every format built into Edit Atlas.  <br /></td></tr>
 <tr class="separator:a13782bb5f3054df75536d5a2d53dba00"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a21e0d56b0cc809d962b3adfc4ab77c13" id="r_a21e0d56b0cc809d962b3adfc4ab77c13"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceedit__atlas_1_1services.html#ab697ed6d82e68747bc181eed79e8dfd0">TimelineFilterResult</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceedit__atlas_1_1services.html#a21e0d56b0cc809d962b3adfc4ab77c13">FilterTimelineEvents</a> (const <a class="el" href="structedit__atlas_1_1core_1_1TimelineDocument.html">core::TimelineDocument</a> &amp;document, const <a class="el" href="structedit__atlas_1_1services_1_1TimelineFilterQuery.html">TimelineFilterQuery</a> &amp;query)</td></tr>
+<tr class="memdesc:a21e0d56b0cc809d962b3adfc4ab77c13"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the source indices of events matching <code>query</code>.  <br /></td></tr>
+<tr class="separator:a21e0d56b0cc809d962b3adfc4ab77c13"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae172b346ed16079935468b7631c2058f" id="r_ae172b346ed16079935468b7631c2058f"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structedit__atlas_1_1core_1_1TimelineDocument.html">core::TimelineDocument</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceedit__atlas_1_1services.html#ae172b346ed16079935468b7631c2058f">SelectTimelineEvents</a> (const <a class="el" href="structedit__atlas_1_1core_1_1TimelineDocument.html">core::TimelineDocument</a> &amp;document, std::span&lt; const std::size_t &gt; selection)</td></tr>
+<tr class="memdesc:ae172b346ed16079935468b7631c2058f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Copies <code>document</code> while retaining only events referenced by <code>selection</code>.  <br /></td></tr>
+<tr class="separator:ae172b346ed16079935468b7631c2058f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>UI-independent local-document application workflows. </p>
@@ -197,6 +256,60 @@ Functions</h2></td></tr>
 <p>Either an imported document receipt or a presentation-neutral failure. </p>
 
 <p class="definition">Definition at line <a class="el" href="document__import__service_8hpp_source.html#l00060">60</a> of file <a class="el" href="document__import__service_8hpp_source.html">document_import_service.hpp</a>.</p>
+
+</div>
+</div>
+<a id="aa1ea8b9848e624b54ce625d826a79ad2" name="aa1ea8b9848e624b54ce625d826a79ad2"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa1ea8b9848e624b54ce625d826a79ad2">&#9670;&#160;</a></span>TimelineEventSelection</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">using <a class="el" href="namespaceedit__atlas_1_1services.html#aa1ea8b9848e624b54ce625d826a79ad2">edit_atlas::services::TimelineEventSelection</a> = typedef std::vector&lt;std::size_t&gt;</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Ordered indices of events selected from an unchanged source document. </p>
+
+<p class="definition">Definition at line <a class="el" href="timeline__filter_8hpp_source.html#l00125">125</a> of file <a class="el" href="timeline__filter_8hpp_source.html">timeline_filter.hpp</a>.</p>
+
+</div>
+</div>
+<a id="a1b72f32b86fa278303665df2b69bb2f5" name="a1b72f32b86fa278303665df2b69bb2f5"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1b72f32b86fa278303665df2b69bb2f5">&#9670;&#160;</a></span>TimelineFilterCondition</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">using <a class="el" href="namespaceedit__atlas_1_1services.html#a1b72f32b86fa278303665df2b69bb2f5">edit_atlas::services::TimelineFilterCondition</a> = typedef std::variant&lt;<a class="el" href="structedit__atlas_1_1services_1_1TimelineTextFilterCondition.html">TimelineTextFilterCondition</a>, <a class="el" href="structedit__atlas_1_1services_1_1TimelineTrackKindFilterCondition.html">TimelineTrackKindFilterCondition</a>, <a class="el" href="structedit__atlas_1_1services_1_1TimelineEditTypeFilterCondition.html">TimelineEditTypeFilterCondition</a>, <a class="el" href="structedit__atlas_1_1services_1_1TimelineTimecodeFilterCondition.html">TimelineTimecodeFilterCondition</a>, <a class="el" href="structedit__atlas_1_1services_1_1TimelineDurationFilterCondition.html">TimelineDurationFilterCondition</a>&gt;</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>One strongly typed timeline filter condition. </p>
+
+<p class="definition">Definition at line <a class="el" href="timeline__filter_8hpp_source.html#l00107">107</a> of file <a class="el" href="timeline__filter_8hpp_source.html">timeline_filter.hpp</a>.</p>
+
+</div>
+</div>
+<a id="ab697ed6d82e68747bc181eed79e8dfd0" name="ab697ed6d82e68747bc181eed79e8dfd0"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab697ed6d82e68747bc181eed79e8dfd0">&#9670;&#160;</a></span>TimelineFilterResult</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">using <a class="el" href="namespaceedit__atlas_1_1services.html#ab697ed6d82e68747bc181eed79e8dfd0">edit_atlas::services::TimelineFilterResult</a> = typedef std::expected&lt;<a class="el" href="namespaceedit__atlas_1_1services.html#aa1ea8b9848e624b54ce625d826a79ad2">TimelineEventSelection</a>, <a class="el" href="structedit__atlas_1_1services_1_1TimelineFilterError.html">TimelineFilterError</a>&gt;</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Either an ordered event selection or a filter validation error. </p>
+
+<p class="definition">Definition at line <a class="el" href="timeline__filter_8hpp_source.html#l00139">139</a> of file <a class="el" href="timeline__filter_8hpp_source.html">timeline_filter.hpp</a>.</p>
 
 </div>
 </div>
@@ -271,6 +384,112 @@ Functions</h2></td></tr>
 
 </div>
 </div>
+<a id="a86889d992a4a1acffa24c2a0b204bdcb" name="a86889d992a4a1acffa24c2a0b204bdcb"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a86889d992a4a1acffa24c2a0b204bdcb">&#9670;&#160;</a></span>TimelineFilterCombination</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">enum class <a class="el" href="namespaceedit__atlas_1_1services.html#a86889d992a4a1acffa24c2a0b204bdcb">edit_atlas::services::TimelineFilterCombination</a></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">strong</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Selects how multiple non-empty filter conditions are combined. </p>
+<table class="fieldtable">
+<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="a86889d992a4a1acffa24c2a0b204bdcba34bdbffdb1c0e1b603f58fc0d49548b6" name="a86889d992a4a1acffa24c2a0b204bdcba34bdbffdb1c0e1b603f58fc0d49548b6"></a>kAll&#160;</td><td class="fielddoc"><p>Every condition must match an event. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="a86889d992a4a1acffa24c2a0b204bdcba198158a4155a179dc73ad4bea1159c1d" name="a86889d992a4a1acffa24c2a0b204bdcba198158a4155a179dc73ad4bea1159c1d"></a>kAny&#160;</td><td class="fielddoc"><p>At least one condition must match an event. </p>
+</td></tr>
+</table>
+
+<p class="definition">Definition at line <a class="el" href="timeline__filter_8hpp_source.html#l00044">44</a> of file <a class="el" href="timeline__filter_8hpp_source.html">timeline_filter.hpp</a>.</p>
+
+</div>
+</div>
+<a id="a1a61f06d63b12c314de5cceb7befb66b" name="a1a61f06d63b12c314de5cceb7befb66b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1a61f06d63b12c314de5cceb7befb66b">&#9670;&#160;</a></span>TimelineTextFilterField</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">enum class <a class="el" href="namespaceedit__atlas_1_1services.html#a1a61f06d63b12c314de5cceb7befb66b">edit_atlas::services::TimelineTextFilterField</a></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">strong</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Identifies a field that supports free-text matching. </p>
+<table class="fieldtable">
+<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="a1a61f06d63b12c314de5cceb7befb66ba5ee6f8647b008eed1cd49fe6851f561c" name="a1a61f06d63b12c314de5cceb7befb66ba5ee6f8647b008eed1cd49fe6851f561c"></a>kEventIdentifier&#160;</td><td class="fielddoc"><p>Searches the source event identifier. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="a1a61f06d63b12c314de5cceb7befb66bab2c1da196107285d9a6bfa45433c3411" name="a1a61f06d63b12c314de5cceb7befb66bab2c1da196107285d9a6bfa45433c3411"></a>kReel&#160;</td><td class="fielddoc"><p>Searches the source reel identifier. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="a1a61f06d63b12c314de5cceb7befb66ba2d2ba14f33e51f326b34f35f4c954f38" name="a1a61f06d63b12c314de5cceb7befb66ba2d2ba14f33e51f326b34f35f4c954f38"></a>kTrackIdentifier&#160;</td><td class="fielddoc"><p>Searches the source track identifier. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="a1a61f06d63b12c314de5cceb7befb66bae2867cadc2a39b014e89d241b72f3a75" name="a1a61f06d63b12c314de5cceb7befb66bae2867cadc2a39b014e89d241b72f3a75"></a>kClip&#160;</td><td class="fielddoc"><p>Searches the imported clip name. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="a1a61f06d63b12c314de5cceb7befb66ba8a531c1d62341ca4bc39616ff0d58bdf" name="a1a61f06d63b12c314de5cceb7befb66ba8a531c1d62341ca4bc39616ff0d58bdf"></a>kComments&#160;</td><td class="fielddoc"><p>Searches human-authored event comments. </p>
+</td></tr>
+</table>
+
+<p class="definition">Definition at line <a class="el" href="timeline__filter_8hpp_source.html#l00018">18</a> of file <a class="el" href="timeline__filter_8hpp_source.html">timeline_filter.hpp</a>.</p>
+
+</div>
+</div>
+<a id="a298a07fbf5852fa216ec03a0f63df224" name="a298a07fbf5852fa216ec03a0f63df224"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a298a07fbf5852fa216ec03a0f63df224">&#9670;&#160;</a></span>TimelineTimecodeFilterField</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">enum class <a class="el" href="namespaceedit__atlas_1_1services.html#a298a07fbf5852fa216ec03a0f63df224">edit_atlas::services::TimelineTimecodeFilterField</a></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">strong</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Identifies a field that supports exact timecode matching. </p>
+<table class="fieldtable">
+<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="a298a07fbf5852fa216ec03a0f63df224ad8691aca9b3e0e9a830927153f71b7ec" name="a298a07fbf5852fa216ec03a0f63df224ad8691aca9b3e0e9a830927153f71b7ec"></a>kSourceIn&#160;</td><td class="fielddoc"><p>Compares the inclusive source timecode. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="a298a07fbf5852fa216ec03a0f63df224afd9c91dcd454e109bcc4b6af841c1f69" name="a298a07fbf5852fa216ec03a0f63df224afd9c91dcd454e109bcc4b6af841c1f69"></a>kSourceOut&#160;</td><td class="fielddoc"><p>Compares the exclusive source timecode. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="a298a07fbf5852fa216ec03a0f63df224ad48955dd6530d928240c912332db450f" name="a298a07fbf5852fa216ec03a0f63df224ad48955dd6530d928240c912332db450f"></a>kRecordIn&#160;</td><td class="fielddoc"><p>Compares the inclusive record timecode. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="a298a07fbf5852fa216ec03a0f63df224ada0dda1d6a6ff6e63864afb7a028cbb6" name="a298a07fbf5852fa216ec03a0f63df224ada0dda1d6a6ff6e63864afb7a028cbb6"></a>kRecordOut&#160;</td><td class="fielddoc"><p>Compares the exclusive record timecode. </p>
+</td></tr>
+</table>
+
+<p class="definition">Definition at line <a class="el" href="timeline__filter_8hpp_source.html#l00032">32</a> of file <a class="el" href="timeline__filter_8hpp_source.html">timeline_filter.hpp</a>.</p>
+
+</div>
+</div>
 <h2 class="groupheader">Function Documentation</h2>
 <a id="a13782bb5f3054df75536d5a2d53dba00" name="a13782bb5f3054df75536d5a2d53dba00"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a13782bb5f3054df75536d5a2d53dba00">&#9670;&#160;</a></span>CreateBuiltInFormatRegistry()</h2>
@@ -290,6 +509,68 @@ Functions</h2></td></tr>
 
 <p>Creates a registry containing every format built into Edit Atlas. </p>
 <dl class="section return"><dt>Returns</dt><dd>The populated registry or the first registration error. </dd></dl>
+
+</div>
+</div>
+<a id="a21e0d56b0cc809d962b3adfc4ab77c13" name="a21e0d56b0cc809d962b3adfc4ab77c13"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a21e0d56b0cc809d962b3adfc4ab77c13">&#9670;&#160;</a></span>FilterTimelineEvents()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespaceedit__atlas_1_1services.html#ab697ed6d82e68747bc181eed79e8dfd0">TimelineFilterResult</a> edit_atlas::services::FilterTimelineEvents </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="structedit__atlas_1_1core_1_1TimelineDocument.html">core::TimelineDocument</a> &amp;&#160;</td>
+          <td class="paramname"><em>document</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="structedit__atlas_1_1services_1_1TimelineFilterQuery.html">TimelineFilterQuery</a> &amp;&#160;</td>
+          <td class="paramname"><em>query</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Returns the source indices of events matching <code>query</code>. </p>
+<p>Literal matching is case-insensitive by default. Regular expressions use RE2 syntax and are compiled once per non-empty condition. A query without non-empty conditions selects all events. </p>
+
+</div>
+</div>
+<a id="ae172b346ed16079935468b7631c2058f" name="ae172b346ed16079935468b7631c2058f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae172b346ed16079935468b7631c2058f">&#9670;&#160;</a></span>SelectTimelineEvents()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="structedit__atlas_1_1core_1_1TimelineDocument.html">core::TimelineDocument</a> edit_atlas::services::SelectTimelineEvents </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="structedit__atlas_1_1core_1_1TimelineDocument.html">core::TimelineDocument</a> &amp;&#160;</td>
+          <td class="paramname"><em>document</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">std::span&lt; const std::size_t &gt;&#160;</td>
+          <td class="paramname"><em>selection</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Copies <code>document</code> while retaining only events referenced by <code>selection</code>. </p>
+<p>Invalid indices are ignored. Document metadata, provenance, and diagnostics are preserved. </p>
 
 </div>
 </div>

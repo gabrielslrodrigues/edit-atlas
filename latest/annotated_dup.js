@@ -41,7 +41,14 @@ var annotated_dup =
         [ "DocumentImportReceipt", "structedit__atlas_1_1services_1_1DocumentImportReceipt.html", "structedit__atlas_1_1services_1_1DocumentImportReceipt" ],
         [ "DocumentImportService", "classedit__atlas_1_1services_1_1DocumentImportService.html", "classedit__atlas_1_1services_1_1DocumentImportService" ],
         [ "ExportDocumentRequest", "structedit__atlas_1_1services_1_1ExportDocumentRequest.html", "structedit__atlas_1_1services_1_1ExportDocumentRequest" ],
-        [ "ImportDocumentRequest", "structedit__atlas_1_1services_1_1ImportDocumentRequest.html", "structedit__atlas_1_1services_1_1ImportDocumentRequest" ]
+        [ "ImportDocumentRequest", "structedit__atlas_1_1services_1_1ImportDocumentRequest.html", "structedit__atlas_1_1services_1_1ImportDocumentRequest" ],
+        [ "TimelineDurationFilterCondition", "structedit__atlas_1_1services_1_1TimelineDurationFilterCondition.html", "structedit__atlas_1_1services_1_1TimelineDurationFilterCondition" ],
+        [ "TimelineEditTypeFilterCondition", "structedit__atlas_1_1services_1_1TimelineEditTypeFilterCondition.html", "structedit__atlas_1_1services_1_1TimelineEditTypeFilterCondition" ],
+        [ "TimelineFilterError", "structedit__atlas_1_1services_1_1TimelineFilterError.html", "structedit__atlas_1_1services_1_1TimelineFilterError" ],
+        [ "TimelineFilterQuery", "structedit__atlas_1_1services_1_1TimelineFilterQuery.html", "structedit__atlas_1_1services_1_1TimelineFilterQuery" ],
+        [ "TimelineTextFilterCondition", "structedit__atlas_1_1services_1_1TimelineTextFilterCondition.html", "structedit__atlas_1_1services_1_1TimelineTextFilterCondition" ],
+        [ "TimelineTimecodeFilterCondition", "structedit__atlas_1_1services_1_1TimelineTimecodeFilterCondition.html", "structedit__atlas_1_1services_1_1TimelineTimecodeFilterCondition" ],
+        [ "TimelineTrackKindFilterCondition", "structedit__atlas_1_1services_1_1TimelineTrackKindFilterCondition.html", "structedit__atlas_1_1services_1_1TimelineTrackKindFilterCondition" ]
       ] ],
       [ "support", "namespaceedit__atlas_1_1support.html", [
         [ "DiagnosticEnvironment", "structedit__atlas_1_1support_1_1DiagnosticEnvironment.html", "structedit__atlas_1_1support_1_1DiagnosticEnvironment" ],
