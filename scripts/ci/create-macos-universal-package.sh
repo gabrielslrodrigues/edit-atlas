@@ -134,7 +134,7 @@ codesign --force --deep --sign - "$universal_app"
 cmake \
   "-DEDIT_ATLAS_DEPLOYMENT_ROOT=$universal_dir" \
   "-DEDIT_ATLAS_EXECUTABLE=$universal_app/Contents/MacOS/edit-atlas" \
-  -P "$source_dir/cmake/VerifyQtDeployment.cmake"
+  -P "$source_dir/cmake/VerifyApplicationDeployment.cmake"
 cmake \
   "-DEDIT_ATLAS_BUNDLE=$universal_app" \
   -P "$source_dir/cmake/VerifyMacOSUniversalBundle.cmake"

@@ -208,5 +208,18 @@ edit_atlas_require_deployed_file(
     "the Qt Base license notices"
     "*qtbase-copyright"
 )
+foreach(
+    edit_atlas_notice_package
+    IN ITEMS spdlog fmt libxlsxwriter minizip zlib
+)
+    edit_atlas_require_deployed_file(
+        "the ${edit_atlas_notice_package} license notices"
+        "*${edit_atlas_notice_package}-copyright"
+    )
+endforeach()
+edit_atlas_require_deployed_file(
+    "the Qt corresponding source offer"
+    "*QT_SOURCE_OFFER.md"
+)
 
 message(STATUS "Verified staged Qt runtime and compliance materials.")

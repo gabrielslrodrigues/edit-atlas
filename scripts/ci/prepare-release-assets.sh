@@ -34,16 +34,28 @@ if (( ${#packages[@]} != 5 )); then
   exit 1
 fi
 
+mapfile -t source_archives < <(
+  find "$source_dir" -type f \
+    -name 'edit-atlas-*-qt-source.tar.xz' \
+    -print | sort
+)
+if (( ${#source_archives[@]} != 1 )); then
+  echo "Expected one Qt source archive, found ${#source_archives[@]}." >&2
+  printf '%s\n' "${source_archives[@]}" >&2
+  exit 1
+fi
+
 for package in "${packages[@]}"; do
   cp -- "$package" "$release_dir/"
 done
+cp -- "${source_archives[0]}" "$release_dir/"
 
 cp -- LICENSE "$release_dir/LICENSE"
 cp -- THIRD_PARTY_NOTICES.md "$release_dir/THIRD_PARTY_NOTICES.md"
 
 (
   cd -- "$release_dir"
-  sha256sum -- *.tar.gz *.deb *.rpm *.pkg *.msi > SHA256SUMS
+  sha256sum -- *.tar.gz *.tar.xz *.deb *.rpm *.pkg *.msi > SHA256SUMS
 )
 
-echo "Prepared ${#packages[@]} release packages in $release_dir."
+echo "Prepared ${#packages[@]} release packages and Qt source in $release_dir."

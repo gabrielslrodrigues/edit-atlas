@@ -1,0 +1,44 @@
+# Qt corresponding source and replacement instructions
+
+Edit Atlas @EDIT_ATLAS_VERSION@ dynamically links to Qt @EDIT_ATLAS_QT_VERSION@
+under the GNU Lesser General Public License version 3.
+
+The complete corresponding Qt source used for this release is available from
+the Edit Atlas release page:
+
+https://github.com/gabrielslrodrigues/edit-atlas/releases/download/v@EDIT_ATLAS_VERSION@/edit-atlas-@EDIT_ATLAS_VERSION@-qt-source.tar.xz
+
+Verify the archive against `SHA256SUMS` from the same release. The archive
+contains the original Qt Base source archive, its SHA-512 digest, the exact
+vcpkg Qt Base port and patches, the pinned vcpkg commit, the Edit Atlas vcpkg
+manifest and triplets, and the build configuration relevant to Qt.
+
+## Rebuild Qt
+
+1. Check out Edit Atlas tag `v@EDIT_ATLAS_VERSION@` with its vcpkg submodule.
+2. Confirm that vcpkg is at commit `@EDIT_ATLAS_VCPKG_BASELINE@`.
+3. Copy the provided Qt source archive into `vcpkg/downloads`.
+4. Bootstrap vcpkg and configure the appropriate release preset documented in
+   the Edit Atlas README. vcpkg verifies the source digest and applies the
+   included port patches before building Qt.
+5. To modify Qt, use the included source and port as an overlay port, apply
+   your changes, and rebuild Edit Atlas against that Qt build.
+
+The complete Edit Atlas application source is available from the same release
+tag under the Apache License 2.0, so the application can also be rebuilt
+against an interface-compatible modified Qt version.
+
+## Replace the bundled Qt libraries
+
+Edit Atlas uses ordinary dynamically loaded Qt libraries. An
+interface-compatible replacement can be installed in these locations:
+
+- Windows: beside `bin/edit-atlas.exe`;
+- Linux: in the package's `lib` directory while preserving its library names
+  and symbolic links; and
+- macOS: in `edit-atlas.app/Contents/Frameworks` while preserving universal
+  x86_64 and ARM64 slices, install names, and symbolic links.
+
+Replace the complete compatible Qt library and plugin set rather than mixing
+incompatible Qt builds. Edit Atlas release packages are unsigned, so they do
+not impose a signature or DRM restriction on replacement libraries.

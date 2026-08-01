@@ -63,7 +63,7 @@ fi
 cmake \
   "-DEDIT_ATLAS_DEPLOYMENT_ROOT=$application" \
   "-DEDIT_ATLAS_EXECUTABLE=$executable" \
-  -P "$source_dir/cmake/VerifyQtDeployment.cmake"
+  -P "$source_dir/cmake/VerifyApplicationDeployment.cmake"
 cmake \
   "-DEDIT_ATLAS_BUNDLE=$application" \
   -P "$source_dir/cmake/VerifyMacOSUniversalBundle.cmake"
