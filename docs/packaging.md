@@ -230,6 +230,8 @@ job fails, the draft remains unpublished and can be inspected as an
 incomplete release. Fix the tagged commit by creating a new version tag, or
 rerun the failed workflow after correcting an infrastructure problem; do not
 manually publish a draft whose required platform checks did not pass.
+Rerunning a workflow can resume an existing draft, but it refuses to modify a
+release that has already been published.
 
 The current workflow does not require signing or Apple notarization secrets.
 When those credentials are introduced, keep them in the protected release

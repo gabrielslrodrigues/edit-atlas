@@ -51,11 +51,18 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          if gh release view "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
-            gh release edit "$GITHUB_REF_NAME" \
+          if release_is_draft="$(
+            gh release view "$GITHUB_REF_NAME" \
               --repo "$GITHUB_REPOSITORY" \
-              --draft \
-              --title "Edit Atlas $GITHUB_REF_NAME"
+              --json isDraft \
+              --jq .isDraft \
+              2>/dev/null
+          )"; then
+            if [[ "$release_is_draft" != "true" ]]; then
+              echo "Release $GITHUB_REF_NAME is already published." >&2
+              exit 1
+            fi
+            echo "Resuming draft release $GITHUB_REF_NAME."
           else
             gh release create "$GITHUB_REF_NAME" \
               --repo "$GITHUB_REPOSITORY" \
@@ -67,6 +74,14 @@ jobs:
   # Each triplet restores, populates, and consumes its package feed on one runner.
   build-and-package:
     name: Build and package / ${{ matrix.name }}
+    needs:
+      - validate-release-tag
+      - create-release
+    if: >-
+      always() &&
+      (!startsWith(github.ref, 'refs/tags/v') ||
+      (needs['validate-release-tag'].result == 'success' &&
+      needs['create-release'].result == 'success'))
     runs-on: ${{ matrix.os }}
     timeout-minutes: 180
     permissions:
@@ -505,17 +520,16 @@ jobs:
     name: Publish release assets
     if: >-
       always() &&
-      needs.create-release.result == 'success' &&
-      needs.verify-linux-packages.result == 'success' &&
-      needs.verify-macos-package.result == 'success' &&
-      needs.verify-windows-package.result == 'success'
+      needs['create-release'].result == 'success' &&
+      needs['verify-linux-packages'].result == 'success' &&
+      needs['verify-macos-package'].result == 'success' &&
+      needs['verify-windows-package'].result == 'success'
     needs:
       - create-release
       - verify-linux-packages
       - verify-macos-package
       - verify-windows-package
     runs-on: ubuntu-24.04
-    environment: edit-atlas-release
     permissions:
       contents: write
 

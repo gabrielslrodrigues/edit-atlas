@@ -36,4 +36,3 @@ if git verify-tag "$tag" >/dev/null 2>&1; then
 else
   echo "Validated unsigned release tag $tag; the protected release environment provides explicit approval."
 fi
-

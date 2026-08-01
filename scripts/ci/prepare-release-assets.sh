@@ -47,4 +47,3 @@ cp -- THIRD_PARTY_NOTICES.md "$release_dir/THIRD_PARTY_NOTICES.md"
 )
 
 echo "Prepared ${#packages[@]} release packages in $release_dir."
-
