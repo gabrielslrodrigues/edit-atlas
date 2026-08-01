@@ -47,6 +47,21 @@ else
   cp -a "$generated_directory"/. "$version_directory"/
 fi
 
+script_directory=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
+unpublished_versions_file="$script_directory/../../docs/unpublished-versions.txt"
+while IFS= read -r unpublished_version || [[ -n "$unpublished_version" ]]; do
+  if [[ -z "$unpublished_version" || "$unpublished_version" == \#* ]]; then
+    continue
+  fi
+  if [[ ! "$unpublished_version" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+    echo \
+      "Invalid unpublished documentation version: $unpublished_version" \
+      >&2
+    exit 1
+  fi
+  rm -rf -- "$site_directory/$unpublished_version"
+done < "$unpublished_versions_file"
+
 versions_page="$site_directory/versions.html"
 {
   cat <<'EOF'

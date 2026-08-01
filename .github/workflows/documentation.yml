@@ -4,12 +4,15 @@ on:
   push:
     branches:
       - master
-    tags:
-      - "v*"
   pull_request:
     branches:
       - master
   workflow_dispatch:
+    inputs:
+      version:
+        description: Published release tag to document
+        required: false
+        type: string
 
 permissions:
   contents: read
@@ -25,10 +28,33 @@ jobs:
     timeout-minutes: 15
 
     steps:
+      - name: Validate published release
+        if: inputs.version != ''
+        shell: bash
+        env:
+          DOCUMENTATION_VERSION: ${{ inputs.version }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if [[ ! "$DOCUMENTATION_VERSION" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "Documentation version must use the vX.Y.Z form." >&2
+            exit 1
+          fi
+          release_is_draft="$(
+            gh release view "$DOCUMENTATION_VERSION" \
+              --repo "$GITHUB_REPOSITORY" \
+              --json isDraft \
+              --jq .isDraft
+          )"
+          if [[ "$release_is_draft" != "false" ]]; then
+            echo "Release $DOCUMENTATION_VERSION is not published." >&2
+            exit 1
+          fi
+
       - name: Check out source
         uses: actions/checkout@v7.0.1
         with:
           fetch-depth: 0
+          ref: ${{ inputs.version || github.ref }}
 
       - name: Install documentation tools
         run: |
@@ -53,7 +79,7 @@ jobs:
       - name: Assemble versioned documentation site
         shell: bash
         env:
-          DOCUMENTATION_VERSION: ${{ startsWith(github.ref, 'refs/tags/v') && github.ref_name || '' }}
+          DOCUMENTATION_VERSION: ${{ inputs.version || '' }}
         run: >-
           ./scripts/ci/assemble-github-pages-docs.sh
           build/documentation/docs/html
@@ -83,7 +109,9 @@ jobs:
 
   publish-source:
     name: Persist Pages source
-    if: github.event_name == 'push' && (github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/tags/v'))
+    if: >-
+      inputs.version != '' ||
+      (github.event_name == 'push' && github.ref == 'refs/heads/master')
     needs: generate
     runs-on: ubuntu-24.04
     timeout-minutes: 10
@@ -107,7 +135,9 @@ jobs:
 
   deploy:
     name: Deploy API documentation
-    if: github.event_name == 'push' && (github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/tags/v'))
+    if: >-
+      inputs.version != '' ||
+      (github.event_name == 'push' && github.ref == 'refs/heads/master')
     needs:
       - generate
       - publish-source

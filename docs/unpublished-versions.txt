@@ -1,0 +1,2 @@
+# Versioned documentation exists only for published GitHub Releases.
+v0.1.1

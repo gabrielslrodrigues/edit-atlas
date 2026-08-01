@@ -573,6 +573,7 @@ jobs:
       - verify-windows-package
     runs-on: ubuntu-24.04
     permissions:
+      actions: write
       contents: write
 
     steps:
@@ -611,3 +612,12 @@ jobs:
           && gh release edit "$GITHUB_REF_NAME"
           --repo "$GITHUB_REPOSITORY"
           --draft=false
+
+      - name: Publish versioned documentation
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: >-
+          gh workflow run documentation.yml
+          --repo "$GITHUB_REPOSITORY"
+          --ref "$GITHUB_REF_NAME"
+          --field "version=$GITHUB_REF_NAME"
