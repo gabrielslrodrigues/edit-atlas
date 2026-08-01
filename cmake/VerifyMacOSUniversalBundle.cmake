@@ -15,7 +15,6 @@ set(
     libQt6Core.6.dylib
     libQt6Gui.6.dylib
     libQt6Widgets.6.dylib
-    libxlsxwriter.dylib
 )
 foreach(edit_atlas_compatibility_dylib IN LISTS edit_atlas_compatibility_dylibs)
     set(

@@ -128,9 +128,6 @@ normalize_dylib_alias \
 normalize_dylib_alias \
   "$frameworks_dir/libQt6Widgets.6.dylib" \
   "$frameworks_dir"/libQt6Widgets.6.*.dylib
-normalize_dylib_alias \
-  "$frameworks_dir/libxlsxwriter.dylib" \
-  "$frameworks_dir"/libxlsxwriter.*.dylib
 
 codesign --force --deep --sign - "$universal_app"
 
