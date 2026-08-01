@@ -80,13 +80,13 @@ fi
 frameworks_dir="$universal_app/Contents/Frameworks"
 for library in libQt6Concurrent libQt6Core libQt6Gui libQt6Widgets libxlsxwriter; do
   compatibility_library="$frameworks_dir/$library.dylib"
-  versioned_library="$({
-    find "$frameworks_dir" \
-      -maxdepth 1 \
-      -type f \
-      -name "$library.*.dylib" \
-      -print
-  } | sort | head -n 1)"
+  versioned_library=""
+  for candidate in "$frameworks_dir/$library".*.dylib; do
+    if [[ -f "$candidate" ]]; then
+      versioned_library="$candidate"
+      break
+    fi
+  done
   if [[ -f "$compatibility_library" && -n "$versioned_library" ]]; then
     rm "$compatibility_library"
   fi
