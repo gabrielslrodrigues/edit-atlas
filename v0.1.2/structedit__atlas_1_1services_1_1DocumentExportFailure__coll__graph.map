@@ -1,0 +1,13 @@
+<map id="edit_atlas::services::DocumentExportFailure" name="edit_atlas::services::DocumentExportFailure">
+<area shape="rect" id="Node000001" title="Contains a presentation&#45;neutral exporter or filesystem failure." alt="" coords="44,388,227,428"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,293,124,318"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="70,330,82,363,105,386,101,390,77,365,65,332"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="149,285,319,325"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="215,339,192,366,164,390,160,386,188,362,211,335"/>
+<area shape="rect" id="Node000004" href="$structedit__atlas_1_1core_1_1Diagnostic.html" title="A machine&#45;identifiable diagnostic with a human&#45;readable explanation." alt="" coords="135,197,333,223"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="237,236,237,285,231,285,231,236"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="191,95,277,120"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="237,134,237,197,231,197,231,134"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="165,5,303,45"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="237,59,237,94,231,94,231,59"/>
+</map>
