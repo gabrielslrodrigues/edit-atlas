@@ -106,13 +106,13 @@ Format extensions</h1>
 <p>An importer implements <code><a class="el" href="classedit__atlas_1_1core_1_1Importer.html" title="Converts in-memory content into the format-independent timeline model.">edit_atlas::core::Importer</a></code>; an exporter implements <code><a class="el" href="classedit__atlas_1_1core_1_1Exporter.html" title="Converts a timeline document into an interchange or report format.">edit_atlas::core::Exporter</a></code>. Handlers exchange byte spans, domain objects, export artifacts, and structured diagnostics. Built-in implementations live in the <code><a class="el" href="namespaceedit__atlas_1_1formats.html" title="Built-in editorial interchange and report formats.">edit_atlas::formats</a></code> namespace and obey the same interfaces available to future formats.</p>
 <h1><a class="anchor" id="autotoc_md2"></a>
 Application services</h1>
-<p>The <code><a class="el" href="namespaceedit__atlas_1_1services.html" title="UI-independent local-document application workflows.">edit_atlas::services</a></code> namespace adapts local filesystem operations to the in-memory pipeline. Services return presentation-neutral receipts or failures, leaving scheduling, overwrite confirmation, localization, and user feedback to the caller. A desktop frontend and a future CLI can therefore share the same workflows.</p>
+<p>The <code><a class="el" href="namespaceedit__atlas_1_1services.html" title="UI-independent local-document application workflows.">edit_atlas::services</a></code> namespace adapts local filesystem operations to the in-memory pipeline. Services return presentation-neutral receipts or failures, leaving scheduling, overwrite confirmation, localization, and user feedback to the caller. The desktop frontend and CLI therefore share the same workflows.</p>
 <h1><a class="anchor" id="autotoc_md3"></a>
 Diagnostic support</h1>
 <p>The <code><a class="el" href="namespaceedit__atlas_1_1support.html" title="Persistent logging and privacy-limited diagnostic support.">edit_atlas::support</a></code> namespace owns bounded application logging and privacy-limited support bundles. Callers provide explicit paths and diagnostic metadata; support code does not inspect user documents or arbitrary environment state.</p>
 <h1><a class="anchor" id="autotoc_md4"></a>
 Frontend boundary</h1>
-<p>Qt desktop classes are adapters rather than public application services. They are intentionally absent from this reference because callers should integrate through the standard C++ domain, format, service, and support interfaces. </p>
+<p>Qt desktop classes are adapters rather than public application services. The <code><a class="el" href="namespaceedit__atlas_1_1cli.html" title="Cross-platform command-line frontend.">edit_atlas::cli</a></code> namespace provides the corresponding terminal adapter and stable process outcomes. Callers should integrate reusable workflows through the standard C++ domain, format, service, and support interfaces. </p>
 </div></div><!-- contents -->
 </div><!-- PageDoc -->
 </div><!-- doc-content -->

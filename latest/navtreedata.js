@@ -33,6 +33,14 @@ var NAVTREE =
       [ "Diagnostic support", "api_architecture.html#autotoc_md3", null ],
       [ "Frontend boundary", "api_architecture.html#autotoc_md4", null ]
     ] ],
+    [ "Command-line interface", "md_docs_2cli.html", [
+      [ "Convert an EDL", "md_docs_2cli.html#autotoc_md9", null ],
+      [ "Workbook options", "md_docs_2cli.html#autotoc_md10", null ],
+      [ "Existing destinations", "md_docs_2cli.html#autotoc_md11", null ],
+      [ "Diagnostics and exit codes", "md_docs_2cli.html#autotoc_md12", null ],
+      [ "Executable locations", "md_docs_2cli.html#autotoc_md13", null ],
+      [ "Privacy and encoding", "md_docs_2cli.html#autotoc_md14", null ]
+    ] ],
     [ "Namespaces", "namespaces.html", [
       [ "Namespace List", "namespaces.html", "namespaces_dup" ],
       [ "Namespace Members", "namespacemembers.html", [
@@ -62,8 +70,8 @@ var NAVTREE =
 var NAVTREEINDEX =
 [
 "annotated.html",
-"namespaceedit__atlas_1_1core.html#aed416f0910b40710396c706c024f54fea903e198147c9a7466c8ffa1a12feb62b",
-"structedit__atlas_1_1services_1_1DocumentImportReceipt.html"
+"namespaceedit__atlas_1_1core.html#abd14a5cbfe0d6ac7f2b423495a09b6cbae3587c730cc1aa530fa4ddc9c4204e97",
+"structedit__atlas_1_1services_1_1DocumentExportFailure.html#a250f4e895e30218a7b3d47469b46b373"
 ];
 
 var SYNCONMSG = 'click to disable panel synchronisation';
