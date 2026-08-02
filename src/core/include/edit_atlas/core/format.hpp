@@ -2,6 +2,7 @@
 #define EDIT_ATLAS_CORE_FORMAT_HPP_
 
 #include <edit_atlas/core/editorial_timeline.hpp>
+#include <edit_atlas/core/timeline_projection.hpp>
 
 #include <cstddef>
 #include <optional>
@@ -77,6 +78,13 @@ struct ImportResult final {
 struct ExportRequest final {
     /// The document to export; the caller retains ownership.
     const TimelineDocument &document;
+
+    /// Ordered, unique event fields included in the exported representation.
+    /// Defaults to every supported field in the standard report order.
+    std::vector<TimelineEventField> event_projection{
+        DefaultTimelineEventProjection().begin(),
+        DefaultTimelineEventProjection().end(),
+    };
 
     /// Format-specific options expressed as stable metadata entries.
     std::vector<MetadataEntry> options;

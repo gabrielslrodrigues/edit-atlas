@@ -115,6 +115,11 @@ QString Message(const core::Diagnostic &diagnostic) {
             QT_TRANSLATE_NOOP("edit_atlas::app::DiagnosticText",
                               "The Excel workbook could not be written."));
     }
+    if (code == formats::xlsx::diagnostic_code::kInvalidEventProjection) {
+        return Translate(
+            QT_TRANSLATE_NOOP("edit_atlas::app::DiagnosticText",
+                              "The event column selection is invalid."));
+    }
     return Utf8(diagnostic.message);
 }
 

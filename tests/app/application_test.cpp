@@ -48,6 +48,10 @@ TEST(ApplicationTest, LoadsBrazilianPortugueseTranslations) {
               QStringLiteral("Idioma da pasta de trabalho"));
     EXPECT_EQ(SpreadsheetExportOptionsDialog::tr("Same as application"),
               QStringLiteral("Mesmo idioma do aplicativo"));
+    EXPECT_EQ(SpreadsheetExportOptionsDialog::tr("Event columns"),
+              QStringLiteral("Colunas de eventos"));
+    EXPECT_EQ(SpreadsheetExportOptionsDialog::tr("Move up"),
+              QStringLiteral("Mover para cima"));
     EXPECT_EQ(ApplicationMenuBar::tr("Export Diagnostic &Logs"),
               QStringLiteral("Exportar &logs de diagnóstico"));
 

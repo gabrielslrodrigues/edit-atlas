@@ -150,6 +150,7 @@ void DocumentController::ExportSpreadsheet(void) {
         return;
     }
     auto options = options_dialog.Options();
+    auto event_projection = options_dialog.EventProjection();
 
     const QFileInfo source{current_path_};
     auto suggested_name = source.completeBaseName();
@@ -213,6 +214,7 @@ void DocumentController::ExportSpreadsheet(void) {
         .format_identifier = exporters.front()->descriptor().identifier,
         .document =
             services::SelectTimelineEvents(*document_, event_selection_),
+        .event_projection = std::move(event_projection),
         .options = std::move(options),
         .replace_existing = replace_existing,
     };
@@ -396,6 +398,9 @@ void DocumentController::ShowExportFailure(
     const services::DocumentExportFailure &failure) {
     QString description;
     switch (failure.kind) {
+    case services::DocumentExportFailureKind::kInvalidRequest:
+        description = tr("Select at least one unique event column.");
+        break;
     case services::DocumentExportFailureKind::kExportFailed:
         description = tr("The exporter could not create the spreadsheet.");
         break;

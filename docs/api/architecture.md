@@ -36,6 +36,11 @@ optional case and Unicode whole-word constraints. Categorical, timecode, and
 duration conditions carry typed exact values, and invalid expressions produce
 structured validation failures.
 
+Ordered event projections use `edit_atlas::core::TimelineEventField`. Stable
+identifiers are independent from translated labels, and the default projection
+reproduces the complete event report. `DocumentExportService` rejects empty or
+duplicate projections before invoking an exporter or touching its destination.
+
 ## Diagnostic support
 
 The `edit_atlas::support` namespace owns bounded application logging and

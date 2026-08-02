@@ -3,6 +3,7 @@
 
 #include <edit_atlas/core/editorial_timeline.hpp>
 #include <edit_atlas/core/timecode.hpp>
+#include <edit_atlas/core/timeline_projection.hpp>
 
 #include <edit_atlas/formats/xlsx/xlsx_exporter.hpp>
 
@@ -85,6 +86,11 @@ TEST(DocumentExportServiceTest, ExportsDocumentAtomically) {
         .path = destination.path(),
         .format_identifier = std::string{formats::xlsx::kFormatIdentifier},
         .document = Document(),
+        .event_projection =
+            {
+                core::DefaultTimelineEventProjection().begin(),
+                core::DefaultTimelineEventProjection().end(),
+            },
         .options = {},
         .replace_existing = false,
     });
@@ -109,6 +115,11 @@ TEST(DocumentExportServiceTest, PreservesExistingFileWithoutPermission) {
         .path = destination.path(),
         .format_identifier = std::string{formats::xlsx::kFormatIdentifier},
         .document = Document(),
+        .event_projection =
+            {
+                core::DefaultTimelineEventProjection().begin(),
+                core::DefaultTimelineEventProjection().end(),
+            },
         .options = {},
         .replace_existing = false,
     });
@@ -130,6 +141,11 @@ TEST(DocumentExportServiceTest, AtomicallyReplacesExistingFileWhenPermitted) {
         .path = destination.path(),
         .format_identifier = std::string{formats::xlsx::kFormatIdentifier},
         .document = Document(),
+        .event_projection =
+            {
+                core::DefaultTimelineEventProjection().begin(),
+                core::DefaultTimelineEventProjection().end(),
+            },
         .options = {},
         .replace_existing = true,
     });
@@ -151,6 +167,11 @@ TEST(DocumentExportServiceTest, ReturnsExporterDiagnostics) {
         .path = destination.path(),
         .format_identifier = "unknown",
         .document = Document(),
+        .event_projection =
+            {
+                core::DefaultTimelineEventProjection().begin(),
+                core::DefaultTimelineEventProjection().end(),
+            },
         .options = {},
         .replace_existing = false,
     });
@@ -158,6 +179,26 @@ TEST(DocumentExportServiceTest, ReturnsExporterDiagnostics) {
     ASSERT_FALSE(result.has_value());
     EXPECT_EQ(result.error().kind, DocumentExportFailureKind::kExportFailed);
     EXPECT_FALSE(result.error().diagnostics.empty());
+    EXPECT_FALSE(std::filesystem::exists(destination.path()));
+}
+
+TEST(DocumentExportServiceTest, RejectsAnEmptyEventProjection) {
+    auto registry = CreateBuiltInFormatRegistry();
+    ASSERT_TRUE(registry.has_value());
+    const DocumentExportService service{*registry};
+    const TemporaryDestination destination{"service-empty-projection.xlsx"};
+
+    const auto result = service.ExportDocument(ExportDocumentRequest{
+        .path = destination.path(),
+        .format_identifier = std::string{formats::xlsx::kFormatIdentifier},
+        .document = Document(),
+        .event_projection = {},
+        .options = {},
+        .replace_existing = false,
+    });
+
+    ASSERT_FALSE(result.has_value());
+    EXPECT_EQ(result.error().kind, DocumentExportFailureKind::kInvalidRequest);
     EXPECT_FALSE(std::filesystem::exists(destination.path()));
 }
 

@@ -39,6 +39,10 @@ the frontend explicitly authorizes replacement. Format-specific export options
 use stable metadata keys and values. For example, the XLSX language option uses
 IETF language tags and is resolved by the frontend before the service call, so
 the exporter remains independent from Qt and the active interface language.
+Event-column selection crosses the same boundary as an ordered
+`TimelineEventField` projection. Fields have stable, language-independent
+identifiers; frontends localize their labels, services validate the projection,
+and tabular exporters render only the selected fields in the requested order.
 
 The services target has no Qt dependency. Any executable can use document
 import, atomic export, and built-in format composition by linking

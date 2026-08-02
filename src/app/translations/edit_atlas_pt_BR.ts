@@ -134,6 +134,10 @@
         <source>The Excel workbook could not be written.</source>
         <translation>Não foi possível gravar a pasta de trabalho do Excel.</translation>
     </message>
+    <message>
+        <source>The event column selection is invalid.</source>
+        <translation>A seleção de colunas de eventos é inválida.</translation>
+    </message>
 </context>
 <context>
     <name>edit_atlas::app::DocumentController</name>
@@ -148,6 +152,10 @@
     <message>
         <source>No registered exporter can create an Excel workbook.</source>
         <translation>Nenhum exportador registrado pode criar uma pasta de trabalho do Excel.</translation>
+    </message>
+    <message>
+        <source>Select at least one unique event column.</source>
+        <translation>Selecione pelo menos uma coluna de evento exclusiva.</translation>
     </message>
     <message>
         <source>Close</source>
@@ -455,6 +463,90 @@ Inspecione linhas do tempo editoriais e exporte relatórios estruturados.</trans
     <message>
         <source>Include diagnostics</source>
         <translation>Incluir diagnósticos</translation>
+    </message>
+    <message>
+        <source>Event columns</source>
+        <translation>Colunas de eventos</translation>
+    </message>
+    <message>
+        <source>Select the columns to export and arrange them in output order.</source>
+        <translation>Selecione as colunas a exportar e organize-as na ordem de saída.</translation>
+    </message>
+    <message>
+        <source>Event</source>
+        <translation>Evento</translation>
+    </message>
+    <message>
+        <source>Reel</source>
+        <translation>Rolo</translation>
+    </message>
+    <message>
+        <source>Track type</source>
+        <translation>Tipo de faixa</translation>
+    </message>
+    <message>
+        <source>Track</source>
+        <translation>Faixa</translation>
+    </message>
+    <message>
+        <source>Edit type</source>
+        <translation>Tipo de edição</translation>
+    </message>
+    <message>
+        <source>Transition</source>
+        <translation>Transição</translation>
+    </message>
+    <message>
+        <source>Transition frames</source>
+        <translation>Quadros da transição</translation>
+    </message>
+    <message>
+        <source>Source in</source>
+        <translation>Entrada da fonte</translation>
+    </message>
+    <message>
+        <source>Source out</source>
+        <translation>Saída da fonte</translation>
+    </message>
+    <message>
+        <source>Record in</source>
+        <translation>Entrada da gravação</translation>
+    </message>
+    <message>
+        <source>Record out</source>
+        <translation>Saída da gravação</translation>
+    </message>
+    <message>
+        <source>Duration frames</source>
+        <translation>Duração em quadros</translation>
+    </message>
+    <message>
+        <source>Clip name</source>
+        <translation>Nome do clipe</translation>
+    </message>
+    <message>
+        <source>Source file</source>
+        <translation>Arquivo de origem</translation>
+    </message>
+    <message>
+        <source>Comments</source>
+        <translation>Comentários</translation>
+    </message>
+    <message>
+        <source>Source line</source>
+        <translation>Linha de origem</translation>
+    </message>
+    <message>
+        <source>Move up</source>
+        <translation>Mover para cima</translation>
+    </message>
+    <message>
+        <source>Move down</source>
+        <translation>Mover para baixo</translation>
+    </message>
+    <message>
+        <source>Select at least one event column.</source>
+        <translation>Selecione pelo menos uma coluna de evento.</translation>
     </message>
     <message>
         <source>Continue</source>

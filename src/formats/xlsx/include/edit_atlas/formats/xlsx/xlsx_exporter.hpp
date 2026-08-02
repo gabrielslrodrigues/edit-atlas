@@ -48,6 +48,9 @@ inline constexpr std::string_view kWorkbookCreationFailed =
 /// The completed workbook could not be serialized.
 inline constexpr std::string_view kWorkbookWriteFailed =
     "xlsx.workbook_write_failed";
+/// The event projection is empty or contains duplicate fields.
+inline constexpr std::string_view kInvalidEventProjection =
+    "xlsx.invalid_event_projection";
 
 } // namespace diagnostic_code
 

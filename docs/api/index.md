@@ -11,6 +11,8 @@ formats, and privacy-limited diagnostic support.
 - `edit_atlas::core::TimelineDocument` is the shared editorial model.
 - `edit_atlas::core::Importer` and `edit_atlas::core::Exporter` are the format
   extension points.
+- `edit_atlas::core::TimelineEventField` provides stable event-column
+  identifiers and the default report projection.
 - `edit_atlas::services::DocumentImportService` and
   `edit_atlas::services::DocumentExportService` provide filesystem workflows
   that do not depend on a frontend.

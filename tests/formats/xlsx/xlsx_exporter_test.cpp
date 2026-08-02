@@ -3,6 +3,7 @@
 #include <edit_atlas/core/editorial_timeline.hpp>
 #include <edit_atlas/core/format.hpp>
 #include <edit_atlas/core/timecode.hpp>
+#include <edit_atlas/core/timeline_projection.hpp>
 
 #include <gtest/gtest.h>
 #include <minizip/unzip.h>
@@ -100,6 +101,45 @@ ReadZipEntry(const std::filesystem::path &path, std::string_view entry_name) {
         return std::nullopt;
     }
     return content;
+}
+
+[[nodiscard]] std::optional<std::size_t>
+SharedStringIndex(std::string_view shared_strings, std::string_view text) {
+    const auto element = std::string{"<t>"} + std::string{text} + "</t>";
+    const auto text_position = shared_strings.find(element);
+    if (text_position == std::string_view::npos) {
+        return std::nullopt;
+    }
+
+    std::size_t count = 0;
+    std::size_t position = 0;
+    while ((position = shared_strings.find("<si>", position)) < text_position) {
+        ++count;
+        position += 4;
+    }
+    if (count == 0) {
+        return std::nullopt;
+    }
+    return count - 1;
+}
+
+[[nodiscard]] bool CellUsesSharedString(std::string_view worksheet,
+                                        std::string_view cell,
+                                        std::size_t shared_string_index) {
+    const auto reference = std::string{"r=\""} + std::string{cell} + "\"";
+    const auto cell_position = worksheet.find(reference);
+    if (cell_position == std::string_view::npos) {
+        return false;
+    }
+    const auto cell_end = worksheet.find("</c>", cell_position);
+    if (cell_end == std::string_view::npos) {
+        return false;
+    }
+    const auto value =
+        std::string{"<v>"} + std::to_string(shared_string_index) + "</v>";
+    const auto value_position = worksheet.find(value, cell_position);
+    return value_position != std::string_view::npos &&
+           value_position < cell_end;
 }
 
 [[nodiscard]] core::Timecode TimecodeAt(std::int64_t frame_count,
@@ -208,6 +248,11 @@ ReadZipEntry(const std::filesystem::path &path, std::string_view entry_name) {
     const auto document = Document();
     return exporter.Export(core::ExportRequest{
         .document = document,
+        .event_projection =
+            {
+                core::DefaultTimelineEventProjection().begin(),
+                core::DefaultTimelineEventProjection().end(),
+            },
         .options =
             {
                 core::MetadataEntry{
@@ -215,6 +260,17 @@ ReadZipEntry(const std::filesystem::path &path, std::string_view entry_name) {
                     .value = std::string{WorkbookLanguageTag(language)},
                 },
             },
+    });
+}
+
+[[nodiscard]] core::ExportResult
+ExportDocument(std::vector<core::TimelineEventField> projection) {
+    const XlsxExporter exporter;
+    const auto document = Document();
+    return exporter.Export(core::ExportRequest{
+        .document = document,
+        .event_projection = std::move(projection),
+        .options = {},
     });
 }
 
@@ -324,6 +380,41 @@ TEST(XlsxExporterTest, PreservesEventValuesAsLiteralText) {
     EXPECT_EQ(events->find("<f>"), std::string::npos);
 }
 
+TEST(XlsxExporterTest, WritesOnlySelectedEventColumnsInSelectedOrder) {
+    const auto result = ExportDocument({
+        core::TimelineEventField::kComments,
+        core::TimelineEventField::kEventIdentifier,
+    });
+    ASSERT_TRUE(result.artifact.has_value());
+    const TemporaryWorkbook workbook{result.artifact->content};
+
+    const auto events =
+        ReadZipEntry(workbook.path(), "xl/worksheets/sheet1.xml");
+    const auto shared_strings =
+        ReadZipEntry(workbook.path(), "xl/sharedStrings.xml");
+    ASSERT_TRUE(events.has_value());
+    ASSERT_TRUE(shared_strings.has_value());
+
+    const auto comments_header = SharedStringIndex(*shared_strings, "Comments");
+    const auto event_header = SharedStringIndex(*shared_strings, "Event");
+    ASSERT_TRUE(comments_header.has_value());
+    ASSERT_TRUE(event_header.has_value());
+    EXPECT_TRUE(CellUsesSharedString(*events, "A1", *comments_header));
+    EXPECT_TRUE(CellUsesSharedString(*events, "B1", *event_header));
+    EXPECT_EQ(shared_strings->find("<t>Reel</t>"), std::string::npos);
+    EXPECT_EQ(shared_strings->find("<t>AX</t>"), std::string::npos);
+    EXPECT_EQ(events->find("r=\"C1\""), std::string::npos);
+}
+
+TEST(XlsxExporterTest, RejectsAnEmptyEventProjection) {
+    const auto result = ExportDocument(std::vector<core::TimelineEventField>{});
+
+    EXPECT_FALSE(result.artifact.has_value());
+    ASSERT_EQ(result.diagnostics.size(), 1);
+    EXPECT_EQ(result.diagnostics.front().code,
+              diagnostic_code::kInvalidEventProjection);
+}
+
 TEST(XlsxExporterTest, WritesDiagnosticDetails) {
     const auto result = ExportDocument();
     ASSERT_TRUE(result.artifact.has_value());
@@ -345,6 +436,11 @@ TEST(XlsxExporterTest, OmitsOptionalSheetsWhenRequested) {
     const auto document = Document();
     const auto result = exporter.Export(core::ExportRequest{
         .document = document,
+        .event_projection =
+            {
+                core::DefaultTimelineEventProjection().begin(),
+                core::DefaultTimelineEventProjection().end(),
+            },
         .options =
             {
                 core::MetadataEntry{

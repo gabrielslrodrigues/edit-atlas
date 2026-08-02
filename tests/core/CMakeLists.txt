@@ -8,6 +8,7 @@ target_sources(
         format_registry_test.cpp
         format_test_doubles.hpp
         timecode_test.cpp
+        timeline_projection_test.cpp
         version_test.cpp
 )
 

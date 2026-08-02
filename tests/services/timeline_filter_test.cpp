@@ -5,6 +5,7 @@
 #include <edit_atlas/core/format.hpp>
 #include <edit_atlas/core/format_registry.hpp>
 #include <edit_atlas/core/timecode.hpp>
+#include <edit_atlas/core/timeline_projection.hpp>
 
 #include <gtest/gtest.h>
 
@@ -492,6 +493,11 @@ TEST(TimelineFilterTest, ExportsOnlyTheFilteredSelection) {
         .path = destination.path(),
         .format_identifier = "event-list",
         .document = SelectTimelineEvents(document, *selection),
+        .event_projection =
+            {
+                core::DefaultTimelineEventProjection().begin(),
+                core::DefaultTimelineEventProjection().end(),
+            },
         .options = {},
         .replace_existing = false,
     });
