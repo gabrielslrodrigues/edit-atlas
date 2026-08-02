@@ -19,6 +19,11 @@ target_link_libraries(
         GTest::gtest_main
 )
 
+target_compile_definitions(
+    edit_atlas_core_tests
+    PRIVATE EDIT_ATLAS_EXPECTED_VERSION="${PROJECT_VERSION}"
+)
+
 target_compile_features(edit_atlas_core_tests PRIVATE cxx_std_23)
 edit_atlas_set_project_warnings(edit_atlas_core_tests)
 

@@ -17,8 +17,8 @@ if [[ ! "$release_tag" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
 fi
 
 project_version="$({
-  sed -nE 's/^[[:space:]]*VERSION[[:space:]]+([0-9]+\.[0-9]+\.[0-9]+).*$/\1/p' \
-    CMakeLists.txt
+  sed -nE 's/^[[:space:]]*"version-string":[[:space:]]*"([0-9]+\.[0-9]+\.[0-9]+)",?$/\1/p' \
+    vcpkg.json
 } | head -n 1)"
 if [[ "$release_version" != "$project_version" ]]; then
   echo "Release tag $release_tag does not match project version $project_version." >&2
