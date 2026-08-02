@@ -1,6 +1,6 @@
 #include <edit_atlas/app/diagnostic_text.hpp>
 
-#include <edit_atlas/core/document_pipeline.hpp>
+#include <edit_atlas/core/timeline_document_pipeline.hpp>
 
 #include <edit_atlas/formats/cmx3600/cmx3600_importer.hpp>
 #include <edit_atlas/formats/xlsx/xlsx_exporter.hpp>

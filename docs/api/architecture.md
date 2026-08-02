@@ -5,14 +5,14 @@ The public API follows one inward dependency direction:
 ```text
 frontend -> application services -> core
                               |----> built-in formats -> core
-frontend -> diagnostic support
+frontend -> diagnostic support -> local storage
 ```
 
 ## Core model and pipeline
 
 The `edit_atlas::core` namespace contains exact timecode types, the editorial
 timeline model, format interfaces, `edit_atlas::core::FormatRegistry`, and the
-in-memory `edit_atlas::core::DocumentPipeline`. Core code does not open files,
+in-memory `edit_atlas::core::TimelineDocumentPipeline`. Core code does not open files,
 schedule work, or depend on a user-interface framework.
 
 ## Format extensions
@@ -38,8 +38,16 @@ structured validation failures.
 
 Ordered event projections use `edit_atlas::core::TimelineEventField`. Stable
 identifiers are independent from translated labels, and the default projection
-reproduces the complete event report. `DocumentExportService` rejects empty or
+reproduces the complete event report. `TimelineDocumentExportService` rejects empty or
 duplicate projections before invoking an exporter or touching its destination.
+Named `edit_atlas::services::TimelineTemplate` values combine these filter and
+projection types. `edit_atlas::services::TimelineTemplateService` owns their
+catalog and persistence-neutral CRUD behavior. Its private store writes
+independent schema-versioned local files and reports unsupported entries
+without discarding valid ones.
+
+The `edit_atlas::storage` namespace provides shared complete-file reads and
+atomic local-file writes for services and diagnostic support.
 
 ## Diagnostic support
 

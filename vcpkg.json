@@ -10,6 +10,7 @@
     "gtest",
     "libxlsxwriter",
     "minizip",
+    "nlohmann-json",
     {
       "name": "qtbase",
       "default-features": false,

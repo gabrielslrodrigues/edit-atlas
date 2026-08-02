@@ -1,6 +1,7 @@
 add_library(edit_atlas_services STATIC)
 add_library(EditAtlas::Services ALIAS edit_atlas_services)
 
+find_package(nlohmann_json CONFIG REQUIRED)
 find_package(re2 CONFIG REQUIRED)
 
 set_target_properties(
@@ -14,17 +15,23 @@ target_sources(
     edit_atlas_services
     PRIVATE
         built_in_formats.cpp
-        document_export_service.cpp
-        document_import_service.cpp
+        timeline_document_export_service.cpp
+        timeline_document_import_service.cpp
         timeline_filter.cpp
+        timeline_template.cpp
+        timeline_template_service.cpp
+        timeline_template_store.cpp
+        timeline_template_store.hpp
     PUBLIC
         FILE_SET HEADERS
         BASE_DIRS include
         FILES
             include/edit_atlas/services/built_in_formats.hpp
-            include/edit_atlas/services/document_export_service.hpp
-            include/edit_atlas/services/document_import_service.hpp
+            include/edit_atlas/services/timeline_document_export_service.hpp
+            include/edit_atlas/services/timeline_document_import_service.hpp
             include/edit_atlas/services/timeline_filter.hpp
+            include/edit_atlas/services/timeline_template.hpp
+            include/edit_atlas/services/timeline_template_service.hpp
 )
 
 target_link_libraries(
@@ -32,8 +39,10 @@ target_link_libraries(
     PUBLIC
         EditAtlas::Cmx3600
         EditAtlas::Core
+        EditAtlas::Storage
         EditAtlas::Xlsx
     PRIVATE
+        nlohmann_json::nlohmann_json
         re2::re2
 )
 

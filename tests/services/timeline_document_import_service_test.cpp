@@ -1,5 +1,5 @@
 #include <edit_atlas/services/built_in_formats.hpp>
-#include <edit_atlas/services/document_import_service.hpp>
+#include <edit_atlas/services/timeline_document_import_service.hpp>
 
 #include <edit_atlas/core/editorial_timeline.hpp>
 
@@ -57,7 +57,7 @@ class TemporaryDocument final {
     bool valid_ = false;
 };
 
-TEST(DocumentImportServiceTest, ImportsDocumentWithStandardCppRequest) {
+TEST(TimelineDocumentImportServiceTest, ImportsTimelineWithStandardCppRequest) {
     auto registry = CreateBuiltInFormatRegistry();
     ASSERT_TRUE(registry.has_value());
     const TemporaryDocument file{
@@ -68,9 +68,9 @@ TEST(DocumentImportServiceTest, ImportsDocumentWithStandardCppRequest) {
         "01:00:00:00 01:00:01:00\n",
     };
     ASSERT_TRUE(file.valid());
-    const DocumentImportService service{*registry};
+    const TimelineDocumentImportService service{*registry};
 
-    const auto result = service.ImportDocument(ImportDocumentRequest{
+    const auto result = service.Import(TimelineDocumentImportRequest{
         .path = file.path(),
         .format_identifier = {},
         .options =
@@ -84,12 +84,12 @@ TEST(DocumentImportServiceTest, ImportsDocumentWithStandardCppRequest) {
 
     ASSERT_TRUE(result.has_value());
     EXPECT_EQ(result->path, file.path());
-    EXPECT_EQ(result->document.title, "SERVICES TEST");
-    ASSERT_EQ(result->document.events.size(), 1);
-    EXPECT_EQ(result->document.events.front().identifier, "001");
+    EXPECT_EQ(result->timeline.title, "SERVICES TEST");
+    ASSERT_EQ(result->timeline.events.size(), 1);
+    EXPECT_EQ(result->timeline.events.front().identifier, "001");
 }
 
-TEST(DocumentImportServiceTest, ReturnsImportFailureWithDiagnostics) {
+TEST(TimelineDocumentImportServiceTest, ReturnsImportFailureWithDiagnostics) {
     auto registry = CreateBuiltInFormatRegistry();
     ASSERT_TRUE(registry.has_value());
     const TemporaryDocument file{
@@ -100,16 +100,17 @@ TEST(DocumentImportServiceTest, ReturnsImportFailureWithDiagnostics) {
         "01:00:00:00 01:00:01:00\n",
     };
     ASSERT_TRUE(file.valid());
-    const DocumentImportService service{*registry};
+    const TimelineDocumentImportService service{*registry};
 
-    const auto result = service.ImportDocument(ImportDocumentRequest{
+    const auto result = service.Import(TimelineDocumentImportRequest{
         .path = file.path(),
         .format_identifier = {},
         .options = {},
     });
 
     ASSERT_FALSE(result.has_value());
-    EXPECT_EQ(result.error().kind, DocumentImportFailureKind::kImportFailed);
+    EXPECT_EQ(result.error().kind,
+              TimelineDocumentImportFailureKind::kImportFailed);
     EXPECT_TRUE(std::ranges::any_of(
         result.error().diagnostics, [](const core::Diagnostic &diagnostic) {
             return diagnostic.code ==
@@ -117,15 +118,15 @@ TEST(DocumentImportServiceTest, ReturnsImportFailureWithDiagnostics) {
         }));
 }
 
-TEST(DocumentImportServiceTest, ReturnsOpenFailureForMissingFile) {
+TEST(TimelineDocumentImportServiceTest, ReturnsOpenFailureForMissingFile) {
     auto registry = CreateBuiltInFormatRegistry();
     ASSERT_TRUE(registry.has_value());
-    const DocumentImportService service{*registry};
+    const TimelineDocumentImportService service{*registry};
     const auto path = UniqueTemporaryPath("edit-atlas-services-does-not-exist");
     std::error_code error;
     static_cast<void>(std::filesystem::remove(path, error));
 
-    const auto result = service.ImportDocument(ImportDocumentRequest{
+    const auto result = service.Import(TimelineDocumentImportRequest{
         .path = path,
         .format_identifier = {},
         .options = {},
@@ -133,7 +134,8 @@ TEST(DocumentImportServiceTest, ReturnsOpenFailureForMissingFile) {
 
     ASSERT_FALSE(result.has_value());
     EXPECT_EQ(result.error().path, path);
-    EXPECT_EQ(result.error().kind, DocumentImportFailureKind::kOpenFailed);
+    EXPECT_EQ(result.error().kind,
+              TimelineDocumentImportFailureKind::kOpenFailed);
     EXPECT_TRUE(result.error().filesystem_error);
     EXPECT_FALSE(result.error().filesystem_error.message().empty());
     EXPECT_TRUE(result.error().diagnostics.empty());

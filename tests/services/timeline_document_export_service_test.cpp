@@ -1,5 +1,5 @@
 #include <edit_atlas/services/built_in_formats.hpp>
-#include <edit_atlas/services/document_export_service.hpp>
+#include <edit_atlas/services/timeline_document_export_service.hpp>
 
 #include <edit_atlas/core/editorial_timeline.hpp>
 #include <edit_atlas/core/timecode.hpp>
@@ -76,16 +76,16 @@ void WriteFile(const std::filesystem::path &path, std::string_view content) {
     output.write(content.data(), static_cast<std::streamsize>(content.size()));
 }
 
-TEST(DocumentExportServiceTest, ExportsDocumentAtomically) {
+TEST(TimelineDocumentExportServiceTest, ExportsTimelineAtomically) {
     auto registry = CreateBuiltInFormatRegistry();
     ASSERT_TRUE(registry.has_value());
-    const DocumentExportService service{*registry};
+    const TimelineDocumentExportService service{*registry};
     const TemporaryDestination destination{"service-export.xlsx"};
 
-    const auto result = service.ExportDocument(ExportDocumentRequest{
+    const auto result = service.Export(TimelineDocumentExportRequest{
         .path = destination.path(),
         .format_identifier = std::string{formats::xlsx::kFormatIdentifier},
-        .document = Document(),
+        .timeline = Document(),
         .event_projection =
             {
                 core::DefaultTimelineEventProjection().begin(),
@@ -104,17 +104,18 @@ TEST(DocumentExportServiceTest, ExportsDocumentAtomically) {
     EXPECT_EQ(content[1], 'K');
 }
 
-TEST(DocumentExportServiceTest, PreservesExistingFileWithoutPermission) {
+TEST(TimelineDocumentExportServiceTest,
+     PreservesExistingFileWithoutPermission) {
     auto registry = CreateBuiltInFormatRegistry();
     ASSERT_TRUE(registry.has_value());
-    const DocumentExportService service{*registry};
+    const TimelineDocumentExportService service{*registry};
     const TemporaryDestination destination{"service-existing.xlsx"};
     WriteFile(destination.path(), "original");
 
-    const auto result = service.ExportDocument(ExportDocumentRequest{
+    const auto result = service.Export(TimelineDocumentExportRequest{
         .path = destination.path(),
         .format_identifier = std::string{formats::xlsx::kFormatIdentifier},
-        .document = Document(),
+        .timeline = Document(),
         .event_projection =
             {
                 core::DefaultTimelineEventProjection().begin(),
@@ -126,21 +127,22 @@ TEST(DocumentExportServiceTest, PreservesExistingFileWithoutPermission) {
 
     ASSERT_FALSE(result.has_value());
     EXPECT_EQ(result.error().kind,
-              DocumentExportFailureKind::kDestinationExists);
+              TimelineDocumentExportFailureKind::kDestinationExists);
     EXPECT_EQ(ReadFile(destination.path()), "original");
 }
 
-TEST(DocumentExportServiceTest, AtomicallyReplacesExistingFileWhenPermitted) {
+TEST(TimelineDocumentExportServiceTest,
+     AtomicallyReplacesExistingFileWhenPermitted) {
     auto registry = CreateBuiltInFormatRegistry();
     ASSERT_TRUE(registry.has_value());
-    const DocumentExportService service{*registry};
+    const TimelineDocumentExportService service{*registry};
     const TemporaryDestination destination{"service-replace.xlsx"};
     WriteFile(destination.path(), "original");
 
-    const auto result = service.ExportDocument(ExportDocumentRequest{
+    const auto result = service.Export(TimelineDocumentExportRequest{
         .path = destination.path(),
         .format_identifier = std::string{formats::xlsx::kFormatIdentifier},
-        .document = Document(),
+        .timeline = Document(),
         .event_projection =
             {
                 core::DefaultTimelineEventProjection().begin(),
@@ -157,16 +159,16 @@ TEST(DocumentExportServiceTest, AtomicallyReplacesExistingFileWhenPermitted) {
     EXPECT_EQ(content[1], 'K');
 }
 
-TEST(DocumentExportServiceTest, ReturnsExporterDiagnostics) {
+TEST(TimelineDocumentExportServiceTest, ReturnsExporterDiagnostics) {
     auto registry = CreateBuiltInFormatRegistry();
     ASSERT_TRUE(registry.has_value());
-    const DocumentExportService service{*registry};
+    const TimelineDocumentExportService service{*registry};
     const TemporaryDestination destination{"service-unknown.xlsx"};
 
-    const auto result = service.ExportDocument(ExportDocumentRequest{
+    const auto result = service.Export(TimelineDocumentExportRequest{
         .path = destination.path(),
         .format_identifier = "unknown",
-        .document = Document(),
+        .timeline = Document(),
         .event_projection =
             {
                 core::DefaultTimelineEventProjection().begin(),
@@ -177,28 +179,30 @@ TEST(DocumentExportServiceTest, ReturnsExporterDiagnostics) {
     });
 
     ASSERT_FALSE(result.has_value());
-    EXPECT_EQ(result.error().kind, DocumentExportFailureKind::kExportFailed);
+    EXPECT_EQ(result.error().kind,
+              TimelineDocumentExportFailureKind::kExportFailed);
     EXPECT_FALSE(result.error().diagnostics.empty());
     EXPECT_FALSE(std::filesystem::exists(destination.path()));
 }
 
-TEST(DocumentExportServiceTest, RejectsAnEmptyEventProjection) {
+TEST(TimelineDocumentExportServiceTest, RejectsAnEmptyEventProjection) {
     auto registry = CreateBuiltInFormatRegistry();
     ASSERT_TRUE(registry.has_value());
-    const DocumentExportService service{*registry};
+    const TimelineDocumentExportService service{*registry};
     const TemporaryDestination destination{"service-empty-projection.xlsx"};
 
-    const auto result = service.ExportDocument(ExportDocumentRequest{
+    const auto result = service.Export(TimelineDocumentExportRequest{
         .path = destination.path(),
         .format_identifier = std::string{formats::xlsx::kFormatIdentifier},
-        .document = Document(),
+        .timeline = Document(),
         .event_projection = {},
         .options = {},
         .replace_existing = false,
     });
 
     ASSERT_FALSE(result.has_value());
-    EXPECT_EQ(result.error().kind, DocumentExportFailureKind::kInvalidRequest);
+    EXPECT_EQ(result.error().kind,
+              TimelineDocumentExportFailureKind::kInvalidRequest);
     EXPECT_FALSE(std::filesystem::exists(destination.path()));
 }
 

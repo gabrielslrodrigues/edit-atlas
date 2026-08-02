@@ -5,8 +5,9 @@ interfaces:
 
 ```text
 Qt desktop frontend ─┬─> application services ─┬─> core
-                     │                         └─> built-in formats ─> core
-                     └─> diagnostic support
+                     │                         ├─> built-in formats ─> core
+                     │                         └─> local storage
+                     └─> diagnostic support ─────> local storage
 CLI frontend ───────────> application services
 ```
 
@@ -26,13 +27,13 @@ not open files, display messages, or schedule work.
 
 `EditAtlas::Services` is the reusable application boundary. It composes the
 built-in format registry and coordinates filesystem operations with the core
-pipeline using standard C++ types. `DocumentImportService` imports local
-documents. A successful request returns a `DocumentImportReceipt`;
+pipeline using standard C++ types. `TimelineDocumentImportService` imports local
+documents. A successful request returns a `TimelineDocumentImportReceipt`;
 failures preserve their stage, path, filesystem error, and import diagnostics.
 Filesystem failures retain their native `std::error_code` instead of
 frontend-specific text.
 
-Document exports use the same boundary. `DocumentExportService` selects a
+Timeline exports use the same boundary. `TimelineDocumentExportService` selects a
 registered exporter, writes its artifact beside the destination, and atomically
 commits the completed file. It never replaces an existing destination unless
 the frontend explicitly authorizes replacement. Format-specific export options
@@ -59,6 +60,20 @@ evaluation and reports invalid expressions without exposing UI types. Case and
 Unicode whole-word matching remain explicit text-condition properties so future
 frontends and saved filter templates share the same semantics.
 
+`TimelineTemplate` combines a filter query with an ordered event projection
+using stable, nonlocalized identifiers. `TimelineTemplateService` owns the
+catalog and provides frontend-independent create, update, rename, duplicate,
+and remove operations. Its private JSON store persists each template as an
+independent schema-versioned file. A bad or newer file is reported and skipped
+without preventing valid templates from loading. The desktop template
+controller owns prompts, confirmations, active-template state, localization,
+and dirty-state comparison; other frontends can use the same service directly.
+
+`EditAtlas::Storage` centralizes complete binary reads and atomic local-file
+writes. Timeline import/export, template persistence, and diagnostic bundle
+creation share this boundary rather than implementing platform-specific commit
+logic separately.
+
 ## Frontends
 
 Frontends adapt platform-specific values at the application-services boundary.
@@ -69,10 +84,11 @@ workflow adapters:
   language changes, and status presentation.
 - `ApplicationMenuBar` owns actions, language selection, and recent-file
   settings.
-- `DocumentView` presents empty, loading, timeline, and import-failure states.
-- `DocumentController` and `SupportBundleController` coordinate localized
-  dialogs and translate user actions into workflow requests.
-- `DocumentWorkflow` and `SupportBundleWorkflow` schedule UI-independent
+- `TimelineDocumentView` presents empty, loading, timeline, and import-failure states.
+- `TimelineDocumentController`, `TimelineTemplateController`, and
+  `SupportBundleController` coordinate localized dialogs and translate user
+  actions into service or workflow requests.
+- `TimelineDocumentWorkflow` and `SupportBundleWorkflow` schedule UI-independent
   services and report completion through Qt signals.
 
 This keeps widget construction, document presentation, persistent desktop

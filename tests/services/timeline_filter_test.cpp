@@ -1,4 +1,4 @@
-#include <edit_atlas/services/document_export_service.hpp>
+#include <edit_atlas/services/timeline_document_export_service.hpp>
 #include <edit_atlas/services/timeline_filter.hpp>
 
 #include <edit_atlas/core/editorial_timeline.hpp>
@@ -470,7 +470,7 @@ TEST(TimelineFilterTest, ExportsOnlyTheFilteredSelection) {
     core::FormatRegistry registry;
     ASSERT_TRUE(registry.RegisterExporter(std::make_unique<EventListExporter>())
                     .has_value());
-    const DocumentExportService export_service{registry};
+    const TimelineDocumentExportService export_service{registry};
     const TemporaryDestination destination;
     const auto document = Document();
     const auto selection = FilterTimelineEvents(
@@ -489,10 +489,10 @@ TEST(TimelineFilterTest, ExportsOnlyTheFilteredSelection) {
                   });
 
     ASSERT_TRUE(selection.has_value());
-    const auto result = export_service.ExportDocument(ExportDocumentRequest{
+    const auto result = export_service.Export(TimelineDocumentExportRequest{
         .path = destination.path(),
         .format_identifier = "event-list",
-        .document = SelectTimelineEvents(document, *selection),
+        .timeline = SelectTimelineEvents(document, *selection),
         .event_projection =
             {
                 core::DefaultTimelineEventProjection().begin(),

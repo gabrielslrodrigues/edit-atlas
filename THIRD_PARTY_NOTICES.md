@@ -37,5 +37,9 @@ The Edit Atlas command-line frontend incorporates the header-only CLI11
 library under the BSD 3-Clause License. Binary distributions include its
 copyright and license notice supplied by vcpkg.
 
+Local template persistence incorporates the header-only JSON for Modern C++
+library under the MIT License. Binary distributions include its copyright and
+license notice supplied by vcpkg.
+
 The Apache-2.0 license for Edit Atlas applies only to Edit Atlas itself. It does
 not replace or restrict the licenses of bundled third-party software.

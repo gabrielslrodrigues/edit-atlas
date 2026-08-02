@@ -13,9 +13,14 @@ formats, and privacy-limited diagnostic support.
   extension points.
 - `edit_atlas::core::TimelineEventField` provides stable event-column
   identifiers and the default report projection.
-- `edit_atlas::services::DocumentImportService` and
-  `edit_atlas::services::DocumentExportService` provide filesystem workflows
+- `edit_atlas::services::TimelineDocumentImportService` and
+  `edit_atlas::services::TimelineDocumentExportService` provide filesystem workflows
   that do not depend on a frontend.
+- `edit_atlas::services::TimelineTemplateService` manages and persists reusable
+  filter and export-column templates without depending on a frontend.
+- `edit_atlas::storage::ReadLocalFile()` and
+  `edit_atlas::storage::WriteLocalFileAtomically()` provide the shared local
+  storage boundary.
 - `edit_atlas::services::CreateBuiltInFormatRegistry()` composes the handlers
   shipped with the application.
 

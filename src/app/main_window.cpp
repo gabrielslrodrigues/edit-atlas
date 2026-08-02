@@ -1,9 +1,9 @@
 #include <edit_atlas/app/main_window.hpp>
 
 #include <edit_atlas/app/application_menu_bar.hpp>
-#include <edit_atlas/app/document_controller.hpp>
-#include <edit_atlas/app/document_view.hpp>
 #include <edit_atlas/app/support_bundle_controller.hpp>
+#include <edit_atlas/app/timeline_document_controller.hpp>
+#include <edit_atlas/app/timeline_document_view.hpp>
 
 #include <edit_atlas/core/version.hpp>
 
@@ -40,11 +40,12 @@ MainWindow::MainWindow(const core::FormatRegistry &registry,
 
     application_menu_bar_ = new ApplicationMenuBar{language_, this};
     setMenuBar(application_menu_bar_);
-    document_view_ = new DocumentView{this};
-    setCentralWidget(document_view_);
+    timeline_document_view_ = new TimelineDocumentView{this};
+    setCentralWidget(timeline_document_view_);
 
-    document_controller_ = new DocumentController{
-        registry, *application_menu_bar_, *document_view_, language_, *this};
+    timeline_document_controller_ = new TimelineDocumentController{
+        registry, *application_menu_bar_, *timeline_document_view_, language_,
+        *this};
     support_bundle_controller_ = new SupportBundleController{
         std::move(log_directory), std::move(diagnostic_environment), *this};
 
@@ -59,19 +60,22 @@ MainWindow::MainWindow(const core::FormatRegistry &registry,
     connect(application_menu_bar_, &ApplicationMenuBar::LanguageSelected, this,
             &MainWindow::ChangeLanguage);
 
-    connect(document_controller_, &DocumentController::BusyChanged, this,
+    connect(timeline_document_controller_,
+            &TimelineDocumentController::BusyChanged, this,
             &MainWindow::SetBusy);
     connect(support_bundle_controller_, &SupportBundleController::BusyChanged,
             this, &MainWindow::SetBusy);
     connect(
-        document_controller_, &DocumentController::StatusMessageChanged, this,
+        timeline_document_controller_,
+        &TimelineDocumentController::StatusMessageChanged, this,
         [this](const QString &message) { statusBar()->showMessage(message); });
     connect(
         support_bundle_controller_,
         &SupportBundleController::StatusMessageChanged, this,
         [this](const QString &message) { statusBar()->showMessage(message); });
-    connect(document_controller_, &DocumentController::StatusMessageCleared,
-            statusBar(), &QStatusBar::clearMessage);
+    connect(timeline_document_controller_,
+            &TimelineDocumentController::StatusMessageCleared, statusBar(),
+            &QStatusBar::clearMessage);
     connect(support_bundle_controller_,
             &SupportBundleController::StatusMessageCleared, statusBar(),
             &QStatusBar::clearMessage);
@@ -87,7 +91,7 @@ void MainWindow::changeEvent(QEvent *event) {
 }
 
 void MainWindow::dragEnterEvent(QDragEnterEvent *event) {
-    if (!document_controller_->IsBusy() &&
+    if (!timeline_document_controller_->IsBusy() &&
         !support_bundle_controller_->IsBusy() && event->mimeData()->hasUrls() &&
         std::ranges::any_of(event->mimeData()->urls(), [](const QUrl &url) {
             return url.isLocalFile();
@@ -104,7 +108,7 @@ void MainWindow::dropEvent(QDropEvent *event) {
         return;
     }
     event->acceptProposedAction();
-    document_controller_->OpenDocument(local_file->toLocalFile());
+    timeline_document_controller_->OpenTimeline(local_file->toLocalFile());
 }
 
 void MainWindow::ChangeLanguage(ApplicationLanguage language) {
@@ -130,15 +134,15 @@ void MainWindow::RetranslateUi(void) {
     setWindowTitle(tr("Edit Atlas"));
     application_menu_bar_->SetLanguage(language_);
     application_menu_bar_->RetranslateUi();
-    document_view_->RetranslateUi();
-    document_controller_->SetLanguage(language_);
+    timeline_document_view_->RetranslateUi();
+    timeline_document_controller_->SetLanguage(language_);
     support_bundle_controller_->RetranslateUi();
 }
 
 void MainWindow::SetBusy(bool busy) {
     application_menu_bar_->SetBusy(busy);
-    document_view_->SetBusy(busy);
-    document_controller_->SetInteractionsEnabled(!busy);
+    timeline_document_view_->SetBusy(busy);
+    timeline_document_controller_->SetInteractionsEnabled(!busy);
     support_bundle_controller_->SetInteractionsEnabled(!busy);
 }
 

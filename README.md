@@ -207,6 +207,12 @@ expressions; categorical, timecode, and duration fields use typed exact values.
 Conditions can be combined by matching all or any condition. Importer warnings
 and errors retain their source line numbers.
 
+The template controls above the filters save a named combination of filter
+conditions and ordered export columns. Templates are stored only on the local
+computer, can be applied to later documents, and can be renamed, updated,
+duplicated, or deleted. The interface marks an active template as modified when
+its filters or export columns differ from the saved version.
+
 Recent-file history is disabled by default. Enabling **Remember Recent Files**
 stores only local file paths in the platform settings. Disabling it clears the
 stored history.

@@ -16,17 +16,23 @@ target_sources(
         desktop_integration.cpp
         diagnostic_support.cpp
         diagnostic_text.cpp
-        document_controller.cpp
-        document_view.cpp
-        document_workflow.cpp
+        timeline_document_controller.cpp
+        timeline_document_view.cpp
+        timeline_document_workflow.cpp
+        timeline_template_controller.cpp
+        timeline_template_controller.hpp
+        event_projection_dialog.cpp
+        event_projection_dialog.hpp
+        event_projection_widget.cpp
+        event_projection_widget.hpp
         include/edit_atlas/app/application_style.hpp
         include/edit_atlas/app/application_menu_bar.hpp
         include/edit_atlas/app/desktop_integration.hpp
         include/edit_atlas/app/diagnostic_support.hpp
         include/edit_atlas/app/diagnostic_text.hpp
-        include/edit_atlas/app/document_controller.hpp
-        include/edit_atlas/app/document_view.hpp
-        include/edit_atlas/app/document_workflow.hpp
+        include/edit_atlas/app/timeline_document_controller.hpp
+        include/edit_atlas/app/timeline_document_view.hpp
+        include/edit_atlas/app/timeline_document_workflow.hpp
         include/edit_atlas/app/main_window.hpp
         include/edit_atlas/app/spreadsheet_export_options_dialog.hpp
         include/edit_atlas/app/support_bundle_controller.hpp

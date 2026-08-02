@@ -1,9 +1,9 @@
-#ifndef EDIT_ATLAS_SERVICES_DOCUMENT_EXPORT_SERVICE_HPP_
-#define EDIT_ATLAS_SERVICES_DOCUMENT_EXPORT_SERVICE_HPP_
+#ifndef EDIT_ATLAS_SERVICES_TIMELINE_DOCUMENT_EXPORT_SERVICE_HPP_
+#define EDIT_ATLAS_SERVICES_TIMELINE_DOCUMENT_EXPORT_SERVICE_HPP_
 
-#include <edit_atlas/core/document_pipeline.hpp>
 #include <edit_atlas/core/editorial_timeline.hpp>
 #include <edit_atlas/core/format_registry.hpp>
+#include <edit_atlas/core/timeline_document_pipeline.hpp>
 #include <edit_atlas/core/timeline_projection.hpp>
 
 #include <expected>
@@ -14,14 +14,14 @@
 
 namespace edit_atlas::services {
 
-/// Describes one request to export a document to a local file.
-struct ExportDocumentRequest final {
+/// Describes one request to export a timeline to a local file.
+struct TimelineDocumentExportRequest final {
     /// The requested destination path.
     std::filesystem::path path;
     /// The stable identifier of the exporter to invoke.
     std::string format_identifier;
-    /// The complete document to export.
-    core::TimelineDocument document;
+    /// The complete timeline to export.
+    core::TimelineDocument timeline;
     /// Ordered, unique event fields included in the exported representation.
     /// Defaults to every supported field in the standard report order.
     std::vector<core::TimelineEventField> event_projection{
@@ -35,7 +35,7 @@ struct ExportDocumentRequest final {
 };
 
 /// Identifies the stage at which exporting a document failed.
-enum class DocumentExportFailureKind {
+enum class TimelineDocumentExportFailureKind {
     /// The request contains no fields or repeats an event field.
     kInvalidRequest,
     /// The selected exporter failed to produce an artifact.
@@ -49,7 +49,7 @@ enum class DocumentExportFailureKind {
 };
 
 /// Contains the destination and diagnostics from a successful export.
-struct DocumentExportReceipt final {
+struct TimelineDocumentExportReceipt final {
     /// The committed destination path.
     std::filesystem::path path;
     /// Non-fatal diagnostics produced by the exporter.
@@ -57,11 +57,11 @@ struct DocumentExportReceipt final {
 };
 
 /// Contains a presentation-neutral exporter or filesystem failure.
-struct DocumentExportFailure final {
+struct TimelineDocumentExportFailure final {
     /// The requested destination path.
     std::filesystem::path path;
     /// The stage at which export failed.
-    DocumentExportFailureKind kind;
+    TimelineDocumentExportFailureKind kind;
     /// The native filesystem error, when failure involved the filesystem.
     std::error_code filesystem_error;
     /// Structured diagnostics produced by the pipeline or exporter.
@@ -69,29 +69,29 @@ struct DocumentExportFailure final {
 };
 
 /// Either a committed export receipt or a presentation-neutral failure.
-using ExportDocumentResult =
-    std::expected<DocumentExportReceipt, DocumentExportFailure>;
+using TimelineDocumentExportResult =
+    std::expected<TimelineDocumentExportReceipt, TimelineDocumentExportFailure>;
 
 /// Coordinates format-independent export with atomic local-file output.
 ///
 /// The registry must outlive the service. Scheduling, overwrite confirmation,
 /// and user feedback are responsibilities of the calling frontend.
-class DocumentExportService final {
+class TimelineDocumentExportService final {
   public:
     /// Creates a service backed by a registry that must outlive it.
-    explicit DocumentExportService(
+    explicit TimelineDocumentExportService(
         const core::FormatRegistry &registry) noexcept;
 
-    /// Exports and atomically commits a document according to \p request.
+    /// Exports and atomically commits a timeline according to \p request.
     ///
     /// \returns A receipt on success or a stage-specific failure.
-    [[nodiscard]] ExportDocumentResult
-    ExportDocument(ExportDocumentRequest request) const;
+    [[nodiscard]] TimelineDocumentExportResult
+    Export(TimelineDocumentExportRequest request) const;
 
   private:
-    core::DocumentPipeline pipeline_;
+    core::TimelineDocumentPipeline pipeline_;
 };
 
 } // namespace edit_atlas::services
 
-#endif // EDIT_ATLAS_SERVICES_DOCUMENT_EXPORT_SERVICE_HPP_
+#endif // EDIT_ATLAS_SERVICES_TIMELINE_DOCUMENT_EXPORT_SERVICE_HPP_

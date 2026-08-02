@@ -25,6 +25,8 @@ target_sources(
 
 target_link_libraries(
     edit_atlas_support
+    PUBLIC
+        EditAtlas::Storage
     PRIVATE
         spdlog::spdlog
         $<IF:$<TARGET_EXISTS:MINIZIP::minizip>,MINIZIP::minizip,MINIZIP::minizipstatic>

@@ -288,7 +288,7 @@ edit_atlas_require_deployed_file(
 )
 foreach(
     edit_atlas_notice_package
-    IN ITEMS abseil cli11 spdlog fmt libxlsxwriter minizip re2 zlib
+    IN ITEMS abseil cli11 nlohmann-json spdlog fmt libxlsxwriter minizip re2 zlib
 )
     edit_atlas_require_deployed_file(
         "the ${edit_atlas_notice_package} license notices"

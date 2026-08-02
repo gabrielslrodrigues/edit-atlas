@@ -1,4 +1,4 @@
-#include <edit_atlas/core/document_pipeline.hpp>
+#include <edit_atlas/core/timeline_document_pipeline.hpp>
 
 #include <algorithm>
 #include <exception>
@@ -142,10 +142,11 @@ SelectImporter(const FormatRegistry &registry, const ImportRequest &request,
 
 } // namespace
 
-DocumentPipeline::DocumentPipeline(const FormatRegistry &registry) noexcept
+TimelineDocumentPipeline::TimelineDocumentPipeline(
+    const FormatRegistry &registry) noexcept
     : registry_(registry) {}
 
-ImportResult DocumentPipeline::Import(
+ImportResult TimelineDocumentPipeline::Import(
     const ImportRequest &request,
     std::optional<std::string_view> format_identifier) const {
     std::vector<Diagnostic> discovery_diagnostics;
@@ -205,8 +206,8 @@ ImportResult DocumentPipeline::Import(
 }
 
 ExportResult
-DocumentPipeline::Export(const ExportRequest &request,
-                         std::string_view format_identifier) const {
+TimelineDocumentPipeline::Export(const ExportRequest &request,
+                                 std::string_view format_identifier) const {
     const auto *exporter = registry_.FindExporter(format_identifier);
     if (exporter == nullptr) {
         return FailedExport(pipeline_diagnostic_code::kUnknownExportFormat,

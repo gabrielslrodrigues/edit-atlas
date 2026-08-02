@@ -1,8 +1,8 @@
-#include <edit_atlas/core/document_pipeline.hpp>
 #include <edit_atlas/core/editorial_timeline.hpp>
 #include <edit_atlas/core/format.hpp>
 #include <edit_atlas/core/format_registry.hpp>
 #include <edit_atlas/core/timecode.hpp>
+#include <edit_atlas/core/timeline_document_pipeline.hpp>
 #include <edit_atlas/core/timeline_projection.hpp>
 
 #include "format_test_doubles.hpp"
@@ -83,14 +83,14 @@ namespace {
                                });
 }
 
-TEST(DocumentPipelineTest, UsesAnExplicitImporterWithoutProbing) {
+TEST(TimelineDocumentPipelineTest, UsesAnExplicitImporterWithoutProbing) {
     FormatRegistry registry;
     auto importer = std::make_unique<test::StubImporter>(
         Descriptor("cmx-3600", "edl"), ProbeConfidence::kNone);
     auto *importer_observer = importer.get();
     importer->set_result(SuccessfulImport());
     ASSERT_TRUE(registry.RegisterImporter(std::move(importer)));
-    const DocumentPipeline pipeline{registry};
+    const TimelineDocumentPipeline pipeline{registry};
 
     const auto result =
         pipeline.Import(Request(), std::string_view{"cmx-3600"});
@@ -100,7 +100,7 @@ TEST(DocumentPipelineTest, UsesAnExplicitImporterWithoutProbing) {
     EXPECT_EQ(importer_observer->import_count(), 1);
 }
 
-TEST(DocumentPipelineTest, SelectsTheStrongestContentProbe) {
+TEST(TimelineDocumentPipelineTest, SelectsTheStrongestContentProbe) {
     FormatRegistry registry;
     auto weak = std::make_unique<test::StubImporter>(Descriptor("weak", "one"),
                                                      ProbeConfidence::kLow);
@@ -111,7 +111,7 @@ TEST(DocumentPipelineTest, SelectsTheStrongestContentProbe) {
     strong->set_result(SuccessfulImport());
     ASSERT_TRUE(registry.RegisterImporter(std::move(weak)));
     ASSERT_TRUE(registry.RegisterImporter(std::move(strong)));
-    const DocumentPipeline pipeline{registry};
+    const TimelineDocumentPipeline pipeline{registry};
 
     const auto result = pipeline.Import(Request());
 
@@ -119,14 +119,14 @@ TEST(DocumentPipelineTest, SelectsTheStrongestContentProbe) {
     EXPECT_EQ(strong_observer->import_count(), 1);
 }
 
-TEST(DocumentPipelineTest, FallsBackToTheSourceFileExtension) {
+TEST(TimelineDocumentPipelineTest, FallsBackToTheSourceFileExtension) {
     FormatRegistry registry;
     auto importer = std::make_unique<test::StubImporter>(
         Descriptor("cmx-3600", "edl"), ProbeConfidence::kNone);
     auto *importer_observer = importer.get();
     importer->set_result(SuccessfulImport());
     ASSERT_TRUE(registry.RegisterImporter(std::move(importer)));
-    const DocumentPipeline pipeline{registry};
+    const TimelineDocumentPipeline pipeline{registry};
 
     const auto result = pipeline.Import(Request("CUT.EDL"));
 
@@ -134,7 +134,7 @@ TEST(DocumentPipelineTest, FallsBackToTheSourceFileExtension) {
     EXPECT_EQ(importer_observer->import_count(), 1);
 }
 
-TEST(DocumentPipelineTest, UsesExtensionToBreakEqualProbeConfidence) {
+TEST(TimelineDocumentPipelineTest, UsesExtensionToBreakEqualProbeConfidence) {
     FormatRegistry registry;
     auto edl = std::make_unique<test::StubImporter>(
         Descriptor("cmx-3600", "edl"), ProbeConfidence::kHigh);
@@ -145,7 +145,7 @@ TEST(DocumentPipelineTest, UsesExtensionToBreakEqualProbeConfidence) {
     xml->set_result(SuccessfulImport());
     ASSERT_TRUE(registry.RegisterImporter(std::move(edl)));
     ASSERT_TRUE(registry.RegisterImporter(std::move(xml)));
-    const DocumentPipeline pipeline{registry};
+    const TimelineDocumentPipeline pipeline{registry};
 
     const auto result = pipeline.Import(Request("cut.EDL"));
 
@@ -153,13 +153,13 @@ TEST(DocumentPipelineTest, UsesExtensionToBreakEqualProbeConfidence) {
     EXPECT_EQ(edl_observer->import_count(), 1);
 }
 
-TEST(DocumentPipelineTest, ReportsAmbiguousAutomaticDiscovery) {
+TEST(TimelineDocumentPipelineTest, ReportsAmbiguousAutomaticDiscovery) {
     FormatRegistry registry;
     ASSERT_TRUE(registry.RegisterImporter(std::make_unique<test::StubImporter>(
         Descriptor("first", "one"), ProbeConfidence::kHigh)));
     ASSERT_TRUE(registry.RegisterImporter(std::make_unique<test::StubImporter>(
         Descriptor("second", "two"), ProbeConfidence::kHigh)));
-    const DocumentPipeline pipeline{registry};
+    const TimelineDocumentPipeline pipeline{registry};
 
     const auto result = pipeline.Import(Request());
 
@@ -168,9 +168,9 @@ TEST(DocumentPipelineTest, ReportsAmbiguousAutomaticDiscovery) {
         result.diagnostics, pipeline_diagnostic_code::kAmbiguousImportFormat));
 }
 
-TEST(DocumentPipelineTest, ReportsUnknownAutomaticAndExplicitFormats) {
+TEST(TimelineDocumentPipelineTest, ReportsUnknownAutomaticAndExplicitFormats) {
     const FormatRegistry registry;
-    const DocumentPipeline pipeline{registry};
+    const TimelineDocumentPipeline pipeline{registry};
 
     const auto automatic = pipeline.Import(Request());
     const auto explicit_format =
@@ -182,14 +182,15 @@ TEST(DocumentPipelineTest, ReportsUnknownAutomaticAndExplicitFormats) {
                               pipeline_diagnostic_code::kUnknownImportFormat));
 }
 
-TEST(DocumentPipelineTest, ContainsProbeExceptionsAndUsesExtensionFallback) {
+TEST(TimelineDocumentPipelineTest,
+     ContainsProbeExceptionsAndUsesExtensionFallback) {
     FormatRegistry registry;
     auto importer = std::make_unique<test::StubImporter>(
         Descriptor("cmx-3600", "edl"), ProbeConfidence::kCertain);
     importer->set_throw_during_probe(true);
     importer->set_result(SuccessfulImport());
     ASSERT_TRUE(registry.RegisterImporter(std::move(importer)));
-    const DocumentPipeline pipeline{registry};
+    const TimelineDocumentPipeline pipeline{registry};
 
     const auto result = pipeline.Import(Request("cut.edl"));
 
@@ -198,13 +199,13 @@ TEST(DocumentPipelineTest, ContainsProbeExceptionsAndUsesExtensionFallback) {
                               pipeline_diagnostic_code::kProbeException));
 }
 
-TEST(DocumentPipelineTest, ContainsImporterExceptions) {
+TEST(TimelineDocumentPipelineTest, ContainsImporterExceptions) {
     FormatRegistry registry;
     auto importer = std::make_unique<test::StubImporter>(
         Descriptor("cmx-3600", "edl"), ProbeConfidence::kCertain);
     importer->set_throw_during_import(true);
     ASSERT_TRUE(registry.RegisterImporter(std::move(importer)));
-    const DocumentPipeline pipeline{registry};
+    const TimelineDocumentPipeline pipeline{registry};
 
     const auto result =
         pipeline.Import(Request(), std::string_view{"cmx-3600"});
@@ -214,11 +215,12 @@ TEST(DocumentPipelineTest, ContainsImporterExceptions) {
                               pipeline_diagnostic_code::kImportException));
 }
 
-TEST(DocumentPipelineTest, RejectsAnImporterResultWithoutDocumentOrError) {
+TEST(TimelineDocumentPipelineTest,
+     RejectsAnImporterResultWithoutDocumentOrError) {
     FormatRegistry registry;
     ASSERT_TRUE(registry.RegisterImporter(std::make_unique<test::StubImporter>(
         Descriptor("cmx-3600", "edl"), ProbeConfidence::kCertain)));
-    const DocumentPipeline pipeline{registry};
+    const TimelineDocumentPipeline pipeline{registry};
 
     const auto result =
         pipeline.Import(Request(), std::string_view{"cmx-3600"});
@@ -229,14 +231,14 @@ TEST(DocumentPipelineTest, RejectsAnImporterResultWithoutDocumentOrError) {
                       pipeline_diagnostic_code::kImportProducedNoDocument));
 }
 
-TEST(DocumentPipelineTest, ExportsWithARegisteredFormat) {
+TEST(TimelineDocumentPipelineTest, ExportsWithARegisteredFormat) {
     FormatRegistry registry;
     auto exporter =
         std::make_unique<test::StubExporter>(Descriptor("xlsx", "xlsx"));
     auto *exporter_observer = exporter.get();
     exporter->set_result(SuccessfulExport());
     ASSERT_TRUE(registry.RegisterExporter(std::move(exporter)));
-    const DocumentPipeline pipeline{registry};
+    const TimelineDocumentPipeline pipeline{registry};
     const auto document = Document();
 
     const auto result = pipeline.Export(
@@ -256,9 +258,9 @@ TEST(DocumentPipelineTest, ExportsWithARegisteredFormat) {
     EXPECT_EQ(exporter_observer->export_count(), 1);
 }
 
-TEST(DocumentPipelineTest, ReportsUnknownExportFormats) {
+TEST(TimelineDocumentPipelineTest, ReportsUnknownExportFormats) {
     const FormatRegistry registry;
-    const DocumentPipeline pipeline{registry};
+    const TimelineDocumentPipeline pipeline{registry};
     const auto document = Document();
 
     const auto result = pipeline.Export(
@@ -278,13 +280,13 @@ TEST(DocumentPipelineTest, ReportsUnknownExportFormats) {
                               pipeline_diagnostic_code::kUnknownExportFormat));
 }
 
-TEST(DocumentPipelineTest, ContainsExporterExceptions) {
+TEST(TimelineDocumentPipelineTest, ContainsExporterExceptions) {
     FormatRegistry registry;
     auto exporter =
         std::make_unique<test::StubExporter>(Descriptor("xlsx", "xlsx"));
     exporter->set_throw_during_export(true);
     ASSERT_TRUE(registry.RegisterExporter(std::move(exporter)));
-    const DocumentPipeline pipeline{registry};
+    const TimelineDocumentPipeline pipeline{registry};
     const auto document = Document();
 
     const auto result = pipeline.Export(
@@ -304,11 +306,12 @@ TEST(DocumentPipelineTest, ContainsExporterExceptions) {
                               pipeline_diagnostic_code::kExportException));
 }
 
-TEST(DocumentPipelineTest, RejectsAnExporterResultWithoutArtifactOrError) {
+TEST(TimelineDocumentPipelineTest,
+     RejectsAnExporterResultWithoutArtifactOrError) {
     FormatRegistry registry;
     ASSERT_TRUE(registry.RegisterExporter(
         std::make_unique<test::StubExporter>(Descriptor("xlsx", "xlsx"))));
-    const DocumentPipeline pipeline{registry};
+    const TimelineDocumentPipeline pipeline{registry};
     const auto document = Document();
 
     const auto result = pipeline.Export(

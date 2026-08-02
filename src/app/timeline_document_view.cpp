@@ -1,4 +1,4 @@
-#include <edit_atlas/app/document_view.hpp>
+#include <edit_atlas/app/timeline_document_view.hpp>
 
 #include <edit_atlas/app/diagnostic_text.hpp>
 #include <edit_atlas/app/timeline_event_model.hpp>
@@ -8,10 +8,11 @@
 #include <edit_atlas/core/editorial_timeline.hpp>
 #include <edit_atlas/core/timecode.hpp>
 
-#include <edit_atlas/services/document_import_service.hpp>
+#include <edit_atlas/services/timeline_document_import_service.hpp>
 
 #include <QAbstractItemView>
 #include <QFont>
+#include <QFrame>
 #include <QGroupBox>
 #include <QHBoxLayout>
 #include <QHeaderView>
@@ -45,14 +46,14 @@ namespace {
 
 } // namespace
 
-DocumentView::DocumentView(QWidget *parent) : QWidget{parent} {
+TimelineDocumentView::TimelineDocumentView(QWidget *parent) : QWidget{parent} {
     setObjectName(QStringLiteral("applicationShell"));
     BuildUi();
     RetranslateUi();
 }
 
-void DocumentView::Clear(void) {
-    document_ = nullptr;
+void TimelineDocumentView::Clear(void) {
+    timeline_ = nullptr;
     fallback_title_.clear();
     loading_file_name_.clear();
     import_failure_.reset();
@@ -68,17 +69,28 @@ void DocumentView::Clear(void) {
     UpdateControls();
 }
 
-void DocumentView::SetFilterError(QString error) {
+void TimelineDocumentView::SetFilterError(QString error) {
     filter_valid_ = error.isEmpty();
     timeline_filter_->SetError(std::move(error));
     UpdateControls();
 }
 
-services::TimelineFilterQuery DocumentView::FilterQuery(void) const {
+void TimelineDocumentView::SetFilterQuery(
+    const services::TimelineFilterQuery &query) {
+    timeline_filter_->SetQuery(query);
+}
+
+void TimelineDocumentView::SetTemplates(
+    std::span<const services::TimelineTemplate> templates,
+    std::optional<std::string_view> active_identifier, bool modified) {
+    timeline_filter_->SetTemplates(templates, active_identifier, modified);
+}
+
+services::TimelineFilterQuery TimelineDocumentView::FilterQuery(void) const {
     return timeline_filter_->Query();
 }
 
-void DocumentView::RetranslateUi(void) {
+void TimelineDocumentView::RetranslateUi(void) {
     title_label_->setText(tr("Edit Atlas"));
     subtitle_label_->setText(tr("Private tools for editorial timelines."));
     empty_title_label_->setText(tr("No timeline open"));
@@ -99,8 +111,8 @@ void DocumentView::RetranslateUi(void) {
     if (!loading_file_name_.isEmpty()) {
         loading_label_->setText(tr("Opening %1…").arg(loading_file_name_));
     }
-    if (document_ != nullptr) {
-        RenderDocument();
+    if (timeline_ != nullptr) {
+        RenderTimeline();
         PopulateDiagnostics(diagnostics_);
     } else if (import_failure_.has_value()) {
         RenderImportFailure();
@@ -108,40 +120,40 @@ void DocumentView::RetranslateUi(void) {
     }
 }
 
-void DocumentView::SetEventSelection(
+void TimelineDocumentView::SetEventSelection(
     std::span<const std::size_t> event_indices) {
     event_model_->SetEventSelection(
         std::vector<std::size_t>{event_indices.begin(), event_indices.end()});
     const auto total =
-        document_ == nullptr ? std::size_t{0} : document_->events.size();
+        timeline_ == nullptr ? std::size_t{0} : timeline_->events.size();
     filter_result_label_->setText(
         tr("Showing %1 of %2 events")
             .arg(static_cast<qulonglong>(event_indices.size()))
             .arg(static_cast<qulonglong>(total)));
 }
 
-void DocumentView::SetBusy(bool busy) {
+void TimelineDocumentView::SetBusy(bool busy) {
     busy_ = busy;
     UpdateControls();
 }
 
-void DocumentView::ShowDocument(
+void TimelineDocumentView::ShowTimeline(
     const core::TimelineDocument &document, QString fallback_title,
     const std::vector<core::Diagnostic> &diagnostics) {
-    document_ = &document;
+    timeline_ = &document;
     fallback_title_ = std::move(fallback_title);
     loading_file_name_.clear();
     import_failure_.reset();
     diagnostics_ = diagnostics;
-    RenderDocument();
+    RenderTimeline();
     PopulateDiagnostics(diagnostics_);
     document_stack_->setCurrentWidget(timeline_page_);
     UpdateControls();
 }
 
-void DocumentView::ShowImportFailure(
-    const services::DocumentImportFailure &failure) {
-    document_ = nullptr;
+void TimelineDocumentView::ShowImportFailure(
+    const services::TimelineDocumentImportFailure &failure) {
+    timeline_ = nullptr;
     fallback_title_.clear();
     loading_file_name_.clear();
     import_failure_ = failure;
@@ -153,13 +165,13 @@ void DocumentView::ShowImportFailure(
     UpdateControls();
 }
 
-void DocumentView::ShowLoading(QString file_name) {
+void TimelineDocumentView::ShowLoading(QString file_name) {
     loading_file_name_ = std::move(file_name);
     loading_label_->setText(tr("Opening %1…").arg(loading_file_name_));
     document_stack_->setCurrentWidget(loading_page_);
 }
 
-void DocumentView::BuildUi(void) {
+void TimelineDocumentView::BuildUi(void) {
     auto *root_layout = new QVBoxLayout{this};
     root_layout->setContentsMargins(24, 18, 24, 18);
     root_layout->setSpacing(8);
@@ -201,7 +213,7 @@ void DocumentView::BuildUi(void) {
     empty_open_button_->setObjectName(QStringLiteral("emptyOpenButton"));
     empty_open_button_->setDefault(true);
     connect(empty_open_button_, &QPushButton::clicked, this,
-            &DocumentView::OpenRequested);
+            &TimelineDocumentView::OpenRequested);
     auto *empty_button_layout = new QHBoxLayout;
     empty_button_layout->addStretch(1);
     empty_button_layout->addWidget(empty_open_button_);
@@ -237,7 +249,7 @@ void DocumentView::BuildUi(void) {
     timeline_export_button_->setObjectName(
         QStringLiteral("timelineExportButton"));
     connect(timeline_export_button_, &QPushButton::clicked, this,
-            &DocumentView::ExportRequested);
+            &TimelineDocumentView::ExportRequested);
     timeline_header_layout->addWidget(timeline_export_button_);
     timeline_layout->addLayout(timeline_header_layout);
     timeline_summary_label_ = new QLabel{timeline_page_};
@@ -248,11 +260,30 @@ void DocumentView::BuildUi(void) {
     timeline_filter_->setSizePolicy(QSizePolicy::Preferred,
                                     QSizePolicy::Expanding);
     connect(timeline_filter_, &TimelineFilterWidget::QueryChanged, this,
-            &DocumentView::FilterChanged);
+            &TimelineDocumentView::FilterChanged);
+    connect(timeline_filter_, &TimelineFilterWidget::TemplateSelected, this,
+            &TimelineDocumentView::TemplateSelected);
+    connect(timeline_filter_, &TimelineFilterWidget::SaveTemplateRequested,
+            this, &TimelineDocumentView::SaveTemplateRequested);
+    connect(timeline_filter_, &TimelineFilterWidget::UpdateTemplateRequested,
+            this, &TimelineDocumentView::UpdateTemplateRequested);
+    connect(timeline_filter_, &TimelineFilterWidget::RenameTemplateRequested,
+            this, &TimelineDocumentView::RenameTemplateRequested);
+    connect(timeline_filter_, &TimelineFilterWidget::DuplicateTemplateRequested,
+            this, &TimelineDocumentView::DuplicateTemplateRequested);
+    connect(timeline_filter_, &TimelineFilterWidget::DeleteTemplateRequested,
+            this, &TimelineDocumentView::DeleteTemplateRequested);
+    connect(timeline_filter_, &TimelineFilterWidget::EditColumnsRequested, this,
+            &TimelineDocumentView::EditColumnsRequested);
     timeline_layout->addWidget(timeline_filter_, 1);
-    filter_result_label_ = new QLabel{timeline_page_};
+    auto *results_header = new QFrame{timeline_page_};
+    results_header->setObjectName(QStringLiteral("resultsHeader"));
+    auto *results_header_layout = new QHBoxLayout{results_header};
+    results_header_layout->setContentsMargins(4, 4, 4, 6);
+    filter_result_label_ = new QLabel{results_header};
     filter_result_label_->setObjectName(QStringLiteral("filterResultLabel"));
-    timeline_layout->addWidget(filter_result_label_);
+    results_header_layout->addWidget(filter_result_label_);
+    timeline_layout->addWidget(results_header);
     event_model_ = new TimelineEventModel{this};
     event_proxy_model_ = new QSortFilterProxyModel{this};
     event_proxy_model_->setSourceModel(event_model_);
@@ -285,7 +316,7 @@ void DocumentView::BuildUi(void) {
     failure_open_button_ = new QPushButton{failure_page_};
     failure_open_button_->setObjectName(QStringLiteral("failureOpenButton"));
     connect(failure_open_button_, &QPushButton::clicked, this,
-            &DocumentView::OpenRequested);
+            &TimelineDocumentView::OpenRequested);
     auto *retry_layout = new QHBoxLayout;
     retry_layout->addStretch(1);
     retry_layout->addWidget(failure_open_button_);
@@ -311,7 +342,7 @@ void DocumentView::BuildUi(void) {
     root_layout->addWidget(privacy_label_);
 }
 
-void DocumentView::PopulateDiagnostics(
+void TimelineDocumentView::PopulateDiagnostics(
     const std::vector<core::Diagnostic> &diagnostics) {
     diagnostics_tree_->clear();
     diagnostics_tree_->setHeaderLabels(
@@ -350,40 +381,40 @@ void DocumentView::PopulateDiagnostics(
     diagnostics_tree_->resizeColumnToContents(1);
 }
 
-void DocumentView::RenderDocument(void) {
+void TimelineDocumentView::RenderTimeline(void) {
     timeline_title_label_->setText(
-        document_->title.empty() ? fallback_title_ : Utf8(document_->title));
-    const auto rate = document_->frame_rate.denominator() == 1
-                          ? QString::number(document_->frame_rate.numerator())
+        timeline_->title.empty() ? fallback_title_ : Utf8(timeline_->title));
+    const auto rate = timeline_->frame_rate.denominator() == 1
+                          ? QString::number(timeline_->frame_rate.numerator())
                           : QStringLiteral("%1/%2")
-                                .arg(document_->frame_rate.numerator())
-                                .arg(document_->frame_rate.denominator());
+                                .arg(timeline_->frame_rate.numerator())
+                                .arg(timeline_->frame_rate.denominator());
     timeline_summary_label_->setText(
         tr("%1 events · %2 fps · %3")
-            .arg(static_cast<qulonglong>(document_->events.size()))
+            .arg(static_cast<qulonglong>(timeline_->events.size()))
             .arg(rate)
-            .arg(document_->timecode_mode == core::TimecodeMode::kDropFrame
+            .arg(timeline_->timecode_mode == core::TimecodeMode::kDropFrame
                      ? tr("drop-frame")
                      : tr("non-drop-frame")));
 
-    event_model_->SetDocument(document_);
+    event_model_->SetDocument(timeline_);
     filter_result_label_->setText(
         tr("Showing %1 of %2 events")
-            .arg(static_cast<qulonglong>(document_->events.size()))
-            .arg(static_cast<qulonglong>(document_->events.size())));
+            .arg(static_cast<qulonglong>(timeline_->events.size()))
+            .arg(static_cast<qulonglong>(timeline_->events.size())));
     event_table_->resizeColumnsToContents();
 }
 
-void DocumentView::RenderImportFailure(void) {
+void TimelineDocumentView::RenderImportFailure(void) {
     failure_title_label_->setText(tr("Could not open timeline"));
 
     if (import_failure_->kind ==
-        services::DocumentImportFailureKind::kOpenFailed) {
+        services::TimelineDocumentImportFailureKind::kOpenFailed) {
         failure_description_label_->setText(
             tr("The file could not be opened: %1")
                 .arg(Utf8(import_failure_->filesystem_error.message())));
     } else if (import_failure_->kind ==
-               services::DocumentImportFailureKind::kReadFailed) {
+               services::TimelineDocumentImportFailureKind::kReadFailed) {
         failure_description_label_->setText(
             tr("The file could not be read: %1")
                 .arg(Utf8(import_failure_->filesystem_error.message())));
@@ -394,12 +425,12 @@ void DocumentView::RenderImportFailure(void) {
     }
 }
 
-void DocumentView::UpdateControls(void) {
+void TimelineDocumentView::UpdateControls(void) {
     empty_open_button_->setEnabled(!busy_);
     failure_open_button_->setEnabled(!busy_);
-    timeline_export_button_->setEnabled(!busy_ && document_ != nullptr &&
+    timeline_export_button_->setEnabled(!busy_ && timeline_ != nullptr &&
                                         filter_valid_);
-    timeline_filter_->setEnabled(!busy_ && document_ != nullptr);
+    timeline_filter_->setEnabled(!busy_ && timeline_ != nullptr);
 }
 
 } // namespace edit_atlas::app

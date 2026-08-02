@@ -1,18 +1,21 @@
-#include <edit_atlas/app/document_controller.hpp>
+#include <edit_atlas/app/timeline_document_controller.hpp>
 
 #include <edit_atlas/app/application_menu_bar.hpp>
 #include <edit_atlas/app/desktop_integration.hpp>
 #include <edit_atlas/app/diagnostic_text.hpp>
-#include <edit_atlas/app/document_view.hpp>
-#include <edit_atlas/app/document_workflow.hpp>
 #include <edit_atlas/app/spreadsheet_export_options_dialog.hpp>
+#include <edit_atlas/app/timeline_document_view.hpp>
+#include <edit_atlas/app/timeline_document_workflow.hpp>
+
+#include "timeline_template_controller.hpp"
 
 #include <edit_atlas/core/editorial_timeline.hpp>
+#include <edit_atlas/core/timeline_projection.hpp>
 
 #include <edit_atlas/formats/cmx3600/cmx3600_importer.hpp>
 
-#include <edit_atlas/services/document_export_service.hpp>
-#include <edit_atlas/services/document_import_service.hpp>
+#include <edit_atlas/services/timeline_document_export_service.hpp>
+#include <edit_atlas/services/timeline_document_import_service.hpp>
 #include <edit_atlas/services/timeline_filter.hpp>
 
 #include <QDialog>
@@ -70,42 +73,42 @@ HasDiagnosticCode(const std::vector<core::Diagnostic> &diagnostics,
 
 } // namespace
 
-DocumentController::DocumentController(const core::FormatRegistry &registry,
-                                       ApplicationMenuBar &menu_bar,
-                                       DocumentView &view,
-                                       ApplicationLanguage language,
-                                       QWidget &window)
+TimelineDocumentController::TimelineDocumentController(
+    const core::FormatRegistry &registry, ApplicationMenuBar &menu_bar,
+    TimelineDocumentView &view, ApplicationLanguage language, QWidget &window)
     : QObject{&window}, registry_{registry}, menu_bar_{menu_bar}, view_{view},
       language_{language}, window_{window} {
-    workflow_ = new DocumentWorkflow{registry_, this};
-    connect(workflow_, &DocumentWorkflow::ImportFinished, this,
-            &DocumentController::HandleImportFinished);
-    connect(workflow_, &DocumentWorkflow::ExportFinished, this,
-            &DocumentController::HandleExportFinished);
+    workflow_ = new TimelineDocumentWorkflow{registry_, this};
+    template_controller_ = new TimelineTemplateController{view_, window_, this};
+    connect(workflow_, &TimelineDocumentWorkflow::ImportFinished, this,
+            &TimelineDocumentController::HandleImportFinished);
+    connect(workflow_, &TimelineDocumentWorkflow::ExportFinished, this,
+            &TimelineDocumentController::HandleExportFinished);
     connect(&menu_bar_, &ApplicationMenuBar::OpenRequested, this,
-            [this](void) { OpenDocument(); });
+            [this](void) { OpenTimeline(); });
     connect(&menu_bar_, &ApplicationMenuBar::OpenPathRequested, this,
-            [this](const QString &path) { OpenDocument(path); });
+            [this](const QString &path) { OpenTimeline(path); });
     connect(&menu_bar_, &ApplicationMenuBar::ExportSpreadsheetRequested, this,
-            &DocumentController::ExportSpreadsheet);
-    connect(&view_, &DocumentView::OpenRequested, this,
-            [this](void) { OpenDocument(); });
-    connect(&view_, &DocumentView::ExportRequested, this,
-            &DocumentController::ExportSpreadsheet);
-    connect(&view_, &DocumentView::FilterChanged, this,
-            &DocumentController::ApplyFilter);
+            &TimelineDocumentController::ExportSpreadsheet);
+    connect(&view_, &TimelineDocumentView::OpenRequested, this,
+            [this](void) { OpenTimeline(); });
+    connect(&view_, &TimelineDocumentView::ExportRequested, this,
+            &TimelineDocumentController::ExportSpreadsheet);
+    connect(&view_, &TimelineDocumentView::FilterChanged, this,
+            &TimelineDocumentController::ApplyFilter);
 }
 
-void DocumentController::ApplyFilter(void) {
+void TimelineDocumentController::ApplyFilter(void) {
     filter_query_ = view_.FilterQuery();
-    if (!document_.has_value()) {
+    if (!timeline_.has_value()) {
         event_selection_.clear();
         filter_valid_ = true;
         view_.SetFilterError({});
         menu_bar_.SetExportAvailable(true);
+        template_controller_->SetFilterState(filter_query_, true);
         return;
     }
-    auto result = services::FilterTimelineEvents(*document_, filter_query_);
+    auto result = services::FilterTimelineEvents(*timeline_, filter_query_);
     if (!result.has_value()) {
         event_selection_.clear();
         filter_valid_ = false;
@@ -116,6 +119,7 @@ void DocumentController::ApplyFilter(void) {
                     static_cast<qulonglong>(result.error().condition_index + 1))
                 .arg(Utf8(result.error().message)));
         menu_bar_.SetExportAvailable(false);
+        template_controller_->SetFilterState(filter_query_, false);
         return;
     }
     event_selection_ = std::move(*result);
@@ -123,10 +127,11 @@ void DocumentController::ApplyFilter(void) {
     view_.SetFilterError({});
     view_.SetEventSelection(event_selection_);
     menu_bar_.SetExportAvailable(true);
+    template_controller_->SetFilterState(filter_query_, true);
 }
 
-void DocumentController::ExportSpreadsheet(void) {
-    if (!interactions_enabled_ || !document_.has_value() || !filter_valid_ ||
+void TimelineDocumentController::ExportSpreadsheet(void) {
+    if (!interactions_enabled_ || !timeline_.has_value() || !filter_valid_ ||
         IsBusy()) {
         return;
     }
@@ -145,12 +150,13 @@ void DocumentController::ExportSpreadsheet(void) {
         return;
     }
 
-    SpreadsheetExportOptionsDialog options_dialog{language_, &window_};
+    SpreadsheetExportOptionsDialog options_dialog{
+        language_, template_controller_->EventProjection(), &window_};
     if (options_dialog.exec() != QDialog::Accepted) {
         return;
     }
     auto options = options_dialog.Options();
-    auto event_projection = options_dialog.EventProjection();
+    template_controller_->SetEventProjection(options_dialog.EventProjection());
 
     const QFileInfo source{current_path_};
     auto suggested_name = source.completeBaseName();
@@ -209,28 +215,31 @@ void DocumentController::ExportSpreadsheet(void) {
     writable_settings.setValue(QStringLiteral("export/lastDirectory"),
                                QFileInfo{destination}.absolutePath());
 
-    services::ExportDocumentRequest request{
+    services::TimelineDocumentExportRequest request{
         .path = FilesystemPath(destination),
         .format_identifier = exporters.front()->descriptor().identifier,
-        .document =
-            services::SelectTimelineEvents(*document_, event_selection_),
-        .event_projection = std::move(event_projection),
+        .timeline =
+            services::SelectTimelineEvents(*timeline_, event_selection_),
+        .event_projection =
+            std::vector<core::TimelineEventField>{
+                template_controller_->EventProjection().begin(),
+                template_controller_->EventProjection().end()},
         .options = std::move(options),
         .replace_existing = replace_existing,
     };
     SPDLOG_INFO("Spreadsheet export started with {} of {} event(s)",
-                event_selection_.size(), document_->events.size());
+                event_selection_.size(), timeline_->events.size());
     emit BusyChanged(true);
     emit StatusMessageChanged(
         tr("Exporting %1…").arg(QFileInfo{destination}.fileName()));
     workflow_->Export(std::move(request));
 }
 
-bool DocumentController::IsBusy(void) const noexcept {
+bool TimelineDocumentController::IsBusy(void) const noexcept {
     return workflow_->IsBusy();
 }
 
-void DocumentController::OpenDocument(void) {
+void TimelineDocumentController::OpenTimeline(void) {
     if (!interactions_enabled_ || IsBusy()) {
         return;
     }
@@ -253,23 +262,23 @@ void DocumentController::OpenDocument(void) {
     if (dialog.exec() == QDialog::Accepted) {
         const auto selected_files = dialog.selectedFiles();
         if (!selected_files.empty()) {
-            OpenDocument(selected_files.front());
+            OpenTimeline(selected_files.front());
         }
     }
 }
 
-void DocumentController::OpenDocument(const QString &path) {
+void TimelineDocumentController::OpenTimeline(const QString &path) {
     if (!interactions_enabled_ || path.isEmpty() || IsBusy()) {
         return;
     }
     StartImport(path);
 }
 
-void DocumentController::SetInteractionsEnabled(bool enabled) {
+void TimelineDocumentController::SetInteractionsEnabled(bool enabled) {
     interactions_enabled_ = enabled;
 }
 
-void DocumentController::SetLanguage(ApplicationLanguage language) {
+void TimelineDocumentController::SetLanguage(ApplicationLanguage language) {
     language_ = language;
     ApplyFilter();
     if (workflow_->IsExporting()) {
@@ -277,19 +286,20 @@ void DocumentController::SetLanguage(ApplicationLanguage language) {
     }
 }
 
-void DocumentController::ClearDocument(void) {
+void TimelineDocumentController::ClearTimeline(void) {
     menu_bar_.SetDocumentAvailable(false);
     menu_bar_.SetExportAvailable(true);
-    view_.Clear();
-    document_.reset();
-    filter_query_ = {};
+    timeline_.reset();
     event_selection_.clear();
     filter_valid_ = true;
     current_path_.clear();
     requested_frame_rate_.reset();
+    view_.Clear();
+    filter_query_ = view_.FilterQuery();
+    template_controller_->RestoreForTimeline();
 }
 
-void DocumentController::HandleExportFinished(void) {
+void TimelineDocumentController::HandleExportFinished(void) {
     emit BusyChanged(false);
     emit StatusMessageCleared();
 
@@ -338,13 +348,13 @@ void DocumentController::HandleExportFinished(void) {
     }
 }
 
-void DocumentController::HandleImportFinished(void) {
+void TimelineDocumentController::HandleImportFinished(void) {
     emit BusyChanged(false);
     auto result = workflow_->ImportResult();
 
     if (!result.has_value() &&
         result.error().kind ==
-            services::DocumentImportFailureKind::kImportFailed &&
+            services::TimelineDocumentImportFailureKind::kImportFailed &&
         !requested_frame_rate_.has_value() &&
         HasDiagnosticCode(
             result.error().diagnostics,
@@ -382,37 +392,37 @@ void DocumentController::HandleImportFinished(void) {
         return;
     }
 
-    document_ = std::move(result->document);
+    timeline_ = std::move(result->timeline);
     auto diagnostics = std::move(result->diagnostics);
-    view_.ShowDocument(*document_, QFileInfo{current_path_}.fileName(),
+    view_.ShowTimeline(*timeline_, QFileInfo{current_path_}.fileName(),
                        diagnostics);
     ApplyFilter();
     menu_bar_.SetDocumentAvailable(true);
     SPDLOG_INFO("Timeline import completed with {} event(s) and {} "
                 "diagnostic(s)",
-                document_->events.size(), diagnostics.size());
+                timeline_->events.size(), diagnostics.size());
     menu_bar_.RememberRecentFile(PathText(result->path));
 }
 
-void DocumentController::ShowExportFailure(
-    const services::DocumentExportFailure &failure) {
+void TimelineDocumentController::ShowExportFailure(
+    const services::TimelineDocumentExportFailure &failure) {
     QString description;
     switch (failure.kind) {
-    case services::DocumentExportFailureKind::kInvalidRequest:
+    case services::TimelineDocumentExportFailureKind::kInvalidRequest:
         description = tr("Select at least one unique event column.");
         break;
-    case services::DocumentExportFailureKind::kExportFailed:
+    case services::TimelineDocumentExportFailureKind::kExportFailed:
         description = tr("The exporter could not create the spreadsheet.");
         break;
-    case services::DocumentExportFailureKind::kDestinationExists:
+    case services::TimelineDocumentExportFailureKind::kDestinationExists:
         description =
             tr("The destination file already exists and was not replaced.");
         break;
-    case services::DocumentExportFailureKind::kWriteFailed:
+    case services::TimelineDocumentExportFailureKind::kWriteFailed:
         description = tr("The spreadsheet could not be written: %1")
                           .arg(Utf8(failure.filesystem_error.message()));
         break;
-    case services::DocumentExportFailureKind::kCommitFailed:
+    case services::TimelineDocumentExportFailureKind::kCommitFailed:
         description =
             tr("The completed spreadsheet could not replace the destination "
                "file: %1")
@@ -434,15 +444,15 @@ void DocumentController::ShowExportFailure(
     message.exec();
 }
 
-void DocumentController::StartImport(const QString &path,
-                                     std::optional<std::string> frame_rate) {
-    ClearDocument();
+void TimelineDocumentController::StartImport(
+    const QString &path, std::optional<std::string> frame_rate) {
+    ClearTimeline();
     current_path_ = path;
     requested_frame_rate_ = frame_rate;
     emit BusyChanged(true);
     view_.ShowLoading(QFileInfo{path}.fileName());
 
-    services::ImportDocumentRequest request{
+    services::TimelineDocumentImportRequest request{
         .path = FilesystemPath(path),
         .format_identifier = {},
         .options = {},

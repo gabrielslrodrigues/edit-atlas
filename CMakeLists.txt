@@ -98,6 +98,7 @@ if(NOT EXISTS "${edit_atlas_qtbase_copyright}")
 endif()
 
 add_subdirectory(src/core)
+add_subdirectory(src/storage)
 add_subdirectory(src/formats/cmx3600)
 add_subdirectory(src/formats/xlsx)
 add_subdirectory(src/services)
