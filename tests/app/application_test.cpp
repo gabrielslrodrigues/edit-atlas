@@ -37,6 +37,9 @@ TEST(ApplicationTest, LoadsBrazilianPortugueseTranslations) {
     EXPECT_EQ(QCoreApplication::translate(
                   "edit_atlas::app::TimelineFilterWidget", "Clear filters"),
               QStringLiteral("Limpar filtros"));
+    EXPECT_EQ(QCoreApplication::translate(
+                  "edit_atlas::app::TimelineFilterWidget", "Filter conditions"),
+              QStringLiteral("Condições de filtro"));
     EXPECT_EQ(
         QCoreApplication::translate("edit_atlas::app::TimelineFilterWidget",
                                     "Use regular expression"),

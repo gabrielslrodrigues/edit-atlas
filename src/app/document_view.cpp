@@ -19,6 +19,7 @@
 #include <QProgressBar>
 #include <QPushButton>
 #include <QSignalBlocker>
+#include <QSizePolicy>
 #include <QSortFilterProxyModel>
 #include <QStackedWidget>
 #include <QString>
@@ -244,9 +245,11 @@ void DocumentView::BuildUi(void) {
     timeline_layout->addWidget(timeline_summary_label_);
     timeline_filter_ = new TimelineFilterWidget{timeline_page_};
     timeline_filter_->setObjectName(QStringLiteral("timelineFilter"));
+    timeline_filter_->setSizePolicy(QSizePolicy::Preferred,
+                                    QSizePolicy::Expanding);
     connect(timeline_filter_, &TimelineFilterWidget::QueryChanged, this,
             &DocumentView::FilterChanged);
-    timeline_layout->addWidget(timeline_filter_);
+    timeline_layout->addWidget(timeline_filter_, 1);
     filter_result_label_ = new QLabel{timeline_page_};
     filter_result_label_->setObjectName(QStringLiteral("filterResultLabel"));
     timeline_layout->addWidget(filter_result_label_);
@@ -262,7 +265,7 @@ void DocumentView::BuildUi(void) {
     event_table_->setSortingEnabled(true);
     event_table_->setWordWrap(false);
     event_table_->verticalHeader()->setVisible(false);
-    timeline_layout->addWidget(event_table_, 1);
+    timeline_layout->addWidget(event_table_, 2);
     document_stack_->addWidget(timeline_page_);
 
     failure_page_ = new QWidget{document_stack_};

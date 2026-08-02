@@ -13,6 +13,7 @@ class QLabel;
 class QIntValidator;
 class QLineEdit;
 class QPushButton;
+class QScrollArea;
 class QToolButton;
 class QVBoxLayout;
 
@@ -71,6 +72,8 @@ class TimelineFilterWidget final : public QWidget {
     QComboBox *combination_ = nullptr;
     QPushButton *add_condition_button_ = nullptr;
     QPushButton *clear_button_ = nullptr;
+    QScrollArea *conditions_scroll_ = nullptr;
+    QWidget *conditions_container_ = nullptr;
     QVBoxLayout *conditions_layout_ = nullptr;
     std::vector<ConditionRow> rows_;
 };
