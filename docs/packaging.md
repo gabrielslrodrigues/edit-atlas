@@ -117,8 +117,10 @@ Remove the extracted directory to uninstall it.
 
 Install and uninstall with APT:
 
+Replace `X.Y.Z` with the package version being installed.
+
 ```sh
-sudo apt install ./edit-atlas-0.1.2-linux-x86_64.deb
+sudo apt install ./edit-atlas-X.Y.Z-linux-x86_64.deb
 sudo apt remove edit-atlas
 ```
 
@@ -126,8 +128,10 @@ sudo apt remove edit-atlas
 
 Install and uninstall with DNF:
 
+Replace `X.Y.Z` with the package version being installed.
+
 ```sh
-sudo dnf install ./edit-atlas-0.1.2-linux-x86_64.rpm
+sudo dnf install ./edit-atlas-X.Y.Z-linux-x86_64.rpm
 sudo dnf remove edit-atlas
 ```
 
@@ -210,8 +214,9 @@ timeline, export a spreadsheet, and uninstall or remove the application.
 ## Tagged releases
 
 Release automation runs only for tags matching `vX.Y.Z`. The tag must match
-the `VERSION` in the tagged `CMakeLists.txt` and must point at the checked-out
-commit. Ordinary branches and pull requests never publish a release.
+the `version-string` in the tagged `vcpkg.json` and must point at the
+checked-out commit. Ordinary branches and pull requests never publish a
+release.
 
 Before using the workflow, configure a protected GitHub environment named
 `edit-atlas-release` with at least one required reviewer. This approval is the

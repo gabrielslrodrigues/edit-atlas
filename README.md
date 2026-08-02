@@ -5,12 +5,15 @@
 Edit Atlas is a privacy-first desktop application for inspecting editorial
 timeline interchange files and exporting structured reports. It currently
 supports importing CMX 3600 EDL files and exporting Microsoft Excel workbooks.
-The desktop interface can combine field-specific event filters and exports
-exactly the currently matching rows without modifying the imported timeline.
+The desktop interface can combine field-specific event filters, select and
+order exported columns, and save those settings as reusable templates. A
+command-line frontend provides the same import and spreadsheet-export workflow
+for automation.
 
 The project separates its UI-independent core, built-in formats, application
 services, and frontend adapters. See [Architecture](docs/architecture.md) for
-the dependency direction and extension points.
+the dependency direction and extension points. See [CHANGELOG.md](CHANGELOG.md)
+for release highlights.
 
 ## Common requirements
 

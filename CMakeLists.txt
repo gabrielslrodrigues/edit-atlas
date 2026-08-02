@@ -1,5 +1,12 @@
 cmake_minimum_required(VERSION 4.0)
 
+file(READ "${CMAKE_CURRENT_LIST_DIR}/vcpkg.json" edit_atlas_vcpkg_manifest)
+string(
+    JSON edit_atlas_version
+    GET "${edit_atlas_vcpkg_manifest}"
+    version-string
+)
+
 include("${CMAKE_CURRENT_LIST_DIR}/cmake/EditAtlasPlatformSupport.cmake")
 if(CMAKE_HOST_APPLE)
     set(
@@ -13,7 +20,7 @@ endif()
 
 project(
     EditAtlas
-    VERSION 0.1.2
+    VERSION "${edit_atlas_version}"
     DESCRIPTION "Inspect editorial timelines and export structured reports"
     LANGUAGES CXX
 )
@@ -68,7 +75,6 @@ find_package(spdlog CONFIG REQUIRED)
 
 edit_atlas_require_dynamic_qt()
 
-file(READ "${CMAKE_CURRENT_SOURCE_DIR}/vcpkg.json" edit_atlas_vcpkg_manifest)
 string(
     JSON edit_atlas_vcpkg_baseline
     GET "${edit_atlas_vcpkg_manifest}"

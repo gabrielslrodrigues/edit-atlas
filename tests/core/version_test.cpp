@@ -8,7 +8,7 @@ namespace edit_atlas::core {
 namespace {
 
 TEST(VersionTest, ReturnsProjectVersion) {
-    EXPECT_EQ(Version(), std::string_view{"0.1.2"});
+    EXPECT_EQ(Version(), std::string_view{EDIT_ATLAS_EXPECTED_VERSION});
 }
 
 } // namespace
