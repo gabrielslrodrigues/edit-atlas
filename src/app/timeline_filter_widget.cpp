@@ -1,11 +1,15 @@
 #include "timeline_filter_widget.hpp"
 
+#include <QAbstractScrollArea>
 #include <QComboBox>
+#include <QFrame>
 #include <QHBoxLayout>
 #include <QIntValidator>
 #include <QLabel>
+#include <QLayout>
 #include <QLineEdit>
 #include <QPushButton>
+#include <QScrollArea>
 #include <QSignalBlocker>
 #include <QString>
 #include <QToolButton>
@@ -108,6 +112,8 @@ void TimelineFilterWidget::Clear(void) {
     const QSignalBlocker combination_blocker{combination_};
     combination_->setCurrentIndex(0);
     for (const auto &row : rows_) {
+        conditions_layout_->removeWidget(row.widget);
+        row.widget->hide();
         row.widget->deleteLater();
     }
     rows_.clear();
@@ -188,6 +194,7 @@ void TimelineFilterWidget::RetranslateUi(void) {
     combination_->setAccessibleName(tr("Filter combination"));
     add_condition_button_->setText(tr("Add condition"));
     clear_button_->setText(tr("Clear filters"));
+    conditions_scroll_->setAccessibleName(tr("Filter conditions"));
 
     for (auto &row : rows_) {
         PopulateFields(row);
@@ -205,7 +212,7 @@ void TimelineFilterWidget::RetranslateUi(void) {
 }
 
 void TimelineFilterWidget::AddCondition(void) {
-    auto *widget = new QWidget{this};
+    auto *widget = new QWidget{conditions_container_};
     auto *layout = new QHBoxLayout{widget};
     layout->setContentsMargins(0, 0, 0, 0);
     layout->setSpacing(6);
@@ -291,6 +298,12 @@ void TimelineFilterWidget::AddCondition(void) {
     rows_.back().remove->setText(tr("Remove"));
     UpdateConditionEditor(rows_.back());
     UpdateRemoveButtons();
+    conditions_layout_->activate();
+    if (rows_.size() == 1) {
+        conditions_scroll_->setMinimumHeight(widget->sizeHint().height());
+    }
+    rows_.back().field->setFocus(Qt::OtherFocusReason);
+    conditions_scroll_->ensureWidgetVisible(rows_.back().field, 0, 6);
 }
 
 void TimelineFilterWidget::BuildUi(void) {
@@ -310,9 +323,28 @@ void TimelineFilterWidget::BuildUi(void) {
     toolbar_layout->addWidget(clear_button_);
     root_layout->addLayout(toolbar_layout);
 
-    conditions_layout_ = new QVBoxLayout;
+    conditions_scroll_ = new QScrollArea{this};
+    conditions_scroll_->setObjectName(
+        QStringLiteral("filterConditionsScrollArea"));
+    conditions_scroll_->setFrameShape(QFrame::NoFrame);
+    conditions_scroll_->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    conditions_scroll_->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+    conditions_scroll_->setWidgetResizable(true);
+    conditions_scroll_->setSizeAdjustPolicy(
+        QAbstractScrollArea::AdjustToContents);
+    conditions_scroll_->viewport()->setAutoFillBackground(false);
+
+    conditions_container_ = new QWidget{conditions_scroll_};
+    conditions_container_->setObjectName(
+        QStringLiteral("filterConditionsContainer"));
+    conditions_container_->setAutoFillBackground(false);
+    conditions_layout_ = new QVBoxLayout{conditions_container_};
+    conditions_layout_->setContentsMargins(0, 0, 0, 0);
     conditions_layout_->setSpacing(6);
-    root_layout->addLayout(conditions_layout_);
+    conditions_layout_->setSizeConstraint(QLayout::SetMinAndMaxSize);
+    conditions_layout_->setAlignment(Qt::AlignTop);
+    conditions_scroll_->setWidget(conditions_container_);
+    root_layout->addWidget(conditions_scroll_, 1);
 
     error_label_ = new QLabel{this};
     error_label_->setObjectName(QStringLiteral("filterErrorLabel"));
@@ -380,10 +412,18 @@ void TimelineFilterWidget::RemoveCondition(QWidget *row_widget) {
     if (match == rows_.end()) {
         return;
     }
+    const auto removed_index = static_cast<std::size_t>(match - rows_.begin());
+    conditions_layout_->removeWidget(match->widget);
+    match->widget->hide();
     match->widget->deleteLater();
     rows_.erase(match);
     if (rows_.empty()) {
         AddCondition();
+    } else {
+        conditions_layout_->activate();
+        auto &focus_row = rows_[std::min(removed_index, rows_.size() - 1)];
+        focus_row.field->setFocus(Qt::OtherFocusReason);
+        conditions_scroll_->ensureWidgetVisible(focus_row.field, 0, 6);
     }
     UpdateRemoveButtons();
     emit QueryChanged();

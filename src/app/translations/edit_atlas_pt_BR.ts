@@ -681,6 +681,10 @@ Inspecione linhas do tempo editoriais e exporte relatórios estruturados.</trans
         <translation>Limpar filtros</translation>
     </message>
     <message>
+        <source>Filter conditions</source>
+        <translation>Condições de filtro</translation>
+    </message>
+    <message>
         <source>Contains text…</source>
         <translation>Contém o texto…</translation>
     </message>
