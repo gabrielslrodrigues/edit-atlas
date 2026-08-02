@@ -140,7 +140,7 @@
     </message>
 </context>
 <context>
-    <name>edit_atlas::app::DocumentController</name>
+    <name>edit_atlas::app::TimelineDocumentController</name>
     <message>
         <source>Condition %1 has an invalid regular expression: %2</source>
         <translation>A condição %1 contém uma expressão regular inválida: %2</translation>
@@ -297,7 +297,132 @@
     </message>
 </context>
 <context>
-    <name>edit_atlas::app::DocumentView</name>
+    <name>edit_atlas::app::TimelineTemplateController</name>
+    <message>
+        <source>Delete Template?</source>
+        <translation>Excluir modelo?</translation>
+    </message>
+    <message>
+        <source>Delete the template “%1”? This cannot be undone.</source>
+        <translation>Excluir o modelo “%1”? Esta ação não pode ser desfeita.</translation>
+    </message>
+    <message>
+        <source>Could Not Delete Template</source>
+        <translation>Não foi possível excluir o modelo</translation>
+    </message>
+    <message>
+        <source>Duplicate Template</source>
+        <translation>Duplicar modelo</translation>
+    </message>
+    <message>
+        <source>Name for the copy:</source>
+        <translation>Nome da cópia:</translation>
+    </message>
+    <message>
+        <source>%1 copy</source>
+        <translation>Cópia de %1</translation>
+    </message>
+    <message>
+        <source>Could Not Duplicate Template</source>
+        <translation>Não foi possível duplicar o modelo</translation>
+    </message>
+    <message>
+        <source>Fix the invalid filter condition before duplicating the template.</source>
+        <translation>Corrija a condição de filtro inválida antes de duplicar o modelo.</translation>
+    </message>
+    <message>
+        <source>Could Not Load Templates</source>
+        <translation>Não foi possível carregar os modelos</translation>
+    </message>
+    <message>
+        <source>Some Templates Could Not Be Loaded</source>
+        <translation>Alguns modelos não puderam ser carregados</translation>
+    </message>
+    <message>
+        <source>%1 template file(s) were skipped because they are invalid or use an unsupported version.</source>
+        <translation>%1 arquivo(s) de modelo foram ignorados por serem inválidos ou usarem uma versão incompatível.</translation>
+    </message>
+    <message>
+        <source>Invalid Template Name</source>
+        <translation>Nome de modelo inválido</translation>
+    </message>
+    <message>
+        <source>Enter a name for the template.</source>
+        <translation>Digite um nome para o modelo.</translation>
+    </message>
+    <message>
+        <source>Template Name Already Used</source>
+        <translation>Nome de modelo já utilizado</translation>
+    </message>
+    <message>
+        <source>A template named “%1” already exists.</source>
+        <translation>Já existe um modelo chamado “%1”.</translation>
+    </message>
+    <message>
+        <source>Rename Template</source>
+        <translation>Renomear modelo</translation>
+    </message>
+    <message>
+        <source>Template name:</source>
+        <translation>Nome do modelo:</translation>
+    </message>
+    <message>
+        <source>Could Not Rename Template</source>
+        <translation>Não foi possível renomear o modelo</translation>
+    </message>
+    <message>
+        <source>Save Filter and Export Template</source>
+        <translation>Salvar modelo de filtro e exportação</translation>
+    </message>
+    <message>
+        <source>Could Not Save Template</source>
+        <translation>Não foi possível salvar o modelo</translation>
+    </message>
+    <message>
+        <source>Fix the invalid filter condition before saving a template.</source>
+        <translation>Corrija a condição de filtro inválida antes de salvar um modelo.</translation>
+    </message>
+    <message>
+        <source>Could Not Update Template</source>
+        <translation>Não foi possível atualizar o modelo</translation>
+    </message>
+    <message>
+        <source>Fix the invalid filter condition before updating the template.</source>
+        <translation>Corrija a condição de filtro inválida antes de atualizar o modelo.</translation>
+    </message>
+    <message>
+        <source>The template could not be stored on this computer.</source>
+        <translation>Não foi possível armazenar o modelo neste computador.</translation>
+    </message>
+    <message>
+        <source>A template with that name already exists.</source>
+        <translation>Já existe um modelo com esse nome.</translation>
+    </message>
+    <message>
+        <source>Path: %1
+Detail: %2</source>
+        <translation>Caminho: %1
+Detalhe: %2</translation>
+    </message>
+    <message>
+        <source>Detail: %1</source>
+        <translation>Detalhe: %1</translation>
+    </message>
+    <message>
+        <source>Path: %1
+</source>
+        <translation>Caminho: %1
+</translation>
+    </message>
+    <message>
+        <source>
+System error: %1</source>
+        <translation>
+Erro do sistema: %1</translation>
+    </message>
+</context>
+<context>
+    <name>edit_atlas::app::TimelineDocumentView</name>
     <message>
         <source>Edit Atlas</source>
         <translation>Edit Atlas</translation>
@@ -558,6 +683,108 @@ Inspecione linhas do tempo editoriais e exporte relatórios estruturados.</trans
     </message>
 </context>
 <context>
+    <name>edit_atlas::app::EventProjectionDialog</name>
+    <message>
+        <source>Export Columns</source>
+        <translation>Colunas de exportação</translation>
+    </message>
+    <message>
+        <source>Save</source>
+        <translation>Salvar</translation>
+    </message>
+    <message>
+        <source>Cancel</source>
+        <translation>Cancelar</translation>
+    </message>
+</context>
+<context>
+    <name>edit_atlas::app::EventProjectionWidget</name>
+    <message>
+        <source>Event columns</source>
+        <translation>Colunas de eventos</translation>
+    </message>
+    <message>
+        <source>Select the columns to export and arrange them in output order.</source>
+        <translation>Selecione as colunas a exportar e organize-as na ordem de saída.</translation>
+    </message>
+    <message>
+        <source>Event</source>
+        <translation>Evento</translation>
+    </message>
+    <message>
+        <source>Reel</source>
+        <translation>Rolo</translation>
+    </message>
+    <message>
+        <source>Track type</source>
+        <translation>Tipo de faixa</translation>
+    </message>
+    <message>
+        <source>Track</source>
+        <translation>Faixa</translation>
+    </message>
+    <message>
+        <source>Edit type</source>
+        <translation>Tipo de edição</translation>
+    </message>
+    <message>
+        <source>Transition</source>
+        <translation>Transição</translation>
+    </message>
+    <message>
+        <source>Transition frames</source>
+        <translation>Quadros da transição</translation>
+    </message>
+    <message>
+        <source>Source in</source>
+        <translation>Entrada da fonte</translation>
+    </message>
+    <message>
+        <source>Source out</source>
+        <translation>Saída da fonte</translation>
+    </message>
+    <message>
+        <source>Record in</source>
+        <translation>Entrada da gravação</translation>
+    </message>
+    <message>
+        <source>Record out</source>
+        <translation>Saída da gravação</translation>
+    </message>
+    <message>
+        <source>Duration frames</source>
+        <translation>Duração em quadros</translation>
+    </message>
+    <message>
+        <source>Clip name</source>
+        <translation>Nome do clipe</translation>
+    </message>
+    <message>
+        <source>Source file</source>
+        <translation>Arquivo de origem</translation>
+    </message>
+    <message>
+        <source>Comments</source>
+        <translation>Comentários</translation>
+    </message>
+    <message>
+        <source>Source line</source>
+        <translation>Linha de origem</translation>
+    </message>
+    <message>
+        <source>Move up</source>
+        <translation>Mover para cima</translation>
+    </message>
+    <message>
+        <source>Move down</source>
+        <translation>Mover para baixo</translation>
+    </message>
+    <message>
+        <source>Select at least one event column.</source>
+        <translation>Selecione pelo menos uma coluna de evento.</translation>
+    </message>
+</context>
+<context>
     <name>edit_atlas::app::SupportBundleController</name>
     <message>
         <source>Export Diagnostic Logs</source>
@@ -685,6 +912,10 @@ Inspecione linhas do tempo editoriais e exporte relatórios estruturados.</trans
         <translation>Condições de filtro</translation>
     </message>
     <message>
+        <source>Filters</source>
+        <translation>Filtros</translation>
+    </message>
+    <message>
         <source>Contains text…</source>
         <translation>Contém o texto…</translation>
     </message>
@@ -795,6 +1026,46 @@ Inspecione linhas do tempo editoriais e exporte relatórios estruturados.</trans
     <message>
         <source>Exact timecode (HH:MM:SS:FF)</source>
         <translation>Timecode exato (HH:MM:SS:FF)</translation>
+    </message>
+    <message>
+        <source>Template</source>
+        <translation>Modelo</translation>
+    </message>
+    <message>
+        <source>No template</source>
+        <translation>Nenhum modelo</translation>
+    </message>
+    <message>
+        <source>Save as…</source>
+        <translation>Salvar como…</translation>
+    </message>
+    <message>
+        <source>Update</source>
+        <translation>Atualizar</translation>
+    </message>
+    <message>
+        <source>Export columns…</source>
+        <translation>Colunas de exportação…</translation>
+    </message>
+    <message>
+        <source>Template actions</source>
+        <translation>Ações do modelo</translation>
+    </message>
+    <message>
+        <source>Rename…</source>
+        <translation>Renomear…</translation>
+    </message>
+    <message>
+        <source>Duplicate…</source>
+        <translation>Duplicar…</translation>
+    </message>
+    <message>
+        <source>Delete…</source>
+        <translation>Excluir…</translation>
+    </message>
+    <message>
+        <source>Modified</source>
+        <translation>Modificado</translation>
     </message>
 </context>
 <context>

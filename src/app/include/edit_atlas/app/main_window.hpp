@@ -20,8 +20,8 @@ class QWidget;
 namespace edit_atlas::app {
 
 class ApplicationMenuBar;
-class DocumentController;
-class DocumentView;
+class TimelineDocumentController;
+class TimelineDocumentView;
 class SupportBundleController;
 
 /// Composes the desktop frontend and handles top-level navigation.
@@ -55,8 +55,8 @@ class MainWindow final : public QMainWindow {
     QTranslator &translator_;
     ApplicationLanguage language_;
     ApplicationMenuBar *application_menu_bar_ = nullptr;
-    DocumentView *document_view_ = nullptr;
-    DocumentController *document_controller_ = nullptr;
+    TimelineDocumentView *timeline_document_view_ = nullptr;
+    TimelineDocumentController *timeline_document_controller_ = nullptr;
     SupportBundleController *support_bundle_controller_ = nullptr;
 };
 

@@ -3,7 +3,7 @@ add_executable(edit_atlas_core_tests)
 target_sources(
     edit_atlas_core_tests
     PRIVATE
-        document_pipeline_test.cpp
+        timeline_document_pipeline_test.cpp
         editorial_timeline_test.cpp
         format_registry_test.cpp
         format_test_doubles.hpp

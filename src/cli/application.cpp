@@ -8,8 +8,8 @@
 #include <edit_atlas/formats/cmx3600/cmx3600_importer.hpp>
 #include <edit_atlas/formats/xlsx/xlsx_exporter.hpp>
 #include <edit_atlas/services/built_in_formats.hpp>
-#include <edit_atlas/services/document_export_service.hpp>
-#include <edit_atlas/services/document_import_service.hpp>
+#include <edit_atlas/services/timeline_document_export_service.hpp>
+#include <edit_atlas/services/timeline_document_import_service.hpp>
 
 #include <CLI/CLI.hpp>
 
@@ -128,40 +128,40 @@ FilesystemDiagnostic(std::string code, std::string message,
 }
 
 [[nodiscard]] std::string
-ImportFailureMessage(const services::DocumentImportFailure &failure) {
+ImportFailureMessage(const services::TimelineDocumentImportFailure &failure) {
     switch (failure.kind) {
-    case services::DocumentImportFailureKind::kOpenFailed:
+    case services::TimelineDocumentImportFailureKind::kOpenFailed:
         return "Could not open the input file: " +
                failure.filesystem_error.message();
-    case services::DocumentImportFailureKind::kReadFailed:
+    case services::TimelineDocumentImportFailureKind::kReadFailed:
         return "Could not read the input file: " +
                failure.filesystem_error.message();
-    case services::DocumentImportFailureKind::kImportFailed:
+    case services::TimelineDocumentImportFailureKind::kImportFailed:
         return "The input could not be imported";
     }
     return "The input could not be imported";
 }
 
 [[nodiscard]] std::string
-ImportFailureCode(services::DocumentImportFailureKind kind) {
-    return kind == services::DocumentImportFailureKind::kOpenFailed
+ImportFailureCode(services::TimelineDocumentImportFailureKind kind) {
+    return kind == services::TimelineDocumentImportFailureKind::kOpenFailed
                ? "cli.input.open_failed"
                : "cli.input.read_failed";
 }
 
 [[nodiscard]] std::string
-ExportFailureMessage(const services::DocumentExportFailure &failure) {
+ExportFailureMessage(const services::TimelineDocumentExportFailure &failure) {
     switch (failure.kind) {
-    case services::DocumentExportFailureKind::kInvalidRequest:
+    case services::TimelineDocumentExportFailureKind::kInvalidRequest:
         return "The XLSX report request is invalid";
-    case services::DocumentExportFailureKind::kExportFailed:
+    case services::TimelineDocumentExportFailureKind::kExportFailed:
         return "The XLSX report could not be created";
-    case services::DocumentExportFailureKind::kDestinationExists:
+    case services::TimelineDocumentExportFailureKind::kDestinationExists:
         return "The output file already exists; use --force to replace it";
-    case services::DocumentExportFailureKind::kWriteFailed:
+    case services::TimelineDocumentExportFailureKind::kWriteFailed:
         return "Could not write the output file: " +
                failure.filesystem_error.message();
-    case services::DocumentExportFailureKind::kCommitFailed:
+    case services::TimelineDocumentExportFailureKind::kCommitFailed:
         return "Could not commit the output file: " +
                failure.filesystem_error.message();
     }
@@ -169,17 +169,17 @@ ExportFailureMessage(const services::DocumentExportFailure &failure) {
 }
 
 [[nodiscard]] std::string
-ExportFailureCode(services::DocumentExportFailureKind kind) {
+ExportFailureCode(services::TimelineDocumentExportFailureKind kind) {
     switch (kind) {
-    case services::DocumentExportFailureKind::kInvalidRequest:
+    case services::TimelineDocumentExportFailureKind::kInvalidRequest:
         return "cli.output.invalid_request";
-    case services::DocumentExportFailureKind::kDestinationExists:
+    case services::TimelineDocumentExportFailureKind::kDestinationExists:
         return "cli.output.destination_exists";
-    case services::DocumentExportFailureKind::kWriteFailed:
+    case services::TimelineDocumentExportFailureKind::kWriteFailed:
         return "cli.output.write_failed";
-    case services::DocumentExportFailureKind::kCommitFailed:
+    case services::TimelineDocumentExportFailureKind::kCommitFailed:
         return "cli.output.commit_failed";
-    case services::DocumentExportFailureKind::kExportFailed:
+    case services::TimelineDocumentExportFailureKind::kExportFailed:
         return "cli.output.export_failed";
     }
     return "cli.output.export_failed";
@@ -273,9 +273,9 @@ EventProjection(const Options &options) {
         return ExitCode::kOperationalFailure;
     }
 
-    const services::DocumentImportService import_service{*registry};
+    const services::TimelineDocumentImportService import_service{*registry};
     auto import_result =
-        import_service.ImportDocument(services::ImportDocumentRequest{
+        import_service.Import(services::TimelineDocumentImportRequest{
             .path = PathFromUtf8(options.input),
             .format_identifier = std::nullopt,
             .options = ImportOptions(options),
@@ -284,13 +284,13 @@ EventProjection(const Options &options) {
         auto failure = std::move(import_result.error());
         const auto message = ImportFailureMessage(failure);
         if (failure.kind !=
-            services::DocumentImportFailureKind::kImportFailed) {
+            services::TimelineDocumentImportFailureKind::kImportFailed) {
             failure.diagnostics.emplace_back(FilesystemDiagnostic(
                 ImportFailureCode(failure.kind), message, failure.path));
         }
         WriteFailure(message, failure.diagnostics, error);
-        return failure.kind ==
-                       services::DocumentImportFailureKind::kImportFailed
+        return failure.kind == services::TimelineDocumentImportFailureKind::
+                                   kImportFailed
                    ? ExitCode::kInvalidInput
                    : ExitCode::kOperationalFailure;
     }
@@ -301,13 +301,13 @@ EventProjection(const Options &options) {
         return ExitCode::kInvalidInput;
     }
 
-    const auto event_count = import_result->document.events.size();
-    const services::DocumentExportService export_service{*registry};
+    const auto event_count = import_result->timeline.events.size();
+    const services::TimelineDocumentExportService export_service{*registry};
     auto export_result =
-        export_service.ExportDocument(services::ExportDocumentRequest{
+        export_service.Export(services::TimelineDocumentExportRequest{
             .path = PathFromUtf8(options.output),
             .format_identifier = std::string{formats::xlsx::kFormatIdentifier},
-            .document = std::move(import_result->document),
+            .timeline = std::move(import_result->timeline),
             .event_projection = std::move(*event_projection),
             .options = ExportOptions(options),
             .replace_existing = options.replace_existing,
@@ -323,8 +323,8 @@ EventProjection(const Options &options) {
                                failure.diagnostics.end());
         }
         WriteFailure(message, diagnostics, error);
-        return failure.kind ==
-                       services::DocumentExportFailureKind::kDestinationExists
+        return failure.kind == services::TimelineDocumentExportFailureKind::
+                                   kDestinationExists
                    ? ExitCode::kDestinationExists
                    : ExitCode::kOperationalFailure;
     }

@@ -1,6 +1,7 @@
 #include "timeline_filter_widget.hpp"
 
 #include <QAbstractScrollArea>
+#include <QAction>
 #include <QComboBox>
 #include <QFrame>
 #include <QHBoxLayout>
@@ -8,6 +9,7 @@
 #include <QLabel>
 #include <QLayout>
 #include <QLineEdit>
+#include <QMenu>
 #include <QPushButton>
 #include <QScrollArea>
 #include <QSignalBlocker>
@@ -23,6 +25,7 @@
 #include <limits>
 #include <optional>
 #include <string>
+#include <type_traits>
 #include <utility>
 
 namespace edit_atlas::app {
@@ -104,7 +107,7 @@ TimecodeFilterField(Field field) {
 
 TimelineFilterWidget::TimelineFilterWidget(QWidget *parent) : QWidget{parent} {
     BuildUi();
-    AddCondition();
+    AddCondition(false);
     RetranslateUi();
 }
 
@@ -118,7 +121,7 @@ void TimelineFilterWidget::Clear(void) {
     }
     rows_.clear();
     SetError({});
-    AddCondition();
+    AddCondition(true);
     emit QueryChanged();
 }
 
@@ -174,9 +177,60 @@ services::TimelineFilterQuery TimelineFilterWidget::Query(void) const {
     return query;
 }
 
+void TimelineFilterWidget::SetQuery(
+    const services::TimelineFilterQuery &query) {
+    {
+        const QSignalBlocker blocker{combination_};
+        combination_->setCurrentIndex(
+            combination_->findData(EnumData(query.combination)));
+    }
+    for (const auto &row : rows_) {
+        conditions_layout_->removeWidget(row.widget);
+        row.widget->hide();
+        row.widget->deleteLater();
+    }
+    rows_.clear();
+    for (const auto &condition : query.conditions) {
+        AddCondition(false);
+        ApplyCondition(rows_.back(), condition);
+    }
+    if (rows_.empty()) {
+        AddCondition(false);
+    }
+    UpdateRemoveButtons();
+    emit QueryChanged();
+}
+
 void TimelineFilterWidget::SetError(QString error) {
     error_label_->setText(std::move(error));
     error_label_->setVisible(!error_label_->text().isEmpty());
+}
+
+void TimelineFilterWidget::SetTemplates(
+    std::span<const services::TimelineTemplate> templates,
+    std::optional<std::string_view> active_identifier, bool modified) {
+    const QSignalBlocker blocker{template_selector_};
+    template_selector_->clear();
+    template_selector_->addItem(tr("No template"), QString{});
+    for (const auto &value : templates) {
+        template_selector_->addItem(
+            QString::fromUtf8(value.name.data(),
+                              static_cast<qsizetype>(value.name.size())),
+            QString::fromUtf8(value.identifier.data(),
+                              static_cast<qsizetype>(value.identifier.size())));
+    }
+    auto active_index = 0;
+    if (active_identifier.has_value()) {
+        const auto identifier = QString::fromUtf8(
+            active_identifier->data(),
+            static_cast<qsizetype>(active_identifier->size()));
+        const auto match = template_selector_->findData(identifier);
+        active_index = match < 0 ? 0 : match;
+    }
+    template_selector_->setCurrentIndex(active_index);
+    has_active_template_ = active_index > 0;
+    template_modified_ = modified;
+    UpdateTemplateControls();
 }
 
 void TimelineFilterWidget::RetranslateUi(void) {
@@ -195,6 +249,21 @@ void TimelineFilterWidget::RetranslateUi(void) {
     add_condition_button_->setText(tr("Add condition"));
     clear_button_->setText(tr("Clear filters"));
     conditions_scroll_->setAccessibleName(tr("Filter conditions"));
+    filter_title_label_->setText(tr("Filters"));
+    template_label_->setText(tr("Template"));
+    template_selector_->setAccessibleName(tr("Template"));
+    if (template_selector_->count() > 0) {
+        template_selector_->setItemText(0, tr("No template"));
+    }
+    save_template_action_->setText(tr("Save as…"));
+    edit_columns_action_->setText(tr("Export columns…"));
+    template_actions_button_->setText(QStringLiteral("⋯"));
+    template_actions_button_->setToolTip(tr("Template actions"));
+    template_actions_button_->setAccessibleName(tr("Template actions"));
+    rename_template_action_->setText(tr("Rename…"));
+    duplicate_template_action_->setText(tr("Duplicate…"));
+    delete_template_action_->setText(tr("Delete…"));
+    UpdateTemplateControls();
 
     for (auto &row : rows_) {
         PopulateFields(row);
@@ -211,10 +280,11 @@ void TimelineFilterWidget::RetranslateUi(void) {
     }
 }
 
-void TimelineFilterWidget::AddCondition(void) {
+void TimelineFilterWidget::AddCondition(bool focus) {
     auto *widget = new QWidget{conditions_container_};
+    widget->setObjectName(QStringLiteral("filterConditionRow"));
     auto *layout = new QHBoxLayout{widget};
-    layout->setContentsMargins(0, 0, 0, 0);
+    layout->setContentsMargins(8, 6, 8, 6);
     layout->setSpacing(6);
 
     ConditionRow row{
@@ -302,28 +372,158 @@ void TimelineFilterWidget::AddCondition(void) {
     if (rows_.size() == 1) {
         conditions_scroll_->setMinimumHeight(widget->sizeHint().height());
     }
-    rows_.back().field->setFocus(Qt::OtherFocusReason);
-    conditions_scroll_->ensureWidgetVisible(rows_.back().field, 0, 6);
+    if (focus) {
+        rows_.back().field->setFocus(Qt::OtherFocusReason);
+        conditions_scroll_->ensureWidgetVisible(rows_.back().field, 0, 6);
+    }
+}
+
+void TimelineFilterWidget::ApplyCondition(
+    ConditionRow &row, const services::TimelineFilterCondition &condition) {
+    const QSignalBlocker field_blocker{row.field};
+    const QSignalBlocker text_blocker{row.text};
+    const QSignalBlocker track_kind_blocker{row.track_kind};
+    const QSignalBlocker edit_type_blocker{row.edit_type};
+    const QSignalBlocker match_case_blocker{row.match_case};
+    const QSignalBlocker whole_word_blocker{row.match_whole_word};
+    const QSignalBlocker expression_blocker{row.regular_expression};
+    std::visit(
+        [&](const auto &value) {
+            using Condition = std::remove_cvref_t<decltype(value)>;
+            if constexpr (std::is_same_v<
+                              Condition,
+                              services::TimelineTextFilterCondition>) {
+                const auto field = [&] {
+                    switch (value.field) {
+                    case services::TimelineTextFilterField::kEventIdentifier:
+                        return Field::kEventIdentifier;
+                    case services::TimelineTextFilterField::kReel:
+                        return Field::kReel;
+                    case services::TimelineTextFilterField::kTrackIdentifier:
+                        return Field::kTrackIdentifier;
+                    case services::TimelineTextFilterField::kClip:
+                        return Field::kClip;
+                    case services::TimelineTextFilterField::kComments:
+                        return Field::kComments;
+                    }
+                    std::unreachable();
+                }();
+                row.field->setCurrentIndex(
+                    row.field->findData(EnumData(field)));
+                row.text->setText(QString::fromUtf8(
+                    value.text.data(),
+                    static_cast<qsizetype>(value.text.size())));
+                row.match_case->setChecked(value.match_case);
+                row.match_whole_word->setChecked(value.match_whole_word);
+                row.regular_expression->setChecked(value.regular_expression);
+            } else if constexpr (
+                std::is_same_v<Condition,
+                               services::TimelineTrackKindFilterCondition>) {
+                row.field->setCurrentIndex(
+                    row.field->findData(EnumData(Field::kTrackKind)));
+                row.track_kind->setCurrentIndex(
+                    row.track_kind->findData(EnumData(value.track_kind)));
+            } else if constexpr (
+                std::is_same_v<Condition,
+                               services::TimelineEditTypeFilterCondition>) {
+                row.field->setCurrentIndex(
+                    row.field->findData(EnumData(Field::kEditType)));
+                row.edit_type->setCurrentIndex(
+                    row.edit_type->findData(EnumData(value.edit_type)));
+            } else if constexpr (
+                std::is_same_v<Condition,
+                               services::TimelineTimecodeFilterCondition>) {
+                const auto field = [&] {
+                    switch (value.field) {
+                    case services::TimelineTimecodeFilterField::kSourceIn:
+                        return Field::kSourceIn;
+                    case services::TimelineTimecodeFilterField::kSourceOut:
+                        return Field::kSourceOut;
+                    case services::TimelineTimecodeFilterField::kRecordIn:
+                        return Field::kRecordIn;
+                    case services::TimelineTimecodeFilterField::kRecordOut:
+                        return Field::kRecordOut;
+                    }
+                    std::unreachable();
+                }();
+                row.field->setCurrentIndex(
+                    row.field->findData(EnumData(field)));
+                row.text->setText(QString::fromUtf8(
+                    value.timecode.data(),
+                    static_cast<qsizetype>(value.timecode.size())));
+            } else {
+                row.field->setCurrentIndex(
+                    row.field->findData(EnumData(Field::kDuration)));
+                row.text->setText(value.frames.has_value()
+                                      ? QString::number(*value.frames)
+                                      : QString{});
+            }
+        },
+        condition);
+    UpdateConditionEditor(row);
 }
 
 void TimelineFilterWidget::BuildUi(void) {
     auto *root_layout = new QVBoxLayout{this};
     root_layout->setContentsMargins(0, 0, 0, 0);
-    root_layout->setSpacing(6);
+    root_layout->setSpacing(10);
 
+    auto *template_panel = new QFrame{this};
+    template_panel->setObjectName(QStringLiteral("templatePanel"));
+    auto *template_layout = new QHBoxLayout{template_panel};
+    template_layout->setContentsMargins(10, 8, 10, 8);
+    template_layout->setSpacing(8);
+    template_label_ = new QLabel{template_panel};
+    template_layout->addWidget(template_label_);
+    template_selector_ = new QComboBox{template_panel};
+    template_layout->addWidget(template_selector_, 1);
+    template_status_ = new QLabel{template_panel};
+    template_status_->setObjectName(QStringLiteral("templateStatusLabel"));
+    template_status_->setVisible(false);
+    template_layout->addWidget(template_status_);
+    template_primary_button_ = new QPushButton{template_panel};
+    template_layout->addWidget(template_primary_button_);
+    template_actions_button_ = new QToolButton{template_panel};
+    template_actions_button_->setPopupMode(QToolButton::InstantPopup);
+    auto *template_menu = new QMenu{template_actions_button_};
+    save_template_action_ = template_menu->addAction(QString{});
+    edit_columns_action_ = template_menu->addAction(QString{});
+    template_menu->addSeparator();
+    rename_template_action_ = template_menu->addAction(QString{});
+    duplicate_template_action_ = template_menu->addAction(QString{});
+    template_menu->addSeparator();
+    delete_template_action_ = template_menu->addAction(QString{});
+    template_actions_button_->setMenu(template_menu);
+    template_layout->addWidget(template_actions_button_);
+    root_layout->addWidget(template_panel);
+
+    auto *filter_panel = new QFrame{this};
+    filter_panel->setObjectName(QStringLiteral("filterPanel"));
+    auto *filter_layout = new QVBoxLayout{filter_panel};
+    filter_layout->setContentsMargins(10, 10, 10, 10);
+    filter_layout->setSpacing(8);
     auto *toolbar_layout = new QHBoxLayout;
-    combination_label_ = new QLabel{this};
-    toolbar_layout->addWidget(combination_label_);
-    combination_ = new QComboBox{this};
-    toolbar_layout->addWidget(combination_);
+    filter_title_label_ = new QLabel{filter_panel};
+    filter_title_label_->setObjectName(QStringLiteral("filterSectionTitle"));
+    toolbar_layout->addWidget(filter_title_label_);
     toolbar_layout->addStretch(1);
-    add_condition_button_ = new QPushButton{this};
+    combination_label_ = new QLabel{filter_panel};
+    toolbar_layout->addWidget(combination_label_);
+    combination_ = new QComboBox{filter_panel};
+    toolbar_layout->addWidget(combination_);
+    add_condition_button_ = new QPushButton{filter_panel};
     toolbar_layout->addWidget(add_condition_button_);
-    clear_button_ = new QPushButton{this};
+    clear_button_ = new QPushButton{filter_panel};
     toolbar_layout->addWidget(clear_button_);
-    root_layout->addLayout(toolbar_layout);
+    filter_layout->addLayout(toolbar_layout);
 
-    conditions_scroll_ = new QScrollArea{this};
+    auto *divider = new QFrame{filter_panel};
+    divider->setObjectName(QStringLiteral("filterDivider"));
+    divider->setFrameShape(QFrame::HLine);
+    divider->setFrameShadow(QFrame::Plain);
+    filter_layout->addWidget(divider);
+
+    conditions_scroll_ = new QScrollArea{filter_panel};
     conditions_scroll_->setObjectName(
         QStringLiteral("filterConditionsScrollArea"));
     conditions_scroll_->setFrameShape(QFrame::NoFrame);
@@ -344,21 +544,44 @@ void TimelineFilterWidget::BuildUi(void) {
     conditions_layout_->setSizeConstraint(QLayout::SetMinAndMaxSize);
     conditions_layout_->setAlignment(Qt::AlignTop);
     conditions_scroll_->setWidget(conditions_container_);
-    root_layout->addWidget(conditions_scroll_, 1);
+    filter_layout->addWidget(conditions_scroll_, 1);
 
-    error_label_ = new QLabel{this};
+    error_label_ = new QLabel{filter_panel};
     error_label_->setObjectName(QStringLiteral("filterErrorLabel"));
     error_label_->setTextFormat(Qt::PlainText);
     error_label_->setWordWrap(true);
     error_label_->setVisible(false);
-    root_layout->addWidget(error_label_);
+    filter_layout->addWidget(error_label_);
+    root_layout->addWidget(filter_panel, 1);
 
     connect(combination_, &QComboBox::currentIndexChanged, this,
             [this](int) { emit QueryChanged(); });
     connect(add_condition_button_, &QPushButton::clicked, this,
-            [this](void) { AddCondition(); });
+            [this](void) { AddCondition(true); });
     connect(clear_button_, &QPushButton::clicked, this,
             &TimelineFilterWidget::Clear);
+    connect(
+        template_selector_, &QComboBox::currentIndexChanged, this, [this](int) {
+            emit TemplateSelected(template_selector_->currentData().toString());
+        });
+    connect(template_primary_button_, &QPushButton::clicked, this,
+            [this](void) {
+                if (has_active_template_ && template_modified_) {
+                    emit UpdateTemplateRequested();
+                } else {
+                    emit SaveTemplateRequested();
+                }
+            });
+    connect(save_template_action_, &QAction::triggered, this,
+            &TimelineFilterWidget::SaveTemplateRequested);
+    connect(edit_columns_action_, &QAction::triggered, this,
+            &TimelineFilterWidget::EditColumnsRequested);
+    connect(rename_template_action_, &QAction::triggered, this,
+            &TimelineFilterWidget::RenameTemplateRequested);
+    connect(duplicate_template_action_, &QAction::triggered, this,
+            &TimelineFilterWidget::DuplicateTemplateRequested);
+    connect(delete_template_action_, &QAction::triggered, this,
+            &TimelineFilterWidget::DeleteTemplateRequested);
 }
 
 void TimelineFilterWidget::PopulateEditTypes(ConditionRow &row) {
@@ -418,7 +641,7 @@ void TimelineFilterWidget::RemoveCondition(QWidget *row_widget) {
     match->widget->deleteLater();
     rows_.erase(match);
     if (rows_.empty()) {
-        AddCondition();
+        AddCondition(true);
     } else {
         conditions_layout_->activate();
         auto &focus_row = rows_[std::min(removed_index, rows_.size() - 1)];
@@ -462,6 +685,17 @@ void TimelineFilterWidget::UpdateRemoveButtons(void) {
     for (const auto &row : rows_) {
         row.remove->setEnabled(can_remove);
     }
+}
+
+void TimelineFilterWidget::UpdateTemplateControls(void) {
+    template_primary_button_->setText(has_active_template_ && template_modified_
+                                          ? tr("Update")
+                                          : tr("Save as…"));
+    template_status_->setText(template_modified_ ? tr("Modified") : QString{});
+    template_status_->setVisible(template_modified_);
+    rename_template_action_->setEnabled(has_active_template_);
+    duplicate_template_action_->setEnabled(has_active_template_);
+    delete_template_action_->setEnabled(has_active_template_);
 }
 
 } // namespace edit_atlas::app

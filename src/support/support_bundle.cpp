@@ -2,6 +2,8 @@
 
 #include <edit_atlas/support/application_logging.hpp>
 
+#include <edit_atlas/storage/local_file.hpp>
+
 #include <minizip/ioapi.h>
 #include <minizip/zip.h>
 
@@ -9,7 +11,6 @@
 
 #include <algorithm>
 #include <cstddef>
-#include <cstdint>
 #include <filesystem>
 #include <fstream>
 #include <ios>
@@ -17,7 +18,6 @@
 #include <memory>
 #include <new>
 #include <optional>
-#include <random>
 #include <span>
 #include <string>
 #include <string_view>
@@ -25,46 +25,15 @@
 #include <utility>
 #include <vector>
 
-#if defined(_WIN32)
-#if !defined(NOMINMAX)
-#define NOMINMAX
-#endif
-#include <windows.h>
-#endif
-
 namespace edit_atlas::support {
 namespace {
 
-constexpr std::size_t kMaximumTemporaryPathAttempts = 16;
 constexpr std::size_t kIoBufferSize = 65'536;
 
 enum class LogWriteResult {
     kSuccess,
     kReadFailed,
     kArchiveWriteFailed,
-};
-
-class TemporaryFile final {
-  public:
-    explicit TemporaryFile(std::filesystem::path path)
-        : path_(std::move(path)) {}
-
-    ~TemporaryFile(void) {
-        std::error_code error;
-        static_cast<void>(std::filesystem::remove(path_, error));
-    }
-
-    TemporaryFile(const TemporaryFile &) = delete;
-    TemporaryFile &operator=(const TemporaryFile &) = delete;
-    TemporaryFile(TemporaryFile &&) = delete;
-    TemporaryFile &operator=(TemporaryFile &&) = delete;
-
-    [[nodiscard]] const std::filesystem::path &path(void) const noexcept {
-        return path_;
-    }
-
-  private:
-    std::filesystem::path path_;
 };
 
 struct ZipStream final {
@@ -222,65 +191,6 @@ ZipFileFunctions(std::filesystem::path &path) noexcept {
     return output.empty() ? "none" : output;
 }
 
-[[nodiscard]] std::filesystem::path
-TemporaryPathFor(const std::filesystem::path &destination,
-                 std::uint64_t suffix) {
-    auto filename = destination.filename();
-    filename += ".edit-atlas-";
-    filename += std::to_string(suffix);
-    filename += ".tmp";
-    return destination.parent_path() / filename;
-}
-
-[[nodiscard]] std::expected<std::filesystem::path, std::error_code>
-AvailableTemporaryPath(const std::filesystem::path &destination) {
-    std::random_device random;
-    for (std::size_t attempt = 0; attempt < kMaximumTemporaryPathAttempts;
-         ++attempt) {
-        const auto suffix = (static_cast<std::uint64_t>(random()) << 32U) |
-                            static_cast<std::uint64_t>(random());
-        auto candidate = TemporaryPathFor(destination, suffix);
-        std::error_code error;
-        const auto exists = std::filesystem::exists(candidate, error);
-        if (error) {
-            return std::unexpected(error);
-        }
-        if (!exists) {
-            return candidate;
-        }
-    }
-    return std::unexpected(std::make_error_code(std::errc::file_exists));
-}
-
-[[nodiscard]] std::error_code
-CommitTemporaryFile(const std::filesystem::path &temporary,
-                    const std::filesystem::path &destination,
-                    bool replace_existing) {
-#if defined(_WIN32)
-    DWORD flags = MOVEFILE_WRITE_THROUGH;
-    if (replace_existing) {
-        flags |= MOVEFILE_REPLACE_EXISTING;
-    }
-    if (MoveFileExW(temporary.c_str(), destination.c_str(), flags) != 0) {
-        return {};
-    }
-    return {static_cast<int>(GetLastError()), std::system_category()};
-#else
-    std::error_code error;
-    if (replace_existing) {
-        std::filesystem::rename(temporary, destination, error);
-        return error;
-    }
-
-    std::filesystem::create_hard_link(temporary, destination, error);
-    if (error) {
-        return error;
-    }
-    static_cast<void>(std::filesystem::remove(temporary, error));
-    return {};
-#endif
-}
-
 [[nodiscard]] SupportBundleFailure Failure(const SupportBundleRequest &request,
                                            SupportBundleFailureKind kind,
                                            std::error_code error,
@@ -364,31 +274,13 @@ ApplicationLogFiles(const SupportBundleRequest &request) {
 
 [[nodiscard]] LogWriteResult WriteLogFile(zipFile archive,
                                           const std::filesystem::path &path) {
-    std::error_code error;
-    const auto size = std::filesystem::file_size(path, error);
-    if (error ||
-        size > static_cast<std::uintmax_t>(
-                   (std::numeric_limits<std::size_t>::max)()) ||
-        size > static_cast<std::uintmax_t>(
-                   (std::numeric_limits<std::streamsize>::max)())) {
+    const auto content = storage::ReadLocalFile(path);
+    if (!content.has_value()) {
         return LogWriteResult::kReadFailed;
-    }
-
-    std::ifstream input{path, std::ios::binary};
-    if (!input.is_open()) {
-        return LogWriteResult::kReadFailed;
-    }
-    std::vector<std::byte> content(static_cast<std::size_t>(size));
-    if (!content.empty()) {
-        input.read(reinterpret_cast<char *>(content.data()),
-                   static_cast<std::streamsize>(content.size()));
-        if (!input) {
-            return LogWriteResult::kReadFailed;
-        }
     }
 
     const auto entry_name = "logs/" + Utf8Filename(path);
-    return WriteZipEntry(archive, entry_name, content)
+    return WriteZipEntry(archive, entry_name, *content)
                ? LogWriteResult::kSuccess
                : LogWriteResult::kArchiveWriteFailed;
 }
@@ -418,33 +310,26 @@ FormatDiagnosticEnvironment(const DiagnosticEnvironment &environment) {
 }
 
 CreateSupportBundleResult CreateSupportBundle(SupportBundleRequest request) {
-    std::error_code exists_error;
-    const auto destination_exists =
-        std::filesystem::exists(request.path, exists_error);
-    if (exists_error) {
-        return std::unexpected(
-            Failure(request, SupportBundleFailureKind::kWriteBundleFailed,
-                    exists_error, exists_error.message()));
-    }
-    if (destination_exists && !request.replace_existing) {
-        const auto error = std::make_error_code(std::errc::file_exists);
-        return std::unexpected(
-            Failure(request, SupportBundleFailureKind::kDestinationExists,
-                    error, error.message()));
-    }
-
     auto logs = ApplicationLogFiles(request);
     if (!logs.has_value()) {
         return std::unexpected(std::move(logs.error()));
     }
-    auto temporary_path = AvailableTemporaryPath(request.path);
-    if (!temporary_path.has_value()) {
+    const auto existing_file_policy =
+        request.replace_existing ? storage::ExistingFilePolicy::kReplace
+                                 : storage::ExistingFilePolicy::kPreserve;
+    auto transaction =
+        storage::PrepareAtomicFile(request.path, existing_file_policy);
+    if (!transaction.has_value()) {
+        const auto kind =
+            transaction.error().kind ==
+                    storage::LocalFileFailureKind::kDestinationExists
+                ? SupportBundleFailureKind::kDestinationExists
+                : SupportBundleFailureKind::kWriteBundleFailed;
         return std::unexpected(
-            Failure(request, SupportBundleFailureKind::kWriteBundleFailed,
-                    temporary_path.error(), temporary_path.error().message()));
+            Failure(request, kind, transaction.error().filesystem_error,
+                    transaction.error().filesystem_error.message()));
     }
-    const TemporaryFile temporary{std::move(*temporary_path)};
-    auto zip_path = temporary.path();
+    auto zip_path = (*transaction)->temporary_path();
     auto file_functions = ZipFileFunctions(zip_path);
     auto *archive =
         zipOpen2_64(&zip_path, APPEND_STATUS_CREATE, nullptr, &file_functions);
@@ -484,15 +369,16 @@ CreateSupportBundleResult CreateSupportBundle(SupportBundleRequest request) {
         return std::unexpected(Failure(request, kind, {}, detail));
     }
 
-    const auto commit_error = CommitTemporaryFile(
-        temporary.path(), request.path, request.replace_existing);
-    if (commit_error) {
+    const auto commit_result = (*transaction)->Commit();
+    if (!commit_result.has_value()) {
         const auto kind =
-            !request.replace_existing && commit_error == std::errc::file_exists
+            commit_result.error().kind ==
+                    storage::LocalFileFailureKind::kDestinationExists
                 ? SupportBundleFailureKind::kDestinationExists
                 : SupportBundleFailureKind::kCommitFailed;
         return std::unexpected(
-            Failure(request, kind, commit_error, commit_error.message()));
+            Failure(request, kind, commit_result.error().filesystem_error,
+                    commit_result.error().filesystem_error.message()));
     }
 
     return SupportBundleReceipt{

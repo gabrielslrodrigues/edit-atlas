@@ -1,5 +1,5 @@
-#ifndef EDIT_ATLAS_CORE_DOCUMENT_PIPELINE_HPP_
-#define EDIT_ATLAS_CORE_DOCUMENT_PIPELINE_HPP_
+#ifndef EDIT_ATLAS_CORE_TIMELINE_DOCUMENT_PIPELINE_HPP_
+#define EDIT_ATLAS_CORE_TIMELINE_DOCUMENT_PIPELINE_HPP_
 
 #include <edit_atlas/core/format.hpp>
 #include <edit_atlas/core/format_registry.hpp>
@@ -9,7 +9,7 @@
 
 namespace edit_atlas::core {
 
-/// Stable diagnostic codes emitted by `DocumentPipeline`.
+/// Stable diagnostic codes emitted by `TimelineDocumentPipeline`.
 namespace pipeline_diagnostic_code {
 
 /// No importer is registered for an explicitly requested format.
@@ -43,12 +43,12 @@ inline constexpr std::string_view kExportProducedNoArtifact =
 ///
 /// The registry must outlive the pipeline. Handler exceptions are converted to
 /// structured diagnostics instead of escaping through the pipeline interface.
-class DocumentPipeline final {
+class TimelineDocumentPipeline final {
   public:
     /// Creates a pipeline that borrows \p registry.
     ///
     /// \param registry Registry that must outlive the pipeline.
-    explicit DocumentPipeline(const FormatRegistry &registry) noexcept;
+    explicit TimelineDocumentPipeline(const FormatRegistry &registry) noexcept;
 
     /// Imports content using an explicit format or automatic discovery.
     ///
@@ -76,4 +76,4 @@ class DocumentPipeline final {
 
 } // namespace edit_atlas::core
 
-#endif // EDIT_ATLAS_CORE_DOCUMENT_PIPELINE_HPP_
+#endif // EDIT_ATLAS_CORE_TIMELINE_DOCUMENT_PIPELINE_HPP_
