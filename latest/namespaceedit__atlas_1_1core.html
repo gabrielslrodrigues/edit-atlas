@@ -265,9 +265,47 @@ Enumerations</h2></td></tr>
  }</td></tr>
 <tr class="memdesc:a13a4eaa410bf0f06432c2c4a8989b6e5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Identifies why a timecode range could not be constructed.  <a href="namespaceedit__atlas_1_1core.html#a13a4eaa410bf0f06432c2c4a8989b6e5">More...</a><br /></td></tr>
 <tr class="separator:a13a4eaa410bf0f06432c2c4a8989b6e5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8202057a8e50482dd31c61e0f36c8411" id="r_a8202057a8e50482dd31c61e0f36c8411"><td class="memItemLeft" align="right" valign="top">enum class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceedit__atlas_1_1core.html#a8202057a8e50482dd31c61e0f36c8411">TimelineEventField</a> { <br />
+&#160;&#160;<a class="el" href="namespaceedit__atlas_1_1core.html#a8202057a8e50482dd31c61e0f36c8411a5ee6f8647b008eed1cd49fe6851f561c">kEventIdentifier</a>
+, <a class="el" href="namespaceedit__atlas_1_1core.html#a8202057a8e50482dd31c61e0f36c8411ab2c1da196107285d9a6bfa45433c3411">kReel</a>
+, <a class="el" href="namespaceedit__atlas_1_1core.html#a8202057a8e50482dd31c61e0f36c8411a8a5248cdc856177ca071cf95a7962ad9">kTrackKind</a>
+, <a class="el" href="namespaceedit__atlas_1_1core.html#a8202057a8e50482dd31c61e0f36c8411a2d2ba14f33e51f326b34f35f4c954f38">kTrackIdentifier</a>
+, <br />
+&#160;&#160;<a class="el" href="namespaceedit__atlas_1_1core.html#a8202057a8e50482dd31c61e0f36c8411a6904222c04ad060b83592d537ded2e9c">kEditType</a>
+, <a class="el" href="namespaceedit__atlas_1_1core.html#a8202057a8e50482dd31c61e0f36c8411a2aabdcc30e923ce53829a33f2c46dcb6">kTransitionIdentifier</a>
+, <a class="el" href="namespaceedit__atlas_1_1core.html#a8202057a8e50482dd31c61e0f36c8411a936a74cd6cd4486b64ccb9dd3dffbe31">kTransitionDuration</a>
+, <a class="el" href="namespaceedit__atlas_1_1core.html#a8202057a8e50482dd31c61e0f36c8411ad8691aca9b3e0e9a830927153f71b7ec">kSourceIn</a>
+, <br />
+&#160;&#160;<a class="el" href="namespaceedit__atlas_1_1core.html#a8202057a8e50482dd31c61e0f36c8411afd9c91dcd454e109bcc4b6af841c1f69">kSourceOut</a>
+, <a class="el" href="namespaceedit__atlas_1_1core.html#a8202057a8e50482dd31c61e0f36c8411ad48955dd6530d928240c912332db450f">kRecordIn</a>
+, <a class="el" href="namespaceedit__atlas_1_1core.html#a8202057a8e50482dd31c61e0f36c8411ada0dda1d6a6ff6e63864afb7a028cbb6">kRecordOut</a>
+, <a class="el" href="namespaceedit__atlas_1_1core.html#a8202057a8e50482dd31c61e0f36c8411a7dcc4622bc059e993b67e3a34788959d">kDuration</a>
+, <br />
+&#160;&#160;<a class="el" href="namespaceedit__atlas_1_1core.html#a8202057a8e50482dd31c61e0f36c8411a211eb4d2c6c97e5d87bb3208a48d7c11">kClipName</a>
+, <a class="el" href="namespaceedit__atlas_1_1core.html#a8202057a8e50482dd31c61e0f36c8411a634606a16f62b39964a51a45d1696dd3">kSourceFile</a>
+, <a class="el" href="namespaceedit__atlas_1_1core.html#a8202057a8e50482dd31c61e0f36c8411a8a531c1d62341ca4bc39616ff0d58bdf">kComments</a>
+, <a class="el" href="namespaceedit__atlas_1_1core.html#a8202057a8e50482dd31c61e0f36c8411ae21d627814fef31491925245502864ac">kSourceLine</a>
+<br />
+ }</td></tr>
+<tr class="memdesc:a8202057a8e50482dd31c61e0f36c8411"><td class="mdescLeft">&#160;</td><td class="mdescRight">Identifies one exportable field of an editorial timeline event.  <a href="namespaceedit__atlas_1_1core.html#a8202057a8e50482dd31c61e0f36c8411">More...</a><br /></td></tr>
+<tr class="separator:a8202057a8e50482dd31c61e0f36c8411"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
+<tr class="memitem:a01840176fc0140143ad91aa209c7ac53" id="r_a01840176fc0140143ad91aa209c7ac53"><td class="memItemLeft" align="right" valign="top">std::string_view&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceedit__atlas_1_1core.html#a01840176fc0140143ad91aa209c7ac53">TimelineEventFieldIdentifier</a> (<a class="el" href="namespaceedit__atlas_1_1core.html#a8202057a8e50482dd31c61e0f36c8411">TimelineEventField</a> field) noexcept</td></tr>
+<tr class="memdesc:a01840176fc0140143ad91aa209c7ac53"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the stable lowercase identifier for <code>field</code>.  <br /></td></tr>
+<tr class="separator:a01840176fc0140143ad91aa209c7ac53"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac34b8b151021221f6d0ed3786c72d07c" id="r_ac34b8b151021221f6d0ed3786c72d07c"><td class="memItemLeft" align="right" valign="top"><a id="ac34b8b151021221f6d0ed3786c72d07c" name="ac34b8b151021221f6d0ed3786c72d07c"></a>
+std::optional&lt; <a class="el" href="namespaceedit__atlas_1_1core.html#a8202057a8e50482dd31c61e0f36c8411">TimelineEventField</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>TimelineEventFieldFromIdentifier</b> (std::string_view identifier) noexcept</td></tr>
+<tr class="memdesc:ac34b8b151021221f6d0ed3786c72d07c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Resolves the stable timeline event field <code>identifier</code>. <br /></td></tr>
+<tr class="separator:ac34b8b151021221f6d0ed3786c72d07c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a870a4bc8f453085a97f2aff9cb3ad256" id="r_a870a4bc8f453085a97f2aff9cb3ad256"><td class="memItemLeft" align="right" valign="top">std::span&lt; const <a class="el" href="namespaceedit__atlas_1_1core.html#a8202057a8e50482dd31c61e0f36c8411">TimelineEventField</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceedit__atlas_1_1core.html#a870a4bc8f453085a97f2aff9cb3ad256">DefaultTimelineEventProjection</a> (void) noexcept</td></tr>
+<tr class="memdesc:a870a4bc8f453085a97f2aff9cb3ad256"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns every timeline event field in the default export order.  <br /></td></tr>
+<tr class="separator:a870a4bc8f453085a97f2aff9cb3ad256"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:abacec32d25d90bd888fd71ad75070ba2" id="r_abacec32d25d90bd888fd71ad75070ba2"><td class="memItemLeft" align="right" valign="top"><a id="abacec32d25d90bd888fd71ad75070ba2" name="abacec32d25d90bd888fd71ad75070ba2"></a>
+bool&#160;</td><td class="memItemRight" valign="bottom"><b>IsValidTimelineEventProjection</b> (std::span&lt; const <a class="el" href="namespaceedit__atlas_1_1core.html#a8202057a8e50482dd31c61e0f36c8411">TimelineEventField</a> &gt; projection) noexcept</td></tr>
+<tr class="memdesc:abacec32d25d90bd888fd71ad75070ba2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns whether <code>projection</code> is non-empty and contains unique known fields. <br /></td></tr>
+<tr class="separator:abacec32d25d90bd888fd71ad75070ba2"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a2bdec25002f14591add35d69a97e8362" id="r_a2bdec25002f14591add35d69a97e8362"><td class="memItemLeft" align="right" valign="top"><a id="a2bdec25002f14591add35d69a97e8362" name="a2bdec25002f14591add35d69a97e8362"></a>
 std::string_view&#160;</td><td class="memItemRight" valign="bottom"><b>Version</b> (void) noexcept</td></tr>
 <tr class="memdesc:a2bdec25002f14591add35d69a97e8362"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the application version compiled into the core library. <br /></td></tr>
@@ -475,7 +513,7 @@ std::string_view&#160;</td><td class="memItemRight" valign="bottom"><b>Version</
 </td></tr>
 </table>
 
-<p class="definition">Definition at line <a class="el" href="format_8hpp_source.html#l00033">33</a> of file <a class="el" href="format_8hpp_source.html">format.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="format_8hpp_source.html#l00034">34</a> of file <a class="el" href="format_8hpp_source.html">format.hpp</a>.</p>
 
 </div>
 </div>
@@ -589,6 +627,66 @@ std::string_view&#160;</td><td class="memItemRight" valign="bottom"><b>Version</
 
 </div>
 </div>
+<a id="a8202057a8e50482dd31c61e0f36c8411" name="a8202057a8e50482dd31c61e0f36c8411"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8202057a8e50482dd31c61e0f36c8411">&#9670;&#160;</a></span>TimelineEventField</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">enum class <a class="el" href="namespaceedit__atlas_1_1core.html#a8202057a8e50482dd31c61e0f36c8411">edit_atlas::core::TimelineEventField</a></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">strong</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Identifies one exportable field of an editorial timeline event. </p>
+<table class="fieldtable">
+<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="a8202057a8e50482dd31c61e0f36c8411a5ee6f8647b008eed1cd49fe6851f561c" name="a8202057a8e50482dd31c61e0f36c8411a5ee6f8647b008eed1cd49fe6851f561c"></a>kEventIdentifier&#160;</td><td class="fielddoc"><p>Source event identifier. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="a8202057a8e50482dd31c61e0f36c8411ab2c1da196107285d9a6bfa45433c3411" name="a8202057a8e50482dd31c61e0f36c8411ab2c1da196107285d9a6bfa45433c3411"></a>kReel&#160;</td><td class="fielddoc"><p>Source reel identifier. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="a8202057a8e50482dd31c61e0f36c8411a8a5248cdc856177ca071cf95a7962ad9" name="a8202057a8e50482dd31c61e0f36c8411a8a5248cdc856177ca071cf95a7962ad9"></a>kTrackKind&#160;</td><td class="fielddoc"><p>Domain track kind. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="a8202057a8e50482dd31c61e0f36c8411a2d2ba14f33e51f326b34f35f4c954f38" name="a8202057a8e50482dd31c61e0f36c8411a2d2ba14f33e51f326b34f35f4c954f38"></a>kTrackIdentifier&#160;</td><td class="fielddoc"><p>Source track identifier. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="a8202057a8e50482dd31c61e0f36c8411a6904222c04ad060b83592d537ded2e9c" name="a8202057a8e50482dd31c61e0f36c8411a6904222c04ad060b83592d537ded2e9c"></a>kEditType&#160;</td><td class="fielddoc"><p>Editorial operation type. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="a8202057a8e50482dd31c61e0f36c8411a2aabdcc30e923ce53829a33f2c46dcb6" name="a8202057a8e50482dd31c61e0f36c8411a2aabdcc30e923ce53829a33f2c46dcb6"></a>kTransitionIdentifier&#160;</td><td class="fielddoc"><p><a class="el" href="structedit__atlas_1_1core_1_1Transition.html" title="Additional data for an edit that spans multiple frames.">Transition</a> identifier. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="a8202057a8e50482dd31c61e0f36c8411a936a74cd6cd4486b64ccb9dd3dffbe31" name="a8202057a8e50482dd31c61e0f36c8411a936a74cd6cd4486b64ccb9dd3dffbe31"></a>kTransitionDuration&#160;</td><td class="fielddoc"><p><a class="el" href="structedit__atlas_1_1core_1_1Transition.html" title="Additional data for an edit that spans multiple frames.">Transition</a> duration in frames. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="a8202057a8e50482dd31c61e0f36c8411ad8691aca9b3e0e9a830927153f71b7ec" name="a8202057a8e50482dd31c61e0f36c8411ad8691aca9b3e0e9a830927153f71b7ec"></a>kSourceIn&#160;</td><td class="fielddoc"><p>Inclusive source timecode. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="a8202057a8e50482dd31c61e0f36c8411afd9c91dcd454e109bcc4b6af841c1f69" name="a8202057a8e50482dd31c61e0f36c8411afd9c91dcd454e109bcc4b6af841c1f69"></a>kSourceOut&#160;</td><td class="fielddoc"><p>Exclusive source timecode. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="a8202057a8e50482dd31c61e0f36c8411ad48955dd6530d928240c912332db450f" name="a8202057a8e50482dd31c61e0f36c8411ad48955dd6530d928240c912332db450f"></a>kRecordIn&#160;</td><td class="fielddoc"><p>Inclusive record timecode. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="a8202057a8e50482dd31c61e0f36c8411ada0dda1d6a6ff6e63864afb7a028cbb6" name="a8202057a8e50482dd31c61e0f36c8411ada0dda1d6a6ff6e63864afb7a028cbb6"></a>kRecordOut&#160;</td><td class="fielddoc"><p>Exclusive record timecode. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="a8202057a8e50482dd31c61e0f36c8411a7dcc4622bc059e993b67e3a34788959d" name="a8202057a8e50482dd31c61e0f36c8411a7dcc4622bc059e993b67e3a34788959d"></a>kDuration&#160;</td><td class="fielddoc"><p>Record duration in frames. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="a8202057a8e50482dd31c61e0f36c8411a211eb4d2c6c97e5d87bb3208a48d7c11" name="a8202057a8e50482dd31c61e0f36c8411a211eb4d2c6c97e5d87bb3208a48d7c11"></a>kClipName&#160;</td><td class="fielddoc"><p>Imported clip name. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="a8202057a8e50482dd31c61e0f36c8411a634606a16f62b39964a51a45d1696dd3" name="a8202057a8e50482dd31c61e0f36c8411a634606a16f62b39964a51a45d1696dd3"></a>kSourceFile&#160;</td><td class="fielddoc"><p>Imported source filename. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="a8202057a8e50482dd31c61e0f36c8411a8a531c1d62341ca4bc39616ff0d58bdf" name="a8202057a8e50482dd31c61e0f36c8411a8a531c1d62341ca4bc39616ff0d58bdf"></a>kComments&#160;</td><td class="fielddoc"><p>Human-authored comments. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="a8202057a8e50482dd31c61e0f36c8411ae21d627814fef31491925245502864ac" name="a8202057a8e50482dd31c61e0f36c8411ae21d627814fef31491925245502864ac"></a>kSourceLine&#160;</td><td class="fielddoc"><p>Original source line number. </p>
+</td></tr>
+</table>
+
+<p class="definition">Definition at line <a class="el" href="timeline__projection_8hpp_source.html#l00011">11</a> of file <a class="el" href="timeline__projection_8hpp_source.html">timeline_projection.hpp</a>.</p>
+
+</div>
+</div>
 <a id="a9504485b8c1ece998301a61535b6e15c" name="a9504485b8c1ece998301a61535b6e15c"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a9504485b8c1ece998301a61535b6e15c">&#9670;&#160;</a></span>TrackKind</h2>
 
@@ -622,6 +720,65 @@ std::string_view&#160;</td><td class="memItemRight" valign="bottom"><b>Version</
 </table>
 
 <p class="definition">Definition at line <a class="el" href="editorial__timeline_8hpp_source.html#l00093">93</a> of file <a class="el" href="editorial__timeline_8hpp_source.html">editorial_timeline.hpp</a>.</p>
+
+</div>
+</div>
+<h2 class="groupheader">Function Documentation</h2>
+<a id="a870a4bc8f453085a97f2aff9cb3ad256" name="a870a4bc8f453085a97f2aff9cb3ad256"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a870a4bc8f453085a97f2aff9cb3ad256">&#9670;&#160;</a></span>DefaultTimelineEventProjection()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::span&lt; const <a class="el" href="namespaceedit__atlas_1_1core.html#a8202057a8e50482dd31c61e0f36c8411">TimelineEventField</a> &gt; edit_atlas::core::DefaultTimelineEventProjection </td>
+          <td>(</td>
+          <td class="paramtype">void&#160;</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Returns every timeline event field in the default export order. </p>
+<p>The returned view has static storage duration. </p>
+
+</div>
+</div>
+<a id="a01840176fc0140143ad91aa209c7ac53" name="a01840176fc0140143ad91aa209c7ac53"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a01840176fc0140143ad91aa209c7ac53">&#9670;&#160;</a></span>TimelineEventFieldIdentifier()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::string_view edit_atlas::core::TimelineEventFieldIdentifier </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespaceedit__atlas_1_1core.html#a8202057a8e50482dd31c61e0f36c8411">TimelineEventField</a>&#160;</td>
+          <td class="paramname"><em>field</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Returns the stable lowercase identifier for <code>field</code>. </p>
+<p>The returned view has static storage duration. An unknown enum value returns an empty view. </p>
 
 </div>
 </div>

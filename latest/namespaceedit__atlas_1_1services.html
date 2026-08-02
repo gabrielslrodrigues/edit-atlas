@@ -171,10 +171,14 @@ Typedefs</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="enum-members" name="enum-members"></a>
 Enumerations</h2></td></tr>
-<tr class="memitem:a338ac576f91351f847c8cd38a102da36" id="r_a338ac576f91351f847c8cd38a102da36"><td class="memItemLeft" align="right" valign="top">enum class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceedit__atlas_1_1services.html#a338ac576f91351f847c8cd38a102da36">DocumentExportFailureKind</a> { <a class="el" href="namespaceedit__atlas_1_1services.html#a338ac576f91351f847c8cd38a102da36a797ffa4b2d6944dedd466a142de3368b">kExportFailed</a>
+<tr class="memitem:a338ac576f91351f847c8cd38a102da36" id="r_a338ac576f91351f847c8cd38a102da36"><td class="memItemLeft" align="right" valign="top">enum class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceedit__atlas_1_1services.html#a338ac576f91351f847c8cd38a102da36">DocumentExportFailureKind</a> { <br />
+&#160;&#160;<a class="el" href="namespaceedit__atlas_1_1services.html#a338ac576f91351f847c8cd38a102da36a6c4ae9ad285a625b8bfdc0a62e289f6e">kInvalidRequest</a>
+, <a class="el" href="namespaceedit__atlas_1_1services.html#a338ac576f91351f847c8cd38a102da36a797ffa4b2d6944dedd466a142de3368b">kExportFailed</a>
 , <a class="el" href="namespaceedit__atlas_1_1services.html#a338ac576f91351f847c8cd38a102da36ab3b7537cd7b0f220470f425ede4da849">kDestinationExists</a>
 , <a class="el" href="namespaceedit__atlas_1_1services.html#a338ac576f91351f847c8cd38a102da36a4e22546b01e2a5632696a9c9a2b30e19">kWriteFailed</a>
-, <a class="el" href="namespaceedit__atlas_1_1services.html#a338ac576f91351f847c8cd38a102da36a6fbfa23b9854d5c9c5713236a7eac3bf">kCommitFailed</a>
+, <br />
+&#160;&#160;<a class="el" href="namespaceedit__atlas_1_1services.html#a338ac576f91351f847c8cd38a102da36a6fbfa23b9854d5c9c5713236a7eac3bf">kCommitFailed</a>
+<br />
  }</td></tr>
 <tr class="memdesc:a338ac576f91351f847c8cd38a102da36"><td class="mdescLeft">&#160;</td><td class="mdescRight">Identifies the stage at which exporting a document failed.  <a href="namespaceedit__atlas_1_1services.html#a338ac576f91351f847c8cd38a102da36">More...</a><br /></td></tr>
 <tr class="separator:a338ac576f91351f847c8cd38a102da36"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -237,7 +241,7 @@ Functions</h2></td></tr>
 
 <p>Either a committed export receipt or a presentation-neutral failure. </p>
 
-<p class="definition">Definition at line <a class="el" href="document__export__service_8hpp_source.html#l00063">63</a> of file <a class="el" href="document__export__service_8hpp_source.html">document_export_service.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="document__export__service_8hpp_source.html#l00072">72</a> of file <a class="el" href="document__export__service_8hpp_source.html">document_export_service.hpp</a>.</p>
 
 </div>
 </div>
@@ -336,7 +340,9 @@ Functions</h2></td></tr>
 
 <p>Identifies the stage at which exporting a document failed. </p>
 <table class="fieldtable">
-<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="a338ac576f91351f847c8cd38a102da36a797ffa4b2d6944dedd466a142de3368b" name="a338ac576f91351f847c8cd38a102da36a797ffa4b2d6944dedd466a142de3368b"></a>kExportFailed&#160;</td><td class="fielddoc"><p>The selected exporter failed to produce an artifact. </p>
+<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="a338ac576f91351f847c8cd38a102da36a6c4ae9ad285a625b8bfdc0a62e289f6e" name="a338ac576f91351f847c8cd38a102da36a6c4ae9ad285a625b8bfdc0a62e289f6e"></a>kInvalidRequest&#160;</td><td class="fielddoc"><p>The request contains no fields or repeats an event field. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="a338ac576f91351f847c8cd38a102da36a797ffa4b2d6944dedd466a142de3368b" name="a338ac576f91351f847c8cd38a102da36a797ffa4b2d6944dedd466a142de3368b"></a>kExportFailed&#160;</td><td class="fielddoc"><p>The selected exporter failed to produce an artifact. </p>
 </td></tr>
 <tr><td class="fieldname"><a id="a338ac576f91351f847c8cd38a102da36ab3b7537cd7b0f220470f425ede4da849" name="a338ac576f91351f847c8cd38a102da36ab3b7537cd7b0f220470f425ede4da849"></a>kDestinationExists&#160;</td><td class="fielddoc"><p>The destination exists and replacement was not authorized. </p>
 </td></tr>
@@ -346,7 +352,7 @@ Functions</h2></td></tr>
 </td></tr>
 </table>
 
-<p class="definition">Definition at line <a class="el" href="document__export__service_8hpp_source.html#l00031">31</a> of file <a class="el" href="document__export__service_8hpp_source.html">document_export_service.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="document__export__service_8hpp_source.html#l00038">38</a> of file <a class="el" href="document__export__service_8hpp_source.html">document_export_service.hpp</a>.</p>
 
 </div>
 </div>

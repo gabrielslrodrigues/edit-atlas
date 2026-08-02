@@ -84,11 +84,33 @@ var namespaceedit__atlas_1_1core =
       [ "kMismatchedMode", "namespaceedit__atlas_1_1core.html#a13a4eaa410bf0f06432c2c4a8989b6e5a73de47d6677be21d776c2929c7e8a3e3", null ],
       [ "kEndBeforeStart", "namespaceedit__atlas_1_1core.html#a13a4eaa410bf0f06432c2c4a8989b6e5af6cb0fe790aff21e89ed769ac4de4450", null ]
     ] ],
+    [ "TimelineEventField", "namespaceedit__atlas_1_1core.html#a8202057a8e50482dd31c61e0f36c8411", [
+      [ "kEventIdentifier", "namespaceedit__atlas_1_1core.html#a8202057a8e50482dd31c61e0f36c8411a5ee6f8647b008eed1cd49fe6851f561c", null ],
+      [ "kReel", "namespaceedit__atlas_1_1core.html#a8202057a8e50482dd31c61e0f36c8411ab2c1da196107285d9a6bfa45433c3411", null ],
+      [ "kTrackKind", "namespaceedit__atlas_1_1core.html#a8202057a8e50482dd31c61e0f36c8411a8a5248cdc856177ca071cf95a7962ad9", null ],
+      [ "kTrackIdentifier", "namespaceedit__atlas_1_1core.html#a8202057a8e50482dd31c61e0f36c8411a2d2ba14f33e51f326b34f35f4c954f38", null ],
+      [ "kEditType", "namespaceedit__atlas_1_1core.html#a8202057a8e50482dd31c61e0f36c8411a6904222c04ad060b83592d537ded2e9c", null ],
+      [ "kTransitionIdentifier", "namespaceedit__atlas_1_1core.html#a8202057a8e50482dd31c61e0f36c8411a2aabdcc30e923ce53829a33f2c46dcb6", null ],
+      [ "kTransitionDuration", "namespaceedit__atlas_1_1core.html#a8202057a8e50482dd31c61e0f36c8411a936a74cd6cd4486b64ccb9dd3dffbe31", null ],
+      [ "kSourceIn", "namespaceedit__atlas_1_1core.html#a8202057a8e50482dd31c61e0f36c8411ad8691aca9b3e0e9a830927153f71b7ec", null ],
+      [ "kSourceOut", "namespaceedit__atlas_1_1core.html#a8202057a8e50482dd31c61e0f36c8411afd9c91dcd454e109bcc4b6af841c1f69", null ],
+      [ "kRecordIn", "namespaceedit__atlas_1_1core.html#a8202057a8e50482dd31c61e0f36c8411ad48955dd6530d928240c912332db450f", null ],
+      [ "kRecordOut", "namespaceedit__atlas_1_1core.html#a8202057a8e50482dd31c61e0f36c8411ada0dda1d6a6ff6e63864afb7a028cbb6", null ],
+      [ "kDuration", "namespaceedit__atlas_1_1core.html#a8202057a8e50482dd31c61e0f36c8411a7dcc4622bc059e993b67e3a34788959d", null ],
+      [ "kClipName", "namespaceedit__atlas_1_1core.html#a8202057a8e50482dd31c61e0f36c8411a211eb4d2c6c97e5d87bb3208a48d7c11", null ],
+      [ "kSourceFile", "namespaceedit__atlas_1_1core.html#a8202057a8e50482dd31c61e0f36c8411a634606a16f62b39964a51a45d1696dd3", null ],
+      [ "kComments", "namespaceedit__atlas_1_1core.html#a8202057a8e50482dd31c61e0f36c8411a8a531c1d62341ca4bc39616ff0d58bdf", null ],
+      [ "kSourceLine", "namespaceedit__atlas_1_1core.html#a8202057a8e50482dd31c61e0f36c8411ae21d627814fef31491925245502864ac", null ]
+    ] ],
     [ "TrackKind", "namespaceedit__atlas_1_1core.html#a9504485b8c1ece998301a61535b6e15c", [
       [ "kVideo", "namespaceedit__atlas_1_1core.html#a9504485b8c1ece998301a61535b6e15ca78dd622ec44a8351a4b9ea2bab2337b3", null ],
       [ "kAudio", "namespaceedit__atlas_1_1core.html#a9504485b8c1ece998301a61535b6e15ca5c3e0713c17a825a88ee668ce737fa45", null ],
       [ "kData", "namespaceedit__atlas_1_1core.html#a9504485b8c1ece998301a61535b6e15ca0ac87546e8b36fcb3034694d4d909ea3", null ],
       [ "kOther", "namespaceedit__atlas_1_1core.html#a9504485b8c1ece998301a61535b6e15ca341b8a8f03cf33821c46aa5c3aad4b7a", null ]
     ] ],
+    [ "DefaultTimelineEventProjection", "namespaceedit__atlas_1_1core.html#a870a4bc8f453085a97f2aff9cb3ad256", null ],
+    [ "IsValidTimelineEventProjection", "namespaceedit__atlas_1_1core.html#abacec32d25d90bd888fd71ad75070ba2", null ],
+    [ "TimelineEventFieldFromIdentifier", "namespaceedit__atlas_1_1core.html#ac34b8b151021221f6d0ed3786c72d07c", null ],
+    [ "TimelineEventFieldIdentifier", "namespaceedit__atlas_1_1core.html#a01840176fc0140143ad91aa209c7ac53", null ],
     [ "Version", "namespaceedit__atlas_1_1core.html#a2bdec25002f14591add35d69a97e8362", null ]
 ];

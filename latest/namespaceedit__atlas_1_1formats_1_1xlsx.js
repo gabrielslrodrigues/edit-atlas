@@ -1,6 +1,7 @@
 var namespaceedit__atlas_1_1formats_1_1xlsx =
 [
     [ "diagnostic_code", "namespaceedit__atlas_1_1formats_1_1xlsx_1_1diagnostic__code.html", [
+      [ "kInvalidEventProjection", "namespaceedit__atlas_1_1formats_1_1xlsx_1_1diagnostic__code.html#aec871c5e092af625ba0f7dff665ca889", null ],
       [ "kWorkbookCreationFailed", "namespaceedit__atlas_1_1formats_1_1xlsx_1_1diagnostic__code.html#a150ab79a0ff3f918fb504f2957251fc8", null ],
       [ "kWorkbookWriteFailed", "namespaceedit__atlas_1_1formats_1_1xlsx_1_1diagnostic__code.html#a2db57f35638fce668b3abdb231fcf40d", null ]
     ] ],

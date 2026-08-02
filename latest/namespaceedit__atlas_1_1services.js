@@ -21,6 +21,7 @@ var namespaceedit__atlas_1_1services =
     [ "TimelineFilterCondition", "namespaceedit__atlas_1_1services.html#a1b72f32b86fa278303665df2b69bb2f5", null ],
     [ "TimelineFilterResult", "namespaceedit__atlas_1_1services.html#ab697ed6d82e68747bc181eed79e8dfd0", null ],
     [ "DocumentExportFailureKind", "namespaceedit__atlas_1_1services.html#a338ac576f91351f847c8cd38a102da36", [
+      [ "kInvalidRequest", "namespaceedit__atlas_1_1services.html#a338ac576f91351f847c8cd38a102da36a6c4ae9ad285a625b8bfdc0a62e289f6e", null ],
       [ "kExportFailed", "namespaceedit__atlas_1_1services.html#a338ac576f91351f847c8cd38a102da36a797ffa4b2d6944dedd466a142de3368b", null ],
       [ "kDestinationExists", "namespaceedit__atlas_1_1services.html#a338ac576f91351f847c8cd38a102da36ab3b7537cd7b0f220470f425ede4da849", null ],
       [ "kWriteFailed", "namespaceedit__atlas_1_1services.html#a338ac576f91351f847c8cd38a102da36a4e22546b01e2a5632696a9c9a2b30e19", null ],

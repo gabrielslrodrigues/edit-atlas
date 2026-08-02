@@ -13,5 +13,6 @@ var searchData=
   ['importresult_10',['ImportResult',['../structedit__atlas_1_1core_1_1ImportResult.html',1,'edit_atlas::core']]],
   ['initializeapplicationlogging_11',['InitializeApplicationLogging',['../namespaceedit__atlas_1_1support.html#a57375ce28cc6e47f336418a64c9152a6',1,'edit_atlas::support']]],
   ['interface_12',['Command-line interface',['../md_docs_2cli.html',1,'']]],
-  ['isapplicationlogfilename_13',['IsApplicationLogFilename',['../namespaceedit__atlas_1_1support.html#ac7ef298b88f3598deb466cc110d2263d',1,'edit_atlas::support']]]
+  ['isapplicationlogfilename_13',['IsApplicationLogFilename',['../namespaceedit__atlas_1_1support.html#ac7ef298b88f3598deb466cc110d2263d',1,'edit_atlas::support']]],
+  ['isvalidtimelineeventprojection_14',['IsValidTimelineEventProjection',['../namespaceedit__atlas_1_1core.html#abacec32d25d90bd888fd71ad75070ba2',1,'edit_atlas::core']]]
 ];

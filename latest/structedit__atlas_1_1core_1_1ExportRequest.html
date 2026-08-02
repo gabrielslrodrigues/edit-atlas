@@ -105,7 +105,7 @@ $(document).ready(function(){initNavTree('structedit__atlas_1_1core_1_1ExportReq
 <div class="dynheader">
 Collaboration diagram for edit_atlas::core::ExportRequest:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="structedit__atlas_1_1core_1_1ExportRequest__coll__graph.svg" width="2342" height="474"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="structedit__atlas_1_1core_1_1ExportRequest__coll__graph.svg" width="2399" height="548"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 <center><span class="legend">[<a target="top" href="graph_legend.html">legend</a>]</span></center></div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
@@ -113,6 +113,9 @@ Public Attributes</h2></td></tr>
 <tr class="memitem:a7a8272a4b3763be78a5edbf568ca8382" id="r_a7a8272a4b3763be78a5edbf568ca8382"><td class="memItemLeft" align="right" valign="top">const <a class="el" href="structedit__atlas_1_1core_1_1TimelineDocument.html">TimelineDocument</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structedit__atlas_1_1core_1_1ExportRequest.html#a7a8272a4b3763be78a5edbf568ca8382">document</a></td></tr>
 <tr class="memdesc:a7a8272a4b3763be78a5edbf568ca8382"><td class="mdescLeft">&#160;</td><td class="mdescRight">The document to export; the caller retains ownership.  <br /></td></tr>
 <tr class="separator:a7a8272a4b3763be78a5edbf568ca8382"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af464af8cad8f3fcf37045cf7c162d850" id="r_af464af8cad8f3fcf37045cf7c162d850"><td class="memItemLeft" align="right" valign="top">std::vector&lt; <a class="el" href="namespaceedit__atlas_1_1core.html#a8202057a8e50482dd31c61e0f36c8411">TimelineEventField</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structedit__atlas_1_1core_1_1ExportRequest.html#af464af8cad8f3fcf37045cf7c162d850">event_projection</a></td></tr>
+<tr class="memdesc:af464af8cad8f3fcf37045cf7c162d850"><td class="mdescLeft">&#160;</td><td class="mdescRight">Ordered, unique event fields included in the exported representation.  <br /></td></tr>
+<tr class="separator:af464af8cad8f3fcf37045cf7c162d850"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a6edd97ddf31631666ad2a5477b8a4735" id="r_a6edd97ddf31631666ad2a5477b8a4735"><td class="memItemLeft" align="right" valign="top">std::vector&lt; <a class="el" href="structedit__atlas_1_1core_1_1MetadataEntry.html">MetadataEntry</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structedit__atlas_1_1core_1_1ExportRequest.html#a6edd97ddf31631666ad2a5477b8a4735">options</a></td></tr>
 <tr class="memdesc:a6edd97ddf31631666ad2a5477b8a4735"><td class="mdescLeft">&#160;</td><td class="mdescRight">Format-specific options expressed as stable metadata entries.  <br /></td></tr>
 <tr class="separator:a6edd97ddf31631666ad2a5477b8a4735"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -120,7 +123,7 @@ Public Attributes</h2></td></tr>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>A document and format-specific options passed to an exporter. </p>
 
-<p class="definition">Definition at line <a class="el" href="format_8hpp_source.html#l00077">77</a> of file <a class="el" href="format_8hpp_source.html">format.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="format_8hpp_source.html#l00078">78</a> of file <a class="el" href="format_8hpp_source.html">format.hpp</a>.</p>
 </div><h2 class="groupheader">Member Data Documentation</h2>
 <a id="a7a8272a4b3763be78a5edbf568ca8382" name="a7a8272a4b3763be78a5edbf568ca8382"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a7a8272a4b3763be78a5edbf568ca8382">&#9670;&#160;</a></span>document</h2>
@@ -136,7 +139,31 @@ Public Attributes</h2></td></tr>
 
 <p>The document to export; the caller retains ownership. </p>
 
-<p class="definition">Definition at line <a class="el" href="format_8hpp_source.html#l00079">79</a> of file <a class="el" href="format_8hpp_source.html">format.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="format_8hpp_source.html#l00080">80</a> of file <a class="el" href="format_8hpp_source.html">format.hpp</a>.</p>
+
+</div>
+</div>
+<a id="af464af8cad8f3fcf37045cf7c162d850" name="af464af8cad8f3fcf37045cf7c162d850"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af464af8cad8f3fcf37045cf7c162d850">&#9670;&#160;</a></span>event_projection</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::vector&lt;<a class="el" href="namespaceedit__atlas_1_1core.html#a8202057a8e50482dd31c61e0f36c8411">TimelineEventField</a>&gt; edit_atlas::core::ExportRequest::event_projection</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<b>Initial value:</b><div class="fragment"><div class="line">{</div>
+<div class="line">        <a class="code hl_function" href="namespaceedit__atlas_1_1core.html#a870a4bc8f453085a97f2aff9cb3ad256">DefaultTimelineEventProjection</a>().begin(),</div>
+<div class="line">        <a class="code hl_function" href="namespaceedit__atlas_1_1core.html#a870a4bc8f453085a97f2aff9cb3ad256">DefaultTimelineEventProjection</a>().end(),</div>
+<div class="line">    }</div>
+<div class="ttc" id="anamespaceedit__atlas_1_1core_html_a870a4bc8f453085a97f2aff9cb3ad256"><div class="ttname"><a href="namespaceedit__atlas_1_1core.html#a870a4bc8f453085a97f2aff9cb3ad256">edit_atlas::core::DefaultTimelineEventProjection</a></div><div class="ttdeci">std::span&lt; const TimelineEventField &gt; DefaultTimelineEventProjection(void) noexcept</div><div class="ttdoc">Returns every timeline event field in the default export order.</div></div>
+</div><!-- fragment -->
+<p>Ordered, unique event fields included in the exported representation. </p>
+<p>Defaults to every supported field in the standard report order. </p>
+
+<p class="definition">Definition at line <a class="el" href="format_8hpp_source.html#l00084">84</a> of file <a class="el" href="format_8hpp_source.html">format.hpp</a>.</p>
 
 </div>
 </div>
@@ -154,7 +181,7 @@ Public Attributes</h2></td></tr>
 
 <p>Format-specific options expressed as stable metadata entries. </p>
 
-<p class="definition">Definition at line <a class="el" href="format_8hpp_source.html#l00082">82</a> of file <a class="el" href="format_8hpp_source.html">format.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="format_8hpp_source.html#l00090">90</a> of file <a class="el" href="format_8hpp_source.html">format.hpp</a>.</p>
 
 </div>
 </div>

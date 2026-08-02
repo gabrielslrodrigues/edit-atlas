@@ -5,5 +5,6 @@ var dir_ecc3a47ee8cf953abbd53a59fdeecb98 =
     [ "format.hpp", "format_8hpp_source.html", null ],
     [ "format_registry.hpp", "format__registry_8hpp_source.html", null ],
     [ "timecode.hpp", "timecode_8hpp_source.html", null ],
+    [ "timeline_projection.hpp", "timeline__projection_8hpp_source.html", null ],
     [ "version.hpp", "version_8hpp_source.html", null ]
 ];
