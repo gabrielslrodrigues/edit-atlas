@@ -4,6 +4,7 @@
 #include <edit_atlas/core/document_pipeline.hpp>
 #include <edit_atlas/core/editorial_timeline.hpp>
 #include <edit_atlas/core/format_registry.hpp>
+#include <edit_atlas/core/timeline_projection.hpp>
 
 #include <expected>
 #include <filesystem>
@@ -21,6 +22,12 @@ struct ExportDocumentRequest final {
     std::string format_identifier;
     /// The complete document to export.
     core::TimelineDocument document;
+    /// Ordered, unique event fields included in the exported representation.
+    /// Defaults to every supported field in the standard report order.
+    std::vector<core::TimelineEventField> event_projection{
+        core::DefaultTimelineEventProjection().begin(),
+        core::DefaultTimelineEventProjection().end(),
+    };
     /// Format-specific export options.
     std::vector<core::MetadataEntry> options;
     /// Whether an existing destination may be atomically replaced.
@@ -29,6 +36,8 @@ struct ExportDocumentRequest final {
 
 /// Identifies the stage at which exporting a document failed.
 enum class DocumentExportFailureKind {
+    /// The request contains no fields or repeats an event field.
+    kInvalidRequest,
     /// The selected exporter failed to produce an artifact.
     kExportFailed,
     /// The destination exists and replacement was not authorized.

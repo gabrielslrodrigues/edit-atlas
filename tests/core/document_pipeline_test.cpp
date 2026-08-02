@@ -3,6 +3,7 @@
 #include <edit_atlas/core/format.hpp>
 #include <edit_atlas/core/format_registry.hpp>
 #include <edit_atlas/core/timecode.hpp>
+#include <edit_atlas/core/timeline_projection.hpp>
 
 #include "format_test_doubles.hpp"
 
@@ -239,7 +240,16 @@ TEST(DocumentPipelineTest, ExportsWithARegisteredFormat) {
     const auto document = Document();
 
     const auto result = pipeline.Export(
-        ExportRequest{.document = document, .options = {}}, "xlsx");
+        ExportRequest{
+            .document = document,
+            .event_projection =
+                {
+                    DefaultTimelineEventProjection().begin(),
+                    DefaultTimelineEventProjection().end(),
+                },
+            .options = {},
+        },
+        "xlsx");
 
     ASSERT_TRUE(result.artifact.has_value());
     EXPECT_EQ(result.artifact->suggested_extension, "txt");
@@ -252,7 +262,16 @@ TEST(DocumentPipelineTest, ReportsUnknownExportFormats) {
     const auto document = Document();
 
     const auto result = pipeline.Export(
-        ExportRequest{.document = document, .options = {}}, "missing");
+        ExportRequest{
+            .document = document,
+            .event_projection =
+                {
+                    DefaultTimelineEventProjection().begin(),
+                    DefaultTimelineEventProjection().end(),
+                },
+            .options = {},
+        },
+        "missing");
 
     EXPECT_FALSE(result.artifact.has_value());
     EXPECT_TRUE(HasDiagnostic(result.diagnostics,
@@ -269,7 +288,16 @@ TEST(DocumentPipelineTest, ContainsExporterExceptions) {
     const auto document = Document();
 
     const auto result = pipeline.Export(
-        ExportRequest{.document = document, .options = {}}, "xlsx");
+        ExportRequest{
+            .document = document,
+            .event_projection =
+                {
+                    DefaultTimelineEventProjection().begin(),
+                    DefaultTimelineEventProjection().end(),
+                },
+            .options = {},
+        },
+        "xlsx");
 
     EXPECT_FALSE(result.artifact.has_value());
     EXPECT_TRUE(HasDiagnostic(result.diagnostics,
@@ -284,7 +312,16 @@ TEST(DocumentPipelineTest, RejectsAnExporterResultWithoutArtifactOrError) {
     const auto document = Document();
 
     const auto result = pipeline.Export(
-        ExportRequest{.document = document, .options = {}}, "xlsx");
+        ExportRequest{
+            .document = document,
+            .event_projection =
+                {
+                    DefaultTimelineEventProjection().begin(),
+                    DefaultTimelineEventProjection().end(),
+                },
+            .options = {},
+        },
+        "xlsx");
 
     EXPECT_FALSE(result.artifact.has_value());
     EXPECT_TRUE(

@@ -194,7 +194,9 @@ Spreadsheet export can follow the active interface language or explicitly use
 English or Brazilian Portuguese. The selected language changes workbook sheet
 names, headings, generated labels, and document properties. Imported titles,
 identifiers, comments, file paths, timecodes, metadata keys, and diagnostic
-details remain unchanged, while numeric values remain numeric cells.
+details remain unchanged, while numeric values remain numeric cells. Before
+choosing a destination, the export dialog also lets users include, exclude, and
+reorder event columns. All current columns are selected by default.
 
 Open a CMX 3600 EDL with **File → Open Timeline**, the standard open shortcut,
 or by dropping the file onto the window. Non-drop-frame EDLs that omit their

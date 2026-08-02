@@ -66,6 +66,23 @@ edit-atlas-cli convert \
 These flags affect the optional summary and diagnostics sheets; the event
 report remains present.
 
+Choose an ordered subset of event columns with their stable identifiers:
+
+```sh
+edit-atlas-cli convert \
+  --fps 24 \
+  --columns event,reel,clip-name,comments \
+  timeline.edl \
+  report.xlsx
+```
+
+Available identifiers are `event`, `reel`, `track-kind`, `track`, `edit-type`,
+`transition`, `transition-frames`, `source-in`, `source-out`, `record-in`,
+`record-out`, `duration-frames`, `clip-name`, `source-file`, `comments`, and
+`source-line`. The default includes all columns in that order. Identifiers are
+always English, lowercase integration values regardless of workbook language.
+Each identifier may occur only once.
+
 ## Existing destinations
 
 Conversion never overwrites an existing destination implicitly. If

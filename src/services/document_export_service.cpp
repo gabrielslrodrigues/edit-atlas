@@ -137,6 +137,16 @@ DocumentExportService::DocumentExportService(
 
 ExportDocumentResult
 DocumentExportService::ExportDocument(ExportDocumentRequest request) const {
+    if (!core::IsValidTimelineEventProjection(request.event_projection)) {
+        return std::unexpected(DocumentExportFailure{
+            .path = std::move(request.path),
+            .kind = DocumentExportFailureKind::kInvalidRequest,
+            .filesystem_error =
+                std::make_error_code(std::errc::invalid_argument),
+            .diagnostics = {},
+        });
+    }
+
     std::error_code exists_error;
     const auto destination_exists =
         std::filesystem::exists(request.path, exists_error);
@@ -153,6 +163,7 @@ DocumentExportService::ExportDocument(ExportDocumentRequest request) const {
     auto export_result = pipeline_.Export(
         core::ExportRequest{
             .document = request.document,
+            .event_projection = std::move(request.event_projection),
             .options = std::move(request.options),
         },
         request.format_identifier);

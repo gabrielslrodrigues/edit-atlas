@@ -3,6 +3,7 @@
 #include "diagnostic_output.hpp"
 
 #include <edit_atlas/core/editorial_timeline.hpp>
+#include <edit_atlas/core/timeline_projection.hpp>
 #include <edit_atlas/core/version.hpp>
 #include <edit_atlas/formats/cmx3600/cmx3600_importer.hpp>
 #include <edit_atlas/formats/xlsx/xlsx_exporter.hpp>
@@ -31,6 +32,7 @@ struct Options final {
     std::string output;
     std::optional<std::string> frame_rate;
     std::string workbook_language = "pt-BR";
+    std::optional<std::string> columns;
     bool omit_timeline_sheet = false;
     bool omit_diagnostics_sheet = false;
     bool replace_existing = false;
@@ -58,6 +60,10 @@ struct Options final {
                      "Workbook language")
         ->check(CLI::IsMember({"en", "pt-BR"}))
         ->capture_default_str()
+        ->multi_option_policy(CLI::MultiOptionPolicy::Throw);
+    convert
+        ->add_option("--columns", options.columns,
+                     "Ordered event columns, separated by commas")
         ->multi_option_policy(CLI::MultiOptionPolicy::Throw);
     convert->add_flag("--no-timeline-sheet", options.omit_timeline_sheet,
                       "Omit the timeline summary sheet");
@@ -146,6 +152,8 @@ ImportFailureCode(services::DocumentImportFailureKind kind) {
 [[nodiscard]] std::string
 ExportFailureMessage(const services::DocumentExportFailure &failure) {
     switch (failure.kind) {
+    case services::DocumentExportFailureKind::kInvalidRequest:
+        return "The XLSX report request is invalid";
     case services::DocumentExportFailureKind::kExportFailed:
         return "The XLSX report could not be created";
     case services::DocumentExportFailureKind::kDestinationExists:
@@ -163,6 +171,8 @@ ExportFailureMessage(const services::DocumentExportFailure &failure) {
 [[nodiscard]] std::string
 ExportFailureCode(services::DocumentExportFailureKind kind) {
     switch (kind) {
+    case services::DocumentExportFailureKind::kInvalidRequest:
+        return "cli.output.invalid_request";
     case services::DocumentExportFailureKind::kDestinationExists:
         return "cli.output.destination_exists";
     case services::DocumentExportFailureKind::kWriteFailed:
@@ -206,8 +216,46 @@ ExportOptions(const Options &options) {
     };
 }
 
+[[nodiscard]] std::optional<std::vector<core::TimelineEventField>>
+EventProjection(const Options &options) {
+    if (!options.columns.has_value()) {
+        return std::vector<core::TimelineEventField>{
+            core::DefaultTimelineEventProjection().begin(),
+            core::DefaultTimelineEventProjection().end(),
+        };
+    }
+    std::vector<core::TimelineEventField> projection;
+    auto identifiers = std::string_view{*options.columns};
+    while (!identifiers.empty()) {
+        const auto separator = identifiers.find(',');
+        const auto identifier = identifiers.substr(0, separator);
+        const auto field = core::TimelineEventFieldFromIdentifier(identifier);
+        if (!field.has_value()) {
+            return std::nullopt;
+        }
+        projection.push_back(*field);
+        if (separator == std::string_view::npos) {
+            break;
+        }
+        if (separator + 1 == identifiers.size()) {
+            return std::nullopt;
+        }
+        identifiers.remove_prefix(separator + 1);
+    }
+    if (!core::IsValidTimelineEventProjection(projection)) {
+        return std::nullopt;
+    }
+    return projection;
+}
+
 [[nodiscard]] ExitCode Convert(const Options &options, std::ostream &output,
                                std::ostream &error) {
+    auto event_projection = EventProjection(options);
+    if (!event_projection.has_value()) {
+        error << "--columns must contain comma-separated unique column "
+                 "identifiers\n";
+        return ExitCode::kUsageError;
+    }
     auto registry = services::CreateBuiltInFormatRegistry();
     if (!registry.has_value()) {
         constexpr std::string_view kMessage =
@@ -260,6 +308,7 @@ ExportOptions(const Options &options) {
             .path = PathFromUtf8(options.output),
             .format_identifier = std::string{formats::xlsx::kFormatIdentifier},
             .document = std::move(import_result->document),
+            .event_projection = std::move(*event_projection),
             .options = ExportOptions(options),
             .replace_existing = options.replace_existing,
         });

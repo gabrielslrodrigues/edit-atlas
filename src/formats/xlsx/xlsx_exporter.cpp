@@ -4,6 +4,7 @@
 
 #include <edit_atlas/core/editorial_timeline.hpp>
 #include <edit_atlas/core/timecode.hpp>
+#include <edit_atlas/core/timeline_projection.hpp>
 
 #include <xlsxwriter.h>
 
@@ -14,6 +15,7 @@
 #include <cstdint>
 #include <cstdlib>
 #include <ctime>
+#include <span>
 #include <string>
 #include <string_view>
 #include <type_traits>
@@ -262,66 +264,159 @@ void WriteHeader(WriteStatus &status, lxw_worksheet *worksheet,
 }
 
 void ConfigureEventsSheet(WriteStatus &status, lxw_worksheet *worksheet,
+                          std::span<const core::TimelineEventField> projection,
                           lxw_format *wrapped_format, std::size_t event_count) {
     worksheet_freeze_panes(worksheet, 1, 0);
-    status.Record(worksheet_set_column(worksheet, 0, 1, 12.0, nullptr));
-    status.Record(worksheet_set_column(worksheet, 2, 4, 14.0, nullptr));
-    status.Record(worksheet_set_column(worksheet, 5, 6, 18.0, nullptr));
-    status.Record(worksheet_set_column(worksheet, 7, 10, 14.0, nullptr));
-    status.Record(worksheet_set_column(worksheet, 11, 11, 16.0, nullptr));
-    status.Record(
-        worksheet_set_column(worksheet, 12, 14, 32.0, wrapped_format));
-    status.Record(worksheet_set_column(worksheet, 15, 15, 12.0, nullptr));
+    for (std::size_t index = 0; index < projection.size(); ++index) {
+        const auto field = projection[index];
+        const auto column = static_cast<lxw_col_t>(index);
+        const auto wide = field == core::TimelineEventField::kClipName ||
+                          field == core::TimelineEventField::kSourceFile ||
+                          field == core::TimelineEventField::kComments;
+        const auto width = [&] {
+            switch (field) {
+            case core::TimelineEventField::kEventIdentifier:
+            case core::TimelineEventField::kReel:
+            case core::TimelineEventField::kSourceLine:
+                return 12.0;
+            case core::TimelineEventField::kTransitionIdentifier:
+            case core::TimelineEventField::kTransitionDuration:
+                return 18.0;
+            case core::TimelineEventField::kDuration:
+                return 16.0;
+            case core::TimelineEventField::kClipName:
+            case core::TimelineEventField::kSourceFile:
+            case core::TimelineEventField::kComments:
+                return 32.0;
+            case core::TimelineEventField::kTrackKind:
+            case core::TimelineEventField::kTrackIdentifier:
+            case core::TimelineEventField::kEditType:
+            case core::TimelineEventField::kSourceIn:
+            case core::TimelineEventField::kSourceOut:
+            case core::TimelineEventField::kRecordIn:
+            case core::TimelineEventField::kRecordOut:
+                return 14.0;
+            }
+            return 14.0;
+        }();
+        status.Record(worksheet_set_column(worksheet, column, column, width,
+                                           wide ? wrapped_format : nullptr));
+    }
     if (event_count > 0) {
         status.Record(worksheet_autofilter(
-            worksheet, 0, 0, static_cast<lxw_row_t>(event_count), 15));
+            worksheet, 0, 0, static_cast<lxw_row_t>(event_count),
+            static_cast<lxw_col_t>(projection.size() - 1)));
+    }
+}
+
+[[nodiscard]] std::string_view
+EventColumnText(core::TimelineEventField field,
+                const WorkbookText &text) noexcept {
+    const auto projection = core::DefaultTimelineEventProjection();
+    const auto item = std::ranges::find(projection, field);
+    if (item == projection.end()) {
+        return {};
+    }
+    return text
+        .event_columns[static_cast<std::size_t>(item - projection.begin())];
+}
+
+void WriteEventField(WriteStatus &status, lxw_worksheet *worksheet,
+                     lxw_row_t row, lxw_col_t column,
+                     core::TimelineEventField field,
+                     const core::EditEvent &event, const WorkbookText &text,
+                     lxw_format *wrapped_format) {
+    switch (field) {
+    case core::TimelineEventField::kEventIdentifier:
+        WriteString(status, worksheet, row, column, event.identifier);
+        return;
+    case core::TimelineEventField::kReel:
+        WriteString(status, worksheet, row, column, event.reel);
+        return;
+    case core::TimelineEventField::kTrackKind:
+        WriteString(status, worksheet, row, column,
+                    TrackKindText(event.track.kind, text));
+        return;
+    case core::TimelineEventField::kTrackIdentifier:
+        WriteString(status, worksheet, row, column, event.track.identifier);
+        return;
+    case core::TimelineEventField::kEditType:
+        WriteString(status, worksheet, row, column,
+                    EditTypeText(event.edit_type, text));
+        return;
+    case core::TimelineEventField::kTransitionIdentifier:
+        if (event.transition.has_value()) {
+            WriteString(status, worksheet, row, column,
+                        event.transition->identifier);
+        }
+        return;
+    case core::TimelineEventField::kTransitionDuration:
+        if (event.transition.has_value()) {
+            WriteNumber(status, worksheet, row, column,
+                        static_cast<double>(event.transition->duration_frames));
+        }
+        return;
+    case core::TimelineEventField::kSourceIn:
+        WriteString(status, worksheet, row, column,
+                    TimecodeText(event.source_range.start()));
+        return;
+    case core::TimelineEventField::kSourceOut:
+        WriteString(status, worksheet, row, column,
+                    TimecodeText(event.source_range.end_exclusive()));
+        return;
+    case core::TimelineEventField::kRecordIn:
+        WriteString(status, worksheet, row, column,
+                    TimecodeText(event.record_range.start()));
+        return;
+    case core::TimelineEventField::kRecordOut:
+        WriteString(status, worksheet, row, column,
+                    TimecodeText(event.record_range.end_exclusive()));
+        return;
+    case core::TimelineEventField::kDuration:
+        WriteNumber(status, worksheet, row, column,
+                    static_cast<double>(event.record_range.DurationInFrames()));
+        return;
+    case core::TimelineEventField::kClipName:
+        WriteString(status, worksheet, row, column,
+                    MetadataText(event.metadata, "clip_name"));
+        return;
+    case core::TimelineEventField::kSourceFile:
+        WriteString(status, worksheet, row, column,
+                    MetadataText(event.metadata, "source_file"));
+        return;
+    case core::TimelineEventField::kComments:
+        WriteString(status, worksheet, row, column, CommentText(event.comments),
+                    wrapped_format);
+        return;
+    case core::TimelineEventField::kSourceLine:
+        if (event.provenance.has_value() &&
+            event.provenance->location.line != 0) {
+            WriteNumber(status, worksheet, row, column,
+                        static_cast<double>(event.provenance->location.line));
+        }
+        return;
     }
 }
 
 void WriteEventsSheet(WriteStatus &status, lxw_worksheet *worksheet,
                       const core::TimelineDocument &document,
+                      std::span<const core::TimelineEventField> projection,
                       const WorkbookText &text, lxw_format *header_format,
                       lxw_format *wrapped_format) {
-    WriteHeader(status, worksheet, text.event_columns, header_format);
-    ConfigureEventsSheet(status, worksheet, wrapped_format,
+    for (std::size_t column = 0; column < projection.size(); ++column) {
+        WriteString(status, worksheet, 0, static_cast<lxw_col_t>(column),
+                    EventColumnText(projection[column], text), header_format);
+    }
+    ConfigureEventsSheet(status, worksheet, projection, wrapped_format,
                          document.events.size());
 
     for (std::size_t index = 0; index < document.events.size(); ++index) {
         const auto &event = document.events[index];
         const auto row = static_cast<lxw_row_t>(index + 1);
-        WriteString(status, worksheet, row, 0, event.identifier);
-        WriteString(status, worksheet, row, 1, event.reel);
-        WriteString(status, worksheet, row, 2,
-                    TrackKindText(event.track.kind, text));
-        WriteString(status, worksheet, row, 3, event.track.identifier);
-        WriteString(status, worksheet, row, 4,
-                    EditTypeText(event.edit_type, text));
-        if (event.transition.has_value()) {
-            WriteString(status, worksheet, row, 5,
-                        event.transition->identifier);
-            WriteNumber(status, worksheet, row, 6,
-                        static_cast<double>(event.transition->duration_frames));
-        }
-        WriteString(status, worksheet, row, 7,
-                    TimecodeText(event.source_range.start()));
-        WriteString(status, worksheet, row, 8,
-                    TimecodeText(event.source_range.end_exclusive()));
-        WriteString(status, worksheet, row, 9,
-                    TimecodeText(event.record_range.start()));
-        WriteString(status, worksheet, row, 10,
-                    TimecodeText(event.record_range.end_exclusive()));
-        WriteNumber(status, worksheet, row, 11,
-                    static_cast<double>(event.record_range.DurationInFrames()));
-        WriteString(status, worksheet, row, 12,
-                    MetadataText(event.metadata, "clip_name"));
-        WriteString(status, worksheet, row, 13,
-                    MetadataText(event.metadata, "source_file"));
-        WriteString(status, worksheet, row, 14, CommentText(event.comments),
-                    wrapped_format);
-        if (event.provenance.has_value() &&
-            event.provenance->location.line != 0) {
-            WriteNumber(status, worksheet, row, 15,
-                        static_cast<double>(event.provenance->location.line));
+        for (std::size_t column = 0; column < projection.size(); ++column) {
+            WriteEventField(status, worksheet, row,
+                            static_cast<lxw_col_t>(column), projection[column],
+                            event, text, wrapped_format);
         }
     }
 }
@@ -420,6 +515,15 @@ const core::FormatDescriptor &XlsxExporter::descriptor(void) const noexcept {
 
 core::ExportResult
 XlsxExporter::Export(const core::ExportRequest &request) const {
+    if (!core::IsValidTimelineEventProjection(request.event_projection)) {
+        return core::ExportResult{
+            .artifact = std::nullopt,
+            .diagnostics = {ErrorDiagnostic(
+                diagnostic_code::kInvalidEventProjection,
+                "The event projection must contain at least one unique "
+                "field.")},
+        };
+    }
     const auto &text = detail::WorkbookTextFor(LanguageOption(request.options));
     const char *output_buffer = nullptr;
     std::size_t output_size = 0;
@@ -491,8 +595,8 @@ XlsxExporter::Export(const core::ExportRequest &request) const {
     format_set_text_wrap(wrapped_format);
     format_set_align(wrapped_format, LXW_ALIGN_VERTICAL_TOP);
 
-    WriteEventsSheet(status, events, request.document, text, header_format,
-                     wrapped_format);
+    WriteEventsSheet(status, events, request.document, request.event_projection,
+                     text, header_format, wrapped_format);
     if (timeline != nullptr) {
         WriteTimelineSheet(status, timeline, request.document, text,
                            header_format);

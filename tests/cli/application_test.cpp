@@ -249,6 +249,32 @@ TEST(CliApplicationTest, AcceptsEveryExistingWorkbookOption) {
     EXPECT_NE(shared_strings->find("Edit Type"), std::string::npos);
 }
 
+TEST(CliApplicationTest, SelectsEventColumns) {
+    const TemporaryPath destination{"edit-atlas-cli-columns", ".xlsx"};
+    const auto result = RunWithArguments(
+        {"convert", "--fps=24", "--language=en", "--columns=comments,event",
+         PathToUtf8(FixturePath("mixed_tracks.edl")),
+         PathToUtf8(destination.path())});
+
+    EXPECT_EQ(result.exit_code, ExitCode::kSuccess);
+    const auto shared_strings =
+        ReadZipEntry(destination.path(), "xl/sharedStrings.xml");
+    ASSERT_TRUE(shared_strings.has_value());
+    EXPECT_NE(shared_strings->find("<t>Comments</t>"), std::string::npos);
+    EXPECT_NE(shared_strings->find("<t>Event</t>"), std::string::npos);
+    EXPECT_EQ(shared_strings->find("<t>Reel</t>"), std::string::npos);
+}
+
+TEST(CliApplicationTest, RejectsDuplicateEventColumns) {
+    const auto result = RunWithArguments(
+        {"convert", "--columns=event,event", "input.edl", "output.xlsx"});
+
+    EXPECT_EQ(result.exit_code, ExitCode::kUsageError);
+    EXPECT_TRUE(result.output.empty());
+    EXPECT_NE(result.error.find("unique column identifiers"),
+              std::string::npos);
+}
+
 TEST(CliApplicationTest, PreservesExistingDestinationWithoutForce) {
     const TemporaryPath destination{"edit-atlas-cli-existing", ".xlsx"};
     WriteFile(destination.path(), "original");

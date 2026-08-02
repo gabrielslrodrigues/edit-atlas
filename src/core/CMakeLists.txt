@@ -14,6 +14,7 @@ target_sources(
         document_pipeline.cpp
         format_registry.cpp
         timecode.cpp
+        timeline_projection.cpp
         version.cpp
     PUBLIC
         FILE_SET HEADERS
@@ -24,6 +25,7 @@ target_sources(
             include/edit_atlas/core/format.hpp
             include/edit_atlas/core/format_registry.hpp
             include/edit_atlas/core/timecode.hpp
+            include/edit_atlas/core/timeline_projection.hpp
             include/edit_atlas/core/version.hpp
 )
 
