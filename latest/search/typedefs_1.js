@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['exportdocumentresult_0',['ExportDocumentResult',['../namespaceedit__atlas_1_1services.html#a4ebf3049d4d2d4b9d233e8d2d617e258',1,'edit_atlas::services']]]
+  ['metadatavalue_0',['MetadataValue',['../namespaceedit__atlas_1_1core.html#a96dc0d3f47b870e3176d45e3376f35d5',1,'edit_atlas::core']]]
 ];

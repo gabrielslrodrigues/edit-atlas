@@ -1,0 +1,11 @@
+<map id="edit_atlas::services::TimelineDocumentImportRequest" name="edit_atlas::services::TimelineDocumentImportRequest">
+<area shape="rect" id="Node000001" title="Describes one request to import a local timeline." alt="" coords="5,388,256,428"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="42,285,219,325"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="133,339,133,388,128,388,128,339"/>
+<area shape="rect" id="Node000003" href="$structedit__atlas_1_1core_1_1MetadataEntry.html" title="A metadata property." alt="" coords="35,183,227,223"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="133,237,133,285,128,285,128,237"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="87,95,174,120"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="133,134,133,182,128,182,128,134"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="61,5,200,45"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="133,59,133,94,128,94,128,59"/>
+</map>

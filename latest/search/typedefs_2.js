@@ -1,4 +1,11 @@
 var searchData=
 [
-  ['importdocumentresult_0',['ImportDocumentResult',['../namespaceedit__atlas_1_1services.html#af51498181b13043b025fdccb63493b7c',1,'edit_atlas::services']]]
+  ['timelinedocumentexportresult_0',['TimelineDocumentExportResult',['../namespaceedit__atlas_1_1services.html#a8e3f7887f53fdd89a41d881d77944ee6',1,'edit_atlas::services']]],
+  ['timelinedocumentimportresult_1',['TimelineDocumentImportResult',['../namespaceedit__atlas_1_1services.html#af20261a97560bf1f4d7037f72577677e',1,'edit_atlas::services']]],
+  ['timelineeventselection_2',['TimelineEventSelection',['../namespaceedit__atlas_1_1services.html#aa1ea8b9848e624b54ce625d826a79ad2',1,'edit_atlas::services']]],
+  ['timelinefiltercondition_3',['TimelineFilterCondition',['../namespaceedit__atlas_1_1services.html#a1b72f32b86fa278303665df2b69bb2f5',1,'edit_atlas::services']]],
+  ['timelinefilterresult_4',['TimelineFilterResult',['../namespaceedit__atlas_1_1services.html#ab697ed6d82e68747bc181eed79e8dfd0',1,'edit_atlas::services']]],
+  ['timelinetemplateloadresult_5',['TimelineTemplateLoadResult',['../namespaceedit__atlas_1_1services.html#a0c0aabf992515a713b9e0441efab6b0b',1,'edit_atlas::services']]],
+  ['timelinetemplatemutationresult_6',['TimelineTemplateMutationResult',['../namespaceedit__atlas_1_1services.html#aa82822dd048e8c57c6d527eaf177b9d4',1,'edit_atlas::services']]],
+  ['timelinetemplateresult_7',['TimelineTemplateResult',['../namespaceedit__atlas_1_1services.html#afdb3b4a2c63d2cc1fb5a447a72476686',1,'edit_atlas::services']]]
 ];

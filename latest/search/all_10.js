@@ -1,22 +1,13 @@
 var searchData=
 [
-  ['seconds_0',['seconds',['../classedit__atlas_1_1core_1_1Timecode.html#a4ead186edb7be33e79eda96f5da9d3cc',1,'edit_atlas::core::Timecode']]],
-  ['selecttimelineevents_1',['SelectTimelineEvents',['../namespaceedit__atlas_1_1services.html#ae172b346ed16079935468b7631c2058f',1,'edit_atlas::services']]],
-  ['services_2',['Application services',['../api_architecture.html#autotoc_md2',1,'']]],
-  ['severity_3',['severity',['../structedit__atlas_1_1core_1_1Diagnostic.html#a9dd10608ffdd21088a2580765b2527cd',1,'edit_atlas::core::Diagnostic']]],
-  ['source_4',['source',['../structedit__atlas_1_1core_1_1SourceLocation.html#a272899d7d6f8cbca64269a68053d1608',1,'edit_atlas::core::SourceLocation']]],
-  ['source_20documentation_5',['Source documentation',['../index.html#autotoc_md7',1,'']]],
-  ['source_5fname_6',['source_name',['../structedit__atlas_1_1core_1_1ImportRequest.html#af29f9f5d0fcc8ae1f37196cebe8cbeec',1,'edit_atlas::core::ImportRequest']]],
-  ['source_5frange_7',['source_range',['../structedit__atlas_1_1core_1_1EditEvent.html#acc5f9b97f99fbafd75a99131a15fff99',1,'edit_atlas::core::EditEvent']]],
-  ['sourcelineprovenance_8',['SourceLineProvenance',['../structedit__atlas_1_1core_1_1SourceLineProvenance.html',1,'edit_atlas::core']]],
-  ['sourcelocation_9',['SourceLocation',['../structedit__atlas_1_1core_1_1SourceLocation.html',1,'edit_atlas::core']]],
-  ['stability_10',['API stability',['../index.html#autotoc_md6',1,'']]],
-  ['start_11',['start',['../classedit__atlas_1_1core_1_1TimecodeRange.html#a2fd9c699bec385b1b057d85714bb0784',1,'edit_atlas::core::TimecodeRange']]],
-  ['start_20here_12',['Start here',['../index.html#autotoc_md5',1,'']]],
-  ['suggested_5fextension_13',['suggested_extension',['../structedit__atlas_1_1core_1_1ExportArtifact.html#ae02e7edeb806b95c9ece332a44fec93b',1,'edit_atlas::core::ExportArtifact']]],
-  ['support_14',['Diagnostic support',['../api_architecture.html#autotoc_md3',1,'']]],
-  ['supportbundlefailure_15',['SupportBundleFailure',['../structedit__atlas_1_1support_1_1SupportBundleFailure.html',1,'edit_atlas::support']]],
-  ['supportbundlefailurekind_16',['SupportBundleFailureKind',['../namespaceedit__atlas_1_1support.html#a19a05450cd4f75837f00ef8d010ce4bc',1,'edit_atlas::support']]],
-  ['supportbundlereceipt_17',['SupportBundleReceipt',['../structedit__atlas_1_1support_1_1SupportBundleReceipt.html',1,'edit_atlas::support']]],
-  ['supportbundlerequest_18',['SupportBundleRequest',['../structedit__atlas_1_1support_1_1SupportBundleRequest.html',1,'edit_atlas::support']]]
+  ['rate_0',['rate',['../classedit__atlas_1_1core_1_1Timecode.html#ad26d197f29e2c36e86c37a2a91b1a2c4',1,'edit_atlas::core::Timecode']]],
+  ['record_5frange_1',['record_range',['../structedit__atlas_1_1core_1_1EditEvent.html#a622b3f08ab2707b4e64064b9c5f42322',1,'edit_atlas::core::EditEvent']]],
+  ['reel_2',['reel',['../structedit__atlas_1_1core_1_1EditEvent.html#a029d205d96c35b634e9ff9dd57562211',1,'edit_atlas::core::EditEvent']]],
+  ['registerexporter_3',['RegisterExporter',['../classedit__atlas_1_1core_1_1FormatRegistry.html#a3ed1771338da571602f18d2336bd73b4',1,'edit_atlas::core::FormatRegistry']]],
+  ['registerimporter_4',['RegisterImporter',['../classedit__atlas_1_1core_1_1FormatRegistry.html#a8cefacfba8ecf1833994350bfc5036a1',1,'edit_atlas::core::FormatRegistry']]],
+  ['regular_5fexpression_5',['regular_expression',['../structedit__atlas_1_1services_1_1TimelineTextFilterCondition.html#af44830eb29a2d1a60eeb006561fddf87',1,'edit_atlas::services::TimelineTextFilterCondition']]],
+  ['remove_6',['Remove',['../classedit__atlas_1_1services_1_1TimelineTemplateService.html#a979dc60088f5842f267a99b4bfed7ed3',1,'edit_atlas::services::TimelineTemplateService']]],
+  ['rename_7',['Rename',['../classedit__atlas_1_1services_1_1TimelineTemplateService.html#a9ad1adf25a6d21e92314a14bb59715fc',1,'edit_atlas::services::TimelineTemplateService']]],
+  ['replace_5fexisting_8',['replace_existing',['../structedit__atlas_1_1services_1_1TimelineDocumentExportRequest.html#a977b792fa54baa9c914bcbf2597db1ec',1,'edit_atlas::services::TimelineDocumentExportRequest::replace_existing'],['../structedit__atlas_1_1support_1_1SupportBundleRequest.html#a8c1a642488a8d2621b727f8a38b63c45',1,'edit_atlas::support::SupportBundleRequest::replace_existing']]],
+  ['run_9',['Run',['../namespaceedit__atlas_1_1cli.html#a7e30f74c96ffc25bf4f0df2d0c0d401e',1,'edit_atlas::cli']]]
 ];

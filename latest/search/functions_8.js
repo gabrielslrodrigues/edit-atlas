@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['numerator_0',['numerator',['../classedit__atlas_1_1core_1_1FrameRate.html#a748d80d1027a731e35eabe0ccf664210',1,'edit_atlas::core::FrameRate']]]
+  ['load_0',['Load',['../classedit__atlas_1_1services_1_1TimelineTemplateService.html#a7ddbf3f5b853575427602eec92362c55',1,'edit_atlas::services::TimelineTemplateService']]]
 ];

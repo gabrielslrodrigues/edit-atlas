@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['xlsxexporter_0',['XlsxExporter',['../classedit__atlas_1_1formats_1_1xlsx_1_1XlsxExporter.html#a144f1c66605e3ee284fd090943bf11e3',1,'edit_atlas::formats::xlsx::XlsxExporter']]]
+  ['update_0',['Update',['../classedit__atlas_1_1services_1_1TimelineTemplateService.html#acf6bf9937a67c7089c1039e5ea45f475',1,'edit_atlas::services::TimelineTemplateService']]]
 ];

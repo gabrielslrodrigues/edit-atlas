@@ -1,8 +1,6 @@
 var searchData=
 [
-  ['_7ecmx3600importer_0',['~Cmx3600Importer',['../classedit__atlas_1_1formats_1_1cmx3600_1_1Cmx3600Importer.html#a691b9983fa58949b80a871502bcb7137',1,'edit_atlas::formats::cmx3600::Cmx3600Importer']]],
-  ['_7eexporter_1',['~Exporter',['../classedit__atlas_1_1core_1_1Exporter.html#a15bb4d8984eaa46c92ae076cd3ef77eb',1,'edit_atlas::core::Exporter']]],
-  ['_7eformatregistry_2',['~FormatRegistry',['../classedit__atlas_1_1core_1_1FormatRegistry.html#a9377ee167207288ebae372677f328902',1,'edit_atlas::core::FormatRegistry']]],
-  ['_7eimporter_3',['~Importer',['../classedit__atlas_1_1core_1_1Importer.html#aae1d0cfce33573f1cf1a9e334c65280d',1,'edit_atlas::core::Importer']]],
-  ['_7exlsxexporter_4',['~XlsxExporter',['../classedit__atlas_1_1formats_1_1xlsx_1_1XlsxExporter.html#a3d2dc9eddd968c76c5342a072224f221',1,'edit_atlas::formats::xlsx::XlsxExporter']]]
+  ['workbook_20options_0',['Workbook options',['../md_docs_2cli.html#autotoc_md10',1,'']]],
+  ['workbooklanguage_1',['WorkbookLanguage',['../namespaceedit__atlas_1_1formats_1_1xlsx.html#ac0d2c90d8d0ae1b43d7f4cfcc076f60a',1,'edit_atlas::formats::xlsx']]],
+  ['workbooklanguagetag_2',['WorkbookLanguageTag',['../namespaceedit__atlas_1_1formats_1_1xlsx.html#a9ea0f3048556eed629f2afc32819a3b4',1,'edit_atlas::formats::xlsx']]]
 ];

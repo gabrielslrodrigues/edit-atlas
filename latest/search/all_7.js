@@ -1,18 +1,5 @@
 var searchData=
 [
-  ['identifier_0',['identifier',['../structedit__atlas_1_1core_1_1Track.html#aa110e61075aaef92b359104783a29acf',1,'edit_atlas::core::Track::identifier'],['../structedit__atlas_1_1core_1_1Transition.html#afc76629c6d53c454dc127ec2324ba6f1',1,'edit_atlas::core::Transition::identifier'],['../structedit__atlas_1_1core_1_1EditEvent.html#ae9f9cdfccd6a491fd7fbfec5f0e952ef',1,'edit_atlas::core::EditEvent::identifier'],['../structedit__atlas_1_1core_1_1FormatDescriptor.html#a0c6688b853c852567dd7096d6b9b29be',1,'edit_atlas::core::FormatDescriptor::identifier']]],
-  ['import_1',['import',['../classedit__atlas_1_1core_1_1DocumentPipeline.html#ad283653d666389860a5a044ae81046a3',1,'edit_atlas::core::DocumentPipeline::Import()'],['../classedit__atlas_1_1core_1_1Importer.html#a217a05ba400a2eafaf656f99ebba9ed1',1,'edit_atlas::core::Importer::Import()'],['../classedit__atlas_1_1formats_1_1cmx3600_1_1Cmx3600Importer.html#af23d56190afc59c2b61e5901fa1c5114',1,'edit_atlas::formats::cmx3600::Cmx3600Importer::Import()']]],
-  ['importdocument_2',['ImportDocument',['../classedit__atlas_1_1services_1_1DocumentImportService.html#ab1923abd6a2c0cc437ec5dd04bc27d97',1,'edit_atlas::services::DocumentImportService']]],
-  ['importdocumentrequest_3',['ImportDocumentRequest',['../structedit__atlas_1_1services_1_1ImportDocumentRequest.html',1,'edit_atlas::services']]],
-  ['importdocumentresult_4',['ImportDocumentResult',['../namespaceedit__atlas_1_1services.html#af51498181b13043b025fdccb63493b7c',1,'edit_atlas::services']]],
-  ['importer_5',['importer',['../classedit__atlas_1_1core_1_1Importer.html',1,'edit_atlas::core::Importer'],['../classedit__atlas_1_1core_1_1Importer.html#a0ad254c7627a343b3973e4bcb0e03ac6',1,'edit_atlas::core::Importer::Importer(void)=default'],['../classedit__atlas_1_1core_1_1Importer.html#a3da1771f59ee7f6790c9aa178be3128d',1,'edit_atlas::core::Importer::Importer(Importer &amp;&amp;)=delete'],['../classedit__atlas_1_1core_1_1Importer.html#a9e2520d47c4b008fc06aec8d6a79733d',1,'edit_atlas::core::Importer::Importer(const Importer &amp;)=delete']]],
-  ['importer_5fformats_6',['importer_formats',['../structedit__atlas_1_1support_1_1DiagnosticEnvironment.html#ad69ba16ddb005b12015f18d49ac596d5',1,'edit_atlas::support::DiagnosticEnvironment::importer_formats'],['../classedit__atlas_1_1core_1_1FormatRegistry.html#a86f06799ea3fe8a049803c3a7091c1bb',1,'edit_atlas::core::FormatRegistry::importer_formats(void) const']]],
-  ['importers_7',['importers',['../classedit__atlas_1_1core_1_1FormatRegistry.html#a6ee39b6ff8e869e722386b587b2c9c6e',1,'edit_atlas::core::FormatRegistry']]],
-  ['importersforextension_8',['ImportersForExtension',['../classedit__atlas_1_1core_1_1FormatRegistry.html#a93cffdd2a64e76fdee629c63490fbc14',1,'edit_atlas::core::FormatRegistry']]],
-  ['importrequest_9',['ImportRequest',['../structedit__atlas_1_1core_1_1ImportRequest.html',1,'edit_atlas::core']]],
-  ['importresult_10',['ImportResult',['../structedit__atlas_1_1core_1_1ImportResult.html',1,'edit_atlas::core']]],
-  ['initializeapplicationlogging_11',['InitializeApplicationLogging',['../namespaceedit__atlas_1_1support.html#a57375ce28cc6e47f336418a64c9152a6',1,'edit_atlas::support']]],
-  ['interface_12',['Command-line interface',['../md_docs_2cli.html',1,'']]],
-  ['isapplicationlogfilename_13',['IsApplicationLogFilename',['../namespaceedit__atlas_1_1support.html#ac7ef298b88f3598deb466cc110d2263d',1,'edit_atlas::support']]],
-  ['isvalidtimelineeventprojection_14',['IsValidTimelineEventProjection',['../namespaceedit__atlas_1_1core.html#abacec32d25d90bd888fd71ad75070ba2',1,'edit_atlas::core']]]
+  ['here_0',['Start here',['../index.html#autotoc_md5',1,'']]],
+  ['hours_1',['hours',['../classedit__atlas_1_1core_1_1Timecode.html#a634c5eceda834d67730f1d6eb02d177e',1,'edit_atlas::core::Timecode']]]
 ];

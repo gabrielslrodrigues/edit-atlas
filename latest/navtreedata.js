@@ -56,7 +56,7 @@ var NAVTREE =
       [ "Class Index", "classes.html", null ],
       [ "Class Hierarchy", "hierarchy.html", "hierarchy" ],
       [ "Class Members", "functions.html", [
-        [ "All", "functions.html", null ],
+        [ "All", "functions.html", "functions_dup" ],
         [ "Functions", "functions_func.html", null ],
         [ "Variables", "functions_vars.html", null ]
       ] ]
@@ -70,8 +70,9 @@ var NAVTREE =
 var NAVTREEINDEX =
 [
 "annotated.html",
-"namespaceedit__atlas_1_1core.html#a8202057a8e50482dd31c61e0f36c8411a7dcc4622bc059e993b67e3a34788959d",
-"structedit__atlas_1_1core_1_1SourceLocation.html#a519372b6d3fb1aa1dfb181c8a9c64476"
+"md_docs_2cli.html#autotoc_md9",
+"structedit__atlas_1_1core_1_1ExportResult.html#afaac4174fc431ca602eab3fb3571de8c",
+"structedit__atlas_1_1support_1_1LoggingOptions.html"
 ];
 
 var SYNCONMSG = 'click to disable panel synchronisation';

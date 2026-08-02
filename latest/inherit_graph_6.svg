@@ -11,10 +11,10 @@
 <!-- Node0 -->
 <g id="Node000000" class="node">
 <title>Node0</title>
-<g id="a_Node000000"><a xlink:href="structedit__atlas_1_1core_1_1ExportRequest.html" target="_top" xlink:title="A document and format&#45;specific options passed to an exporter.">
+<g id="a_Node000000"><a xlink:href="structedit__atlas_1_1core_1_1ExportResult.html" target="_top" xlink:title="The result of exporting an editorial document.">
 <polygon fill="white" stroke="#666666" points="129,-30 0,-30 0,0 129,0 129,-30"/>
 <text text-anchor="start" x="8" y="-18" font-family="Helvetica,sans-Serif" font-size="10.00">edit_atlas::core::Export</text>
-<text text-anchor="middle" x="64.5" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">Request</text>
+<text text-anchor="middle" x="64.5" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">Result</text>
 </a>
 </g>
 </g>
