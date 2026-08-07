@@ -342,6 +342,8 @@ TEST(XlsxExporterTest, LocalizesBrazilianPortuguesePresentation) {
     EXPECT_NE(workbook_xml->find("name=\"Diagnósticos\""), std::string::npos);
     EXPECT_NE(shared_strings->find("Tipo de edição"), std::string::npos);
     EXPECT_NE(shared_strings->find("Dissolução"), std::string::npos);
+    EXPECT_NE(shared_strings->find("Duração"), std::string::npos);
+    EXPECT_NE(shared_strings->find("Duração em quadros"), std::string::npos);
     EXPECT_NE(shared_strings->find("Taxa de quadros"), std::string::npos);
     EXPECT_NE(shared_strings->find("Aviso"), std::string::npos);
     EXPECT_NE(properties->find("Relatório de linha do tempo editorial"),
@@ -378,6 +380,34 @@ TEST(XlsxExporterTest, PreservesEventValuesAsLiteralText) {
     EXPECT_NE(shared_strings->find("opening.mov"), std::string::npos);
     EXPECT_NE(events->find("<v>12</v>"), std::string::npos);
     EXPECT_EQ(events->find("<f>"), std::string::npos);
+}
+
+TEST(XlsxExporterTest, ExportsFormattedAndRawDurationColumnsIndependently) {
+    const auto result = ExportDocument({
+        core::TimelineEventField::kDuration,
+        core::TimelineEventField::kDurationFrames,
+    });
+    ASSERT_TRUE(result.artifact.has_value());
+    const TemporaryWorkbook workbook{result.artifact->content};
+
+    const auto events =
+        ReadZipEntry(workbook.path(), "xl/worksheets/sheet1.xml");
+    const auto shared_strings =
+        ReadZipEntry(workbook.path(), "xl/sharedStrings.xml");
+    ASSERT_TRUE(events.has_value());
+    ASSERT_TRUE(shared_strings.has_value());
+
+    const auto duration_header = SharedStringIndex(*shared_strings, "Duration");
+    const auto duration_frames_header =
+        SharedStringIndex(*shared_strings, "Duration Frames");
+    const auto duration = SharedStringIndex(*shared_strings, "00:00:01;00");
+    ASSERT_TRUE(duration_header.has_value());
+    ASSERT_TRUE(duration_frames_header.has_value());
+    ASSERT_TRUE(duration.has_value());
+    EXPECT_TRUE(CellUsesSharedString(*events, "A1", *duration_header));
+    EXPECT_TRUE(CellUsesSharedString(*events, "B1", *duration_frames_header));
+    EXPECT_TRUE(CellUsesSharedString(*events, "A2", *duration));
+    EXPECT_NE(events->find("r=\"B2\"><v>30</v>"), std::string::npos);
 }
 
 TEST(XlsxExporterTest, WritesOnlySelectedEventColumnsInSelectedOrder) {

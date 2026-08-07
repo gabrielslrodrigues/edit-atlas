@@ -1,5 +1,7 @@
 #include <edit_atlas/core/timecode.hpp>
 
+#include <array>
+#include <charconv>
 #include <limits>
 #include <numeric>
 #include <utility>
@@ -43,6 +45,16 @@ DroppedFramesPerMinute(const FrameRate &rate) noexcept {
     const auto total_minutes = kHoursPerDay * kMinutesPerHour;
     const auto dropped_minutes = total_minutes - (total_minutes / 10);
     return nominal_frames - (DroppedFramesPerMinute(rate) * dropped_minutes);
+}
+
+void AppendTwoDigits(std::string &output, std::uint64_t value) {
+    std::array<char, 32> buffer{};
+    const auto result =
+        std::to_chars(buffer.data(), buffer.data() + buffer.size(), value);
+    if (result.ptr - buffer.data() < 2) {
+        output.push_back('0');
+    }
+    output.append(buffer.data(), result.ptr);
 }
 
 } // namespace
@@ -235,6 +247,58 @@ const Timecode &TimecodeRange::end_exclusive(void) const noexcept {
 
 std::int64_t TimecodeRange::DurationInFrames(void) const noexcept {
     return end_exclusive_.ToFrameCount() - start_.ToFrameCount();
+}
+
+std::string TimecodeRange::Duration(void) const {
+    const auto rate = start().rate();
+    const auto mode = start().mode();
+    const auto nominal_rate =
+        static_cast<std::uint64_t>(NominalFramesPerSecond(rate));
+    auto labeled_frame = static_cast<std::uint64_t>(DurationInFrames());
+
+    if (mode == TimecodeMode::kDropFrame) {
+        const auto dropped_frames =
+            static_cast<std::uint64_t>(DroppedFramesPerMinute(rate));
+        const auto frames_per_minute =
+            (nominal_rate * static_cast<std::uint64_t>(kSecondsPerMinute)) -
+            dropped_frames;
+        const auto frames_per_ten_minutes =
+            (nominal_rate * static_cast<std::uint64_t>(kSecondsPerMinute) *
+             10U) -
+            (dropped_frames * 9U);
+        const auto ten_minute_blocks = labeled_frame / frames_per_ten_minutes;
+        const auto remaining_frames = labeled_frame % frames_per_ten_minutes;
+
+        labeled_frame += dropped_frames * 9U * ten_minute_blocks;
+        if (remaining_frames > dropped_frames) {
+            labeled_frame +=
+                dropped_frames *
+                ((remaining_frames - dropped_frames) / frames_per_minute);
+        }
+    }
+
+    const auto frames_per_hour = nominal_rate *
+                                 static_cast<std::uint64_t>(kMinutesPerHour) *
+                                 static_cast<std::uint64_t>(kSecondsPerMinute);
+    const auto frames_per_minute =
+        nominal_rate * static_cast<std::uint64_t>(kSecondsPerMinute);
+    const auto hours = labeled_frame / frames_per_hour;
+    labeled_frame %= frames_per_hour;
+    const auto minutes = labeled_frame / frames_per_minute;
+    labeled_frame %= frames_per_minute;
+    const auto seconds = labeled_frame / nominal_rate;
+    const auto frames = labeled_frame % nominal_rate;
+
+    std::string output;
+    output.reserve(11);
+    AppendTwoDigits(output, hours);
+    output.push_back(':');
+    AppendTwoDigits(output, minutes);
+    output.push_back(':');
+    AppendTwoDigits(output, seconds);
+    output.push_back(mode == TimecodeMode::kDropFrame ? ';' : ':');
+    AppendTwoDigits(output, frames);
+    return output;
 }
 
 } // namespace edit_atlas::core

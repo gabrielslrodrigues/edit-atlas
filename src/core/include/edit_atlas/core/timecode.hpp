@@ -3,6 +3,7 @@
 
 #include <cstdint>
 #include <expected>
+#include <string>
 
 namespace edit_atlas::core {
 
@@ -169,6 +170,13 @@ class TimecodeRange final {
 
     /// Returns `end_exclusive - start` as an exact frame count.
     [[nodiscard]] std::int64_t DurationInFrames(void) const noexcept;
+
+    /// Formats this elapsed duration as `HH:MM:SS:FF`.
+    ///
+    /// The hour component does not wrap. Drop-frame ranges use `;` before the
+    /// frame component and preserve drop-frame numbering when converting
+    /// elapsed frames.
+    [[nodiscard]] std::string Duration(void) const;
 
     /// Compares both validated endpoints.
     bool operator==(const TimecodeRange &) const = default;

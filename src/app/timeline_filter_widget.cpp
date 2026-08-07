@@ -611,7 +611,7 @@ void TimelineFilterWidget::PopulateFields(ConditionRow &row) {
     row.field->addItem(tr("Source Out"), EnumData(Field::kSourceOut));
     row.field->addItem(tr("Record In"), EnumData(Field::kRecordIn));
     row.field->addItem(tr("Record Out"), EnumData(Field::kRecordOut));
-    row.field->addItem(tr("Duration"), EnumData(Field::kDuration));
+    row.field->addItem(tr("Duration frames"), EnumData(Field::kDuration));
     row.field->addItem(tr("Comments"), EnumData(Field::kComments));
     const auto index = row.field->findData(field);
     row.field->setCurrentIndex(index < 0 ? 0 : index);

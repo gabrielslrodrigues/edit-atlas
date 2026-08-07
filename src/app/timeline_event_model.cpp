@@ -34,6 +34,7 @@ enum Column {
     kRecordIn,
     kRecordOut,
     kDuration,
+    kDurationFrames,
     kComments,
     kColumnCount,
 };
@@ -131,6 +132,8 @@ QVariant TimelineEventModel::data(const QModelIndex &index, int role) const {
     case kRecordOut:
         return FormatTimecode(event.record_range.end_exclusive());
     case kDuration:
+        return QString::fromStdString(event.record_range.Duration());
+    case kDurationFrames:
         return QVariant::fromValue(
             static_cast<qlonglong>(event.record_range.DurationInFrames()));
     case kComments:
@@ -167,6 +170,8 @@ QVariant TimelineEventModel::headerData(int section,
         return tr("Record Out");
     case kDuration:
         return tr("Duration");
+    case kDurationFrames:
+        return tr("Duration Frames");
     case kComments:
         return tr("Comments");
     default:

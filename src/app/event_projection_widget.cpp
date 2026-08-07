@@ -43,6 +43,8 @@ namespace {
     case core::TimelineEventField::kRecordOut:
         return EventProjectionWidget::tr("Record out");
     case core::TimelineEventField::kDuration:
+        return EventProjectionWidget::tr("Duration");
+    case core::TimelineEventField::kDurationFrames:
         return EventProjectionWidget::tr("Duration frames");
     case core::TimelineEventField::kClipName:
         return EventProjectionWidget::tr("Clip name");

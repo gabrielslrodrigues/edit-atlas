@@ -168,6 +168,25 @@ TEST(TimecodeRangeTest, ComputesHalfOpenDuration) {
     EXPECT_EQ(range->DurationInFrames(), 36);
 }
 
+TEST(TimecodeRangeTest, FormatsNonDropFrameDurationsWithoutHourWrapping) {
+    const auto rate = Rate(24, 1);
+    const auto range = TimecodeRange::Create(MakeTimecode(0, 0, 0, 0, rate),
+                                             MakeTimecode(1, 2, 3, 4, rate));
+
+    ASSERT_TRUE(range.has_value());
+    EXPECT_EQ(range->Duration(), "01:02:03:04");
+}
+
+TEST(TimecodeRangeTest, FormatsDropFrameDurationsUsingDropFrameNumbering) {
+    const auto rate = Rate(30'000, 1'001);
+    const auto range = TimecodeRange::Create(
+        MakeTimecode(0, 0, 0, 0, rate, TimecodeMode::kDropFrame),
+        MakeTimecode(1, 0, 0, 0, rate, TimecodeMode::kDropFrame));
+
+    ASSERT_TRUE(range.has_value());
+    EXPECT_EQ(range->Duration(), "01:00:00;00");
+}
+
 TEST(TimecodeRangeTest, RejectsMismatchedRatesAndModes) {
     const auto rate_24 = Rate(24, 1);
     const auto rate_25 = Rate(25, 1);
