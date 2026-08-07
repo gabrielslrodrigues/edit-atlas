@@ -24,10 +24,11 @@ var searchData=
   ['kmissingframerate_21',['kMissingFrameRate',['../namespaceedit__atlas_1_1formats_1_1cmx3600_1_1diagnostic__code.html#abe0908f6e124e1ce7cd17e789a0e7baf',1,'edit_atlas::formats::cmx3600::diagnostic_code']]],
   ['korphanrecord_22',['kOrphanRecord',['../namespaceedit__atlas_1_1formats_1_1cmx3600_1_1diagnostic__code.html#abe6fc7c1394b491b79f9b24db56b82aa',1,'edit_atlas::formats::cmx3600::diagnostic_code']]],
   ['kprobeexception_23',['kProbeException',['../namespaceedit__atlas_1_1core_1_1pipeline__diagnostic__code.html#a1b780e1654d3f3f79dd0fd2966fbbc7b',1,'edit_atlas::core::pipeline_diagnostic_code']]],
-  ['kunknowncontent_24',['kUnknownContent',['../namespaceedit__atlas_1_1formats_1_1cmx3600_1_1diagnostic__code.html#a552f3faab523dea1ce17af3d0c327510',1,'edit_atlas::formats::cmx3600::diagnostic_code']]],
-  ['kunknownexportformat_25',['kUnknownExportFormat',['../namespaceedit__atlas_1_1core_1_1pipeline__diagnostic__code.html#a3f0354c6c3f3aa20f61e7e8dd70eaa92',1,'edit_atlas::core::pipeline_diagnostic_code']]],
-  ['kunknownimportformat_26',['kUnknownImportFormat',['../namespaceedit__atlas_1_1core_1_1pipeline__diagnostic__code.html#ae3647b3997ffe136a3dfc8a94b7f153a',1,'edit_atlas::core::pipeline_diagnostic_code']]],
-  ['kworkbookcreationfailed_27',['kWorkbookCreationFailed',['../namespaceedit__atlas_1_1formats_1_1xlsx_1_1diagnostic__code.html#a150ab79a0ff3f918fb504f2957251fc8',1,'edit_atlas::formats::xlsx::diagnostic_code']]],
-  ['kworkbooklanguageoption_28',['kWorkbookLanguageOption',['../namespaceedit__atlas_1_1formats_1_1xlsx.html#a08eeea8b3c540e4076b418f38e86e433',1,'edit_atlas::formats::xlsx']]],
-  ['kworkbookwritefailed_29',['kWorkbookWriteFailed',['../namespaceedit__atlas_1_1formats_1_1xlsx_1_1diagnostic__code.html#a2db57f35638fce668b3abdb231fcf40d',1,'edit_atlas::formats::xlsx::diagnostic_code']]]
+  ['ktimelineeventfieldcount_24',['kTimelineEventFieldCount',['../namespaceedit__atlas_1_1core.html#a6ced2e6b9b620aa4e0365117c194822a',1,'edit_atlas::core']]],
+  ['kunknowncontent_25',['kUnknownContent',['../namespaceedit__atlas_1_1formats_1_1cmx3600_1_1diagnostic__code.html#a552f3faab523dea1ce17af3d0c327510',1,'edit_atlas::formats::cmx3600::diagnostic_code']]],
+  ['kunknownexportformat_26',['kUnknownExportFormat',['../namespaceedit__atlas_1_1core_1_1pipeline__diagnostic__code.html#a3f0354c6c3f3aa20f61e7e8dd70eaa92',1,'edit_atlas::core::pipeline_diagnostic_code']]],
+  ['kunknownimportformat_27',['kUnknownImportFormat',['../namespaceedit__atlas_1_1core_1_1pipeline__diagnostic__code.html#ae3647b3997ffe136a3dfc8a94b7f153a',1,'edit_atlas::core::pipeline_diagnostic_code']]],
+  ['kworkbookcreationfailed_28',['kWorkbookCreationFailed',['../namespaceedit__atlas_1_1formats_1_1xlsx_1_1diagnostic__code.html#a150ab79a0ff3f918fb504f2957251fc8',1,'edit_atlas::formats::xlsx::diagnostic_code']]],
+  ['kworkbooklanguageoption_29',['kWorkbookLanguageOption',['../namespaceedit__atlas_1_1formats_1_1xlsx.html#a08eeea8b3c540e4076b418f38e86e433',1,'edit_atlas::formats::xlsx']]],
+  ['kworkbookwritefailed_30',['kWorkbookWriteFailed',['../namespaceedit__atlas_1_1formats_1_1xlsx_1_1diagnostic__code.html#a2db57f35638fce668b3abdb231fcf40d',1,'edit_atlas::formats::xlsx::diagnostic_code']]]
 ];

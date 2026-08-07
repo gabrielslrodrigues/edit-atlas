@@ -70,9 +70,9 @@ var NAVTREE =
 var NAVTREEINDEX =
 [
 "annotated.html",
-"md_docs_2cli.html#autotoc_md9",
-"structedit__atlas_1_1core_1_1ExportResult.html#afaac4174fc431ca602eab3fb3571de8c",
-"structedit__atlas_1_1support_1_1LoggingOptions.html"
+"md_docs_2cli.html#autotoc_md13",
+"structedit__atlas_1_1core_1_1ExportResult.html",
+"structedit__atlas_1_1support_1_1LoggingInitializationFailure.html#a2d9a41e7cff59607cc889081ddd36ed9"
 ];
 
 var SYNCONMSG = 'click to disable panel synchronisation';

@@ -96,7 +96,8 @@ $(document).ready(function(){initNavTree('namespaceedit__atlas_1_1core.html','')
 <a href="#nested-classes">Classes</a> &#124;
 <a href="#typedef-members">Typedefs</a> &#124;
 <a href="#enum-members">Enumerations</a> &#124;
-<a href="#func-members">Functions</a>  </div>
+<a href="#func-members">Functions</a> &#124;
+<a href="#var-members">Variables</a>  </div>
   <div class="headertitle"><div class="title">edit_atlas::core Namespace Reference</div></div>
 </div><!--header-->
 <div class="contents">
@@ -281,10 +282,13 @@ Enumerations</h2></td></tr>
 , <a class="el" href="namespaceedit__atlas_1_1core.html#a8202057a8e50482dd31c61e0f36c8411ada0dda1d6a6ff6e63864afb7a028cbb6">kRecordOut</a>
 , <a class="el" href="namespaceedit__atlas_1_1core.html#a8202057a8e50482dd31c61e0f36c8411a7dcc4622bc059e993b67e3a34788959d">kDuration</a>
 , <br />
-&#160;&#160;<a class="el" href="namespaceedit__atlas_1_1core.html#a8202057a8e50482dd31c61e0f36c8411a211eb4d2c6c97e5d87bb3208a48d7c11">kClipName</a>
+&#160;&#160;<a class="el" href="namespaceedit__atlas_1_1core.html#a8202057a8e50482dd31c61e0f36c8411aa68044d9f10008e71b0987e00f3970a7">kDurationFrames</a>
+, <a class="el" href="namespaceedit__atlas_1_1core.html#a8202057a8e50482dd31c61e0f36c8411a211eb4d2c6c97e5d87bb3208a48d7c11">kClipName</a>
 , <a class="el" href="namespaceedit__atlas_1_1core.html#a8202057a8e50482dd31c61e0f36c8411a634606a16f62b39964a51a45d1696dd3">kSourceFile</a>
 , <a class="el" href="namespaceedit__atlas_1_1core.html#a8202057a8e50482dd31c61e0f36c8411a8a531c1d62341ca4bc39616ff0d58bdf">kComments</a>
-, <a class="el" href="namespaceedit__atlas_1_1core.html#a8202057a8e50482dd31c61e0f36c8411ae21d627814fef31491925245502864ac">kSourceLine</a>
+, <br />
+&#160;&#160;<a class="el" href="namespaceedit__atlas_1_1core.html#a8202057a8e50482dd31c61e0f36c8411ae21d627814fef31491925245502864ac">kSourceLine</a>
+, <a class="el" href="namespaceedit__atlas_1_1core.html#a8202057a8e50482dd31c61e0f36c8411a5a162d352f3b3603e03fc9b2f043fb40">kCount</a>
 <br />
  }</td></tr>
 <tr class="memdesc:a8202057a8e50482dd31c61e0f36c8411"><td class="mdescLeft">&#160;</td><td class="mdescRight">Identifies one exportable field of an editorial timeline event.  <a href="namespaceedit__atlas_1_1core.html#a8202057a8e50482dd31c61e0f36c8411">More...</a><br /></td></tr>
@@ -310,6 +314,12 @@ bool&#160;</td><td class="memItemRight" valign="bottom"><b>IsValidTimelineEventP
 std::string_view&#160;</td><td class="memItemRight" valign="bottom"><b>Version</b> (void) noexcept</td></tr>
 <tr class="memdesc:a2bdec25002f14591add35d69a97e8362"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the application version compiled into the core library. <br /></td></tr>
 <tr class="separator:a2bdec25002f14591add35d69a97e8362"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="var-members" name="var-members"></a>
+Variables</h2></td></tr>
+<tr class="memitem:a6ced2e6b9b620aa4e0365117c194822a" id="r_a6ced2e6b9b620aa4e0365117c194822a"><td class="memItemLeft" align="right" valign="top">constexpr std::size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceedit__atlas_1_1core.html#a6ced2e6b9b620aa4e0365117c194822a">kTimelineEventFieldCount</a></td></tr>
+<tr class="memdesc:a6ced2e6b9b620aa4e0365117c194822a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Number of fields in the default timeline event projection.  <br /></td></tr>
+<tr class="separator:a6ced2e6b9b620aa4e0365117c194822a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Format-independent editorial domain types and in-memory pipelines. </p>
@@ -475,7 +485,7 @@ std::string_view&#160;</td><td class="memItemRight" valign="bottom"><b>Version</
 </td></tr>
 </table>
 
-<p class="definition">Definition at line <a class="el" href="timecode_8hpp_source.html#l00010">10</a> of file <a class="el" href="timecode_8hpp_source.html">timecode.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="timecode_8hpp_source.html#l00011">11</a> of file <a class="el" href="timecode_8hpp_source.html">timecode.hpp</a>.</p>
 
 </div>
 </div>
@@ -557,7 +567,7 @@ std::string_view&#160;</td><td class="memItemRight" valign="bottom"><b>Version</
 </td></tr>
 </table>
 
-<p class="definition">Definition at line <a class="el" href="timecode_8hpp_source.html#l00060">60</a> of file <a class="el" href="timecode_8hpp_source.html">timecode.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="timecode_8hpp_source.html#l00061">61</a> of file <a class="el" href="timecode_8hpp_source.html">timecode.hpp</a>.</p>
 
 </div>
 </div>
@@ -589,7 +599,7 @@ std::string_view&#160;</td><td class="memItemRight" valign="bottom"><b>Version</
 </td></tr>
 </table>
 
-<p class="definition">Definition at line <a class="el" href="timecode_8hpp_source.html#l00051">51</a> of file <a class="el" href="timecode_8hpp_source.html">timecode.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="timecode_8hpp_source.html#l00052">52</a> of file <a class="el" href="timecode_8hpp_source.html">timecode.hpp</a>.</p>
 
 </div>
 </div>
@@ -623,7 +633,7 @@ std::string_view&#160;</td><td class="memItemRight" valign="bottom"><b>Version</
 </td></tr>
 </table>
 
-<p class="definition">Definition at line <a class="el" href="timecode_8hpp_source.html#l00143">143</a> of file <a class="el" href="timecode_8hpp_source.html">timecode.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="timecode_8hpp_source.html#l00144">144</a> of file <a class="el" href="timecode_8hpp_source.html">timecode.hpp</a>.</p>
 
 </div>
 </div>
@@ -671,7 +681,9 @@ std::string_view&#160;</td><td class="memItemRight" valign="bottom"><b>Version</
 </td></tr>
 <tr><td class="fieldname"><a id="a8202057a8e50482dd31c61e0f36c8411ada0dda1d6a6ff6e63864afb7a028cbb6" name="a8202057a8e50482dd31c61e0f36c8411ada0dda1d6a6ff6e63864afb7a028cbb6"></a>kRecordOut&#160;</td><td class="fielddoc"><p>Exclusive record timecode. </p>
 </td></tr>
-<tr><td class="fieldname"><a id="a8202057a8e50482dd31c61e0f36c8411a7dcc4622bc059e993b67e3a34788959d" name="a8202057a8e50482dd31c61e0f36c8411a7dcc4622bc059e993b67e3a34788959d"></a>kDuration&#160;</td><td class="fielddoc"><p>Record duration in frames. </p>
+<tr><td class="fieldname"><a id="a8202057a8e50482dd31c61e0f36c8411a7dcc4622bc059e993b67e3a34788959d" name="a8202057a8e50482dd31c61e0f36c8411a7dcc4622bc059e993b67e3a34788959d"></a>kDuration&#160;</td><td class="fielddoc"><p>Formatted record duration. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="a8202057a8e50482dd31c61e0f36c8411aa68044d9f10008e71b0987e00f3970a7" name="a8202057a8e50482dd31c61e0f36c8411aa68044d9f10008e71b0987e00f3970a7"></a>kDurationFrames&#160;</td><td class="fielddoc"><p>Record duration in frames. </p>
 </td></tr>
 <tr><td class="fieldname"><a id="a8202057a8e50482dd31c61e0f36c8411a211eb4d2c6c97e5d87bb3208a48d7c11" name="a8202057a8e50482dd31c61e0f36c8411a211eb4d2c6c97e5d87bb3208a48d7c11"></a>kClipName&#160;</td><td class="fielddoc"><p>Imported clip name. </p>
 </td></tr>
@@ -681,9 +693,11 @@ std::string_view&#160;</td><td class="memItemRight" valign="bottom"><b>Version</
 </td></tr>
 <tr><td class="fieldname"><a id="a8202057a8e50482dd31c61e0f36c8411ae21d627814fef31491925245502864ac" name="a8202057a8e50482dd31c61e0f36c8411ae21d627814fef31491925245502864ac"></a>kSourceLine&#160;</td><td class="fielddoc"><p>Original source line number. </p>
 </td></tr>
+<tr><td class="fieldname"><a id="a8202057a8e50482dd31c61e0f36c8411a5a162d352f3b3603e03fc9b2f043fb40" name="a8202057a8e50482dd31c61e0f36c8411a5a162d352f3b3603e03fc9b2f043fb40"></a>kCount&#160;</td><td class="fielddoc"><p>Number of defined timeline event fields. </p>
+</td></tr>
 </table>
 
-<p class="definition">Definition at line <a class="el" href="timeline__projection_8hpp_source.html#l00011">11</a> of file <a class="el" href="timeline__projection_8hpp_source.html">timeline_projection.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="timeline__projection_8hpp_source.html#l00012">12</a> of file <a class="el" href="timeline__projection_8hpp_source.html">timeline_projection.hpp</a>.</p>
 
 </div>
 </div>
@@ -779,6 +793,35 @@ std::string_view&#160;</td><td class="memItemRight" valign="bottom"><b>Version</
 
 <p>Returns the stable lowercase identifier for <code>field</code>. </p>
 <p>The returned view has static storage duration. An unknown enum value returns an empty view. </p>
+
+</div>
+</div>
+<h2 class="groupheader">Variable Documentation</h2>
+<a id="a6ced2e6b9b620aa4e0365117c194822a" name="a6ced2e6b9b620aa4e0365117c194822a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a6ced2e6b9b620aa4e0365117c194822a">&#9670;&#160;</a></span>kTimelineEventFieldCount</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">constexpr std::size_t edit_atlas::core::kTimelineEventFieldCount</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<b>Initial value:</b><div class="fragment"><div class="line">=</div>
+<div class="line">    <span class="keyword">static_cast&lt;</span>std::size_t<span class="keyword">&gt;</span>(TimelineEventField::kCount)</div>
+</div><!-- fragment -->
+<p>Number of fields in the default timeline event projection. </p>
+
+<p class="definition">Definition at line <a class="el" href="timeline__projection_8hpp_source.html#l00052">52</a> of file <a class="el" href="timeline__projection_8hpp_source.html">timeline_projection.hpp</a>.</p>
 
 </div>
 </div>

@@ -97,10 +97,12 @@ var namespaceedit__atlas_1_1core =
       [ "kRecordIn", "namespaceedit__atlas_1_1core.html#a8202057a8e50482dd31c61e0f36c8411ad48955dd6530d928240c912332db450f", null ],
       [ "kRecordOut", "namespaceedit__atlas_1_1core.html#a8202057a8e50482dd31c61e0f36c8411ada0dda1d6a6ff6e63864afb7a028cbb6", null ],
       [ "kDuration", "namespaceedit__atlas_1_1core.html#a8202057a8e50482dd31c61e0f36c8411a7dcc4622bc059e993b67e3a34788959d", null ],
+      [ "kDurationFrames", "namespaceedit__atlas_1_1core.html#a8202057a8e50482dd31c61e0f36c8411aa68044d9f10008e71b0987e00f3970a7", null ],
       [ "kClipName", "namespaceedit__atlas_1_1core.html#a8202057a8e50482dd31c61e0f36c8411a211eb4d2c6c97e5d87bb3208a48d7c11", null ],
       [ "kSourceFile", "namespaceedit__atlas_1_1core.html#a8202057a8e50482dd31c61e0f36c8411a634606a16f62b39964a51a45d1696dd3", null ],
       [ "kComments", "namespaceedit__atlas_1_1core.html#a8202057a8e50482dd31c61e0f36c8411a8a531c1d62341ca4bc39616ff0d58bdf", null ],
-      [ "kSourceLine", "namespaceedit__atlas_1_1core.html#a8202057a8e50482dd31c61e0f36c8411ae21d627814fef31491925245502864ac", null ]
+      [ "kSourceLine", "namespaceedit__atlas_1_1core.html#a8202057a8e50482dd31c61e0f36c8411ae21d627814fef31491925245502864ac", null ],
+      [ "kCount", "namespaceedit__atlas_1_1core.html#a8202057a8e50482dd31c61e0f36c8411a5a162d352f3b3603e03fc9b2f043fb40", null ]
     ] ],
     [ "TrackKind", "namespaceedit__atlas_1_1core.html#a9504485b8c1ece998301a61535b6e15c", [
       [ "kVideo", "namespaceedit__atlas_1_1core.html#a9504485b8c1ece998301a61535b6e15ca78dd622ec44a8351a4b9ea2bab2337b3", null ],
@@ -112,5 +114,6 @@ var namespaceedit__atlas_1_1core =
     [ "IsValidTimelineEventProjection", "namespaceedit__atlas_1_1core.html#abacec32d25d90bd888fd71ad75070ba2", null ],
     [ "TimelineEventFieldFromIdentifier", "namespaceedit__atlas_1_1core.html#ac34b8b151021221f6d0ed3786c72d07c", null ],
     [ "TimelineEventFieldIdentifier", "namespaceedit__atlas_1_1core.html#a01840176fc0140143ad91aa209c7ac53", null ],
-    [ "Version", "namespaceedit__atlas_1_1core.html#a2bdec25002f14591add35d69a97e8362", null ]
+    [ "Version", "namespaceedit__atlas_1_1core.html#a2bdec25002f14591add35d69a97e8362", null ],
+    [ "kTimelineEventFieldCount", "namespaceedit__atlas_1_1core.html#a6ced2e6b9b620aa4e0365117c194822a", null ]
 ];

@@ -118,6 +118,9 @@ const <a class="el" href="classedit__atlas_1_1core_1_1Timecode.html">Timecode</a
 std::int64_t&#160;</td><td class="memItemRight" valign="bottom"><b>DurationInFrames</b> (void) const noexcept</td></tr>
 <tr class="memdesc:ac7e6dff46d2fe7701d9748c62c87f173"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns <code>end_exclusive - start</code> as an exact frame count. <br /></td></tr>
 <tr class="separator:ac7e6dff46d2fe7701d9748c62c87f173"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1b69b286f2f671766c2c587e6bd0fb26" id="r_a1b69b286f2f671766c2c587e6bd0fb26"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classedit__atlas_1_1core_1_1TimecodeRange.html#a1b69b286f2f671766c2c587e6bd0fb26">Duration</a> (void) const</td></tr>
+<tr class="memdesc:a1b69b286f2f671766c2c587e6bd0fb26"><td class="mdescLeft">&#160;</td><td class="mdescRight">Formats this elapsed duration as <code>HH:MM:SS:FF</code>.  <br /></td></tr>
+<tr class="separator:a1b69b286f2f671766c2c587e6bd0fb26"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0486ae67cb034fdf5c3cb9d74d574e50" id="r_a0486ae67cb034fdf5c3cb9d74d574e50"><td class="memItemLeft" align="right" valign="top"><a id="a0486ae67cb034fdf5c3cb9d74d574e50" name="a0486ae67cb034fdf5c3cb9d74d574e50"></a>
 bool&#160;</td><td class="memItemRight" valign="bottom"><b>operator==</b> (const <a class="el" href="classedit__atlas_1_1core_1_1TimecodeRange.html">TimecodeRange</a> &amp;) const =default</td></tr>
 <tr class="memdesc:a0486ae67cb034fdf5c3cb9d74d574e50"><td class="mdescLeft">&#160;</td><td class="mdescRight">Compares both validated endpoints. <br /></td></tr>
@@ -133,7 +136,7 @@ Static Public Member Functions</h2></td></tr>
 <div class="textblock"><p>A validated half-open timecode range of <code>[start, end_exclusive)</code>. </p>
 <p>Both endpoints always have the same frame rate and numbering mode. Empty ranges are valid, while ranges whose end precedes their start are rejected. </p>
 
-<p class="definition">Definition at line <a class="el" href="timecode_8hpp_source.html#l00156">156</a> of file <a class="el" href="timecode_8hpp_source.html">timecode.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="timecode_8hpp_source.html#l00157">157</a> of file <a class="el" href="timecode_8hpp_source.html">timecode.hpp</a>.</p>
 </div><h2 class="groupheader">Member Function Documentation</h2>
 <a id="abb63eb8ad2bd83aa4f2277ab182c63da" name="abb63eb8ad2bd83aa4f2277ab182c63da"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#abb63eb8ad2bd83aa4f2277ab182c63da">&#9670;&#160;</a></span>Create()</h2>
@@ -171,6 +174,27 @@ Static Public Member Functions</h2></td></tr>
 
 <p>Creates a range from compatible endpoints. </p>
 <dl class="section return"><dt>Returns</dt><dd>A range, or an error describing the violated invariant. </dd></dl>
+
+</div>
+</div>
+<a id="a1b69b286f2f671766c2c587e6bd0fb26" name="a1b69b286f2f671766c2c587e6bd0fb26"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1b69b286f2f671766c2c587e6bd0fb26">&#9670;&#160;</a></span>Duration()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::string edit_atlas::core::TimecodeRange::Duration </td>
+          <td>(</td>
+          <td class="paramtype">void&#160;</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Formats this elapsed duration as <code>HH:MM:SS:FF</code>. </p>
+<p>The hour component does not wrap. Drop-frame ranges use <code>;</code> before the frame component and preserve drop-frame numbering when converting elapsed frames. </p>
 
 </div>
 </div>
