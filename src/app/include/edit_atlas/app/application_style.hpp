@@ -1,11 +1,16 @@
 #ifndef EDIT_ATLAS_APP_APPLICATION_STYLE_HPP_
 #define EDIT_ATLAS_APP_APPLICATION_STYLE_HPP_
 
+#include <QString>
+
 class QApplication;
 
 namespace edit_atlas::app {
 
-/// Applies the compact Edit Atlas palette and disables costly UI animations.
+/// Loads the embedded visual stylesheet, or returns an empty string on failure.
+[[nodiscard]] QString LoadApplicationStyleSheet(void);
+
+/// Applies the compact application behavior, palette, and visual stylesheet.
 void ApplyApplicationStyle(QApplication &application);
 
 } // namespace edit_atlas::app

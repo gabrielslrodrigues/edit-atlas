@@ -1,4 +1,5 @@
 #include <edit_atlas/app/application_menu_bar.hpp>
+#include <edit_atlas/app/application_style.hpp>
 #include <edit_atlas/app/diagnostic_text.hpp>
 #include <edit_atlas/app/spreadsheet_export_options_dialog.hpp>
 #include <edit_atlas/app/timeline_document_view.hpp>
@@ -86,6 +87,12 @@ TEST(ApplicationTest, LoadsBrazilianPortugueseTranslations) {
     EXPECT_EQ(diagnostic_text::Message(diagnostic),
               QStringLiteral("Uma taxa de quadros é necessária para esta EDL "
                              "non-drop-frame."));
+}
+
+TEST(ApplicationStyleTest, LoadsEmbeddedStyleSheet) {
+    const auto style_sheet = LoadApplicationStyleSheet();
+    ASSERT_FALSE(style_sheet.isEmpty());
+    EXPECT_TRUE(style_sheet.contains(QStringLiteral("QMainWindow")));
 }
 
 TEST(ApplicationTest, PresentsTimelineDocumentInTableModel) {
