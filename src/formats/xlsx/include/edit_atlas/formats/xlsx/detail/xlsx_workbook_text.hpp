@@ -3,7 +3,7 @@
 
 #include <edit_atlas/formats/xlsx/xlsx_exporter.hpp>
 
-#include <array>
+#include <span>
 #include <string_view>
 
 namespace edit_atlas::formats::xlsx::detail {
@@ -16,9 +16,9 @@ struct WorkbookText final {
     std::string_view category;
     std::string_view keywords;
     std::string_view comments;
-    std::array<std::string_view, 16> event_columns;
-    std::array<std::string_view, 2> timeline_columns;
-    std::array<std::string_view, 6> diagnostic_columns;
+    std::span<const std::string_view> event_columns;
+    std::span<const std::string_view> timeline_columns;
+    std::span<const std::string_view> diagnostic_columns;
     std::string_view title;
     std::string_view frame_rate;
     std::string_view timecode_mode;

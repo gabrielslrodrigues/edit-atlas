@@ -12,11 +12,12 @@ namespace {
 
 TEST(TimelineProjectionTest, ProvidesStableIdentifiersAndDefaultOrder) {
     const auto projection = DefaultTimelineEventProjection();
-    constexpr std::array<std::string_view, 16> kIdentifiers{
-        "event",      "reel",        "track-kind",        "track",
-        "edit-type",  "transition",  "transition-frames", "source-in",
-        "source-out", "record-in",   "record-out",        "duration-frames",
-        "clip-name",  "source-file", "comments",          "source-line",
+    constexpr std::array<std::string_view, 17> kIdentifiers{
+        "event",           "reel",       "track-kind",        "track",
+        "edit-type",       "transition", "transition-frames", "source-in",
+        "source-out",      "record-in",  "record-out",        "duration",
+        "duration-frames", "clip-name",  "source-file",       "comments",
+        "source-line",
     };
 
     ASSERT_EQ(projection.size(), kIdentifiers.size());

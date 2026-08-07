@@ -1,6 +1,7 @@
 #ifndef EDIT_ATLAS_CORE_TIMELINE_PROJECTION_HPP_
 #define EDIT_ATLAS_CORE_TIMELINE_PROJECTION_HPP_
 
+#include <cstddef>
 #include <optional>
 #include <span>
 #include <string_view>
@@ -31,8 +32,10 @@ enum class TimelineEventField {
     kRecordIn,
     /// Exclusive record timecode.
     kRecordOut,
-    /// Record duration in frames.
+    /// Formatted record duration.
     kDuration,
+    /// Record duration in frames.
+    kDurationFrames,
     /// Imported clip name.
     kClipName,
     /// Imported source filename.
@@ -41,7 +44,13 @@ enum class TimelineEventField {
     kComments,
     /// Original source line number.
     kSourceLine,
+    /// Number of defined timeline event fields.
+    kCount,
 };
+
+/// Number of fields in the default timeline event projection.
+inline constexpr std::size_t kTimelineEventFieldCount =
+    static_cast<std::size_t>(TimelineEventField::kCount);
 
 /// Returns the stable lowercase identifier for \p field.
 ///

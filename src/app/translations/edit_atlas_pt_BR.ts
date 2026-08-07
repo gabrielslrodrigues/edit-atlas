@@ -642,6 +642,10 @@ Inspecione linhas do tempo editoriais e exporte relatórios estruturados.</trans
         <translation>Saída da gravação</translation>
     </message>
     <message>
+        <source>Duration</source>
+        <translation>Duração</translation>
+    </message>
+    <message>
         <source>Duration frames</source>
         <translation>Duração em quadros</translation>
     </message>
@@ -750,6 +754,10 @@ Inspecione linhas do tempo editoriais e exporte relatórios estruturados.</trans
     <message>
         <source>Record out</source>
         <translation>Saída da gravação</translation>
+    </message>
+    <message>
+        <source>Duration</source>
+        <translation>Duração</translation>
     </message>
     <message>
         <source>Duration frames</source>
@@ -980,8 +988,8 @@ Inspecione linhas do tempo editoriais e exporte relatórios estruturados.</trans
         <translation>Saída da gravação</translation>
     </message>
     <message>
-        <source>Duration</source>
-        <translation>Duração</translation>
+        <source>Duration frames</source>
+        <translation>Duração em quadros</translation>
     </message>
     <message>
         <source>Comments</source>
@@ -1109,6 +1117,10 @@ Inspecione linhas do tempo editoriais e exporte relatórios estruturados.</trans
     <message>
         <source>Duration</source>
         <translation>Duração</translation>
+    </message>
+    <message>
+        <source>Duration Frames</source>
+        <translation>Duração em quadros</translation>
     </message>
     <message>
         <source>Comments</source>

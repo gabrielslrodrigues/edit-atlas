@@ -78,8 +78,11 @@ edit-atlas-cli convert \
 
 Available identifiers are `event`, `reel`, `track-kind`, `track`, `edit-type`,
 `transition`, `transition-frames`, `source-in`, `source-out`, `record-in`,
-`record-out`, `duration-frames`, `clip-name`, `source-file`, `comments`, and
-`source-line`. The default includes all columns in that order. Identifiers are
+`record-out`, `duration`, `duration-frames`, `clip-name`, `source-file`,
+`comments`, and `source-line`. The default includes all columns in that order.
+`duration` is an artist-friendly elapsed value in `HH:MM:SS:FF` form (or
+`HH:MM:SS;FF` for drop-frame timelines); `duration-frames` is the raw numeric
+frame count for calculations, sorting, and exact filtering. Identifiers are
 always English, lowercase integration values regardless of workbook language.
 Each identifier may occur only once.
 

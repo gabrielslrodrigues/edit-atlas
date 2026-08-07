@@ -253,9 +253,8 @@ void WriteMetadataValue(WriteStatus &status, lxw_worksheet *worksheet,
         value);
 }
 
-template <std::size_t Size>
 void WriteHeader(WriteStatus &status, lxw_worksheet *worksheet,
-                 const std::array<std::string_view, Size> &columns,
+                 std::span<const std::string_view> columns,
                  lxw_format *format) {
     for (std::size_t column = 0; column < columns.size(); ++column) {
         WriteString(status, worksheet, 0, static_cast<lxw_col_t>(column),
@@ -283,6 +282,7 @@ void ConfigureEventsSheet(WriteStatus &status, lxw_worksheet *worksheet,
             case core::TimelineEventField::kTransitionDuration:
                 return 18.0;
             case core::TimelineEventField::kDuration:
+            case core::TimelineEventField::kDurationFrames:
                 return 16.0;
             case core::TimelineEventField::kClipName:
             case core::TimelineEventField::kSourceFile:
@@ -373,6 +373,10 @@ void WriteEventField(WriteStatus &status, lxw_worksheet *worksheet,
                     TimecodeText(event.record_range.end_exclusive()));
         return;
     case core::TimelineEventField::kDuration:
+        WriteString(status, worksheet, row, column,
+                    event.record_range.Duration());
+        return;
+    case core::TimelineEventField::kDurationFrames:
         WriteNumber(status, worksheet, row, column,
                     static_cast<double>(event.record_range.DurationInFrames()));
         return;

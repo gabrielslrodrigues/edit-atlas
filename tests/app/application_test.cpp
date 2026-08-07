@@ -59,6 +59,12 @@ TEST(ApplicationTest, LoadsBrazilianPortugueseTranslations) {
                   "edit_atlas::app::EventProjectionWidget", "Event columns"),
               QStringLiteral("Colunas de eventos"));
     EXPECT_EQ(QCoreApplication::translate(
+                  "edit_atlas::app::EventProjectionWidget", "Duration"),
+              QStringLiteral("Duração"));
+    EXPECT_EQ(QCoreApplication::translate(
+                  "edit_atlas::app::EventProjectionWidget", "Duration frames"),
+              QStringLiteral("Duração em quadros"));
+    EXPECT_EQ(QCoreApplication::translate(
                   "edit_atlas::app::EventProjectionWidget", "Move up"),
               QStringLiteral("Mover para cima"));
     EXPECT_EQ(QCoreApplication::translate(
@@ -147,8 +153,11 @@ TEST(ApplicationTest, PresentsTimelineDocumentInTableModel) {
     model.SetDocument(&document);
 
     EXPECT_EQ(model.rowCount(), 1);
-    EXPECT_EQ(model.columnCount(), 11);
+    EXPECT_EQ(model.columnCount(), 12);
     EXPECT_EQ(model.data(model.index(0, 0)).toString(), QStringLiteral("001"));
+    EXPECT_EQ(model.data(model.index(0, 9)).toString(),
+              QStringLiteral("00:00:01:00"));
+    EXPECT_EQ(model.data(model.index(0, 10)).toLongLong(), 24);
 
     model.SetEventSelection({});
     EXPECT_EQ(model.rowCount(), 0);

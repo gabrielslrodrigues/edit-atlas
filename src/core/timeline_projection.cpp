@@ -24,12 +24,15 @@ constexpr std::array kFieldIdentifiers{
     FieldIdentifier{TimelineEventField::kSourceOut, "source-out"},
     FieldIdentifier{TimelineEventField::kRecordIn, "record-in"},
     FieldIdentifier{TimelineEventField::kRecordOut, "record-out"},
-    FieldIdentifier{TimelineEventField::kDuration, "duration-frames"},
+    FieldIdentifier{TimelineEventField::kDuration, "duration"},
+    FieldIdentifier{TimelineEventField::kDurationFrames, "duration-frames"},
     FieldIdentifier{TimelineEventField::kClipName, "clip-name"},
     FieldIdentifier{TimelineEventField::kSourceFile, "source-file"},
     FieldIdentifier{TimelineEventField::kComments, "comments"},
     FieldIdentifier{TimelineEventField::kSourceLine, "source-line"},
 };
+
+static_assert(kFieldIdentifiers.size() == kTimelineEventFieldCount);
 
 constexpr auto kDefaultProjection = [] {
     std::array<TimelineEventField, kFieldIdentifiers.size()> projection{};
