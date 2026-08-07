@@ -2,9 +2,13 @@
 
 #include <QApplication>
 #include <QColor>
+#include <QDebug>
+#include <QFile>
 #include <QFont>
+#include <QIODevice>
 #include <QPalette>
 #include <QProxyStyle>
+#include <QResource>
 #include <QString>
 #include <QStyle>
 #include <QStyleHintReturn>
@@ -12,8 +16,14 @@
 #include <QWidget>
 #include <Qt>
 
+static void InitializeApplicationStyleResources(void) {
+    Q_INIT_RESOURCE(edit_atlas_app_style);
+}
+
 namespace edit_atlas::app {
 namespace {
+
+constexpr auto kStyleSheetResourcePath = ":/styles/edit_atlas.qss";
 
 class ResponsiveStyle final : public QProxyStyle {
   public:
@@ -35,6 +45,22 @@ class ResponsiveStyle final : public QProxyStyle {
 };
 
 } // namespace
+
+QString LoadApplicationStyleSheet(void) {
+    static const bool resources_initialized = [](void) {
+        ::InitializeApplicationStyleResources();
+        return true;
+    }();
+    static_cast<void>(resources_initialized);
+
+    QFile style_sheet{QString::fromLatin1(kStyleSheetResourcePath)};
+    if (!style_sheet.open(QIODevice::ReadOnly | QIODevice::Text)) {
+        qWarning() << "Could not load application stylesheet resource"
+                   << kStyleSheetResourcePath << ':' << style_sheet.errorString();
+        return {};
+    }
+    return QString::fromUtf8(style_sheet.readAll());
+}
 
 void ApplyApplicationStyle(QApplication &application) {
     QApplication::setEffectEnabled(Qt::UI_AnimateCombo, false);
@@ -64,109 +90,7 @@ void ApplyApplicationStyle(QApplication &application) {
     palette.setColor(QPalette::PlaceholderText, QColor{139, 145, 156});
     application.setPalette(palette);
 
-    application.setStyleSheet(
-        QStringLiteral("QMainWindow {"
-                       "  background-color: #181a1f;"
-                       "}"
-                       "QLabel#subtitleLabel, QLabel#emptyDescriptionLabel,"
-                       "QLabel#privacyLabel, QLabel#filterResultLabel {"
-                       "  color: #9ba1ab;"
-                       "}"
-                       "QLabel#templateStatusLabel {"
-                       "  color: #f6c177;"
-                       "}"
-                       "QLabel#filterSectionTitle {"
-                       "  font-weight: 600;"
-                       "}"
-                       "QFrame#templatePanel {"
-                       "  background-color: #20232a;"
-                       "  border: 1px solid #353a44;"
-                       "  border-radius: 8px;"
-                       "}"
-                       "QFrame#filterPanel {"
-                       "  background-color: #1d2026;"
-                       "  border: 1px solid #353a44;"
-                       "  border-radius: 8px;"
-                       "}"
-                       "QFrame#filterDivider {"
-                       "  background-color: #353a44;"
-                       "  border: 0;"
-                       "  max-height: 1px;"
-                       "}"
-                       "QFrame#resultsHeader {"
-                       "  border: 0;"
-                       "  border-bottom: 1px solid #353a44;"
-                       "}"
-                       "QWidget#filterConditionRow {"
-                       "  background-color: #25282f;"
-                       "  border-radius: 6px;"
-                       "}"
-                       "QLabel#filterErrorLabel,"
-                       "QLabel#columnSelectionErrorLabel {"
-                       "  color: #ff8a80;"
-                       "}"
-                       "QComboBox {"
-                       "  background-color: #292c34;"
-                       "  border: 1px solid #414650;"
-                       "  border-radius: 6px;"
-                       "  min-height: 24px;"
-                       "  padding: 3px 28px 3px 9px;"
-                       "}"
-                       "QComboBox:hover {"
-                       "  border-color: #707aff;"
-                       "}"
-                       "QComboBox::drop-down {"
-                       "  border: 0;"
-                       "  width: 24px;"
-                       "}"
-                       "QLineEdit, QPushButton, QToolButton {"
-                       "  background-color: #25282f;"
-                       "  border: 1px solid #414650;"
-                       "  border-radius: 6px;"
-                       "  min-height: 28px;"
-                       "  padding: 3px 9px;"
-                       "}"
-                       "QLineEdit:focus, QPushButton:hover, QToolButton:hover,"
-                       "QToolButton:checked {"
-                       "  border-color: #707aff;"
-                       "}"
-                       "QPushButton:pressed, QToolButton:pressed {"
-                       "  background-color: #30343d;"
-                       "}"
-                       "QComboBox:disabled, QLineEdit:disabled,"
-                       "QPushButton:disabled, QToolButton:disabled {"
-                       "  background-color: #202228;"
-                       "  border-color: #30343d;"
-                       "  color: #686e78;"
-                       "}"
-                       "QListWidget, QTableView, QTreeWidget {"
-                       "  border: 1px solid #353a44;"
-                       "  border-radius: 6px;"
-                       "  gridline-color: #30343d;"
-                       "  selection-background-color: #5058b8;"
-                       "}"
-                       "QHeaderView::section {"
-                       "  background-color: #25282f;"
-                       "  border: 0;"
-                       "  border-bottom: 1px solid #414650;"
-                       "  padding: 6px 8px;"
-                       "}"
-                       "QGroupBox {"
-                       "  border: 1px solid #353a44;"
-                       "  border-radius: 6px;"
-                       "  margin-top: 8px;"
-                       "  padding-top: 8px;"
-                       "}"
-                       "QGroupBox::title {"
-                       "  left: 8px;"
-                       "  padding: 0 4px;"
-                       "}"
-                       "QProgressBar {"
-                       "  background-color: #25282f;"
-                       "  border: 1px solid #414650;"
-                       "  border-radius: 4px;"
-                       "  max-height: 8px;"
-                       "}"));
+    application.setStyleSheet(LoadApplicationStyleSheet());
 }
 
 } // namespace edit_atlas::app

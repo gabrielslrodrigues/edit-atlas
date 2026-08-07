@@ -69,6 +69,17 @@ target_link_libraries(
 target_compile_features(edit_atlas_app PUBLIC cxx_std_23)
 edit_atlas_set_project_warnings(edit_atlas_app)
 
+qt_add_resources(
+    edit_atlas_app
+    "edit_atlas_app_style"
+    PREFIX
+        "/"
+    BASE
+        "resources"
+    FILES
+        "resources/styles/edit_atlas.qss"
+)
+
 qt_add_executable(edit_atlas main.cpp)
 
 qt_add_resources(
