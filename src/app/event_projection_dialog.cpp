@@ -1,5 +1,6 @@
 #include "event_projection_dialog.hpp"
 
+#include "accessibility.hpp"
 #include "event_projection_widget.hpp"
 
 #include <QDialogButtonBox>
@@ -23,7 +24,13 @@ EventProjectionDialog::EventProjectionDialog(
     layout->addWidget(projection_, 1);
     auto *buttons = new QDialogButtonBox{this};
     save_ = buttons->addButton(tr("Save"), QDialogButtonBox::AcceptRole);
-    buttons->addButton(tr("Cancel"), QDialogButtonBox::RejectRole);
+    auto *cancel =
+        buttons->addButton(tr("Cancel"), QDialogButtonBox::RejectRole);
+
+    SetAutomationIdentifier(*this, u"eventProjectionDialog");
+    SetAutomationIdentifier(*save_, u"saveProjectionButton");
+    SetAutomationIdentifier(*cancel, u"cancelProjectionButton");
+
     connect(buttons, &QDialogButtonBox::accepted, this, &QDialog::accept);
     connect(buttons, &QDialogButtonBox::rejected, this, &QDialog::reject);
     connect(projection_, &EventProjectionWidget::ValidityChanged, save_,

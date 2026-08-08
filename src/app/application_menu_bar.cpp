@@ -1,5 +1,7 @@
 #include <edit_atlas/app/application_menu_bar.hpp>
 
+#include "accessibility.hpp"
+
 #include <QAction>
 #include <QComboBox>
 #include <QFileInfo>
@@ -90,7 +92,6 @@ void ApplicationMenuBar::BuildUi(ApplicationLanguage initial_language) {
     file_menu_ = addMenu(QString{});
 
     open_action_ = file_menu_->addAction(QString{});
-    open_action_->setObjectName(QStringLiteral("openDocumentAction"));
     open_action_->setShortcut(QKeySequence::Open);
     connect(open_action_, &QAction::triggered, this,
             &ApplicationMenuBar::OpenRequested);
@@ -107,7 +108,6 @@ void ApplicationMenuBar::BuildUi(ApplicationLanguage initial_language) {
 
     file_menu_->addSeparator();
     export_action_ = file_menu_->addAction(QString{});
-    export_action_->setObjectName(QStringLiteral("exportAction"));
     connect(export_action_, &QAction::triggered, this,
             &ApplicationMenuBar::ExportSpreadsheetRequested);
 
@@ -119,8 +119,6 @@ void ApplicationMenuBar::BuildUi(ApplicationLanguage initial_language) {
 
     help_menu_ = addMenu(QString{});
     export_logs_action_ = help_menu_->addAction(QString{});
-    export_logs_action_->setObjectName(
-        QStringLiteral("exportDiagnosticLogsAction"));
     connect(export_logs_action_, &QAction::triggered, this,
             &ApplicationMenuBar::ExportDiagnosticLogsRequested);
     help_menu_->addSeparator();
@@ -129,7 +127,6 @@ void ApplicationMenuBar::BuildUi(ApplicationLanguage initial_language) {
             &ApplicationMenuBar::AboutRequested);
 
     language_selector_ = new QComboBox{this};
-    language_selector_->setObjectName(QStringLiteral("languageSelector"));
     language_selector_->addItem(
         QStringLiteral("Português (Brasil)"),
         static_cast<int>(ApplicationLanguage::kBrazilianPortuguese));
@@ -143,6 +140,21 @@ void ApplicationMenuBar::BuildUi(ApplicationLanguage initial_language) {
                     language_selector_->itemData(index).toInt());
                 emit LanguageSelected(language);
             });
+
+    SetAutomationIdentifier(*this, u"applicationMenuBar");
+    SetAutomationIdentifier(*file_menu_, u"fileMenu");
+    SetAutomationIdentifier(*open_action_, u"openDocumentAction");
+    SetAutomationIdentifier(*recent_files_menu_, u"recentFilesMenu");
+    SetAutomationIdentifier(*remember_recent_action_,
+                            u"rememberRecentFilesAction");
+    SetAutomationIdentifier(*export_action_, u"exportAction");
+    SetAutomationIdentifier(*exit_action_, u"exitAction");
+    SetAutomationIdentifier(*help_menu_, u"helpMenu");
+    SetAutomationIdentifier(*export_logs_action_,
+                            u"exportDiagnosticLogsAction");
+    SetAutomationIdentifier(*about_action_, u"aboutAction");
+    SetAutomationIdentifier(*language_selector_, u"languageSelector");
+
     setCornerWidget(language_selector_, Qt::TopRightCorner);
     SetLanguage(initial_language);
     UpdateActions();
@@ -182,12 +194,16 @@ void ApplicationMenuBar::UpdateRecentFilesMenu(void) {
         return;
     }
 
+    qsizetype index = 0;
     for (const auto &path : recent_files) {
         auto *action =
             recent_files_menu_->addAction(QFileInfo{path}.fileName());
+        SetAutomationIdentifier(
+            *action, QStringLiteral("recentFileAction%1").arg(index));
         action->setToolTip(path);
         connect(action, &QAction::triggered, this,
                 [this, path](void) { emit OpenPathRequested(path); });
+        ++index;
     }
 }
 

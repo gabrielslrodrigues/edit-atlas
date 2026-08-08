@@ -1,5 +1,7 @@
 #include <edit_atlas/app/timeline_document_view.hpp>
 
+#include "accessibility.hpp"
+
 #include <edit_atlas/app/diagnostic_text.hpp>
 #include <edit_atlas/app/timeline_event_model.hpp>
 
@@ -47,7 +49,6 @@ namespace {
 } // namespace
 
 TimelineDocumentView::TimelineDocumentView(QWidget *parent) : QWidget{parent} {
-    setObjectName(QStringLiteral("applicationShell"));
     BuildUi();
     RetranslateUi();
 }
@@ -190,7 +191,6 @@ void TimelineDocumentView::BuildUi(void) {
     root_layout->addWidget(subtitle_label_);
 
     document_stack_ = new QStackedWidget{this};
-    document_stack_->setObjectName(QStringLiteral("documentStack"));
     root_layout->addWidget(document_stack_, 1);
 
     empty_page_ = new QWidget{document_stack_};
@@ -210,7 +210,6 @@ void TimelineDocumentView::BuildUi(void) {
     empty_description_label_->setWordWrap(true);
     empty_layout->addWidget(empty_description_label_);
     empty_open_button_ = new QPushButton{empty_page_};
-    empty_open_button_->setObjectName(QStringLiteral("emptyOpenButton"));
     empty_open_button_->setDefault(true);
     connect(empty_open_button_, &QPushButton::clicked, this,
             &TimelineDocumentView::OpenRequested);
@@ -246,17 +245,13 @@ void TimelineDocumentView::BuildUi(void) {
     timeline_title_label_->setFont(timeline_title_font);
     timeline_header_layout->addWidget(timeline_title_label_, 1);
     timeline_export_button_ = new QPushButton{timeline_page_};
-    timeline_export_button_->setObjectName(
-        QStringLiteral("timelineExportButton"));
     connect(timeline_export_button_, &QPushButton::clicked, this,
             &TimelineDocumentView::ExportRequested);
     timeline_header_layout->addWidget(timeline_export_button_);
     timeline_layout->addLayout(timeline_header_layout);
     timeline_summary_label_ = new QLabel{timeline_page_};
-    timeline_summary_label_->setObjectName(QStringLiteral("timelineSummary"));
     timeline_layout->addWidget(timeline_summary_label_);
     timeline_filter_ = new TimelineFilterWidget{timeline_page_};
-    timeline_filter_->setObjectName(QStringLiteral("timelineFilter"));
     timeline_filter_->setSizePolicy(QSizePolicy::Preferred,
                                     QSizePolicy::Expanding);
     connect(timeline_filter_, &TimelineFilterWidget::QueryChanged, this,
@@ -281,14 +276,12 @@ void TimelineDocumentView::BuildUi(void) {
     auto *results_header_layout = new QHBoxLayout{results_header};
     results_header_layout->setContentsMargins(4, 4, 4, 6);
     filter_result_label_ = new QLabel{results_header};
-    filter_result_label_->setObjectName(QStringLiteral("filterResultLabel"));
     results_header_layout->addWidget(filter_result_label_);
     timeline_layout->addWidget(results_header);
     event_model_ = new TimelineEventModel{this};
     event_proxy_model_ = new QSortFilterProxyModel{this};
     event_proxy_model_->setSourceModel(event_model_);
     event_table_ = new QTableView{timeline_page_};
-    event_table_->setObjectName(QStringLiteral("eventTable"));
     event_table_->setModel(event_proxy_model_);
     event_table_->setAlternatingRowColors(true);
     event_table_->setSelectionBehavior(QAbstractItemView::SelectRows);
@@ -314,7 +307,6 @@ void TimelineDocumentView::BuildUi(void) {
     failure_description_label_->setWordWrap(true);
     failure_layout->addWidget(failure_description_label_);
     failure_open_button_ = new QPushButton{failure_page_};
-    failure_open_button_->setObjectName(QStringLiteral("failureOpenButton"));
     connect(failure_open_button_, &QPushButton::clicked, this,
             &TimelineDocumentView::OpenRequested);
     auto *retry_layout = new QHBoxLayout;
@@ -329,7 +321,6 @@ void TimelineDocumentView::BuildUi(void) {
     diagnostics_group_->setObjectName(QStringLiteral("diagnosticsGroup"));
     auto *diagnostics_layout = new QVBoxLayout{diagnostics_group_};
     diagnostics_tree_ = new QTreeWidget{diagnostics_group_};
-    diagnostics_tree_->setObjectName(QStringLiteral("diagnosticsTree"));
     diagnostics_tree_->setRootIsDecorated(false);
     diagnostics_tree_->setAlternatingRowColors(true);
     diagnostics_layout->addWidget(diagnostics_tree_);
@@ -340,6 +331,21 @@ void TimelineDocumentView::BuildUi(void) {
     privacy_label_->setObjectName(QStringLiteral("privacyLabel"));
     privacy_label_->setWordWrap(true);
     root_layout->addWidget(privacy_label_);
+
+    SetAutomationIdentifier(*this, u"applicationShell");
+    SetAutomationIdentifier(*document_stack_, u"documentStack");
+    SetAutomationIdentifier(*empty_open_button_, u"emptyOpenButton");
+    SetAutomationIdentifier(*loading_label_, u"loadingLabel");
+    SetAutomationIdentifier(*timeline_title_label_, u"timelineTitleLabel");
+    SetAutomationIdentifier(*timeline_export_button_, u"timelineExportButton");
+    SetAutomationIdentifier(*timeline_summary_label_, u"timelineSummary");
+    SetAutomationIdentifier(*timeline_filter_, u"timelineFilter");
+    SetAutomationIdentifier(*filter_result_label_, u"filterResultLabel");
+    SetAutomationIdentifier(*event_table_, u"eventTable");
+    SetAutomationIdentifier(*failure_description_label_,
+                            u"failureDescriptionLabel");
+    SetAutomationIdentifier(*failure_open_button_, u"failureOpenButton");
+    SetAutomationIdentifier(*diagnostics_tree_, u"diagnosticsTree");
 }
 
 void TimelineDocumentView::PopulateDiagnostics(
