@@ -7,6 +7,11 @@
   "builtin-baseline": "40f3c709db80acf154ac4b17a1f83c564ebd022e",
   "dependencies": [
     "cli11",
+    {
+      "name": "dbus",
+      "default-features": false,
+      "platform": "linux"
+    },
     "gtest",
     "libxlsxwriter",
     "minizip",
@@ -17,6 +22,7 @@
       "features": [
         "concurrent",
         "dnslookup",
+        "testlib",
         "widgets"
       ]
     },
@@ -24,6 +30,7 @@
       "name": "qtbase",
       "default-features": false,
       "features": [
+        "dbus",
         "fontconfig",
         "wayland",
         "xcb"

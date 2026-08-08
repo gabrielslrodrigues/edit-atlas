@@ -1,5 +1,7 @@
 #include "timeline_filter_widget.hpp"
 
+#include "accessibility.hpp"
+
 #include <QAbstractScrollArea>
 #include <QAction>
 #include <QComboBox>
@@ -323,6 +325,7 @@ void TimelineFilterWidget::AddCondition(bool focus) {
     layout->addWidget(row.remove);
     conditions_layout_->addWidget(widget);
     rows_.emplace_back(row);
+    UpdateAccessibleIdentifiers();
 
     connect(row.field, &QComboBox::currentIndexChanged, this,
             [this, widget](int) {
@@ -524,8 +527,6 @@ void TimelineFilterWidget::BuildUi(void) {
     filter_layout->addWidget(divider);
 
     conditions_scroll_ = new QScrollArea{filter_panel};
-    conditions_scroll_->setObjectName(
-        QStringLiteral("filterConditionsScrollArea"));
     conditions_scroll_->setFrameShape(QFrame::NoFrame);
     conditions_scroll_->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     conditions_scroll_->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
@@ -547,12 +548,30 @@ void TimelineFilterWidget::BuildUi(void) {
     filter_layout->addWidget(conditions_scroll_, 1);
 
     error_label_ = new QLabel{filter_panel};
-    error_label_->setObjectName(QStringLiteral("filterErrorLabel"));
     error_label_->setTextFormat(Qt::PlainText);
     error_label_->setWordWrap(true);
     error_label_->setVisible(false);
     filter_layout->addWidget(error_label_);
     root_layout->addWidget(filter_panel, 1);
+
+    SetAutomationIdentifier(*template_selector_, u"templateSelector");
+    SetAutomationIdentifier(*template_primary_button_,
+                            u"templatePrimaryButton");
+    SetAutomationIdentifier(*template_actions_button_,
+                            u"templateActionsButton");
+    SetAutomationIdentifier(*template_menu, u"templateActionsMenu");
+    SetAutomationIdentifier(*save_template_action_, u"saveTemplateAction");
+    SetAutomationIdentifier(*edit_columns_action_, u"editExportColumnsAction");
+    SetAutomationIdentifier(*rename_template_action_, u"renameTemplateAction");
+    SetAutomationIdentifier(*duplicate_template_action_,
+                            u"duplicateTemplateAction");
+    SetAutomationIdentifier(*delete_template_action_, u"deleteTemplateAction");
+    SetAutomationIdentifier(*combination_, u"filterCombination");
+    SetAutomationIdentifier(*add_condition_button_,
+                            u"addFilterConditionButton");
+    SetAutomationIdentifier(*clear_button_, u"clearFiltersButton");
+    SetAutomationIdentifier(*conditions_scroll_, u"filterConditionsScrollArea");
+    SetAutomationIdentifier(*error_label_, u"filterErrorLabel");
 
     connect(combination_, &QComboBox::currentIndexChanged, this,
             [this](int) { emit QueryChanged(); });
@@ -648,8 +667,33 @@ void TimelineFilterWidget::RemoveCondition(QWidget *row_widget) {
         focus_row.field->setFocus(Qt::OtherFocusReason);
         conditions_scroll_->ensureWidgetVisible(focus_row.field, 0, 6);
     }
+    UpdateAccessibleIdentifiers();
     UpdateRemoveButtons();
     emit QueryChanged();
+}
+
+void TimelineFilterWidget::UpdateAccessibleIdentifiers(void) {
+    for (std::size_t index = 0; index < rows_.size(); ++index) {
+        auto &row = rows_[index];
+        const auto prefix = QStringLiteral("filterCondition%1")
+                                .arg(static_cast<qulonglong>(index));
+        SetAccessibilityIdentifier(*row.widget, prefix);
+        SetAutomationIdentifier(*row.field, prefix + QStringLiteral("Field"));
+        SetAutomationIdentifier(*row.text, prefix + QStringLiteral("Text"));
+        SetAutomationIdentifier(*row.track_kind,
+                                prefix + QStringLiteral("TrackKind"));
+        SetAutomationIdentifier(*row.edit_type,
+                                prefix + QStringLiteral("EditType"));
+        SetAccessibilityIdentifier(*row.match_case,
+                                   prefix + QStringLiteral("MatchCase"));
+        SetAccessibilityIdentifier(*row.match_whole_word,
+                                   prefix + QStringLiteral("MatchWholeWord"));
+        SetAccessibilityIdentifier(*row.regular_expression,
+                                   prefix +
+                                       QStringLiteral("RegularExpression"));
+        SetAccessibilityIdentifier(*row.remove,
+                                   prefix + QStringLiteral("Remove"));
+    }
 }
 
 void TimelineFilterWidget::UpdateConditionEditor(ConditionRow &row) {

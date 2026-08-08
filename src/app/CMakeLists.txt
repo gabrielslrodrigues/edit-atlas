@@ -11,7 +11,10 @@ set_target_properties(
 target_sources(
     edit_atlas_app
     PRIVATE
+        accessibility.cpp
+        accessibility.hpp
         application_style.cpp
+        application_state.cpp
         application_menu_bar.cpp
         desktop_integration.cpp
         diagnostic_support.cpp
@@ -26,6 +29,7 @@ target_sources(
         event_projection_widget.cpp
         event_projection_widget.hpp
         include/edit_atlas/app/application_style.hpp
+        include/edit_atlas/app/application_state.hpp
         include/edit_atlas/app/application_menu_bar.hpp
         include/edit_atlas/app/desktop_integration.hpp
         include/edit_atlas/app/diagnostic_support.hpp

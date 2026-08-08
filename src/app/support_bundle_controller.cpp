@@ -1,5 +1,7 @@
 #include <edit_atlas/app/support_bundle_controller.hpp>
 
+#include "accessibility.hpp"
+
 #include <edit_atlas/app/desktop_integration.hpp>
 #include <edit_atlas/app/support_bundle_workflow.hpp>
 
@@ -73,7 +75,13 @@ void SupportBundleController::ExportDiagnosticLogs(void) {
            "media, environment variables, or secrets."));
     auto *continue_button =
         disclosure.addButton(tr("Continue"), QMessageBox::AcceptRole);
-    disclosure.addButton(tr("Cancel"), QMessageBox::RejectRole);
+    auto *cancel_button =
+        disclosure.addButton(tr("Cancel"), QMessageBox::RejectRole);
+
+    SetAutomationIdentifier(disclosure, u"supportBundleDisclosureDialog");
+    SetAutomationIdentifier(*continue_button, u"continueSupportBundleButton");
+    SetAutomationIdentifier(*cancel_button, u"cancelSupportBundleButton");
+
     disclosure.exec();
     if (disclosure.clickedButton() != continue_button) {
         return;
@@ -84,6 +92,7 @@ void SupportBundleController::ExportDiagnosticLogs(void) {
         tr("Export Diagnostic Logs"),
         QStringLiteral("edit-atlas-diagnostics.zip"),
     };
+    SetAutomationIdentifier(dialog, u"supportBundleSaveFileDialog");
     dialog.setAcceptMode(QFileDialog::AcceptSave);
     dialog.setFileMode(QFileDialog::AnyFile);
     dialog.setDefaultSuffix(QStringLiteral("zip"));
@@ -111,7 +120,13 @@ void SupportBundleController::ExportDiagnosticLogs(void) {
         };
         auto *replace_button =
             confirmation.addButton(tr("Replace"), QMessageBox::AcceptRole);
-        confirmation.addButton(tr("Cancel"), QMessageBox::RejectRole);
+        auto *cancel =
+            confirmation.addButton(tr("Cancel"), QMessageBox::RejectRole);
+
+        SetAutomationIdentifier(confirmation, u"replaceSupportBundleDialog");
+        SetAutomationIdentifier(*replace_button, u"replaceSupportBundleButton");
+        SetAutomationIdentifier(*cancel, u"cancelReplaceSupportBundleButton");
+
         confirmation.exec();
         if (confirmation.clickedButton() != replace_button) {
             return;
@@ -173,7 +188,13 @@ void SupportBundleController::HandleFinished(void) {
             .arg(static_cast<qulonglong>(result->log_file_count)));
     auto *reveal_button =
         message.addButton(tr("Reveal File"), QMessageBox::ActionRole);
-    message.addButton(tr("Close"), QMessageBox::RejectRole);
+    auto *close_button =
+        message.addButton(tr("Close"), QMessageBox::RejectRole);
+
+    SetAutomationIdentifier(message, u"supportBundleResultDialog");
+    SetAutomationIdentifier(*reveal_button, u"revealSupportBundleButton");
+    SetAutomationIdentifier(*close_button, u"closeDialogButton");
+
     message.exec();
     if (message.clickedButton() == reveal_button &&
         !desktop_integration::RevealFile(path)) {
@@ -185,7 +206,11 @@ void SupportBundleController::HandleFinished(void) {
             QMessageBox::NoButton,
             &window_,
         };
-        warning.addButton(tr("Close"), QMessageBox::RejectRole);
+        auto *close = warning.addButton(tr("Close"), QMessageBox::RejectRole);
+
+        SetAutomationIdentifier(warning, u"revealSupportBundleFailureDialog");
+        SetAutomationIdentifier(*close, u"closeDialogButton");
+
         warning.exec();
     }
 }
@@ -222,7 +247,11 @@ void SupportBundleController::ShowFailure(
         QMessageBox::NoButton,
         &window_,
     };
-    message.addButton(tr("Close"), QMessageBox::RejectRole);
+    auto *close = message.addButton(tr("Close"), QMessageBox::RejectRole);
+
+    SetAutomationIdentifier(message, u"supportBundleFailureDialog");
+    SetAutomationIdentifier(*close, u"closeDialogButton");
+
     message.exec();
 }
 

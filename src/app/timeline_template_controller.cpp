@@ -1,5 +1,8 @@
 #include "timeline_template_controller.hpp"
 
+#include "accessibility.hpp"
+
+#include <edit_atlas/app/application_state.hpp>
 #include <edit_atlas/app/timeline_document_view.hpp>
 
 #include "event_projection_dialog.hpp"
@@ -9,10 +12,11 @@
 #include <edit_atlas/services/timeline_template_service.hpp>
 
 #include <QDialog>
+#include <QDialogButtonBox>
 #include <QInputDialog>
 #include <QLineEdit>
 #include <QMessageBox>
-#include <QStandardPaths>
+#include <QPushButton>
 #include <QString>
 #include <QStringList>
 #include <QWidget>
@@ -39,13 +43,6 @@ namespace {
     return {utf8.constData(), static_cast<std::size_t>(utf8.size())};
 }
 
-[[nodiscard]] std::filesystem::path FilesystemPath(const QString &path) {
-    const auto utf8 = path.toUtf8();
-    return std::filesystem::path{
-        std::u8string{reinterpret_cast<const char8_t *>(utf8.constData()),
-                      static_cast<std::size_t>(utf8.size())}};
-}
-
 [[nodiscard]] QString PathText(const std::filesystem::path &path) {
     const auto utf8 = path.generic_u8string();
     return QString::fromUtf8(reinterpret_cast<const char *>(utf8.data()),
@@ -58,10 +55,17 @@ DefaultEventProjection(void) {
     return {fields.begin(), fields.end()};
 }
 
-[[nodiscard]] std::filesystem::path TemplateDirectory(void) {
-    return FilesystemPath(QStandardPaths::writableLocation(
-               QStandardPaths::AppLocalDataLocation)) /
-           "templates";
+void ShowWarning(QWidget &window, const QString &title, const QString &text,
+                 const QString &identifier) {
+    QMessageBox message{QMessageBox::Warning, title, text,
+                        QMessageBox::NoButton, &window};
+    auto *close = message.addButton(TimelineTemplateController::tr("Close"),
+                                    QMessageBox::RejectRole);
+
+    SetAutomationIdentifier(message, identifier);
+    SetAutomationIdentifier(*close, u"closeDialogButton");
+
+    message.exec();
 }
 
 } // namespace
@@ -69,7 +73,7 @@ DefaultEventProjection(void) {
 TimelineTemplateController::TimelineTemplateController(
     TimelineDocumentView &view, QWidget &window, QObject *parent)
     : QObject{parent}, view_{view}, window_{window},
-      service_{TemplateDirectory()},
+      service_{ConfiguredTemplateDirectory()},
       event_projection_{DefaultEventProjection()} {
     connect(&view_, &TimelineDocumentView::TemplateSelected, this,
             &TimelineTemplateController::ApplyTemplate);
@@ -117,12 +121,24 @@ void TimelineTemplateController::DeleteTemplate(void) {
         RefreshTemplateState();
         return;
     }
-    if (QMessageBox::question(
-            &window_, tr("Delete Template?"),
-            tr("Delete the template “%1”? This cannot be undone.")
-                .arg(Utf8(value->name)),
-            QMessageBox::Yes | QMessageBox::No,
-            QMessageBox::No) != QMessageBox::Yes) {
+    QMessageBox confirmation{
+        QMessageBox::Question,
+        tr("Delete Template?"),
+        tr("Delete the template “%1”? This cannot be undone.")
+            .arg(Utf8(value->name)),
+        QMessageBox::NoButton,
+        &window_,
+    };
+    auto *delete_button = confirmation.addButton(QMessageBox::Yes);
+    auto *cancel_button = confirmation.addButton(QMessageBox::No);
+
+    SetAutomationIdentifier(confirmation, u"deleteTemplateDialog");
+    SetAutomationIdentifier(*delete_button, u"confirmDeleteTemplateButton");
+    SetAutomationIdentifier(*cancel_button, u"cancelDeleteTemplateButton");
+
+    confirmation.setDefaultButton(cancel_button);
+    confirmation.exec();
+    if (confirmation.clickedButton() != delete_button) {
         return;
     }
     const auto result = service_.Remove(value->identifier);
@@ -200,22 +216,44 @@ void TimelineTemplateController::LoadTemplates(void) {
         &window_,
     };
     message.setDetailedText(details.join(u'\n'));
-    message.addButton(tr("Close"), QMessageBox::RejectRole);
+    auto *close = message.addButton(tr("Close"), QMessageBox::RejectRole);
+
+    SetAutomationIdentifier(message, u"invalidTemplatesDialog");
+    SetAutomationIdentifier(*close, u"closeDialogButton");
+
     message.exec();
 }
 
 std::optional<std::string> TimelineTemplateController::PromptForTemplateName(
     const QString &title, const QString &label, const QString &initial) {
-    bool accepted = false;
-    auto proposed = QInputDialog::getText(&window_, title, label,
-                                          QLineEdit::Normal, initial, &accepted)
-                        .trimmed();
-    if (!accepted) {
+    QInputDialog dialog{&window_};
+    dialog.setWindowTitle(title);
+    dialog.setLabelText(label);
+    dialog.setTextValue(initial);
+    dialog.setTextEchoMode(QLineEdit::Normal);
+    SetAutomationIdentifier(dialog, u"templateNameDialog");
+    if (auto *editor = dialog.findChild<QLineEdit *>(); editor != nullptr) {
+        SetAutomationIdentifier(*editor, u"templateNameEditor");
+    }
+    if (auto *buttons = dialog.findChild<QDialogButtonBox *>();
+        buttons != nullptr) {
+        if (auto *accept = buttons->button(QDialogButtonBox::Ok);
+            accept != nullptr) {
+            SetAutomationIdentifier(*accept, u"acceptTemplateNameButton");
+        }
+        if (auto *cancel = buttons->button(QDialogButtonBox::Cancel);
+            cancel != nullptr) {
+            SetAutomationIdentifier(*cancel, u"cancelTemplateNameButton");
+        }
+    }
+    if (dialog.exec() != QDialog::Accepted) {
         return std::nullopt;
     }
+    auto proposed = dialog.textValue().trimmed();
     if (proposed.isEmpty()) {
-        QMessageBox::warning(&window_, tr("Invalid Template Name"),
-                             tr("Enter a name for the template."));
+        ShowWarning(window_, tr("Invalid Template Name"),
+                    tr("Enter a name for the template."),
+                    QStringLiteral("invalidTemplateNameDialog"));
         return std::nullopt;
     }
     return Utf8String(proposed);
@@ -277,9 +315,10 @@ void TimelineTemplateController::RestoreForTimeline(void) {
 
 void TimelineTemplateController::SaveTemplate(void) {
     if (!filter_valid_) {
-        QMessageBox::warning(
-            &window_, tr("Could Not Save Template"),
-            tr("Fix the invalid filter condition before saving a template."));
+        ShowWarning(
+            window_, tr("Could Not Save Template"),
+            tr("Fix the invalid filter condition before saving a template."),
+            QStringLiteral("invalidTemplateFilterDialog"));
         return;
     }
     const auto name = PromptForTemplateName(
@@ -329,17 +368,22 @@ void TimelineTemplateController::ShowServiceFailure(
                        .arg(Utf8(failure.filesystem_error.message()));
     }
     message.setDetailedText(details);
-    message.addButton(tr("Close"), QMessageBox::RejectRole);
+    auto *close = message.addButton(tr("Close"), QMessageBox::RejectRole);
+
+    SetAutomationIdentifier(message, u"templateFailureDialog");
+    SetAutomationIdentifier(*close, u"closeDialogButton");
+
     message.exec();
 }
 
 void TimelineTemplateController::UpdateTemplate(void) {
     if (!active_identifier_.has_value() || !filter_valid_) {
         if (!filter_valid_) {
-            QMessageBox::warning(
-                &window_, tr("Could Not Update Template"),
+            ShowWarning(
+                window_, tr("Could Not Update Template"),
                 tr("Fix the invalid filter condition before updating the "
-                   "template."));
+                   "template."),
+                QStringLiteral("invalidTemplateFilterDialog"));
         }
         return;
     }

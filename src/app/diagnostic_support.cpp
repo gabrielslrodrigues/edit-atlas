@@ -1,24 +1,21 @@
 #include <edit_atlas/app/diagnostic_support.hpp>
 
+#include <edit_atlas/app/application_state.hpp>
+
 #include <edit_atlas/core/format.hpp>
 #include <edit_atlas/core/format_registry.hpp>
 
 #include <edit_atlas/support/application_logging.hpp>
 #include <edit_atlas/support/support_bundle.hpp>
 
-#include <QByteArray>
 #include <QCoreApplication>
 #include <QGuiApplication>
-#include <QStandardPaths>
-#include <QString>
 #include <QSysInfo>
 #include <QtGlobal>
 
 #include <spdlog/spdlog.h>
 
 #include <algorithm>
-#include <cstddef>
-#include <filesystem>
 #include <iterator>
 #include <string>
 #include <utility>
@@ -26,13 +23,6 @@
 
 namespace edit_atlas::app {
 namespace {
-
-[[nodiscard]] std::filesystem::path FilesystemPath(const QString &path) {
-    const auto utf8 = path.toUtf8();
-    return std::filesystem::path{
-        std::u8string{reinterpret_cast<const char8_t *>(utf8.constData()),
-                      static_cast<std::size_t>(utf8.size())}};
-}
 
 [[nodiscard]] std::vector<std::string>
 FormatIdentifiers(std::vector<core::FormatDescriptor> formats) {
@@ -60,9 +50,8 @@ FormatIdentifiers(std::vector<core::FormatDescriptor> formats) {
 } // namespace
 
 std::filesystem::path ConfiguredLogDirectory(void) {
-    const auto application_data =
-        QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation);
-    return support::ApplicationLogDirectory(FilesystemPath(application_data));
+    return support::ApplicationLogDirectory(
+        ConfiguredApplicationDataDirectory());
 }
 
 support::DiagnosticEnvironment

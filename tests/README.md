@@ -30,3 +30,12 @@ The former CMake-driven separate-process CLI check is intentionally not
 registered here. Packaged CLI process behavior belongs to the pytest E2E suite
 tracked by issue #88; the integration suite invokes the CLI application in
 process.
+
+Native application integration tests set `EDIT_ATLAS_TEST_STATE_ROOT` before
+constructing application services. The internal override redirects QSettings
+INI files, recent-file history, timeline templates, and application logs below
+that root. Tests must never set it to a developer profile or another shared
+directory.
+
+Desktop controls follow the stable identifier contract documented in
+[Accessibility automation](../docs/accessibility-automation.md).

@@ -114,6 +114,7 @@ add_subdirectory(src/cli)
 
 if(BUILD_TESTING)
     find_package(GTest CONFIG REQUIRED)
+    find_package(Qt6 REQUIRED COMPONENTS Test)
     add_subdirectory(tests)
 endif()
 
