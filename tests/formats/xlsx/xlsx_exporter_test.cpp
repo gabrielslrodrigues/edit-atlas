@@ -1,5 +1,7 @@
 #include <edit_atlas/formats/xlsx/xlsx_exporter.hpp>
 
+#include <edit_atlas/formats/xlsx/detail/xlsx_workbook_text.hpp>
+
 #include <edit_atlas/core/editorial_timeline.hpp>
 #include <edit_atlas/core/format.hpp>
 #include <edit_atlas/core/timecode.hpp>
@@ -294,6 +296,21 @@ TEST(XlsxExporterTest, DescribesAndExportsTheFormat) {
     ASSERT_GE(result.artifact->content.size(), 2);
     EXPECT_EQ(result.artifact->content[0], static_cast<std::byte>('P'));
     EXPECT_EQ(result.artifact->content[1], static_cast<std::byte>('K'));
+}
+
+TEST(XlsxWorkbookTextTest, ResolvesLabelsByKeyAndLanguage) {
+    const auto &english = detail::WorkbookTextFor(WorkbookLanguage::kEnglish);
+    const auto &portuguese =
+        detail::WorkbookTextFor(WorkbookLanguage::kBrazilianPortuguese);
+
+    EXPECT_EQ(english.Get(detail::WorkbookTextKey::kTimelineSheet), "Timeline");
+    EXPECT_EQ(portuguese.Get(detail::WorkbookTextKey::kTimelineSheet),
+              "Linha do tempo");
+    EXPECT_EQ(english.EventColumn(core::TimelineEventField::kDuration),
+              "Duration");
+    EXPECT_EQ(portuguese.EventColumn(core::TimelineEventField::kDurationFrames),
+              "Duração em quadros");
+    EXPECT_TRUE(english.Get(detail::WorkbookTextKey::kCount).empty());
 }
 
 TEST(XlsxExporterTest, WritesStableSheetsAndTimelineValues) {

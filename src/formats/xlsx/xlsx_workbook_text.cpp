@@ -1,161 +1,148 @@
 #include <edit_atlas/formats/xlsx/detail/xlsx_workbook_text.hpp>
 
-#include <edit_atlas/core/timeline_projection.hpp>
-
 #include <array>
+#include <cstddef>
 
 namespace edit_atlas::formats::xlsx::detail {
 namespace {
 
-constexpr auto kEnglishEventColumns = std::to_array<std::string_view>({
-    "Event",
-    "Reel",
-    "Track Type",
-    "Track",
-    "Edit Type",
-    "Transition",
-    "Transition Frames",
-    "Source In",
-    "Source Out",
-    "Record In",
-    "Record Out",
-    "Duration",
-    "Duration Frames",
-    "Clip Name",
-    "Source File",
-    "Comments",
-    "Source Line",
-});
+struct LocalizedText final {
+    std::string_view english;
+    std::string_view brazilian_portuguese;
 
-constexpr auto kBrazilianPortugueseEventColumns =
-    std::to_array<std::string_view>({
-        "Evento",
-        "Rolo",
-        "Tipo de faixa",
-        "Faixa",
-        "Tipo de edição",
-        "Transição",
-        "Quadros da transição",
-        "Entrada da fonte",
-        "Saída da fonte",
-        "Entrada da gravação",
-        "Saída da gravação",
-        "Duração",
-        "Duração em quadros",
-        "Nome do clipe",
-        "Arquivo de origem",
-        "Comentários",
-        "Linha de origem",
-    });
-
-constexpr auto kEnglishTimelineColumns = std::to_array<std::string_view>({
-    "Property",
-    "Value",
-});
-
-constexpr auto kBrazilianPortugueseTimelineColumns =
-    std::to_array<std::string_view>({
-        "Propriedade",
-        "Valor",
-    });
-
-constexpr auto kEnglishDiagnosticColumns = std::to_array<std::string_view>({
-    "Severity",
-    "Code",
-    "Message",
-    "Source",
-    "Line",
-    "Column",
-});
-
-constexpr auto kBrazilianPortugueseDiagnosticColumns =
-    std::to_array<std::string_view>({
-        "Severidade",
-        "Código",
-        "Mensagem",
-        "Origem",
-        "Linha",
-        "Coluna",
-    });
-
-static_assert(kEnglishEventColumns.size() == core::kTimelineEventFieldCount);
-static_assert(kBrazilianPortugueseEventColumns.size() ==
-              core::kTimelineEventFieldCount);
-static_assert(kEnglishTimelineColumns.size() ==
-              kBrazilianPortugueseTimelineColumns.size());
-static_assert(kEnglishDiagnosticColumns.size() ==
-              kBrazilianPortugueseDiagnosticColumns.size());
-
-constexpr WorkbookText kEnglishText{
-    .events_sheet = "Events",
-    .timeline_sheet = "Timeline",
-    .diagnostics_sheet = "Diagnostics",
-    .subject = "Editorial timeline report",
-    .category = "Editorial",
-    .keywords = "EDL, editorial, timeline",
-    .comments = "Created by Edit Atlas",
-    .event_columns = kEnglishEventColumns,
-    .timeline_columns = kEnglishTimelineColumns,
-    .diagnostic_columns = kEnglishDiagnosticColumns,
-    .title = "Title",
-    .frame_rate = "Frame Rate",
-    .timecode_mode = "Timecode Mode",
-    .drop_frame = "Drop Frame",
-    .non_drop_frame = "Non-Drop Frame",
-    .event_count = "Event Count",
-    .video = "Video",
-    .audio = "Audio",
-    .data = "Data",
-    .other = "Other",
-    .cut = "Cut",
-    .dissolve = "Dissolve",
-    .wipe = "Wipe",
-    .key = "Key",
-    .info = "Info",
-    .warning = "Warning",
-    .error = "Error",
+    [[nodiscard]] std::string_view
+    For(WorkbookLanguage language) const noexcept {
+        switch (language) {
+        case WorkbookLanguage::kEnglish:
+            return english;
+        case WorkbookLanguage::kBrazilianPortuguese:
+            return brazilian_portuguese;
+        }
+        return english;
+    }
 };
 
-constexpr WorkbookText kBrazilianPortugueseText{
-    .events_sheet = "Eventos",
-    .timeline_sheet = "Linha do tempo",
-    .diagnostics_sheet = "Diagnósticos",
-    .subject = "Relatório de linha do tempo editorial",
-    .category = "Editorial",
-    .keywords = "EDL, editorial, linha do tempo",
-    .comments = "Criado pelo Edit Atlas",
-    .event_columns = kBrazilianPortugueseEventColumns,
-    .timeline_columns = kBrazilianPortugueseTimelineColumns,
-    .diagnostic_columns = kBrazilianPortugueseDiagnosticColumns,
-    .title = "Título",
-    .frame_rate = "Taxa de quadros",
-    .timecode_mode = "Modo de timecode",
-    .drop_frame = "Drop Frame",
-    .non_drop_frame = "Non-Drop Frame",
-    .event_count = "Número de eventos",
-    .video = "Vídeo",
-    .audio = "Áudio",
-    .data = "Dados",
-    .other = "Outro",
-    .cut = "Corte",
-    .dissolve = "Dissolução",
-    .wipe = "Transição wipe",
-    .key = "Chave",
-    .info = "Informação",
-    .warning = "Aviso",
-    .error = "Erro",
+// Entries are indexed by WorkbookTextKey. Keep this order synchronized with
+// the enum declaration in xlsx_workbook_text.hpp.
+constexpr std::array kTexts{
+    LocalizedText{"Events", "Eventos"},
+    LocalizedText{"Timeline", "Linha do tempo"},
+    LocalizedText{"Diagnostics", "Diagnósticos"},
+    LocalizedText{"Editorial timeline report",
+                  "Relatório de linha do tempo editorial"},
+    LocalizedText{"Editorial", "Editorial"},
+    LocalizedText{"EDL, editorial, timeline", "EDL, editorial, linha do tempo"},
+    LocalizedText{"Created by Edit Atlas", "Criado pelo Edit Atlas"},
+    LocalizedText{"Title", "Título"},
+    LocalizedText{"Frame Rate", "Taxa de quadros"},
+    LocalizedText{"Timecode Mode", "Modo de timecode"},
+    LocalizedText{"Drop Frame", "Drop Frame"},
+    LocalizedText{"Non-Drop Frame", "Non-Drop Frame"},
+    LocalizedText{"Event Count", "Número de eventos"},
+    LocalizedText{"Video", "Vídeo"},
+    LocalizedText{"Audio", "Áudio"},
+    LocalizedText{"Data", "Dados"},
+    LocalizedText{"Other", "Outro"},
+    LocalizedText{"Cut", "Corte"},
+    LocalizedText{"Dissolve", "Dissolução"},
+    LocalizedText{"Wipe", "Transição wipe"},
+    LocalizedText{"Key", "Chave"},
+    LocalizedText{"Info", "Informação"},
+    LocalizedText{"Warning", "Aviso"},
+    LocalizedText{"Error", "Erro"},
+    LocalizedText{"Property", "Propriedade"},
+    LocalizedText{"Value", "Valor"},
+    LocalizedText{"Severity", "Severidade"},
+    LocalizedText{"Code", "Código"},
+    LocalizedText{"Message", "Mensagem"},
+    LocalizedText{"Source", "Origem"},
+    LocalizedText{"Line", "Linha"},
+    LocalizedText{"Column", "Coluna"},
 };
+
+// Entries are indexed by TimelineEventField. Keep this order synchronized
+// with the enum declaration in timeline_projection.hpp.
+constexpr std::array kEventColumns{
+    LocalizedText{"Event", "Evento"},
+    LocalizedText{"Reel", "Rolo"},
+    LocalizedText{"Track Type", "Tipo de faixa"},
+    LocalizedText{"Track", "Faixa"},
+    LocalizedText{"Edit Type", "Tipo de edição"},
+    LocalizedText{"Transition", "Transição"},
+    LocalizedText{"Transition Frames", "Quadros da transição"},
+    LocalizedText{"Source In", "Entrada da fonte"},
+    LocalizedText{"Source Out", "Saída da fonte"},
+    LocalizedText{"Record In", "Entrada da gravação"},
+    LocalizedText{"Record Out", "Saída da gravação"},
+    LocalizedText{"Duration", "Duração"},
+    LocalizedText{"Duration Frames", "Duração em quadros"},
+    LocalizedText{"Clip Name", "Nome do clipe"},
+    LocalizedText{"Source File", "Arquivo de origem"},
+    LocalizedText{"Comments", "Comentários"},
+    LocalizedText{"Source Line", "Linha de origem"},
+};
+
+constexpr std::array kTimelineColumns{
+    WorkbookTextKey::kTimelinePropertyColumn,
+    WorkbookTextKey::kTimelineValueColumn,
+};
+
+constexpr std::array kDiagnosticColumns{
+    WorkbookTextKey::kDiagnosticSeverityColumn,
+    WorkbookTextKey::kDiagnosticCodeColumn,
+    WorkbookTextKey::kDiagnosticMessageColumn,
+    WorkbookTextKey::kDiagnosticSourceColumn,
+    WorkbookTextKey::kDiagnosticLineColumn,
+    WorkbookTextKey::kDiagnosticColumnColumn,
+};
+
+static_assert(kTexts.size() ==
+              static_cast<std::size_t>(WorkbookTextKey::kCount));
+static_assert(kEventColumns.size() == core::kTimelineEventFieldCount);
 
 } // namespace
 
+WorkbookText::WorkbookText(WorkbookLanguage language) noexcept
+    : language_(language) {}
+
+std::string_view WorkbookText::Get(WorkbookTextKey key) const noexcept {
+    const auto index = static_cast<std::size_t>(key);
+    if (index >= kTexts.size()) {
+        return {};
+    }
+    return kTexts[index].For(language_);
+}
+
+std::string_view
+WorkbookText::EventColumn(core::TimelineEventField field) const noexcept {
+    const auto index = static_cast<std::size_t>(field);
+    if (index >= kEventColumns.size()) {
+        return {};
+    }
+    return kEventColumns[index].For(language_);
+}
+
+std::span<const WorkbookTextKey>
+WorkbookText::TimelineColumns(void) const noexcept {
+    return kTimelineColumns;
+}
+
+std::span<const WorkbookTextKey>
+WorkbookText::DiagnosticColumns(void) const noexcept {
+    return kDiagnosticColumns;
+}
+
 const WorkbookText &WorkbookTextFor(WorkbookLanguage language) noexcept {
+    static const WorkbookText kEnglish{WorkbookLanguage::kEnglish};
+    static const WorkbookText kBrazilianPortuguese{
+        WorkbookLanguage::kBrazilianPortuguese};
     switch (language) {
     case WorkbookLanguage::kEnglish:
-        return kEnglishText;
+        return kEnglish;
     case WorkbookLanguage::kBrazilianPortuguese:
-        return kBrazilianPortugueseText;
+        return kBrazilianPortuguese;
     }
-    return kEnglishText;
+    return kEnglish;
 }
 
 } // namespace edit_atlas::formats::xlsx::detail
