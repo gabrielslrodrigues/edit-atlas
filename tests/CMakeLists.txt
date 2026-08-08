@@ -1,8 +1,4 @@
-add_subdirectory(app)
-add_subdirectory(cli)
-add_subdirectory(core)
-add_subdirectory(formats/cmx3600)
-add_subdirectory(formats/xlsx)
-add_subdirectory(services)
-add_subdirectory(storage)
-add_subdirectory(support)
+set(edit_atlas_test_fixture_directory "${CMAKE_CURRENT_SOURCE_DIR}/fixtures")
+
+add_subdirectory(unit)
+add_subdirectory(integration)

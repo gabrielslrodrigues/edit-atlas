@@ -21,4 +21,5 @@ include(GoogleTest)
 gtest_discover_tests(
     edit_atlas_app_tests
     DISCOVERY_TIMEOUT 30
+    PROPERTIES LABELS unit
 )
