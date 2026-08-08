@@ -23,4 +23,7 @@ target_compile_features(edit_atlas_support_tests PRIVATE cxx_std_23)
 edit_atlas_set_project_warnings(edit_atlas_support_tests)
 
 include(GoogleTest)
-gtest_discover_tests(edit_atlas_support_tests)
+gtest_discover_tests(
+    edit_atlas_support_tests
+    PROPERTIES LABELS unit
+)

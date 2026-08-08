@@ -274,6 +274,20 @@ test suite with the same platform preset used for the build:
 ctest --preset debug-x64-linux
 ```
 
+C++ tests are organized as `tests/unit` and `tests/integration`, and every
+discovered test has the corresponding CTest label. The existing presets run
+both layers. To select one layer from an existing configured build tree, use:
+
+```sh
+ctest --preset debug-x64-linux --label-regex '^unit$'
+ctest --preset debug-x64-linux --label-regex '^integration$'
+```
+
+Immutable synthetic inputs shared by multiple layers live under
+`tests/fixtures`. Packaged black-box tests live under `tests/e2e` and run
+separately from CTest. See [the test-suite documentation](tests/README.md) for
+the classification and fixture policies.
+
 To configure the project without building tests, use CMake's standard
 `BUILD_TESTING` option:
 
