@@ -54,6 +54,8 @@ namespace {
         return EventProjectionWidget::tr("Comments");
     case core::TimelineEventField::kSourceLine:
         return EventProjectionWidget::tr("Source line");
+    case core::TimelineEventField::kCount:
+        break;
     }
     return {};
 }
