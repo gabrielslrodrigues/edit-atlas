@@ -507,12 +507,15 @@ class LinuxApplicationSession:
             raise ActionNotSupportedError(
                 f"cannot query actions for {getattr(node, 'name', '')!r}"
             ) from error
-        normalized = {str(name).casefold(): str(name) for name in actions}
+        normalized = {
+            self._normalized_action_name(str(name)): str(name)
+            for name in actions
+        }
         action = next(
             (
-                normalized[name]
+                normalized[self._normalized_action_name(name)]
                 for name in self._ACTION_PRIORITY
-                if name in normalized
+                if self._normalized_action_name(name) in normalized
             ),
             None,
         )
@@ -676,3 +679,11 @@ class LinuxApplicationSession:
     @staticmethod
     def _normalized_name(name: str) -> str:
         return name.replace("&", "").replace("_", "").strip().casefold()
+
+    @staticmethod
+    def _normalized_action_name(name: str) -> str:
+        return "".join(
+            character
+            for character in name.casefold()
+            if character.isalnum()
+        )
