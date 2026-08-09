@@ -17,6 +17,7 @@
 
 #include <cstddef>
 #include <filesystem>
+#include <system_error>
 #include <vector>
 
 namespace edit_atlas::app {
@@ -38,6 +39,23 @@ namespace {
                       static_cast<std::size_t>(utf8.size())}};
 }
 
+[[nodiscard]] bool IsBelowDirectory(std::filesystem::path path,
+                                    const std::filesystem::path &directory) {
+    for (path = path.parent_path(); !path.empty();) {
+        std::error_code error;
+        if (std::filesystem::equivalent(path, directory, error)) {
+            return true;
+        }
+
+        const auto parent = path.parent_path();
+        if (parent == path) {
+            break;
+        }
+        path = parent;
+    }
+    return false;
+}
+
 TEST(ApplicationStateTest, RoutesEveryPersistentStoreBelowTheOverride) {
     const auto root = TestStateRoot();
     ASSERT_FALSE(root.empty());
@@ -53,10 +71,10 @@ TEST(ApplicationStateTest, RoutesEveryPersistentStoreBelowTheOverride) {
 
     EXPECT_EQ(ConfiguredApplicationLanguage(), ApplicationLanguage::kEnglish);
     EXPECT_EQ(settings.format(), QSettings::IniFormat);
-    EXPECT_TRUE(FilesystemPath(settings.fileName())
-                    .lexically_normal()
-                    .string()
-                    .starts_with((root / "settings").string()));
+    EXPECT_EQ(settings.status(), QSettings::NoError);
+    EXPECT_TRUE(
+        IsBelowDirectory(FilesystemPath(settings.fileName()),
+                         root / "settings"));
 }
 
 TEST(ApplicationStateTest, IsolatesRecentFilesAndTimelineTemplates) {
