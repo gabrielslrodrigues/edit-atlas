@@ -137,6 +137,15 @@ set_target_properties(
         WIN32_EXECUTABLE ON
 )
 
+if(LINUX)
+    set_target_properties(
+        edit_atlas
+        PROPERTIES
+            INSTALL_RPATH
+                "$ORIGIN/../${edit_atlas_runtime_install_libdir}"
+    )
+endif()
+
 target_link_libraries(
     edit_atlas
     PRIVATE
@@ -227,28 +236,51 @@ if(LINUX)
     )
 endif()
 
-set(edit_atlas_deploy_arguments)
+if(LINUX)
+    set(
+        edit_atlas_runtime_install_pluginsdir
+        "${edit_atlas_runtime_install_libdir}/Qt6/plugins"
+    )
+    qt_generate_deploy_script(
+        TARGET edit_atlas
+        OUTPUT_SCRIPT edit_atlas_deploy_script
+        CONTENT
+            "set(
+                QT_DEPLOY_LIB_DIR
+                \"${edit_atlas_runtime_install_libdir}\"
+            )
+            set(
+                QT_DEPLOY_PLUGINS_DIR
+                \"${edit_atlas_runtime_install_pluginsdir}\"
+            )
+            qt_deploy_runtime_dependencies(
+                EXECUTABLE \"$<TARGET_FILE:edit_atlas>\"
+                GENERATE_QT_CONF
+                LIB_DIR \"${edit_atlas_runtime_install_libdir}\"
+                PLUGINS_DIR \"${edit_atlas_runtime_install_pluginsdir}\"
+                INCLUDE_PLUGINS qwayland qxcb
+            )"
+    )
+else()
+    set(edit_atlas_deploy_arguments)
+endif()
+
 if(APPLE)
     list(
         APPEND edit_atlas_deploy_arguments
         DEPLOY_TOOL_OPTIONS
             "-libpath=${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/lib"
     )
-elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
-    list(
-        APPEND edit_atlas_deploy_arguments
-        INCLUDE_PLUGINS
-            qwayland
-            qxcb
-    )
 endif()
 
-qt_generate_deploy_app_script(
-    TARGET edit_atlas
-    OUTPUT_SCRIPT edit_atlas_deploy_script
-    NO_UNSUPPORTED_PLATFORM_ERROR
-    ${edit_atlas_deploy_arguments}
-)
+if(NOT LINUX)
+    qt_generate_deploy_app_script(
+        TARGET edit_atlas
+        OUTPUT_SCRIPT edit_atlas_deploy_script
+        NO_UNSUPPORTED_PLATFORM_ERROR
+        ${edit_atlas_deploy_arguments}
+    )
+endif()
 install(
     SCRIPT "${edit_atlas_deploy_script}"
     COMPONENT Runtime
