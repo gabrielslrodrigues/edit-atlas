@@ -11,7 +11,15 @@
 
 int main(int argc, char *argv[]) {
     if (qEnvironmentVariableIsEmpty("QT_QPA_PLATFORM")) {
+#if defined(Q_OS_MACOS)
+        qputenv("QT_QPA_PLATFORM", QByteArrayLiteral("minimal"));
+#elif defined(Q_OS_WIN)
+        qputenv("QT_QPA_PLATFORM", QByteArrayLiteral("windows"));
+#elif defined(Q_OS_LINUX)
         qputenv("QT_QPA_PLATFORM", QByteArrayLiteral("offscreen"));
+#else
+#error "Unsupported Qt integration-test platform"
+#endif
     }
     QApplication application{argc, argv};
     QCoreApplication::setApplicationName(

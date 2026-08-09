@@ -24,3 +24,39 @@ function(edit_atlas_require_dynamic_qt)
         endif()
     endforeach()
 endfunction()
+
+function(edit_atlas_normalize_macos_qt_dependencies target)
+    if(NOT APPLE)
+        return()
+    endif()
+
+    add_custom_command(
+        TARGET "${target}"
+        POST_BUILD
+        COMMAND
+            "${CMAKE_COMMAND}"
+            "-DEDIT_ATLAS_EXECUTABLE=$<TARGET_FILE:${target}>"
+            -P
+            "${PROJECT_SOURCE_DIR}/cmake/NormalizeMacOSQtDependencies.cmake"
+        VERBATIM
+    )
+endfunction()
+
+function(edit_atlas_deploy_windows_qt_platform_plugin target)
+    if(NOT WIN32)
+        return()
+    endif()
+
+    add_custom_command(
+        TARGET "${target}"
+        POST_BUILD
+        COMMAND
+            "${CMAKE_COMMAND}" -E make_directory
+            "$<TARGET_FILE_DIR:${target}>/platforms"
+        COMMAND
+            "${CMAKE_COMMAND}" -E copy_if_different
+            "$<TARGET_FILE:Qt6::QWindowsIntegrationPlugin>"
+            "$<TARGET_FILE_DIR:${target}>/platforms/$<TARGET_FILE_NAME:Qt6::QWindowsIntegrationPlugin>"
+        VERBATIM
+    )
+endfunction()
