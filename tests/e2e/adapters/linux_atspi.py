@@ -7,10 +7,12 @@ interface exposed by the application or the native file chooser.
 
 from __future__ import annotations
 
+from collections import deque
 import os
 from pathlib import Path
 import shutil
 import subprocess
+import threading
 from typing import Any, Iterable, Mapping, Sequence
 
 from adapters.processes import ProcessRegistry
@@ -172,6 +174,8 @@ class LinuxApplicationSession:
         self._artifact_directory = artifact_directory
         self._timeout = timeout
         self._application: Any = None
+        self._action_errors: deque[ActionNotSupportedError] = deque()
+        self._action_error_lock = threading.Lock()
 
     def wait_ready(self) -> None:
         def find_application() -> Any | None:
@@ -524,10 +528,31 @@ class LinuxApplicationSession:
                 f"{getattr(node, 'name', '')!r} exposes actions "
                 f"{tuple(actions)!r}, none of which is supported"
             )
-        if node.do_action_named(action) is False:
-            raise ActionNotSupportedError(
-                f"accessibility action {action!r} failed"
+        if self._normalized_action_name(action) == "showmenu":
+            threading.Thread(
+                target=self._invoke_action,
+                args=(node, action, True),
+                daemon=True,
+            ).start()
+            return
+        self._invoke_action(node, action)
+
+    def _invoke_action(
+        self, node: Any, action: str, defer_error: bool = False
+    ) -> None:
+        try:
+            if node.do_action_named(action) is False:
+                raise ActionNotSupportedError(
+                    f"accessibility action {action!r} failed"
+                )
+        except Exception as error:
+            failure = ActionNotSupportedError(
+                f"accessibility action {action!r} failed: {error}"
             )
+            if not defer_error:
+                raise failure from error
+            with self._action_error_lock:
+                self._action_errors.append(failure)
 
     def _find_named(
         self,
@@ -670,6 +695,9 @@ class LinuxApplicationSession:
         return ""
 
     def _ensure_running(self) -> None:
+        with self._action_error_lock:
+            if self._action_errors:
+                raise self._action_errors.popleft()
         return_code = self._process.poll()
         if return_code is not None:
             raise AccessibilityBackendError(
