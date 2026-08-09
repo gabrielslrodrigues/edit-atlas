@@ -531,7 +531,7 @@ jobs:
       - name: Install generated DEB
         shell: bash
         run: |
-          mapfile -t packages < <(find build/packages/x64-linux -type f -name '*.deb')
+          mapfile -t packages < <(find "${GITHUB_WORKSPACE}/build/packages/x64-linux" -type f -name '*.deb')
           if [[ "${#packages[@]}" -ne 1 ]]; then
             echo "Expected exactly one DEB, found ${#packages[@]}" >&2
             exit 1
@@ -565,7 +565,10 @@ jobs:
 
       - name: Remove installed package
         if: always()
-        run: sudo apt-get remove --yes edit-atlas
+        run: |
+          if dpkg-query --show edit-atlas >/dev/null 2>&1; then
+            sudo apt-get remove --yes edit-atlas
+          fi
 
   verify-macos-package:
     name: Verify macOS package / ${{ matrix.name }}
