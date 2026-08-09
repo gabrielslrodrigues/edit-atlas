@@ -11,7 +11,11 @@
 
 int main(int argc, char *argv[]) {
     if (qEnvironmentVariableIsEmpty("QT_QPA_PLATFORM")) {
+#if defined(Q_OS_MACOS)
+        qputenv("QT_QPA_PLATFORM", QByteArrayLiteral("minimal"));
+#else
         qputenv("QT_QPA_PLATFORM", QByteArrayLiteral("offscreen"));
+#endif
     }
     QApplication application{argc, argv};
     QCoreApplication::setApplicationName(
