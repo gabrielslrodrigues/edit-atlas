@@ -33,6 +33,9 @@ target_link_libraries(
 
 target_compile_features(edit_atlas_app_integration_tests PRIVATE cxx_std_23)
 edit_atlas_set_project_warnings(edit_atlas_app_integration_tests)
+edit_atlas_normalize_macos_qt_dependencies(
+    edit_atlas_app_integration_tests
+)
 
 include(GoogleTest)
 gtest_discover_tests(

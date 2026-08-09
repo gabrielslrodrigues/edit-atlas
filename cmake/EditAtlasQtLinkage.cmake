@@ -24,3 +24,20 @@ function(edit_atlas_require_dynamic_qt)
         endif()
     endforeach()
 endfunction()
+
+function(edit_atlas_normalize_macos_qt_dependencies target)
+    if(NOT APPLE)
+        return()
+    endif()
+
+    add_custom_command(
+        TARGET "${target}"
+        POST_BUILD
+        COMMAND
+            "${CMAKE_COMMAND}"
+            "-DEDIT_ATLAS_EXECUTABLE=$<TARGET_FILE:${target}>"
+            -P
+            "${PROJECT_SOURCE_DIR}/cmake/NormalizeMacOSQtDependencies.cmake"
+        VERBATIM
+    )
+endfunction()
