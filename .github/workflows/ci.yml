@@ -509,6 +509,7 @@ jobs:
             build-essential \
             dbus-x11 \
             gir1.2-atspi-2.0 \
+            gir1.2-gtk-3.0 \
             libcairo2-dev \
             libgirepository1.0-dev \
             locales \
