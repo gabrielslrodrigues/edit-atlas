@@ -21,6 +21,7 @@ sudo apt-get install --yes --no-install-recommends \
   libxkbcommon-dev \
   libxkbcommon-x11-dev \
   libxrender-dev \
+  libxtst-dev \
   libxcb-cursor-dev \
   libxcb-glx0-dev \
   libxcb-icccm4-dev \
