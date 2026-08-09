@@ -25,7 +25,7 @@ Only `conftest.py` and files under `tests/` may import pytest.
 The entry points use uv and the committed lockfile to create a pinned Python
 3.12 virtual environment at `build/e2e/venv`. They write JUnit XML, a
 self-contained HTML report, command transcripts, outputs, and future GUI
-failure artifacts beneath `build/e2e`. Install a compatible uv 0.11 release
+failure artifacts beneath `build/e2e`. Install a compatible uv 0.12 release
 before using either entry point.
 
 Packaged CLI tests on Linux and macOS:
