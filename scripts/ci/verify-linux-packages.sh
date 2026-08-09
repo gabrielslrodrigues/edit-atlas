@@ -84,7 +84,7 @@ verify_deployment() {
 verify_installed_runtime() {
   local application="$1"
   local cli
-  local fixture="$source_dir/tests/formats/cmx3600/fixtures/mixed_tracks.edl"
+  local fixture="$source_dir/tests/fixtures/cmx3600/mixed_tracks.edl"
   local output="$work_dir/installed-cli.xlsx"
   local application_status
 

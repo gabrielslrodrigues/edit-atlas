@@ -160,20 +160,7 @@ target_link_libraries(
 target_compile_features(edit_atlas PRIVATE cxx_std_23)
 edit_atlas_set_project_warnings(edit_atlas)
 
-if(WIN32)
-    add_custom_command(
-        TARGET edit_atlas
-        POST_BUILD
-        COMMAND
-            "${CMAKE_COMMAND}" -E make_directory
-            "$<TARGET_FILE_DIR:edit_atlas>/platforms"
-        COMMAND
-            "${CMAKE_COMMAND}" -E copy_if_different
-            "$<TARGET_FILE:Qt6::QWindowsIntegrationPlugin>"
-            "$<TARGET_FILE_DIR:edit_atlas>/platforms/$<TARGET_FILE_NAME:Qt6::QWindowsIntegrationPlugin>"
-        VERBATIM
-    )
-endif()
+edit_atlas_deploy_windows_qt_platform_plugin(edit_atlas)
 
 qt_add_translations(
     TARGETS edit_atlas_app
