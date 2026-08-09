@@ -52,8 +52,8 @@
         <translation>&amp;Sobre o Edit Atlas</translation>
     </message>
     <message>
-        <source>Language</source>
-        <translation>Idioma</translation>
+        <source>&amp;Language</source>
+        <translation>&amp;Idioma</translation>
     </message>
     <message>
         <source>History disabled</source>

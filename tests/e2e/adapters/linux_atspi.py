@@ -556,7 +556,10 @@ class LinuxApplicationSession:
         self, root: Any, identifier: str, *, showing_only: bool = True
     ) -> Any | None:
         for node in self._walk(root):
-            if self._node_identifier(node) != identifier:
+            node_identifier = self._node_identifier(node)
+            if node_identifier != identifier and not node_identifier.endswith(
+                f".{identifier}"
+            ):
                 continue
             if not showing_only or self._is_showing(node):
                 return node
@@ -633,9 +636,10 @@ class LinuxApplicationSession:
     @staticmethod
     def _node_text(node: Any) -> str:
         try:
-            return str(node.text)
+            value = node.text
         except Exception:
             return ""
+        return "" if value is None else str(value)
 
     @staticmethod
     def _is_editable(node: Any) -> bool:
