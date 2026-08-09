@@ -44,7 +44,6 @@ class LinuxAtspiAdapter:
         self._artifact_directory = artifact_directory
         self._timeout = timeout
         self._tree: Any = None
-        self._predicate: Any = None
         self._atspi: Any = None
 
     def preflight(self) -> None:
@@ -69,7 +68,6 @@ class LinuxAtspiAdapter:
 
             from dogtail import tree
             from dogtail.config import config
-            from dogtail.predicate import GenericPredicate
         except (ImportError, ValueError) as error:
             raise AccessibilityBackendError(
                 f"dogtail/AT-SPI backend could not be loaded: {error}"
@@ -92,7 +90,6 @@ class LinuxAtspiAdapter:
             ) from error
 
         self._tree = tree
-        self._predicate = GenericPredicate
         self._atspi = Atspi
 
     def launch(
@@ -133,7 +130,6 @@ class LinuxAtspiAdapter:
         )
         session = LinuxApplicationSession(
             tree=self._tree,
-            predicate=self._predicate,
             atspi=self._atspi,
             registry=self._registry,
             process=process,
@@ -163,7 +159,6 @@ class LinuxApplicationSession:
         self,
         *,
         tree: Any,
-        predicate: Any,
         atspi: Any,
         registry: ProcessRegistry,
         process: subprocess.Popen[str],
@@ -171,7 +166,6 @@ class LinuxApplicationSession:
         timeout: float,
     ) -> None:
         self._tree = tree
-        self._predicate = predicate
         self._atspi = atspi
         self._registry = registry
         self._process = process
@@ -199,19 +193,13 @@ class LinuxApplicationSession:
         def find() -> Any | None:
             self._ensure_running()
             try:
-                node = self._application.find_descendant(
-                    self._predicate(identifier=identifier),
-                    retry=False,
-                    require_result=False,
-                    showing_only=showing,
+                node = self._find_identifier(
+                    self._application, identifier, showing_only=showing
                 )
                 if node is not None or not showing:
                     return node
-                hidden = self._application.find_descendant(
-                    self._predicate(identifier=identifier),
-                    retry=False,
-                    require_result=False,
-                    showing_only=False,
+                hidden = self._find_identifier(
+                    self._application, identifier, showing_only=False
                 )
                 if hidden is not None:
                     self._scroll_into_view(hidden)
@@ -234,11 +222,8 @@ class LinuxApplicationSession:
         self._ensure_running()
         try:
             return (
-                self._application.find_descendant(
-                    self._predicate(identifier=identifier),
-                    retry=False,
-                    require_result=False,
-                    showing_only=showing,
+                self._find_identifier(
+                    self._application, identifier, showing_only=showing
                 )
                 is not None
             )
@@ -396,12 +381,7 @@ class LinuxApplicationSession:
     def open_file_dialog(self, dialog_identifier: str, path: Path) -> None:
         dialog = self.element(dialog_identifier)
         try:
-            editor = dialog.find_descendant(
-                self._predicate(identifier="fileNameEdit"),
-                retry=False,
-                require_result=False,
-                showing_only=True,
-            )
+            editor = self._find_identifier(dialog, "fileNameEdit")
         except Exception:
             editor = None
         editors = [
@@ -572,6 +552,16 @@ class LinuxApplicationSession:
                 continue
         return None
 
+    def _find_identifier(
+        self, root: Any, identifier: str, *, showing_only: bool = True
+    ) -> Any | None:
+        for node in self._walk(root):
+            if self._node_identifier(node) != identifier:
+                continue
+            if not showing_only or self._is_showing(node):
+                return node
+        return None
+
     def _list_item(
         self, identifier: str, name: str, *, control: Any | None = None
     ) -> Any:
@@ -612,9 +602,7 @@ class LinuxApplicationSession:
             if len(lines) >= 5000:
                 return
             try:
-                identifier = getattr(node, "accessible_id", "") or getattr(
-                    node, "id", ""
-                )
+                identifier = self._node_identifier(node)
                 lines.append(
                     f"{'  ' * depth}{node.role_name!s} name={node.name!r} "
                     f"id={identifier!r} showing={node.showing!r} "
@@ -662,6 +650,17 @@ class LinuxApplicationSession:
             return bool(node.showing)
         except Exception:
             return False
+
+    @staticmethod
+    def _node_identifier(node: Any) -> str:
+        for attribute in ("accessible_id", "id"):
+            try:
+                value = getattr(node, attribute)
+            except Exception:
+                continue
+            if value:
+                return str(value)
+        return ""
 
     def _ensure_running(self) -> None:
         return_code = self._process.poll()
