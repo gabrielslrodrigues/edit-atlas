@@ -64,8 +64,9 @@ dependencies used by the pinned PyGObject package:
 
 ```sh
 sudo apt-get install \
-  at-spi2-core dbus-x11 gir1.2-atspi-2.0 libgirepository1.0-dev \
-  libcairo2-dev pkg-config python3-dev xauth x11-apps xvfb
+  at-spi2-core dbus-x11 gir1.2-atspi-2.0 gir1.2-gtk-3.0 \
+  libgirepository1.0-dev libcairo2-dev pkg-config python3-dev xauth \
+  x11-apps xvfb
 ```
 
 After installing the generated DEB, run the complete required Linux suite in a

@@ -6,6 +6,11 @@
   "license": "Apache-2.0",
   "builtin-baseline": "40f3c709db80acf154ac4b17a1f83c564ebd022e",
   "dependencies": [
+    {
+      "name": "at-spi2-core",
+      "default-features": false,
+      "platform": "linux"
+    },
     "cli11",
     {
       "name": "dbus",
