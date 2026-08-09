@@ -315,6 +315,7 @@ jobs:
           cmake
           "-DEDIT_ATLAS_DEPLOYMENT_ROOT=${{ github.workspace }}/build/stage-${{ matrix.triplet }}"
           "-DEDIT_ATLAS_EXECUTABLE=${{ github.workspace }}/build/stage-${{ matrix.triplet }}/${{ matrix.staged_executable_suffix }}"
+          "-DEDIT_ATLAS_VERIFY_PRIVATE_RUNTIME_BOUNDARY=TRUE"
           -P cmake/VerifyApplicationDeployment.cmake
 
       - name: Archive staged macOS bundle
@@ -453,6 +454,8 @@ jobs:
           cmake
           findutils
           git
+          xauth
+          xvfb
 
       - name: Install Fedora verification tools
         if: matrix.distribution == 'fedora'
@@ -466,6 +469,8 @@ jobs:
           findutils
           git
           rpm
+          xorg-x11-server-Xvfb
+          xorg-x11-xauth
 
       - name: Check out source
         uses: actions/checkout@v7.0.1

@@ -72,11 +72,44 @@ require_package() {
 verify_deployment() {
   local deployment_root="$1"
   local executable="$2"
+  local verify_private_runtime_boundary="$3"
 
   cmake \
     "-DEDIT_ATLAS_DEPLOYMENT_ROOT=$deployment_root" \
     "-DEDIT_ATLAS_EXECUTABLE=$executable" \
+    "-DEDIT_ATLAS_VERIFY_PRIVATE_RUNTIME_BOUNDARY=$verify_private_runtime_boundary" \
     -P "$source_dir/cmake/VerifyApplicationDeployment.cmake"
+}
+
+verify_installed_runtime() {
+  local application="$1"
+  local cli
+  local fixture="$source_dir/tests/formats/cmx3600/fixtures/mixed_tracks.edl"
+  local output="$work_dir/installed-cli.xlsx"
+  local application_status
+
+  cli="$(dirname "$application")/edit-atlas-cli"
+  "$cli" convert --fps 24 "$fixture" "$output"
+  if [[ ! -s "$output" ]]; then
+    echo "The installed CLI did not create a workbook: $output" >&2
+    exit 1
+  fi
+
+  set +e
+  XDG_CACHE_HOME="$work_dir/cache" \
+    XDG_CONFIG_HOME="$work_dir/config" \
+    XDG_DATA_HOME="$work_dir/data" \
+    XDG_STATE_HOME="$work_dir/state" \
+    xvfb-run --auto-servernum \
+    timeout --signal=TERM 5s "$application"
+  application_status=$?
+  set -e
+  if (( application_status != 124 )); then
+    printf \
+      'The installed application exited during its launch smoke test with status %s.\n' \
+      "$application_status" >&2
+    exit 1
+  fi
 }
 
 trap cleanup EXIT
@@ -97,7 +130,7 @@ if [[ -z "$archive_executable" ]]; then
   exit 1
 fi
 archive_root="$(dirname "$(dirname "$archive_executable")")"
-verify_deployment "$archive_root" "$archive_executable"
+verify_deployment "$archive_root" "$archive_executable" TRUE
 
 case "$distribution" in
   ubuntu)
@@ -112,7 +145,7 @@ case "$distribution" in
     deb_dir="$work_dir/deb"
     mkdir -p "$deb_dir"
     dpkg-deb --extract "$deb" "$deb_dir"
-    verify_deployment "$deb_dir/usr" "$deb_dir/usr/bin/edit-atlas"
+    verify_deployment "$deb_dir/usr" "$deb_dir/usr/bin/edit-atlas" TRUE
 
     run_as_root apt-get install --yes "$deb"
     installed_package=true
@@ -121,7 +154,8 @@ case "$distribution" in
       echo "The DEB package was not registered as installed." >&2
       exit 1
     fi
-    verify_deployment "/usr" "/usr/bin/edit-atlas"
+    verify_deployment "/usr" "/usr/bin/edit-atlas" FALSE
+    verify_installed_runtime "/usr/bin/edit-atlas"
     remove_installed_package
     installed_package=false
     if [[ -e /usr/bin/edit-atlas ]]; then
@@ -145,12 +179,13 @@ case "$distribution" in
       cd "$rpm_dir"
       rpm2cpio "$rpm_package" | cpio --extract --make-directories --quiet
     )
-    verify_deployment "$rpm_dir/usr" "$rpm_dir/usr/bin/edit-atlas"
+    verify_deployment "$rpm_dir/usr" "$rpm_dir/usr/bin/edit-atlas" TRUE
 
     run_as_root dnf install --assumeyes "$rpm_package"
     installed_package=true
     rpm --query edit-atlas
-    verify_deployment "/usr" "/usr/bin/edit-atlas"
+    verify_deployment "/usr" "/usr/bin/edit-atlas" FALSE
+    verify_installed_runtime "/usr/bin/edit-atlas"
     remove_installed_package
     installed_package=false
     if [[ -e /usr/bin/edit-atlas ]]; then
