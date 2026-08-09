@@ -28,6 +28,12 @@ deployment tooling. They intentionally rely on the host's GNU C library,
 graphics stack, and desktop services. Ubuntu 24.04 is the build baseline.
 Ubuntu 24.04 and Fedora 44 are the native-package validation targets; other
 distributions meeting the runtime requirements may work but are not CI-tested.
+Bundled libraries are isolated below the platform library directory in an
+`edit-atlas` subdirectory, such as `/usr/lib64/edit-atlas` on Fedora. The
+package never installs generic shared-library files directly into `/usr/lib`
+or `/usr/lib64`, where they could conflict with distribution-owned packages.
+Linux Qt plugins are kept below the same private directory so their relative
+RUNPATHs resolve only package-owned libraries.
 
 ## Packaging prerequisites
 
@@ -145,9 +151,11 @@ and creates its installer. Independent verification jobs then download the
 packages and treat them like end-user downloads:
 
 - extracts the portable archive and both Linux native packages, verifies their
-  deployed Qt libraries, XCB and Wayland plugins, architecture metadata, and
-  license materials, then installs and removes the Debian package through APT
-  and the RPM package through DNF on Fedora 44;
+  private runtime-library layout, executable RUNPATHs, deployed Qt libraries,
+  XCB and Wayland plugins, architecture metadata, and license materials, then
+  installs and removes the Debian package through APT and the RPM package
+  through DNF on Fedora 44; each installed package is launched under Xvfb and
+  its CLI converts a representative CMX 3600 fixture;
 - installs the macOS package on both Apple Silicon and Intel runners, verifies
   its deployed Qt runtime, launches each native slice, and checks every Mach-O
   file for both x86_64 and ARM64 slices;

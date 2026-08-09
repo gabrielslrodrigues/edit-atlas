@@ -60,6 +60,11 @@ endif()
 include(GNUInstallDirs)
 include(CTest)
 
+set(edit_atlas_runtime_install_libdir "${CMAKE_INSTALL_LIBDIR}")
+if(LINUX)
+    string(APPEND edit_atlas_runtime_install_libdir "/edit-atlas")
+endif()
+
 option(
     EDIT_ATLAS_WARNINGS_AS_ERRORS
     "Treat compiler warnings from Edit Atlas targets as errors"

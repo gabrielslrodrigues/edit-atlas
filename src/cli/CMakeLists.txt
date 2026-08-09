@@ -53,7 +53,8 @@ elseif(LINUX)
     set_target_properties(
         edit_atlas_cli
         PROPERTIES
-            INSTALL_RPATH "$ORIGIN/../${CMAKE_INSTALL_LIBDIR}"
+            INSTALL_RPATH
+                "$ORIGIN/../${edit_atlas_runtime_install_libdir}"
     )
     set(edit_atlas_cli_install_directory "${CMAKE_INSTALL_BINDIR}")
 else()

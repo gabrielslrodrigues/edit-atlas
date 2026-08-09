@@ -74,6 +74,108 @@ message(
     "Verified Qt-free command-line executable: ${edit_atlas_cli_executable}"
 )
 
+if(LINUX)
+    file(
+        GLOB edit_atlas_private_runtime_candidates
+        LIST_DIRECTORIES TRUE
+        "${EDIT_ATLAS_DEPLOYMENT_ROOT}/lib/edit-atlas"
+        "${EDIT_ATLAS_DEPLOYMENT_ROOT}/lib64/edit-atlas"
+        "${EDIT_ATLAS_DEPLOYMENT_ROOT}/lib/*/edit-atlas"
+    )
+    set(edit_atlas_private_runtime_directories)
+    foreach(
+        edit_atlas_private_runtime_candidate
+        IN LISTS edit_atlas_private_runtime_candidates
+    )
+        if(IS_DIRECTORY "${edit_atlas_private_runtime_candidate}")
+            list(
+                APPEND edit_atlas_private_runtime_directories
+                "${edit_atlas_private_runtime_candidate}"
+            )
+        endif()
+    endforeach()
+    list(LENGTH edit_atlas_private_runtime_directories
+        edit_atlas_private_runtime_directory_count)
+    if(NOT edit_atlas_private_runtime_directory_count EQUAL 1)
+        message(
+            FATAL_ERROR
+            "Expected exactly one private Linux runtime-library directory, "
+            "found ${edit_atlas_private_runtime_directory_count}: "
+            "${edit_atlas_private_runtime_directories}"
+        )
+    endif()
+
+    list(GET edit_atlas_private_runtime_directories 0
+        edit_atlas_private_runtime_directory)
+    function(
+        edit_atlas_require_private_linux_runtime_path
+        description
+        binary
+        dependencies
+    )
+        get_filename_component(
+            edit_atlas_runtime_binary_directory
+            "${binary}"
+            DIRECTORY
+        )
+        file(
+            RELATIVE_PATH edit_atlas_private_runtime_relative_path
+            "${edit_atlas_runtime_binary_directory}"
+            "${edit_atlas_private_runtime_directory}"
+        )
+        set(
+            edit_atlas_expected_runtime_path
+            "$ORIGIN/${edit_atlas_private_runtime_relative_path}"
+        )
+        string(
+            FIND "${dependencies}"
+            "${edit_atlas_expected_runtime_path}"
+            edit_atlas_runtime_path_position
+        )
+        if(edit_atlas_runtime_path_position EQUAL -1)
+            message(
+                FATAL_ERROR
+                "${description} does not use the private Linux "
+                "runtime-library directory "
+                "${edit_atlas_expected_runtime_path}:\n${dependencies}"
+            )
+        endif()
+    endfunction()
+
+    edit_atlas_require_private_linux_runtime_path(
+        "The graphical executable"
+        "${EDIT_ATLAS_EXECUTABLE}"
+        "${edit_atlas_dependencies}"
+    )
+    edit_atlas_require_private_linux_runtime_path(
+        "The command-line executable"
+        "${edit_atlas_cli_executable}"
+        "${edit_atlas_cli_dependencies}"
+    )
+
+    if(EDIT_ATLAS_VERIFY_PRIVATE_RUNTIME_BOUNDARY)
+        get_filename_component(
+            edit_atlas_public_runtime_directory
+            "${edit_atlas_private_runtime_directory}"
+            DIRECTORY
+        )
+        file(
+            GLOB edit_atlas_public_runtime_libraries
+            LIST_DIRECTORIES FALSE
+            "${edit_atlas_public_runtime_directory}/*.so"
+            "${edit_atlas_public_runtime_directory}/*.so.*"
+        )
+        if(edit_atlas_public_runtime_libraries)
+            message(
+                FATAL_ERROR
+                "The package installs runtime libraries directly in the "
+                "public library directory: "
+                "${edit_atlas_public_runtime_libraries}"
+            )
+        endif()
+    endif()
+endif()
+
 function(edit_atlas_require_deployed_file description)
     set(edit_atlas_deployed_files)
     foreach(edit_atlas_deployed_pattern IN LISTS ARGN)
@@ -182,6 +284,36 @@ elseif(UNIX)
         "a Wayland Qt platform plugin"
         "*libqwayland*.so"
     )
+
+    if(LINUX)
+        file(
+            GLOB_RECURSE edit_atlas_linux_qt_plugins
+            LIST_DIRECTORIES FALSE
+            "${edit_atlas_private_runtime_directory}/Qt6/plugins/*.so"
+        )
+        foreach(edit_atlas_linux_qt_plugin IN LISTS edit_atlas_linux_qt_plugins)
+            execute_process(
+                COMMAND
+                    ${edit_atlas_dependency_command}
+                    "${edit_atlas_linux_qt_plugin}"
+                RESULT_VARIABLE edit_atlas_plugin_dependency_result
+                OUTPUT_VARIABLE edit_atlas_plugin_dependencies
+                ERROR_VARIABLE edit_atlas_plugin_dependency_error
+            )
+            if(NOT edit_atlas_plugin_dependency_result EQUAL 0)
+                message(
+                    FATAL_ERROR
+                    "Failed to inspect ${edit_atlas_linux_qt_plugin}:\n"
+                    "${edit_atlas_plugin_dependency_error}"
+                )
+            endif()
+            edit_atlas_require_private_linux_runtime_path(
+                "The Qt plugin ${edit_atlas_linux_qt_plugin}"
+                "${edit_atlas_linux_qt_plugin}"
+                "${edit_atlas_plugin_dependencies}"
+            )
+        endforeach()
+    endif()
 
     set(
         edit_atlas_third_party_runtime_descriptions
