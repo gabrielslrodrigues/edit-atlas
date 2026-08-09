@@ -11,6 +11,7 @@ sudo apt-get install --yes --no-install-recommends \
   libc6-dev \
   libegl1-mesa-dev \
   libglu1-mesa-dev \
+  libltdl-dev \
   libtool \
   libx11-dev \
   libx11-xcb-dev \
