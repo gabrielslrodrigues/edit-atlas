@@ -1,15 +1,15 @@
 """Windows desktop automation through pywinauto and UI Automation.
 
 Interactions in this module use UIA control patterns, except for Windows'
-native file chooser. Its blocking modal UIA provider requires semantic Win32
-control messages for discovery and operation. Pointer coordinates, image
-matching, and synthesized keyboard input are intentionally absent.
+native file chooser. Its blocking modal UIA provider exposes neither its
+filename field nor accept button, so the adapter types into the field that the
+operating system focuses when the chooser opens. Pointer coordinates and image
+matching are intentionally absent.
 """
 
 from __future__ import annotations
 
 from collections import deque
-import ctypes
 import os
 from pathlib import Path
 import subprocess
@@ -49,6 +49,7 @@ class WindowsUiaAdapter:
         self._application_class: Any = None
         self._desktop: Any = None
         self._win32_desktop: Any = None
+        self._keyboard_sender: Any = None
 
     def preflight(self) -> None:
         if os.name != "nt":
@@ -57,6 +58,7 @@ class WindowsUiaAdapter:
             )
         try:
             from pywinauto import Application, Desktop
+            from pywinauto.keyboard import send_keys
 
             desktop = Desktop(backend="uia")
             desktop.windows()
@@ -69,6 +71,7 @@ class WindowsUiaAdapter:
         self._application_class = Application
         self._desktop = desktop
         self._win32_desktop = win32_desktop
+        self._keyboard_sender = send_keys
 
     def launch(
         self,
@@ -111,6 +114,7 @@ class WindowsUiaAdapter:
                 application=application,
                 desktop=self._desktop,
                 win32_desktop=self._win32_desktop,
+                keyboard_sender=self._keyboard_sender,
                 registry=self._registry,
                 process=process,
                 artifact_directory=self._artifact_directory,
@@ -134,6 +138,7 @@ class WindowsApplicationSession:
         application: Any,
         desktop: Any,
         win32_desktop: Any,
+        keyboard_sender: Any,
         registry: ProcessRegistry,
         process: subprocess.Popen[str],
         artifact_directory: Path,
@@ -142,6 +147,7 @@ class WindowsApplicationSession:
         self._application = application
         self._desktop = desktop
         self._win32_desktop = win32_desktop
+        self._keyboard_sender = keyboard_sender
         self._registry = registry
         self._process = process
         self._artifact_directory = artifact_directory
@@ -313,66 +319,20 @@ class WindowsApplicationSession:
 
     def open_file_dialog(self, dialog_identifier: str, path: Path) -> None:
         dialog = self._native_file_dialog(dialog_identifier)
-        editor = self._native_file_name_editor(dialog)
-        if editor is None:
-            raise ElementNotFoundError(
-                f"{dialog_identifier!r} contains no editable path field"
-            )
-        expected_path = os.fspath(path)
-        try:
-            self._set_win32_edit_text(editor, expected_path)
-        except Exception as error:
-            raise ActionNotSupportedError(
-                "native file chooser path could not be set: "
-                f"{type(error).__name__}: {error}"
-            ) from error
-        wait_until(
-            lambda: self._win32_edit_text(editor),
-            lambda text: text == expected_path,
-            timeout=self._timeout,
-            description=f"native file chooser path to become {expected_path!r}",
-        )
-
-        buttons = self._actionable_win32_controls(
-            self._win32_descendants(dialog, "Button")
-        )
-        button = self._preferred_control_id(buttons, (1,))
-        if button is None:
-            button = self._named_win32_control(
-                buttons,
-                (
-                    "Open",
-                    "&Open",
-                    "Abrir",
-                    "&Abrir",
-                    "Save",
-                    "&Save",
-                    "Salvar",
-                    "&Salvar",
-                ),
-            )
-        if button is None:
-            raise ElementNotFoundError("native file chooser accept button is absent")
-        self._execute_async(button.click, self._win32_text(button))
-        wait_until(
-            lambda: self._window_exists_while_running(dialog),
-            lambda present: not present,
-            timeout=self._timeout,
-            description=f"native file chooser {dialog_identifier!r} to close",
-        )
-
-    def probe_file_dialog_keyboard(
-        self, dialog_identifier: str, path: Path
-    ) -> None:
-        dialog = self._native_file_dialog(dialog_identifier)
         if not dialog.has_focus():
             raise ActionNotSupportedError(
                 f"native file chooser {dialog_identifier!r} is not focused"
             )
-        from pywinauto.keyboard import send_keys
-
-        send_keys(os.fspath(path), with_spaces=True, pause=0, vk_packet=True)
-        send_keys("{ENTER}", pause=0)
+        try:
+            self._keyboard_sender(
+                os.fspath(path), with_spaces=True, pause=0, vk_packet=True
+            )
+            self._keyboard_sender("{ENTER}", pause=0)
+        except Exception as error:
+            raise ActionNotSupportedError(
+                "native file chooser rejected keyboard input: "
+                f"{type(error).__name__}: {error}"
+            ) from error
         wait_until(
             lambda: self._window_exists_while_running(dialog),
             lambda present: not present,
@@ -381,7 +341,6 @@ class WindowsApplicationSession:
                 f"native file chooser {dialog_identifier!r} to accept keyboard input"
             ),
         )
-        self._registry.stop(self._process)
 
     def activate_menu_action(
         self, menu_identifier: str, action_identifier: str
@@ -725,23 +684,6 @@ class WindowsApplicationSession:
             return None
         return dialogs[-1] if dialogs else None
 
-    def _native_file_name_editor(self, dialog: Any) -> Any | None:
-        combo_boxes = self._win32_descendants(dialog, "ComboBox")
-        file_name_combos = [
-            combo for combo in combo_boxes if self._control_id(combo) == 1148
-        ]
-        for combo in file_name_combos:
-            editors = self._win32_descendants(combo, "Edit")
-            if editors:
-                editor = self._preferred_control_id(editors, (1148, 1152))
-                return editor if editor is not None else editors[-1]
-
-        editors = self._win32_descendants(dialog, "Edit")
-        editor = self._preferred_control_id(editors, (1148, 1152))
-        if editor is not None:
-            return editor
-        return editors[-1] if editors else None
-
     def _find_identifier(
         self, identifier: str, *, showing: bool = True
     ) -> Any | None:
@@ -807,48 +749,6 @@ class WindowsApplicationSession:
             return []
 
     @staticmethod
-    def _win32_descendants(root: Any, class_name: str) -> list[Any]:
-        try:
-            return list(root.descendants(class_name=class_name))
-        except Exception:
-            return []
-
-    @staticmethod
-    def _actionable_win32_controls(nodes: Sequence[Any]) -> list[Any]:
-        actionable: list[Any] = []
-        for node in nodes:
-            try:
-                node.verify_actionable()
-                actionable.append(node)
-            except Exception:
-                continue
-        return actionable
-
-    @classmethod
-    def _preferred_control_id(
-        cls, nodes: Sequence[Any], control_ids: Sequence[int]
-    ) -> Any | None:
-        for control_id in control_ids:
-            for node in nodes:
-                if cls._control_id(node) == control_id:
-                    return node
-        return None
-
-    @classmethod
-    def _named_win32_control(
-        cls, nodes: Sequence[Any], names: Sequence[str]
-    ) -> Any | None:
-        expected = {cls._normalized_name(name) for name in names}
-        return next(
-            (
-                node
-                for node in nodes
-                if cls._normalized_name(cls._win32_text(node)) in expected
-            ),
-            None,
-        )
-
-    @staticmethod
     def _pattern(node: Any, name: str) -> Any | None:
         try:
             return getattr(node, name)
@@ -880,18 +780,6 @@ class WindowsApplicationSession:
             return str(node.window_text() or "")
         except Exception:
             return ""
-
-    @staticmethod
-    def _win32_edit_text(node: Any) -> str:
-        try:
-            return str(node.text_block() or "")
-        except Exception:
-            return ""
-
-    @staticmethod
-    def _set_win32_edit_text(node: Any, text: str) -> None:
-        buffer = ctypes.c_wchar_p(text)
-        node.send_message(0x000C, 0, buffer)  # WM_SETTEXT
 
     @staticmethod
     def _node_name(node: Any) -> str:

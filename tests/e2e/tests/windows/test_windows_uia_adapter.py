@@ -103,6 +103,7 @@ def application_session(artifact_directory: Path) -> WindowsApplicationSession:
         application=None,
         desktop=None,
         win32_desktop=None,
+        keyboard_sender=None,
         registry=None,
         process=RunningProcess(),
         artifact_directory=artifact_directory,
@@ -235,74 +236,22 @@ def test_native_file_dialog_uses_win32_backend_without_uia_traversal(
     assert session._native_file_dialog("timelineOpenFileDialog") is dialog
 
 
-def test_native_file_dialog_uses_semantic_win32_controls(
+def test_native_file_dialog_uses_focused_keyboard_input(
     tmp_path: Path,
 ) -> None:
     session = application_session(tmp_path)
     dialog_open = Event()
     dialog_open.set()
-
-    class Editor:
-        element_info = ElementInfo("", "Edit", control_id=1148)
-        value = ""
-
-        @staticmethod
-        def verify_actionable() -> None:
-            raise RuntimeError("Windows 11 reports the filename edit as hidden")
-
-        def send_message(
-            self, message: int, _wparam: int, value: Any
-        ) -> None:
-            assert message == 0x000C
-            self.value = value.value
-
-        def window_text(self) -> str:
-            return ""
-
-        def text_block(self) -> str:
-            return self.value
-
-    class Button:
-        element_info = ElementInfo("Open", "Button", control_id=1)
-        clicked = Event()
-
-        def click(self) -> None:
-            self.clicked.set()
-            dialog_open.clear()
-
-        @staticmethod
-        def verify_actionable() -> None:
-            return None
-
-        @staticmethod
-        def window_text() -> str:
-            return "Open"
-
-    editor = Editor()
-    button = Button()
-
-    class FileNameCombo:
-        element_info = ElementInfo("", "ComboBox", control_id=1148)
-
-        @staticmethod
-        def descendants(*, class_name: str) -> list[Editor]:
-            assert class_name == "Edit"
-            return [editor]
-
-    file_name_combo = FileNameCombo()
+    keyboard_calls: list[tuple[str, dict[str, Any]]] = []
 
     class Dialog:
         @staticmethod
-        def descendants(*, class_name: str) -> list[Any]:
-            return {
-                "ComboBox": [file_name_combo],
-                "Edit": [editor],
-                "Button": [button],
-            }[class_name]
-
-        @staticmethod
         def exists() -> bool:
             return dialog_open.is_set()
+
+        @staticmethod
+        def has_focus() -> bool:
+            return True
 
     dialog = Dialog()
 
@@ -312,12 +261,24 @@ def test_native_file_dialog_uses_semantic_win32_controls(
             return [dialog]
 
     session._win32_desktop = Desktop()
+
+    def send_keys(keys: str, **options: Any) -> None:
+        keyboard_calls.append((keys, options))
+        if keys == "{ENTER}":
+            dialog_open.clear()
+
+    session._keyboard_sender = send_keys
     path = tmp_path / "timeline.edl"
 
     session.open_file_dialog("timelineOpenFileDialog", path)
 
-    assert editor.value == str(path)
-    assert button.clicked.wait(1.0)
+    assert keyboard_calls == [
+        (
+            str(path),
+            {"with_spaces": True, "pause": 0, "vk_packet": True},
+        ),
+        ("{ENTER}", {"pause": 0}),
+    ]
 
 
 def test_uia_actions_do_not_block_the_driver(tmp_path: Path) -> None:
