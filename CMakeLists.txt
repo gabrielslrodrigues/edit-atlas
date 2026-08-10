@@ -80,6 +80,21 @@ find_package(spdlog CONFIG REQUIRED)
 
 edit_atlas_require_dynamic_qt()
 
+if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+    get_target_property(
+        edit_atlas_qt_disabled_features
+        Qt6::Gui
+        QT_DISABLED_PUBLIC_FEATURES
+    )
+    if("accessibility_atspi_bridge" IN_LIST edit_atlas_qt_disabled_features)
+        message(
+            FATAL_ERROR
+            "The Linux Qt build does not provide the AT-SPI accessibility "
+            "bridge required by packaged E2E tests."
+        )
+    endif()
+endif()
+
 string(
     JSON edit_atlas_vcpkg_baseline
     GET "${edit_atlas_vcpkg_manifest}"
@@ -119,6 +134,7 @@ add_subdirectory(src/cli)
 
 if(BUILD_TESTING)
     find_package(GTest CONFIG REQUIRED)
+    find_package(Qt6 REQUIRED COMPONENTS Test)
     add_subdirectory(tests)
 endif()
 

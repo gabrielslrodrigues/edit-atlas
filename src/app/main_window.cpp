@@ -1,5 +1,7 @@
 #include <edit_atlas/app/main_window.hpp>
 
+#include "accessibility.hpp"
+
 #include <edit_atlas/app/application_menu_bar.hpp>
 #include <edit_atlas/app/support_bundle_controller.hpp>
 #include <edit_atlas/app/timeline_document_controller.hpp>
@@ -7,6 +9,7 @@
 
 #include <edit_atlas/core/version.hpp>
 
+#include <QAbstractButton>
 #include <QDragEnterEvent>
 #include <QDropEvent>
 #include <QEvent>
@@ -33,7 +36,7 @@ MainWindow::MainWindow(const core::FormatRegistry &registry,
                        QWidget *parent)
     : QMainWindow{parent}, translator_{translator},
       language_{initial_language} {
-    setObjectName(QStringLiteral("mainWindow"));
+    SetAutomationIdentifier(*this, u"mainWindow");
     resize(1100, 700);
     setMinimumSize(760, 500);
     setAcceptDrops(true);
@@ -148,11 +151,20 @@ void MainWindow::SetBusy(bool busy) {
 
 void MainWindow::ShowAboutDialog(void) {
     const auto version = QString::fromStdString(std::string{core::Version()});
-    QMessageBox::about(
-        this, tr("About Edit Atlas"),
+    QMessageBox dialog{
+        QMessageBox::Information,
+        tr("About Edit Atlas"),
         tr("Edit Atlas %1\n\nInspect editorial timelines and export "
            "structured reports.")
-            .arg(version));
+            .arg(version),
+        QMessageBox::Ok,
+        this,
+    };
+    SetAutomationIdentifier(dialog, u"aboutDialog");
+    if (auto *close = dialog.button(QMessageBox::Ok); close != nullptr) {
+        SetAutomationIdentifier(*close, u"closeDialogButton");
+    }
+    dialog.exec();
 }
 
 } // namespace edit_atlas::app

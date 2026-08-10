@@ -1,5 +1,7 @@
 #include <edit_atlas/app/timeline_document_controller.hpp>
 
+#include "accessibility.hpp"
+
 #include <edit_atlas/app/application_menu_bar.hpp>
 #include <edit_atlas/app/desktop_integration.hpp>
 #include <edit_atlas/app/diagnostic_text.hpp>
@@ -18,6 +20,7 @@
 #include <edit_atlas/services/timeline_document_import_service.hpp>
 #include <edit_atlas/services/timeline_filter.hpp>
 
+#include <QComboBox>
 #include <QDialog>
 #include <QDir>
 #include <QFileDialog>
@@ -145,7 +148,12 @@ void TimelineDocumentController::ExportSpreadsheet(void) {
             QMessageBox::NoButton,
             &window_,
         };
-        message.addButton(tr("Close"), QMessageBox::RejectRole);
+        auto *close = message.addButton(tr("Close"), QMessageBox::RejectRole);
+
+        SetAutomationIdentifier(message,
+                                u"spreadsheetExporterUnavailableDialog");
+        SetAutomationIdentifier(*close, u"closeDialogButton");
+
         message.exec();
         return;
     }
@@ -177,6 +185,7 @@ void TimelineDocumentController::ExportSpreadsheet(void) {
         tr("Export Spreadsheet"),
         QDir{directory}.filePath(suggested_name),
     };
+    SetAutomationIdentifier(dialog, u"spreadsheetSaveFileDialog");
     dialog.setAcceptMode(QFileDialog::AcceptSave);
     dialog.setFileMode(QFileDialog::AnyFile);
     dialog.setDefaultSuffix(QStringLiteral("xlsx"));
@@ -204,7 +213,14 @@ void TimelineDocumentController::ExportSpreadsheet(void) {
         };
         auto *replace_button =
             confirmation.addButton(tr("Replace"), QMessageBox::AcceptRole);
-        confirmation.addButton(tr("Cancel"), QMessageBox::RejectRole);
+        auto *cancel_button =
+            confirmation.addButton(tr("Cancel"), QMessageBox::RejectRole);
+
+        SetAutomationIdentifier(confirmation, u"replaceSpreadsheetDialog");
+        SetAutomationIdentifier(*replace_button, u"replaceSpreadsheetButton");
+        SetAutomationIdentifier(*cancel_button,
+                                u"cancelReplaceSpreadsheetButton");
+
         confirmation.exec();
         if (confirmation.clickedButton() != replace_button) {
             return;
@@ -252,6 +268,7 @@ void TimelineDocumentController::OpenTimeline(void) {
     }
     patterns.removeDuplicates();
     QFileDialog dialog{&window_, tr("Open Timeline")};
+    SetAutomationIdentifier(dialog, u"timelineOpenFileDialog");
     dialog.setAcceptMode(QFileDialog::AcceptOpen);
     dialog.setFileMode(QFileDialog::ExistingFile);
     dialog.setNameFilters({tr("Supported timeline files (%1)")
@@ -331,7 +348,13 @@ void TimelineDocumentController::HandleExportFinished(void) {
     }
     auto *reveal_button =
         message.addButton(tr("Reveal File"), QMessageBox::ActionRole);
-    message.addButton(tr("Close"), QMessageBox::RejectRole);
+    auto *close_button =
+        message.addButton(tr("Close"), QMessageBox::RejectRole);
+
+    SetAutomationIdentifier(message, u"spreadsheetExportResultDialog");
+    SetAutomationIdentifier(*reveal_button, u"revealSpreadsheetButton");
+    SetAutomationIdentifier(*close_button, u"closeDialogButton");
+
     message.exec();
     if (message.clickedButton() == reveal_button &&
         !desktop_integration::RevealFile(path)) {
@@ -343,7 +366,11 @@ void TimelineDocumentController::HandleExportFinished(void) {
             QMessageBox::NoButton,
             &window_,
         };
-        warning.addButton(tr("Close"), QMessageBox::RejectRole);
+        auto *close = warning.addButton(tr("Close"), QMessageBox::RejectRole);
+
+        SetAutomationIdentifier(warning, u"revealSpreadsheetFailureDialog");
+        SetAutomationIdentifier(*close, u"closeDialogButton");
+
         warning.exec();
     }
 }
@@ -367,12 +394,22 @@ void TimelineDocumentController::HandleImportFinished(void) {
             "24000/1001", "24", "25",         "30000/1001",
             "30",         "50", "60000/1001", "60",
         };
-        bool accepted = false;
-        const auto selected = QInputDialog::getItem(
-            &window_, tr("Select Frame Rate"),
-            tr("This non-drop-frame EDL does not declare its frame rate."),
-            frame_rate_labels, 1, false, &accepted);
-        if (accepted) {
+        QInputDialog dialog{&window_};
+        dialog.setWindowTitle(tr("Select Frame Rate"));
+        dialog.setLabelText(
+            tr("This non-drop-frame EDL does not declare its frame rate."));
+        dialog.setComboBoxItems(frame_rate_labels);
+        dialog.setComboBoxEditable(false);
+        dialog.setTextValue(frame_rate_labels.at(1));
+        if (auto *selector = dialog.findChild<QComboBox *>();
+            selector != nullptr) {
+            SetAutomationIdentifier(*selector, u"frameRateSelector");
+        }
+        SetInputDialogButtonAutomationIdentifiers(
+            dialog, u"acceptFrameRateButton", u"cancelFrameRateButton");
+        SetAutomationIdentifier(dialog, u"frameRateDialog");
+        if (dialog.exec() == QDialog::Accepted) {
+            const auto selected = dialog.textValue();
             const auto index = frame_rate_labels.indexOf(selected);
             if (index >= 0) {
                 StartImport(
@@ -440,7 +477,11 @@ void TimelineDocumentController::ShowExportFailure(
     if (!failure.diagnostics.empty()) {
         message.setDetailedText(diagnostic_text::Summary(failure.diagnostics));
     }
-    message.addButton(tr("Close"), QMessageBox::RejectRole);
+    auto *close = message.addButton(tr("Close"), QMessageBox::RejectRole);
+
+    SetAutomationIdentifier(message, u"spreadsheetExportFailureDialog");
+    SetAutomationIdentifier(*close, u"closeDialogButton");
+
     message.exec();
 }
 

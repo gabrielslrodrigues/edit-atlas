@@ -1,5 +1,7 @@
 #include "event_projection_widget.hpp"
 
+#include "accessibility.hpp"
+
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QListWidget>
@@ -76,8 +78,8 @@ EventProjectionWidget::EventProjectionWidget(
     layout->addWidget(description);
 
     columns_ = new QListWidget{this};
-    columns_->setObjectName(QStringLiteral("eventColumnsList"));
     columns_->setAccessibleName(tr("Event columns"));
+    SetAutomationIdentifier(*columns_, u"eventColumnsList");
     for (const auto field : core::DefaultTimelineEventProjection()) {
         auto *item = new QListWidgetItem{ColumnText(field), columns_};
         item->setData(Qt::UserRole, static_cast<int>(field));
@@ -109,8 +111,12 @@ EventProjectionWidget::EventProjectionWidget(
     layout->addLayout(buttons);
 
     error_ = new QLabel{tr("Select at least one event column."), this};
-    error_->setObjectName(QStringLiteral("columnSelectionErrorLabel"));
     layout->addWidget(error_);
+
+    SetAutomationIdentifier(*this, u"eventProjectionWidget");
+    SetAutomationIdentifier(*move_up_, u"moveColumnUpButton");
+    SetAutomationIdentifier(*move_down_, u"moveColumnDownButton");
+    SetAutomationIdentifier(*error_, u"columnSelectionErrorLabel");
 
     connect(move_up_, &QPushButton::clicked, this,
             [this](void) { MoveCurrentColumn(-1); });

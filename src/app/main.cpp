@@ -1,3 +1,6 @@
+#include "accessibility.hpp"
+
+#include <edit_atlas/app/application_state.hpp>
 #include <edit_atlas/app/application_style.hpp>
 #include <edit_atlas/app/diagnostic_support.hpp>
 #include <edit_atlas/app/main_window.hpp>
@@ -24,11 +27,13 @@
 
 int main(int argc, char *argv[]) {
     QApplication application{argc, argv};
+    edit_atlas::app::InstallApplicationAccessibility();
     edit_atlas::app::ApplyApplicationStyle(application);
     QCoreApplication::setApplicationName(QStringLiteral("Edit Atlas"));
     QCoreApplication::setApplicationVersion(
         QString::fromStdString(std::string{edit_atlas::core::Version()}));
     QCoreApplication::setOrganizationName(QStringLiteral("Edit Atlas"));
+    edit_atlas::app::ConfigureApplicationState();
     QGuiApplication::setDesktopFileName(QStringLiteral("edit-atlas"));
     QApplication::setWindowIcon(
         QIcon{QStringLiteral(":/icons/edit_atlas.png")});

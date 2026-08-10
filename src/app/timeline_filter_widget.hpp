@@ -84,6 +84,7 @@ class TimelineFilterWidget final : public QWidget {
     void PopulateFields(ConditionRow &row);
     void PopulateTrackKinds(ConditionRow &row);
     void RemoveCondition(QWidget *row_widget);
+    void UpdateAccessibleIdentifiers(void);
     void UpdateConditionEditor(ConditionRow &row);
     void UpdateRemoveButtons(void);
     void UpdateTemplateControls(void);

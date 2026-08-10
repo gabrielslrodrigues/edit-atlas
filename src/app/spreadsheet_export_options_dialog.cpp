@@ -1,5 +1,6 @@
 #include <edit_atlas/app/spreadsheet_export_options_dialog.hpp>
 
+#include "accessibility.hpp"
 #include "event_projection_widget.hpp"
 
 #include <edit_atlas/formats/xlsx/xlsx_exporter.hpp>
@@ -76,7 +77,16 @@ SpreadsheetExportOptionsDialog::SpreadsheetExportOptionsDialog(
     auto *buttons = new QDialogButtonBox{this};
     continue_ =
         buttons->addButton(tr("Continue"), QDialogButtonBox::AcceptRole);
-    buttons->addButton(tr("Cancel"), QDialogButtonBox::RejectRole);
+    auto *cancel =
+        buttons->addButton(tr("Cancel"), QDialogButtonBox::RejectRole);
+
+    SetAutomationIdentifier(*this, u"spreadsheetOptionsDialog");
+    SetAutomationIdentifier(*workbook_language_, u"workbookLanguageSelector");
+    SetAutomationIdentifier(*timeline_, u"includeTimelineSheetCheckBox");
+    SetAutomationIdentifier(*diagnostics_, u"includeDiagnosticsSheetCheckBox");
+    SetAutomationIdentifier(*continue_, u"continueSpreadsheetExportButton");
+    SetAutomationIdentifier(*cancel, u"cancelSpreadsheetExportButton");
+
     connect(buttons, &QDialogButtonBox::accepted, this, &QDialog::accept);
     connect(buttons, &QDialogButtonBox::rejected, this, &QDialog::reject);
     layout->addWidget(buttons);

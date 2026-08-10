@@ -7,7 +7,6 @@
 #include <QString>
 
 class QAction;
-class QComboBox;
 class QMenu;
 class QWidget;
 
@@ -61,7 +60,9 @@ class ApplicationMenuBar final : public QMenuBar {
     QMenu *help_menu_ = nullptr;
     QAction *export_logs_action_ = nullptr;
     QAction *about_action_ = nullptr;
-    QComboBox *language_selector_ = nullptr;
+    QMenu *language_menu_ = nullptr;
+    QAction *brazilian_portuguese_action_ = nullptr;
+    QAction *english_action_ = nullptr;
 };
 
 } // namespace edit_atlas::app

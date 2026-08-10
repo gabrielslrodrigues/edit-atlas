@@ -488,6 +488,91 @@ jobs:
           ${{ matrix.distribution }}
           build/packages/x64-linux
 
+  e2e-linux-package:
+    name: E2E / Ubuntu packaged desktop
+    needs: build-and-package
+    if: always() && needs['build-and-package'].result == 'success'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v7.0.1
+
+      - name: Install desktop automation dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install \
+            --yes \
+            --no-install-recommends \
+            at-spi2-core \
+            build-essential \
+            dbus-x11 \
+            gir1.2-atspi-2.0 \
+            gir1.2-gtk-3.0 \
+            libcairo2-dev \
+            libgirepository1.0-dev \
+            locales \
+            pkg-config \
+            python3-dev \
+            x11-apps \
+            xauth \
+            xvfb
+          sudo locale-gen pt_BR.UTF-8
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
+        with:
+          version: 0.12.3
+
+      - name: Download Linux packages
+        uses: actions/download-artifact@v8
+        with:
+          name: edit-atlas-x64-linux-packages
+          path: build/packages/x64-linux
+
+      - name: Install generated DEB
+        shell: bash
+        run: |
+          mapfile -t packages < <(find "${GITHUB_WORKSPACE}/build/packages/x64-linux" -type f -name '*.deb')
+          if [[ "${#packages[@]}" -ne 1 ]]; then
+            echo "Expected exactly one DEB, found ${#packages[@]}" >&2
+            exit 1
+          fi
+          sudo apt-get install --yes "${packages[0]}"
+
+      - name: Run packaged CLI and desktop E2E tests
+        shell: bash
+        env:
+          GSETTINGS_BACKEND: memory
+        run: >-
+          dbus-run-session --
+          xvfb-run
+          --auto-servernum
+          --server-args="-screen 0 1440x1000x24 -nolisten tcp"
+          tests/e2e/run-linux.sh
+          --app /usr/bin/edit-atlas
+          --cli /usr/bin/edit-atlas-cli
+
+      - name: Upload Linux E2E reports and artifacts
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: linux-packaged-e2e-results
+          path: |
+            build/e2e/reports
+            build/e2e/artifacts
+            build/e2e/output
+          if-no-files-found: ignore
+          retention-days: 7
+
+      - name: Remove installed package
+        if: always()
+        run: |
+          if dpkg-query --show edit-atlas >/dev/null 2>&1; then
+            sudo apt-get remove --yes edit-atlas
+          fi
+
   verify-macos-package:
     name: Verify macOS package / ${{ matrix.name }}
     needs: package-macos-universal
@@ -519,6 +604,86 @@ jobs:
 
       - name: Verify package
         run: ./scripts/ci/verify-macos-package.sh build/packages/universal-osx
+
+  e2e-macos-package:
+    # GitHub-hosted macOS runners cannot grant Accessibility permission to the
+    # test process non-interactively. Keep the experimental job visible, but
+    # disabled until it can run on a pre-authorized interactive runner.
+    name: E2E / macOS packaged desktop (experimental, disabled)
+    needs: package-macos-universal
+    if: >-
+      false &&
+      (github.event_name == 'schedule' ||
+       github.event_name == 'workflow_dispatch') &&
+      needs['package-macos-universal'].result == 'success'
+    continue-on-error: true
+    runs-on: macos-15
+    timeout-minutes: 30
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v7.0.1
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
+        with:
+          version: 0.12.3
+
+      - name: Download macOS package
+        uses: actions/download-artifact@v8
+        with:
+          name: edit-atlas-universal-osx-packages
+          path: build/packages/universal-osx
+
+      - name: Install generated PKG
+        run: |
+          packages=()
+          while IFS= read -r package; do
+            packages+=("${package}")
+          done < <(find build/packages/universal-osx -type f -name '*.pkg')
+          if [[ "${#packages[@]}" -ne 1 ]]; then
+            echo "Expected exactly one PKG, found ${#packages[@]}" >&2
+            exit 1
+          fi
+          if [[ -e /Applications/edit-atlas.app ]]; then
+            echo "Package target already exists: /Applications/edit-atlas.app" >&2
+            exit 1
+          fi
+          sudo installer -pkg "${packages[0]}" -target /
+          package_id="$(
+            /usr/libexec/PlistBuddy \
+              -c 'Print :CFBundleIdentifier' \
+              /Applications/edit-atlas.app/Contents/Info.plist
+          )"
+          echo "EDIT_ATLAS_E2E_PACKAGE_ID=${package_id}" >>"${GITHUB_ENV}"
+
+      - name: Run packaged CLI and desktop E2E tests
+        run: |
+          tests/e2e/run-macos.sh \
+            --app /Applications/edit-atlas.app/Contents/MacOS/edit-atlas \
+            --cli /Applications/edit-atlas.app/Contents/MacOS/edit-atlas-cli
+
+      - name: Remove installed package and test state
+        if: always()
+        run: |
+          pkill -x edit-atlas || true
+          sudo rm -rf /Applications/edit-atlas.app
+          if [[ -n "${EDIT_ATLAS_E2E_PACKAGE_ID:-}" ]]; then
+            sudo pkgutil --forget "${EDIT_ATLAS_E2E_PACKAGE_ID}" || true
+          fi
+          rm -rf build/e2e/state
+
+      - name: Upload macOS E2E reports and artifacts
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: macos-packaged-e2e-results
+          path: |
+            build/e2e/reports
+            build/e2e/artifacts
+            build/e2e/output
+          if-no-files-found: ignore
+          retention-days: 7
 
   verify-windows-package:
     name: Verify Windows package / Windows x64
@@ -561,6 +726,100 @@ jobs:
           if-no-files-found: ignore
           retention-days: 7
 
+  e2e-windows-package:
+    name: E2E / Windows packaged desktop
+    needs: build-and-package
+    if: always() && needs['build-and-package'].result == 'success'
+    runs-on: windows-2022
+    timeout-minutes: 30
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v7.0.1
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
+        with:
+          version: 0.12.3
+
+      - name: Download Windows package
+        uses: actions/download-artifact@v8
+        with:
+          name: edit-atlas-x64-windows-packages
+          path: build/packages/x64-windows
+
+      - name: Install generated MSI
+        shell: pwsh
+        run: |
+          $packages = @(
+            Get-ChildItem build/packages/x64-windows -Recurse -File -Filter *.msi
+          )
+          if ($packages.Count -ne 1) {
+            throw "Expected exactly one MSI; found $($packages.Count)."
+          }
+          $installer = $packages[0].FullName
+          $installRoot = Join-Path $env:GITHUB_WORKSPACE "build/e2e/install"
+          $installLog = Join-Path $env:GITHUB_WORKSPACE "build/e2e/msi-install.log"
+          New-Item -ItemType Directory -Force (Split-Path $installLog) | Out-Null
+          "EDIT_ATLAS_E2E_MSI=$installer" | Out-File `
+            -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          "EDIT_ATLAS_E2E_INSTALL_ROOT=$installRoot" | Out-File `
+            -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          $process = Start-Process `
+            -FilePath msiexec.exe `
+            -ArgumentList @(
+              "/i", "`"$installer`"", "/qn", "/norestart", "/L*V",
+              "`"$installLog`"", "INSTALL_ROOT=`"$installRoot`""
+            ) `
+            -PassThru `
+            -Wait
+          if ($process.ExitCode -notin @(0, 3010)) {
+            throw "MSI installation failed with exit code $($process.ExitCode)."
+          }
+
+      - name: Run packaged CLI and desktop E2E tests
+        shell: pwsh
+        run: |
+          tests/e2e/run-windows.ps1 `
+            -App "$env:EDIT_ATLAS_E2E_INSTALL_ROOT/bin/edit-atlas.exe" `
+            -Cli "$env:EDIT_ATLAS_E2E_INSTALL_ROOT/bin/edit-atlas-cli.exe"
+
+      - name: Remove installed package and test state
+        if: always()
+        shell: pwsh
+        run: |
+          Get-Process -Name edit-atlas -ErrorAction SilentlyContinue |
+            Stop-Process -Force -ErrorAction SilentlyContinue
+          if ($env:EDIT_ATLAS_E2E_MSI) {
+            $uninstallLog = Join-Path `
+              $env:GITHUB_WORKSPACE "build/e2e/msi-uninstall.log"
+            $process = Start-Process `
+              -FilePath msiexec.exe `
+              -ArgumentList @(
+                "/x", "`"$env:EDIT_ATLAS_E2E_MSI`"", "/qn", "/norestart",
+                "/L*V", "`"$uninstallLog`""
+              ) `
+              -PassThru `
+              -Wait
+            if ($process.ExitCode -notin @(0, 3010)) {
+              throw "MSI uninstall failed with exit code $($process.ExitCode)."
+            }
+          }
+          Remove-Item build/e2e/state -Recurse -Force -ErrorAction SilentlyContinue
+
+      - name: Upload Windows E2E reports and artifacts
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: windows-packaged-e2e-results
+          path: |
+            build/e2e/reports
+            build/e2e/artifacts
+            build/e2e/output
+            build/e2e/*.log
+          if-no-files-found: ignore
+          retention-days: 7
+
   publish-release:
     name: Publish release assets
     if: >-
@@ -568,12 +827,16 @@ jobs:
       needs['create-release'].result == 'success' &&
       needs['prepare-qt-source'].result == 'success' &&
       needs['verify-linux-packages'].result == 'success' &&
+      needs['e2e-linux-package'].result == 'success' &&
+      needs['e2e-windows-package'].result == 'success' &&
       needs['verify-macos-package'].result == 'success' &&
       needs['verify-windows-package'].result == 'success'
     needs:
       - create-release
       - prepare-qt-source
       - verify-linux-packages
+      - e2e-linux-package
+      - e2e-windows-package
       - verify-macos-package
       - verify-windows-package
     runs-on: ubuntu-24.04
