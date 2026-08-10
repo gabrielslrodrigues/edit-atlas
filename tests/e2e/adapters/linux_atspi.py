@@ -377,12 +377,6 @@ class LinuxApplicationSession:
             timeout=self._timeout,
             description=f"option {option!r} to become selected",
         )
-        wait_until(
-            lambda: self._showing_state(node),
-            lambda showing: not showing,
-            timeout=self._timeout,
-            description=f"option {option!r} popup to close",
-        )
 
     def selected_option(self, identifier: str) -> str:
         control = self.element(identifier)
@@ -725,10 +719,6 @@ class LinuxApplicationSession:
     def _checked_state(self, node: Any) -> bool:
         self._ensure_running()
         return self._is_checked(node)
-
-    def _showing_state(self, node: Any) -> bool:
-        self._ensure_running()
-        return self._is_showing(node)
 
     def _selected_state(self, node: Any) -> bool:
         self._ensure_running()

@@ -34,6 +34,27 @@ class FailingActionNode:
         raise RuntimeError("synthetic AT-SPI failure")
 
 
+class SuccessfulActionNode:
+    def __init__(self, name: str, action: str) -> None:
+        self.actions = {action: 0}
+        self.name = name
+        self.showing = True
+        self.selected = False
+        self.invoked = Event()
+
+    def do_action_named(self, action: str) -> bool:
+        assert action in self.actions
+        self.selected = True
+        self.invoked.set()
+        return True
+
+
+class RunningProcess:
+    @staticmethod
+    def poll() -> None:
+        return None
+
+
 def application_session(artifact_directory: Path) -> LinuxApplicationSession:
     return LinuxApplicationSession(
         tree=None,
@@ -83,3 +104,20 @@ def test_asynchronous_action_failure_surfaces_on_next_interaction(
 
     with pytest.raises(ActionNotSupportedError, match="synthetic AT-SPI failure"):
         session._ensure_running()
+
+
+def test_option_selection_does_not_wait_for_qt_to_hide_the_option_node(
+    tmp_path: Path,
+) -> None:
+    session = application_session(tmp_path)
+    session._process = RunningProcess()
+    control = SuccessfulActionNode("Language", "ShowMenu")
+    option = SuccessfulActionNode("English", "Press")
+    session.element = lambda identifier: control
+    session._find_named = lambda *args, **kwargs: option
+
+    session.select_option("languageSelector", "English")
+
+    assert option.invoked.wait(1.0)
+    assert option.selected
+    assert option.showing
