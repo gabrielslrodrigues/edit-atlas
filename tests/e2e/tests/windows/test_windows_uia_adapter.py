@@ -26,10 +26,13 @@ class RunningProcess:
 
 
 class InvokePattern:
-    def __init__(self) -> None:
+    def __init__(self, invoke: Any | None = None) -> None:
         self.invoked = Event()
+        self._invoke = invoke
 
     def Invoke(self) -> None:
+        if self._invoke is not None:
+            self._invoke()
         self.invoked.set()
 
 
@@ -120,6 +123,19 @@ def test_checked_state_uses_uia_toggle_pattern(tmp_path: Path) -> None:
     assert session.is_checked("rememberRecentFilesAction")
 
 
+def test_checkable_menu_item_uses_uia_invoke_pattern(tmp_path: Path) -> None:
+    session = application_session(tmp_path)
+    node = Node("Remember recent files", "MenuItem")
+    node.iface_toggle = TogglePattern()
+    node.iface_invoke = InvokePattern(node.iface_toggle.Toggle)
+    session.element = lambda identifier: node
+
+    session.set_checked("rememberRecentFilesAction", True)
+
+    assert node.iface_invoke.invoked.is_set()
+    assert node.iface_toggle.CurrentToggleState == 1
+
+
 def test_combo_selection_prefers_uia_selection_item_pattern(
     tmp_path: Path,
 ) -> None:
@@ -187,6 +203,32 @@ def test_identifier_lookup_accepts_qt_hierarchical_automation_id(
 
     assert session._find_identifier_in(root, "languageSelector") is language
     assert session._find_identifier_in(root, "otherSelector") is None
+
+
+def test_native_file_dialog_lookup_does_not_traverse_main_window(
+    tmp_path: Path,
+) -> None:
+    session = application_session(tmp_path)
+
+    class MainWindow(Node):
+        def descendants(self) -> list[Node]:
+            raise AssertionError("main window must not be traversed")
+
+    main_window = MainWindow(
+        "Edit Atlas", "Window", automation_id="QApplication.mainWindow"
+    )
+    dialog = Node("Open", "Window")
+    dialog.element_info.class_name = "#32770"
+
+    class Desktop:
+        @staticmethod
+        def windows(*, process: int) -> list[Node]:
+            assert process == RunningProcess.pid
+            return [main_window, dialog]
+
+    session._desktop = Desktop()
+
+    assert session._native_file_dialog("timelineOpenFileDialog") is dialog
 
 
 def test_uia_actions_do_not_block_the_driver(tmp_path: Path) -> None:

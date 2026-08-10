@@ -304,14 +304,10 @@ class WindowsApplicationSession:
 
     def open_file_dialog(self, dialog_identifier: str, path: Path) -> None:
         dialog = self._native_file_dialog(dialog_identifier)
-        editor = self._find_identifier_in(dialog, "1148", showing=True)
-        if editor is None:
-            editors = [
-                node
-                for node in self._descendants(dialog)
-                if self._control_type(node) == "Edit" and node.is_visible()
-            ]
-            editor = editors[-1] if editors else None
+        editors = self._showing_descendants(dialog, "Edit")
+        editor = self._preferred_identifier(editors, ("1148", "1001"))
+        if editor is None and editors:
+            editor = editors[-1]
         if editor is None:
             raise ElementNotFoundError(
                 f"{dialog_identifier!r} contains no showing editable path field"
@@ -330,9 +326,11 @@ class WindowsApplicationSession:
             description=f"native file chooser path to become {expected_path!r}",
         )
 
-        button = self._find_identifier_in(dialog, "1", showing=True)
-        if button is None or self._control_type(button) != "Button":
-            button = self._find_named(
+        buttons = self._showing_descendants(dialog, "Button")
+        button = self._preferred_identifier(buttons, ("1",))
+        if button is None:
+            button = self._named_node_from_options(
+                buttons,
                 (
                     "Open",
                     "&Open",
@@ -343,8 +341,6 @@ class WindowsApplicationSession:
                     "Salvar",
                     "&Salvar",
                 ),
-                root=dialog,
-                control_types=("Button",),
             )
         if button is None:
             raise ElementNotFoundError("native file chooser accept button is absent")
@@ -581,9 +577,34 @@ class WindowsApplicationSession:
         if toggle is None:
             raise ActionNotSupportedError(
                 f"{description} exposes no UIA Toggle pattern"
-        )
-        if self._current_toggle_state(toggle) != checked:
-            self._execute_pattern(toggle.Toggle, node)
+            )
+        if self._current_toggle_state(toggle) == checked:
+            return
+
+        invoke = self._pattern(node, "iface_invoke")
+        if self._control_type(node) == "MenuItem" and invoke is not None:
+            completed = self._invoke(node)
+            wait_until(
+                completed.is_set,
+                lambda value: value,
+                timeout=self._timeout,
+                description=f"{description} invocation to complete",
+            )
+            self._ensure_running()
+            try:
+                current = self._toggle_state(toggle)
+            except Exception:
+                # Qt removes a menu item from the UIA tree when its menu closes.
+                # A completed semantic invocation is the only observable result
+                # until the menu is opened again.
+                return
+            if current != checked:
+                raise ActionNotSupportedError(
+                    f"UIA Invoke did not change {description} checked state"
+                )
+            return
+
+        self._execute_pattern(toggle.Toggle, node)
         wait_until(
             lambda: self._current_toggle_state(toggle),
             lambda current: current == checked,
@@ -632,19 +653,38 @@ class WindowsApplicationSession:
 
     def _native_file_dialog(self, identifier: str) -> Any:
         return wait_until(
-            lambda: self._find_identifier(identifier)
-            or next(
-                (
-                    window
-                    for window in reversed(self._windows())
-                    if self._control_type(window) == "Window"
-                    and self._find_identifier_in(window, "1148") is not None
-                ),
-                None,
-            ),
+            lambda: self._find_native_file_dialog(identifier),
             lambda value: value is not None,
             timeout=self._timeout,
             description=f"native file chooser {identifier!r}",
+        )
+
+    def _find_native_file_dialog(self, identifier: str) -> Any | None:
+        self._ensure_running()
+        candidates: list[Any] = []
+        for window in reversed(self._windows()):
+            try:
+                if not window.is_visible():
+                    continue
+                if self._control_type(window) not in ("Window", "Pane"):
+                    continue
+                automation_id = self._automation_id(window)
+                if self._identifier_matches(automation_id, "mainWindow"):
+                    continue
+                if self._identifier_matches(automation_id, identifier):
+                    return window
+                candidates.append(window)
+            except Exception:
+                continue
+
+        return next(
+            (
+                window
+                for window in candidates
+                if str(getattr(window.element_info, "class_name", ""))
+                == "#32770"
+            ),
+            candidates[0] if candidates else None,
         )
 
     def _find_identifier(
@@ -710,6 +750,59 @@ class WindowsApplicationSession:
             return list(root.descendants())
         except Exception:
             return []
+
+    @classmethod
+    def _showing_descendants(
+        cls, root: Any, control_type: str
+    ) -> list[Any]:
+        try:
+            descendants = list(root.descendants(control_type=control_type))
+        except TypeError:
+            descendants = [
+                node
+                for node in cls._descendants(root)
+                if cls._control_type(node) == control_type
+            ]
+        except Exception:
+            return []
+        return [
+            node
+            for node in descendants
+            if cls._is_visible(node)
+        ]
+
+    @classmethod
+    def _preferred_identifier(
+        cls, nodes: Sequence[Any], identifiers: Sequence[str]
+    ) -> Any | None:
+        for identifier in identifiers:
+            for node in nodes:
+                if cls._identifier_matches(
+                    cls._automation_id(node), identifier
+                ):
+                    return node
+        return None
+
+    @classmethod
+    def _named_node_from_options(
+        cls, nodes: Sequence[Any], names: Sequence[str]
+    ) -> Any | None:
+        expected = {cls._normalized_name(name) for name in names}
+        return next(
+            (
+                node
+                for node in nodes
+                if cls._normalized_name(cls._node_name(node)) in expected
+            ),
+            None,
+        )
+
+    @staticmethod
+    def _is_visible(node: Any) -> bool:
+        try:
+            return bool(node.is_visible())
+        except Exception:
+            return False
 
     @staticmethod
     def _pattern(node: Any, name: str) -> Any | None:
