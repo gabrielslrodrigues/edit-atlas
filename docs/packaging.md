@@ -241,14 +241,18 @@ validates every package on the supported verification systems, and uploads
 the five installers/archives to a draft GitHub Release. The workflow also
 downloads the exact Qt Base source archive selected by the pinned vcpkg port,
 verifies its SHA-512 digest, and packages it with the complete port and patch
-set, vcpkg commit, manifest, triplets, and relevant build configuration. The
-draft contains that corresponding-source archive, `SHA256SUMS`, `LICENSE`, and
+set, vcpkg commit, manifest, triplets, and relevant build configuration. It
+does the same for the exact FFmpeg source and vcpkg port and patch set used by
+the dynamically linked media backend. The draft contains both
+corresponding-source archives, `SHA256SUMS`, `LICENSE`, and
 `THIRD_PARTY_NOTICES.md`.
 
 Each binary package installs a version-specific `QT_SOURCE_OFFER.md` that links
 to the corresponding-source asset in its GitHub Release and explains how to
-rebuild and replace the bundled Qt libraries. `SHA256SUMS` covers both the
-application packages and the Qt source archive.
+rebuild and replace the bundled Qt libraries. A parallel
+`FFMPEG_SOURCE_OFFER.md` identifies the FFmpeg asset and explains rebuilding
+and shared-library replacement. `SHA256SUMS` covers the application packages
+and both corresponding-source archives.
 
 The draft is created before platform builds begin. If a build or verification
 job fails, the draft remains unpublished and can be inspected as an

@@ -17,6 +17,15 @@
       "default-features": false,
       "platform": "linux"
     },
+    {
+      "name": "ffmpeg",
+      "default-features": false,
+      "features": [
+        "avcodec",
+        "avformat",
+        "swscale"
+      ]
+    },
     "gtest",
     "libxlsxwriter",
     "minizip",

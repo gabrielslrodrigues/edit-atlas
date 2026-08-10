@@ -3,7 +3,7 @@
 Edit Atlas provides a UI-independent C++23 foundation for importing editorial
 timeline formats and exporting structured reports. The documented API covers
 the domain model, format extension points, application services, built-in
-formats, and privacy-limited diagnostic support.
+formats, media decoding, and privacy-limited diagnostic support.
 
 ## Start here
 
@@ -23,6 +23,8 @@ formats, and privacy-limited diagnostic support.
   storage boundary.
 - `edit_atlas::services::CreateBuiltInFormatRegistry()` composes the handlers
   shipped with the application.
+- `edit_atlas::media::VideoDecoder::Open()` opens supported MOV, MP4, and MXF
+  inputs behind a frontend-independent decoding interface.
 
 ## API stability
 

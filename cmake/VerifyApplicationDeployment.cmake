@@ -240,6 +240,10 @@ if(WIN32)
         abseil
         spdlog
         fmt
+        FFmpeg-avcodec
+        FFmpeg-avformat
+        FFmpeg-avutil
+        FFmpeg-swscale
         libxlsxwriter
         minizip
         re2
@@ -249,6 +253,10 @@ if(WIN32)
         "*abseil*.dll"
         "*spdlog*.dll"
         "*fmt*.dll"
+        "*avcodec-*.dll"
+        "*avformat-*.dll"
+        "*avutil-*.dll"
+        "*swscale-*.dll"
         "*xlsxwriter*.dll"
         "*minizip*.dll"
         "*re2*.dll"
@@ -263,6 +271,10 @@ elseif(APPLE)
         edit_atlas_third_party_runtime_descriptions
         spdlog
         fmt
+        FFmpeg-avcodec
+        FFmpeg-avformat
+        FFmpeg-avutil
+        FFmpeg-swscale
         libxlsxwriter
         minizip
         re2
@@ -271,6 +283,10 @@ elseif(APPLE)
         edit_atlas_third_party_runtime_patterns
         "*libspdlog*.dylib"
         "*libfmt*.dylib"
+        "*libavcodec*.dylib"
+        "*libavformat*.dylib"
+        "*libavutil*.dylib"
+        "*libswscale*.dylib"
         "*libxlsxwriter*.dylib"
         "*libminizip*.dylib"
         "*libre2*.dylib"
@@ -319,6 +335,10 @@ elseif(UNIX)
         edit_atlas_third_party_runtime_descriptions
         spdlog
         fmt
+        FFmpeg-avcodec
+        FFmpeg-avformat
+        FFmpeg-avutil
+        FFmpeg-swscale
         libxlsxwriter
         minizip
         re2
@@ -327,6 +347,10 @@ elseif(UNIX)
         edit_atlas_third_party_runtime_patterns
         "*libspdlog.so*"
         "*libfmt.so*"
+        "*libavcodec.so*"
+        "*libavformat.so*"
+        "*libavutil.so*"
+        "*libswscale.so*"
         "*libxlsxwriter.so*"
         "*libminizip.so*"
         "*libre2.so*"
@@ -420,13 +444,27 @@ edit_atlas_require_deployed_file(
 )
 foreach(
     edit_atlas_notice_package
-    IN ITEMS abseil cli11 nlohmann-json spdlog fmt libxlsxwriter minizip re2 zlib
+    IN ITEMS
+        abseil
+        cli11
+        ffmpeg
+        fmt
+        libxlsxwriter
+        minizip
+        nlohmann-json
+        re2
+        spdlog
+        zlib
 )
     edit_atlas_require_deployed_file(
         "the ${edit_atlas_notice_package} license notices"
         "*${edit_atlas_notice_package}-copyright"
     )
 endforeach()
+edit_atlas_require_deployed_file(
+    "the FFmpeg corresponding source offer"
+    "*FFMPEG_SOURCE_OFFER.md"
+)
 edit_atlas_require_deployed_file(
     "the Qt corresponding source offer"
     "*QT_SOURCE_OFFER.md"

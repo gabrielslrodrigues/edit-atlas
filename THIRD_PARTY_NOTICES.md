@@ -24,6 +24,24 @@ The version-specific `QT_SOURCE_OFFER.md` installed with each binary package
 identifies the corresponding source archive controlled by the Edit Atlas
 project and provides rebuilding and replacement instructions.
 
+## FFmpeg
+
+Edit Atlas dynamically links to the libavcodec, libavformat, libavutil, and
+libswscale libraries from FFmpeg. The project uses FFmpeg under the GNU Lesser
+General Public License version 2.1 or later. The pinned vcpkg manifest disables
+default features and enables only the decoding, demuxing, utility, and image
+conversion libraries required by Edit Atlas. It does not enable FFmpeg's GPL
+or nonfree modes, x264, or x265.
+
+Binary distributions include FFmpeg's complete license notices, the exact
+corresponding source and vcpkg patches used for the distributed libraries, and
+instructions for rebuilding and replacing those dynamically linked libraries.
+The version-specific `FFMPEG_SOURCE_OFFER.md` identifies the corresponding
+source archive controlled by the Edit Atlas project.
+
+Support for a codec or container does not grant a patent license. Commercial
+distribution must separately review the codecs enabled for each target market.
+
 ## Other third-party libraries
 
 Edit Atlas also dynamically links to spdlog and fmt under the MIT License,
