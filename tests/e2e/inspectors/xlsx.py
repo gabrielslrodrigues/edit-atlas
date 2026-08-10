@@ -53,6 +53,31 @@ class XlsxWorkbook:
         rows = root.findall(f".//{{{MAIN_NAMESPACE}}}row")
         return max(0, len(rows) - 1)
 
+    def event_headers(self) -> list[str]:
+        root = self._xml("xl/worksheets/sheet1.xml")
+        row = root.find(f".//{{{MAIN_NAMESPACE}}}row")
+        if row is None:
+            return []
+        shared = self.shared_strings()
+        headers: list[str] = []
+        for cell in row.findall(f"{{{MAIN_NAMESPACE}}}c"):
+            value = cell.find(f"{{{MAIN_NAMESPACE}}}v")
+            if value is None or value.text is None:
+                inline = cell.find(f"{{{MAIN_NAMESPACE}}}is")
+                headers.append(
+                    ""
+                    if inline is None
+                    else "".join(
+                        text.text or ""
+                        for text in inline.iter(f"{{{MAIN_NAMESPACE}}}t")
+                    )
+                )
+            elif cell.attrib.get("t") == "s":
+                headers.append(shared[int(value.text)])
+            else:
+                headers.append(value.text)
+        return headers
+
     def _xml(self, entry: str) -> ElementTree.Element:
         try:
             with ZipFile(self.path) as archive:

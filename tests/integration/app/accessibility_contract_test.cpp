@@ -190,10 +190,10 @@ TEST(AccessibilityContractTest,
     constexpr std::array required_identifiers{
         "mainWindow",
         "applicationMenuBar",
-        "fileMenu",
-        "recentFilesMenu",
-        "helpMenu",
-        "languageSelector",
+        "fileMenuPopup",
+        "recentFilesMenuPopup",
+        "helpMenuPopup",
+        "languageMenuPopup",
         "applicationShell",
         "documentStack",
         "emptyOpenButton",
@@ -234,6 +234,12 @@ TEST(AccessibilityContractTest,
     }
 
     constexpr std::array action_identifiers{
+        "fileMenu",
+        "recentFilesMenu",
+        "helpMenu",
+        "languageSelector",
+        "brazilianPortugueseLanguageAction",
+        "englishLanguageAction",
         "openDocumentAction",
         "rememberRecentFilesAction",
         "exportAction",
@@ -429,20 +435,23 @@ TEST(AccessibilityContractTest, PersistsLanguageWithoutChangingIdentifiers) {
     MainWindow window{*registry, translator,
                       ApplicationLanguage::kBrazilianPortuguese,
                       std::filesystem::path{}, DiagnosticEnvironment()};
-    auto *selector = FindByAccessibleIdentifier<QComboBox>(
-        window, QStringLiteral("languageSelector"));
+    auto *selector =
+        window.findChild<QAction *>(QStringLiteral("languageSelector"));
+    auto *english = window.findChild<QAction *>(
+        QStringLiteral("englishLanguageAction"));
     auto *open =
         window.findChild<QAction *>(QStringLiteral("openDocumentAction"));
     ASSERT_NE(selector, nullptr);
+    ASSERT_NE(english, nullptr);
     ASSERT_NE(open, nullptr);
     EXPECT_EQ(open->text(), QStringLiteral("&Abrir linha do tempo…"));
     const auto identifiers = AccessibleIdentifiers(window);
-    selector->setCurrentIndex(
-        selector->findData(static_cast<int>(ApplicationLanguage::kEnglish)));
+    english->trigger();
 
     EXPECT_EQ(ConfiguredApplicationLanguage(), ApplicationLanguage::kEnglish);
-    EXPECT_EQ(selector->accessibleIdentifier(),
+    EXPECT_EQ(selector->property("accessibleIdentifier").toString(),
               QStringLiteral("languageSelector"));
+    EXPECT_TRUE(english->isChecked());
     EXPECT_EQ(AccessibleIdentifiers(window), identifiers);
     EXPECT_EQ(open->text(), QStringLiteral("&Open Timeline…"));
     EXPECT_EQ(window.windowTitle(), QStringLiteral("Edit Atlas"));

@@ -5,6 +5,8 @@ description = "Black-box tests for installed Edit Atlas packages"
 requires-python = ">=3.12,<3.13"
 dependencies = [
   "dogtail==2.0.4; sys_platform == 'linux'",
+  "pycairo==1.29.0; sys_platform == 'linux'",
+  "pygobject==3.48.2; sys_platform == 'linux'",
   "pyobjc-core==12.2.1; sys_platform == 'darwin'",
   "pyobjc-framework-ApplicationServices==12.2.1; sys_platform == 'darwin'",
   "pytest==9.1.1",
@@ -14,4 +16,4 @@ dependencies = [
 
 [tool.uv]
 package = false
-required-version = ">=0.11.24,<0.12"
+required-version = ">=0.12.3,<0.13"

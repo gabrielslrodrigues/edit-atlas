@@ -13,6 +13,7 @@ from application.cli import InstalledCli
 def pytest_addoption(parser: pytest.Parser) -> None:
     group = parser.getgroup("edit-atlas")
     group.addoption("--cli", type=Path, required=True, help="installed CLI path")
+    group.addoption("--app", type=Path, help="installed desktop application path")
     group.addoption(
         "--fixture-dir", type=Path, required=True, help="CMX fixture directory"
     )

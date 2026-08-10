@@ -7,7 +7,7 @@ import os
 from pathlib import Path
 import subprocess
 from threading import Lock
-from typing import Mapping, Sequence
+from typing import IO, Mapping, Sequence
 
 
 @dataclass(frozen=True)
@@ -30,7 +30,42 @@ class ProcessRegistry:
             raise ValueError("termination_timeout must be positive")
         self._termination_timeout = termination_timeout
         self._processes: set[subprocess.Popen[str]] = set()
+        self._streams: dict[subprocess.Popen[str], IO[str]] = {}
         self._lock = Lock()
+
+    def start(
+        self,
+        arguments: Sequence[str | os.PathLike[str]],
+        *,
+        environment: Mapping[str, str] | None = None,
+        working_directory: Path | None = None,
+        output_path: Path | None = None,
+    ) -> subprocess.Popen[str]:
+        command = tuple(os.fspath(argument) for argument in arguments)
+        stream = None
+        if output_path is not None:
+            output_path.parent.mkdir(parents=True, exist_ok=True)
+            stream = output_path.open("w", encoding="utf-8")
+        try:
+            process = subprocess.Popen(
+                command,
+                cwd=working_directory,
+                env=None if environment is None else dict(environment),
+                stdout=stream if stream is not None else subprocess.DEVNULL,
+                stderr=subprocess.STDOUT,
+                text=True,
+                encoding="utf-8",
+                errors="replace",
+            )
+        except BaseException:
+            if stream is not None:
+                stream.close()
+            raise
+        with self._lock:
+            self._processes.add(process)
+            if stream is not None:
+                self._streams[process] = stream
+        return process
 
     def run(
         self,
@@ -82,6 +117,18 @@ class ProcessRegistry:
             self._terminate(process)
         with self._lock:
             self._processes.difference_update(processes)
+            streams = [self._streams.pop(process, None) for process in processes]
+        for stream in streams:
+            if stream is not None:
+                stream.close()
+
+    def stop(self, process: subprocess.Popen[str]) -> None:
+        self._terminate(process)
+        with self._lock:
+            self._processes.discard(process)
+            stream = self._streams.pop(process, None)
+        if stream is not None:
+            stream.close()
 
     def _terminate(self, process: subprocess.Popen[str]) -> None:
         if process.poll() is not None:

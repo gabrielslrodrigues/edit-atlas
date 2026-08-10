@@ -7,10 +7,12 @@ sudo apt-get install --yes --no-install-recommends \
   autoconf \
   autoconf-archive \
   automake \
+  bison \
   dpkg-dev \
   libc6-dev \
   libegl1-mesa-dev \
   libglu1-mesa-dev \
+  libltdl-dev \
   libtool \
   libx11-dev \
   libx11-xcb-dev \
@@ -20,6 +22,7 @@ sudo apt-get install --yes --no-install-recommends \
   libxkbcommon-dev \
   libxkbcommon-x11-dev \
   libxrender-dev \
+  libxtst-dev \
   libxcb-cursor-dev \
   libxcb-glx0-dev \
   libxcb-icccm4-dev \
@@ -39,6 +42,7 @@ sudo apt-get install --yes --no-install-recommends \
   libxcb1-dev \
   libwayland-dev \
   mono-complete \
+  perl \
   pkg-config \
   rpm \
   wayland-protocols

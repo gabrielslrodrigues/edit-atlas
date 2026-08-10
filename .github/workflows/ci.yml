@@ -488,6 +488,91 @@ jobs:
           ${{ matrix.distribution }}
           build/packages/x64-linux
 
+  e2e-linux-package:
+    name: E2E / Ubuntu packaged desktop
+    needs: build-and-package
+    if: always() && needs['build-and-package'].result == 'success'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v7.0.1
+
+      - name: Install desktop automation dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install \
+            --yes \
+            --no-install-recommends \
+            at-spi2-core \
+            build-essential \
+            dbus-x11 \
+            gir1.2-atspi-2.0 \
+            gir1.2-gtk-3.0 \
+            libcairo2-dev \
+            libgirepository1.0-dev \
+            locales \
+            pkg-config \
+            python3-dev \
+            x11-apps \
+            xauth \
+            xvfb
+          sudo locale-gen pt_BR.UTF-8
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
+        with:
+          version: 0.12.3
+
+      - name: Download Linux packages
+        uses: actions/download-artifact@v8
+        with:
+          name: edit-atlas-x64-linux-packages
+          path: build/packages/x64-linux
+
+      - name: Install generated DEB
+        shell: bash
+        run: |
+          mapfile -t packages < <(find "${GITHUB_WORKSPACE}/build/packages/x64-linux" -type f -name '*.deb')
+          if [[ "${#packages[@]}" -ne 1 ]]; then
+            echo "Expected exactly one DEB, found ${#packages[@]}" >&2
+            exit 1
+          fi
+          sudo apt-get install --yes "${packages[0]}"
+
+      - name: Run packaged CLI and desktop E2E tests
+        shell: bash
+        env:
+          GSETTINGS_BACKEND: memory
+        run: >-
+          dbus-run-session --
+          xvfb-run
+          --auto-servernum
+          --server-args="-screen 0 1440x1000x24 -nolisten tcp"
+          tests/e2e/run-linux.sh
+          --app /usr/bin/edit-atlas
+          --cli /usr/bin/edit-atlas-cli
+
+      - name: Upload Linux E2E reports and artifacts
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: linux-packaged-e2e-results
+          path: |
+            build/e2e/reports
+            build/e2e/artifacts
+            build/e2e/output
+          if-no-files-found: ignore
+          retention-days: 7
+
+      - name: Remove installed package
+        if: always()
+        run: |
+          if dpkg-query --show edit-atlas >/dev/null 2>&1; then
+            sudo apt-get remove --yes edit-atlas
+          fi
+
   verify-macos-package:
     name: Verify macOS package / ${{ matrix.name }}
     needs: package-macos-universal
@@ -568,12 +653,14 @@ jobs:
       needs['create-release'].result == 'success' &&
       needs['prepare-qt-source'].result == 'success' &&
       needs['verify-linux-packages'].result == 'success' &&
+      needs['e2e-linux-package'].result == 'success' &&
       needs['verify-macos-package'].result == 'success' &&
       needs['verify-windows-package'].result == 'success'
     needs:
       - create-release
       - prepare-qt-source
       - verify-linux-packages
+      - e2e-linux-package
       - verify-macos-package
       - verify-windows-package
     runs-on: ubuntu-24.04

@@ -28,7 +28,7 @@ New-Item -ItemType Directory -Force $Reports, $Output, $Artifacts | Out-Null
 $Arguments = @(
     "-m", "pytest",
     "-c", (Join-Path $ScriptDirectory "pytest.ini"),
-    $ScriptDirectory,
+    (Join-Path $ScriptDirectory "tests/test_packaged_cli.py"),
     "--cli", $Cli,
     "--fixture-dir", (Join-Path $RepositoryRoot "tests/fixtures/cmx3600"),
     "--output-dir", $Output,

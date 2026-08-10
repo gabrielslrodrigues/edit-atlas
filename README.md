@@ -36,6 +36,7 @@ sudo dnf install \
   autoconf \
   autoconf-archive \
   automake \
+  bison \
   curl \
   glibc-devel \
   libtool \
@@ -44,10 +45,12 @@ sudo dnf install \
   libXfixes-devel \
   libXi-devel \
   libXrender-devel \
+  libXtst-devel \
   libxcb-devel \
   libxkbcommon-devel \
   libxkbcommon-x11-devel \
   make \
+  perl \
   pkgconf-pkg-config \
   tar \
   unzip \
@@ -70,6 +73,7 @@ sudo apt-get install \
   autoconf \
   autoconf-archive \
   automake \
+  bison \
   curl \
   libc6-dev \
   libtool \
@@ -83,6 +87,7 @@ sudo apt-get install \
   libxkbcommon-x11-dev \
   libwayland-dev \
   make \
+  perl \
   pkg-config \
   tar \
   unzip \

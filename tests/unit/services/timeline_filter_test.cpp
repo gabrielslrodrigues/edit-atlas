@@ -454,6 +454,28 @@ TEST(TimelineFilterTest, ReportsInvalidRegularExpressions) {
     EXPECT_FALSE(result.error().message.empty());
 }
 
+TEST(TimelineFilterTest, ReportsInvalidWholeWordRegularExpressions) {
+    const auto document = Document();
+    const TimelineFilterQuery query{
+        .combination = TimelineFilterCombination::kAll,
+        .conditions =
+            {
+                TimelineTextFilterCondition{
+                    .field = TimelineTextFilterField::kComments,
+                    .text = "[",
+                    .match_case = false,
+                    .match_whole_word = true,
+                    .regular_expression = true,
+                },
+            },
+    };
+
+    const auto result = FilterTimelineEvents(document, query);
+    ASSERT_FALSE(result.has_value());
+    EXPECT_EQ(result.error().condition_index, 0);
+    EXPECT_FALSE(result.error().message.empty());
+}
+
 TEST(TimelineFilterTest, CopiesOnlySelectedEventsWithoutChangingTheSource) {
     const auto document = Document();
     constexpr std::array<std::size_t, 2> kSelection{2, 0};
