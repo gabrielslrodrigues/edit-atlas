@@ -6,6 +6,7 @@ The public API follows one inward dependency direction:
 frontend -> application services -> core
                               |----> built-in formats -> core
 frontend -> diagnostic support -> local storage
+frontend -> media decoding backend -> FFmpeg
 ```
 
 ## Core model and pipeline
@@ -48,6 +49,16 @@ without discarding valid ones.
 
 The `edit_atlas::storage` namespace provides shared complete-file reads and
 atomic local-file writes for services and diagnostic support.
+
+## Media decoding
+
+The `edit_atlas::media` namespace owns the presentation-neutral video boundary.
+Its public metadata, failure, decoder, and RGB24 frame types do not expose
+FFmpeg declarations. The private FFmpeg implementation opens MOV, MP4, and MXF
+containers, applies the documented codec policy, and returns structured errors
+to its caller. Event-to-video mapping, thumbnail selection, user interaction,
+and spreadsheet embedding remain responsibilities of later services and format
+adapters rather than this backend.
 
 ## Diagnostic support
 

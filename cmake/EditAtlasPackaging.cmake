@@ -92,7 +92,7 @@ elseif(LINUX)
     set(CPACK_RPM_PACKAGE_NAME "edit-atlas")
     set(CPACK_RPM_PACKAGE_ARCHITECTURE "x86_64")
     set(CPACK_RPM_PACKAGE_LICENSE
-        "Apache-2.0 AND LGPL-3.0-only AND LicenseRef-ThirdParty"
+        "Apache-2.0 AND LGPL-3.0-only AND LGPL-2.1-or-later AND LicenseRef-ThirdParty"
     )
     set(CPACK_RPM_PACKAGE_GROUP "Applications/Multimedia")
     set(CPACK_RPM_PACKAGE_REQUIRES "glibc >= 2.39")

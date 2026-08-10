@@ -50,6 +50,7 @@ sudo dnf install \
   libxkbcommon-devel \
   libxkbcommon-x11-devel \
   make \
+  nasm \
   perl \
   pkgconf-pkg-config \
   tar \
@@ -87,6 +88,7 @@ sudo apt-get install \
   libxkbcommon-x11-dev \
   libwayland-dev \
   make \
+  nasm \
   perl \
   pkg-config \
   tar \
@@ -114,6 +116,7 @@ brew install \
   curl \
   libtool \
   make \
+  nasm \
   pkg-config \
   unzip \
   zip
@@ -130,6 +133,9 @@ winget install --exact --id Microsoft.VisualStudio.2022.BuildTools `
 ```
 
 Open a new terminal after installation so the compiler is available.
+
+On Windows, the pinned vcpkg FFmpeg port downloads its pinned NASM host tool
+automatically. Linux and macOS use the system NASM installations listed above.
 
 ### Bootstrap vcpkg
 
@@ -354,3 +360,8 @@ Edit Atlas dynamically links to Qt 6 under the LGPL-3.0-only option. See
 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) and the
 [Qt LGPL compliance policy](docs/qt-lgpl-compliance.md) for the distribution
 requirements enforced by the project.
+
+The video backend dynamically links to a minimal LGPL-compatible FFmpeg build.
+See the [FFmpeg LGPL compliance policy](docs/ffmpeg-lgpl-compliance.md) for the
+enabled libraries, codec policy, source-distribution requirements, and patent
+licensing boundary.

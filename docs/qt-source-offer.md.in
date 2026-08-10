@@ -40,5 +40,7 @@ interface-compatible replacement can be installed in these locations:
   x86_64 and ARM64 slices, install names, and symbolic links.
 
 Replace the complete compatible Qt library and plugin set rather than mixing
-incompatible Qt builds. Edit Atlas release packages are unsigned, so they do
-not impose a signature or DRM restriction on replacement libraries.
+incompatible Qt builds. Current macOS packages use only an ad-hoc signature.
+After replacing a library, reapply it with
+`codesign --force --deep --sign - edit-atlas.app`. No signing identity, DRM, or
+access control prevents replacement.

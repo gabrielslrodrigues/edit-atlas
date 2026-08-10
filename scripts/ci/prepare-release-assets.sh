@@ -34,21 +34,35 @@ if (( ${#packages[@]} != 5 )); then
   exit 1
 fi
 
-mapfile -t source_archives < <(
+mapfile -t qt_source_archives < <(
   find "$source_dir" -type f \
     -name 'edit-atlas-*-qt-source.tar.xz' \
     -print | sort
 )
-if (( ${#source_archives[@]} != 1 )); then
-  echo "Expected one Qt source archive, found ${#source_archives[@]}." >&2
-  printf '%s\n' "${source_archives[@]}" >&2
+if (( ${#qt_source_archives[@]} != 1 )); then
+  echo "Expected one Qt source archive, found ${#qt_source_archives[@]}." >&2
+  printf '%s\n' "${qt_source_archives[@]}" >&2
+  exit 1
+fi
+
+mapfile -t ffmpeg_source_archives < <(
+  find "$source_dir" -type f \
+    -name 'edit-atlas-*-ffmpeg-source.tar.xz' \
+    -print | sort
+)
+if (( ${#ffmpeg_source_archives[@]} != 1 )); then
+  echo \
+    "Expected one FFmpeg source archive, found ${#ffmpeg_source_archives[@]}." \
+    >&2
+  printf '%s\n' "${ffmpeg_source_archives[@]}" >&2
   exit 1
 fi
 
 for package in "${packages[@]}"; do
   cp -- "$package" "$release_dir/"
 done
-cp -- "${source_archives[0]}" "$release_dir/"
+cp -- "${qt_source_archives[0]}" "$release_dir/"
+cp -- "${ffmpeg_source_archives[0]}" "$release_dir/"
 
 cp -- LICENSE "$release_dir/LICENSE"
 cp -- THIRD_PARTY_NOTICES.md "$release_dir/THIRD_PARTY_NOTICES.md"
@@ -58,4 +72,6 @@ cp -- THIRD_PARTY_NOTICES.md "$release_dir/THIRD_PARTY_NOTICES.md"
   sha256sum -- *.tar.gz *.tar.xz *.deb *.rpm *.pkg *.msi > SHA256SUMS
 )
 
-echo "Prepared ${#packages[@]} release packages and Qt source in $release_dir."
+echo \
+  "Prepared ${#packages[@]} release packages and corresponding sources in " \
+  "$release_dir."
