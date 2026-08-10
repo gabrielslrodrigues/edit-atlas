@@ -7,6 +7,7 @@ sudo apt-get install --yes --no-install-recommends \
   autoconf \
   autoconf-archive \
   automake \
+  bison \
   dpkg-dev \
   libc6-dev \
   libegl1-mesa-dev \
@@ -41,6 +42,7 @@ sudo apt-get install --yes --no-install-recommends \
   libxcb1-dev \
   libwayland-dev \
   mono-complete \
+  perl \
   pkg-config \
   rpm \
   wayland-protocols
