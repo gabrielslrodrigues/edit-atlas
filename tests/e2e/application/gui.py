@@ -39,7 +39,6 @@ class EditAtlasApplication:
     def set_recent_files_enabled(self, enabled: bool) -> None:
         self._open_menu("fileMenu")
         self._session.set_checked("rememberRecentFilesAction", enabled)
-        self._session.wait_absent("rememberRecentFilesAction")
 
     def open_timeline(
         self,
@@ -61,7 +60,7 @@ class EditAtlasApplication:
         return self._session.text("failureDescriptionLabel")
 
     def table_text(self) -> list[str]:
-        return self._session.visible_text("eventTable")
+        return self._session.text_content("eventTable")
 
     def set_filter_field(self, index: int, field: str) -> None:
         self._session.select_option(f"filterCondition{index}Field", field)
@@ -198,8 +197,7 @@ class EditAtlasApplication:
         self._session.wait_selected_option("templateSelector", name)
 
     def _template_action(self, identifier: str) -> None:
-        self._session.activate("templateActionsButton")
-        self._session.activate(identifier)
+        self._session.activate_menu_action("templateActionsButton", identifier)
 
     def _open_menu(self, identifier: str) -> None:
         self._session.activate(identifier)

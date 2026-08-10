@@ -160,7 +160,7 @@ def test_filtered_spreadsheet_and_private_support_bundle(
         "Architecture",
         "Qt version",
         "Qt platform plugin",
-        "cmx3600",
+        "cmx-3600",
         "xlsx",
     ):
         assert label in summary

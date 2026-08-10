@@ -83,6 +83,15 @@ PrepareConditions(const TimelineFilterQuery &query) {
         options.set_case_sensitive(text_condition.match_case);
         options.set_encoding(RE2::Options::EncodingUTF8);
         options.set_log_errors(false);
+        if (text_condition.regular_expression) {
+            const RE2 user_expression{text_condition.text, options};
+            if (!user_expression.ok()) {
+                return std::unexpected(TimelineFilterError{
+                    .condition_index = index,
+                    .message = user_expression.error(),
+                });
+            }
+        }
         auto expression =
             std::make_unique<RE2>(ExpressionText(text_condition), options);
         if (!expression->ok()) {

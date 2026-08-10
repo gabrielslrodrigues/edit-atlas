@@ -12,7 +12,6 @@
 #include <edit_atlas/services/timeline_template_service.hpp>
 
 #include <QDialog>
-#include <QDialogButtonBox>
 #include <QInputDialog>
 #include <QLineEdit>
 #include <QMessageBox>
@@ -235,17 +234,8 @@ std::optional<std::string> TimelineTemplateController::PromptForTemplateName(
     if (auto *editor = dialog.findChild<QLineEdit *>(); editor != nullptr) {
         SetAutomationIdentifier(*editor, u"templateNameEditor");
     }
-    if (auto *buttons = dialog.findChild<QDialogButtonBox *>();
-        buttons != nullptr) {
-        if (auto *accept = buttons->button(QDialogButtonBox::Ok);
-            accept != nullptr) {
-            SetAutomationIdentifier(*accept, u"acceptTemplateNameButton");
-        }
-        if (auto *cancel = buttons->button(QDialogButtonBox::Cancel);
-            cancel != nullptr) {
-            SetAutomationIdentifier(*cancel, u"cancelTemplateNameButton");
-        }
-    }
+    SetInputDialogButtonAutomationIdentifiers(
+        dialog, u"acceptTemplateNameButton", u"cancelTemplateNameButton");
     if (dialog.exec() != QDialog::Accepted) {
         return std::nullopt;
     }

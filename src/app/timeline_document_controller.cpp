@@ -22,7 +22,6 @@
 
 #include <QComboBox>
 #include <QDialog>
-#include <QDialogButtonBox>
 #include <QDir>
 #include <QFileDialog>
 #include <QFileInfo>
@@ -406,17 +405,8 @@ void TimelineDocumentController::HandleImportFinished(void) {
             selector != nullptr) {
             SetAutomationIdentifier(*selector, u"frameRateSelector");
         }
-        if (auto *buttons = dialog.findChild<QDialogButtonBox *>();
-            buttons != nullptr) {
-            if (auto *accept = buttons->button(QDialogButtonBox::Ok);
-                accept != nullptr) {
-                SetAutomationIdentifier(*accept, u"acceptFrameRateButton");
-            }
-            if (auto *cancel = buttons->button(QDialogButtonBox::Cancel);
-                cancel != nullptr) {
-                SetAutomationIdentifier(*cancel, u"cancelFrameRateButton");
-            }
-        }
+        SetInputDialogButtonAutomationIdentifiers(
+            dialog, u"acceptFrameRateButton", u"cancelFrameRateButton");
         SetAutomationIdentifier(dialog, u"frameRateDialog");
         if (dialog.exec() == QDialog::Accepted) {
             const auto selected = dialog.textValue();

@@ -8,6 +8,7 @@ interface exposed by the application or the native file chooser.
 from __future__ import annotations
 
 from collections import deque
+import logging
 import os
 from pathlib import Path
 import shutil
@@ -82,6 +83,7 @@ class LinuxAtspiAdapter:
         config.search_cut_off_limit = 1
         config.search_showing_only = False
         config.ensure_sensitivity = False
+        logging.getLogger("__dogtail_logger__").setLevel(logging.WARNING)
 
         try:
             desktop = Atspi.get_desktop(0)
@@ -332,7 +334,32 @@ class LinuxApplicationSession:
         node = self._list_item(identifier, name, control=control)
         self._scroll_into_view(node)
         if self._is_checked(node) != checked:
-            self._activate_node(node)
+            try:
+                actions = node.actions or {}
+            except Exception as error:
+                raise ActionNotSupportedError(
+                    f"cannot query actions for list item {name!r}"
+                ) from error
+            normalized = {
+                self._normalized_action_name(str(action)): str(action)
+                for action in actions
+            }
+            toggle = normalized.get("toggle")
+            if toggle is None:
+                raise ActionNotSupportedError(
+                    f"list item {name!r} exposes no Toggle action"
+                )
+            try:
+                if node.do_action_named(toggle) is False:
+                    raise ActionNotSupportedError(
+                        f"accessibility action {toggle!r} failed"
+                    )
+            except ActionNotSupportedError:
+                raise
+            except Exception as error:
+                raise ActionNotSupportedError(
+                    f"accessibility action {toggle!r} failed: {error}"
+                ) from error
         wait_until(
             lambda: self._checked_state(node),
             lambda value: value == checked,
@@ -342,6 +369,14 @@ class LinuxApplicationSession:
 
     def select_option(self, identifier: str, option: str) -> None:
         control = self.element(identifier)
+        current = self._node_text(control) or str(
+            getattr(control, "name", "")
+        )
+        if self._normalized_name(current) == self._normalized_name(option):
+            return
+        if str(getattr(control, "role_name", "")).casefold() == "combo box":
+            self._select_combo_box_option(identifier, control, option)
+            return
         self._activate_node(control)
 
         def find_option() -> Any | None:
@@ -373,6 +408,52 @@ class LinuxApplicationSession:
                 ) from error
         wait_until(
             lambda: self._option_is_selected(control, node, option),
+            lambda selected: selected,
+            timeout=self._timeout,
+            description=f"option {option!r} to become selected",
+        )
+
+    def _select_combo_box_option(
+        self, identifier: str, control: Any, option: str
+    ) -> None:
+        try:
+            interfaces = tuple(control.get_interfaces())
+        except Exception as error:
+            raise ActionNotSupportedError(
+                f"combo box {identifier!r} exposes no accessibility interfaces"
+            ) from error
+        if "Value" not in interfaces:
+            raise ActionNotSupportedError(
+                f"combo box {identifier!r} exposes no Value interface"
+            )
+
+        option_list = self._find_role(control, "list")
+        if option_list is None:
+            raise ElementNotFoundError(
+                f"combo box {identifier!r} exposes no option list"
+            )
+        target_index = None
+        for index, node in enumerate(tuple(option_list.children)):
+            if (
+                str(getattr(node, "role_name", "")).casefold() == "list item"
+                and self._normalized_name(str(getattr(node, "name", "")))
+                == self._normalized_name(option)
+            ):
+                target_index = index
+                break
+        if target_index is None:
+            raise ElementNotFoundError(
+                f"combo box {identifier!r} contains no option {option!r}"
+            )
+
+        try:
+            control.value = float(target_index)
+        except Exception as error:
+            raise ActionNotSupportedError(
+                f"combo box {identifier!r} rejected option {option!r}"
+            ) from error
+        wait_until(
+            lambda: self._option_is_selected(control, control, option),
             lambda selected: selected,
             timeout=self._timeout,
             description=f"option {option!r} to become selected",
@@ -439,12 +520,51 @@ class LinuxApplicationSession:
         self._activate_node(button)
         self.wait_absent(dialog_identifier)
 
+    def activate_menu_action(
+        self, menu_identifier: str, action_identifier: str
+    ) -> None:
+        menu = self.element(menu_identifier)
+        try:
+            actions = menu.actions or {}
+        except Exception as error:
+            raise ActionNotSupportedError(
+                f"cannot query actions for {menu_identifier!r}"
+            ) from error
+        normalized = {
+            self._normalized_action_name(str(name)): str(name)
+            for name in actions
+        }
+        action = normalized.get(self._normalized_action_name(action_identifier))
+        if action is None:
+            raise ActionNotSupportedError(
+                f"menu button {menu_identifier!r} exposes no action "
+                f"{action_identifier!r}"
+            )
+        try:
+            if menu.do_action_named(action) is False:
+                raise ActionNotSupportedError(
+                    f"accessibility action {action!r} failed"
+                )
+        except ActionNotSupportedError:
+            raise
+        except Exception as error:
+            raise ActionNotSupportedError(
+                f"accessibility action {action!r} failed: {error}"
+            ) from error
+
     def element_name(self, identifier: str, *, showing: bool = True) -> str:
         return str(self.element(identifier, showing=showing).name)
 
     def text(self, identifier: str, *, showing: bool = True) -> str:
         node = self.element(identifier, showing=showing)
         return self._node_text(node) or str(node.name)
+
+    def text_content(self, identifier: str) -> list[str]:
+        return [
+            text
+            for node in self._walk(self.element(identifier))
+            if (text := self._node_text(node) or str(getattr(node, "name", "")))
+        ]
 
     def visible_text(self, identifier: str) -> list[str]:
         return [
@@ -561,11 +681,23 @@ class LinuxApplicationSession:
                 f"{getattr(node, 'name', '')!r} exposes actions "
                 f"{tuple(actions)!r}, none of which is supported"
             )
+        popup = None
+        if self._normalized_action_name(action) == "showmenu":
+            popup = self._find_role(node, "popup menu")
+            if popup is not None and self._is_showing(popup):
+                return
         threading.Thread(
             target=self._invoke_action,
             args=(node, action),
             daemon=True,
         ).start()
+        if popup is not None:
+            wait_until(
+                lambda: self._showing_state(popup),
+                lambda showing: showing,
+                timeout=self._timeout,
+                description=f"{getattr(node, 'name', '')!r} menu to open",
+            )
 
     def _invoke_action(self, node: Any, action: str) -> None:
         try:
@@ -574,6 +706,10 @@ class LinuxApplicationSession:
                     f"accessibility action {action!r} failed"
                 )
         except Exception as error:
+            # Qt can apply a modal menu action before its AT-SPI D-Bus call
+            # times out. Callers verify the resulting UI state separately.
+            if self._is_no_reply_error(error):
+                return
             failure = ActionNotSupportedError(
                 f"accessibility action {action!r} failed: {error}"
             )
@@ -601,6 +737,18 @@ class LinuxApplicationSession:
                     and (valid_roles is None or role in valid_roles)
                     and (not showing_only or node.showing)
                 ):
+                    return node
+            except Exception:
+                continue
+        return None
+
+    def _find_role(self, root: Any, role: str) -> Any | None:
+        expected = role.casefold()
+        for node in self._walk(root):
+            if node is root:
+                continue
+            try:
+                if str(node.role_name).casefold() == expected:
                     return node
             except Exception:
                 continue
@@ -720,6 +868,10 @@ class LinuxApplicationSession:
         self._ensure_running()
         return self._is_checked(node)
 
+    def _showing_state(self, node: Any) -> bool:
+        self._ensure_running()
+        return self._is_showing(node)
+
     def _selected_state(self, node: Any) -> bool:
         self._ensure_running()
         try:
@@ -773,4 +925,12 @@ class LinuxApplicationSession:
             character
             for character in name.casefold()
             if character.isalnum()
+        )
+
+    @staticmethod
+    def _is_no_reply_error(error: Exception) -> bool:
+        message = str(error).casefold()
+        return (
+            "did not receive a reply" in message
+            or "org.freedesktop.dbus.error.noreply" in message
         )

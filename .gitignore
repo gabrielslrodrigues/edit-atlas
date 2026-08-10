@@ -73,6 +73,8 @@ CMakeUserPresets.json
 # test output & cache
 Testing/
 .cache/
+__pycache__/
+*.py[cod]
 
 # Application runtime data
 logs/
