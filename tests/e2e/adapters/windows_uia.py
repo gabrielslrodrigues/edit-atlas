@@ -354,9 +354,11 @@ class WindowsApplicationSession:
     def activate_menu_action(
         self, menu_identifier: str, action_identifier: str
     ) -> None:
-        self._activate_node(self.element(menu_identifier))
+        self._click_accessible_node(
+            self.element(menu_identifier), menu_identifier
+        )
         action = self.element(action_identifier)
-        self._activate_node(action)
+        self._click_accessible_node(action, action_identifier)
 
     def element_name(self, identifier: str, *, showing: bool = True) -> str:
         return self._node_name(self.element(identifier, showing=showing))
@@ -571,6 +573,15 @@ class WindowsApplicationSession:
             timeout=self._timeout,
             description=f"combo box option {option!r} to become active",
         )
+
+    @staticmethod
+    def _click_accessible_node(node: Any, description: str) -> None:
+        try:
+            node.click_input()
+        except Exception as error:
+            raise ActionNotSupportedError(
+                f"accessible element {description!r} could not be clicked: {error}"
+            ) from error
 
     def _wait_selected_option_for(
         self, control: Any, target: Any, expected: str

@@ -536,10 +536,9 @@ class LinuxApplicationSession:
         }
         action = normalized.get(self._normalized_action_name(action_identifier))
         if action is None:
-            raise ActionNotSupportedError(
-                f"menu button {menu_identifier!r} exposes no action "
-                f"{action_identifier!r}"
-            )
+            self._activate_node(menu)
+            self._activate_node(self.element(action_identifier))
+            return
         try:
             if menu.do_action_named(action) is False:
                 raise ActionNotSupportedError(

@@ -240,6 +240,28 @@ def test_menu_option_selection_uses_uia_invoke_pattern(tmp_path: Path) -> None:
     assert english.iface_invoke.invoked.is_set()
 
 
+def test_menu_action_uses_accessible_item_bounds(tmp_path: Path) -> None:
+    session = application_session(tmp_path)
+    clicked: list[str] = []
+    menu = Node("Template actions", "Button", click=lambda: clicked.append("menu"))
+    action = Node(
+        "Edit export columns",
+        "MenuItem",
+        click=lambda: clicked.append("action"),
+    )
+    nodes = {
+        "templateActionsButton": menu,
+        "editExportColumnsAction": action,
+    }
+    session.element = lambda identifier: nodes[identifier]
+
+    session.activate_menu_action(
+        "templateActionsButton", "editExportColumnsAction"
+    )
+
+    assert clicked == ["menu", "action"]
+
+
 def test_identifier_lookup_accepts_qt_hierarchical_automation_id(
     tmp_path: Path,
 ) -> None:
