@@ -37,6 +37,18 @@ enum class MediaStreamType {
     kOther,
 };
 
+/// Identifies a normalized media container.
+enum class MediaContainer {
+    /// A QuickTime Movie container.
+    kMov,
+    /// An MPEG-4 Part 14 container.
+    kMp4,
+    /// A Material Exchange Format container.
+    kMxf,
+    /// A container outside the supported media policy.
+    kOther,
+};
+
 /// A stable metadata key and its textual value.
 struct MediaMetadataEntry final {
     /// The metadata key exactly as reported by the container.
@@ -82,6 +94,8 @@ struct MediaStreamInfo final {
 struct VideoMediaInfo final {
     /// The source path supplied by the caller.
     std::filesystem::path path;
+    /// The normalized detected container family.
+    MediaContainer container;
     /// The comma-separated canonical identifiers for the detected container.
     std::string container_names;
     /// The human-readable detected container name.

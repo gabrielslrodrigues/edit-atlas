@@ -18,6 +18,8 @@ formats, media decoding, and privacy-limited diagnostic support.
   that do not depend on a frontend.
 - `edit_atlas::services::TimelineTemplateService` manages and persists reusable
   filter and export-column templates without depending on a frontend.
+- `edit_atlas::services::TimelineVideoInspectionService` validates rendered
+  video timing against an imported record timeline.
 - `edit_atlas::storage::ReadLocalFile()` and
   `edit_atlas::storage::WriteLocalFileAtomically()` provide the shared local
   storage boundary.

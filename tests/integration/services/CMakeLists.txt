@@ -8,12 +8,14 @@ target_sources(
         timeline_document_import_service_test.cpp
         test_main.cpp
         timeline_template_service_test.cpp
+        timeline_video_inspection_service_test.cpp
 )
 
 target_link_libraries(
     edit_atlas_services_integration_tests
     PRIVATE
         EditAtlas::Services
+        EditAtlas::MediaFixture
         GTest::gtest
 )
 

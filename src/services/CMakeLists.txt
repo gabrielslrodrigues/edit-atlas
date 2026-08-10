@@ -22,6 +22,7 @@ target_sources(
         timeline_template_service.cpp
         timeline_template_store.cpp
         timeline_template_store.hpp
+        timeline_video_inspection_service.cpp
     PUBLIC
         FILE_SET HEADERS
         BASE_DIRS include
@@ -32,6 +33,7 @@ target_sources(
             include/edit_atlas/services/timeline_filter.hpp
             include/edit_atlas/services/timeline_template.hpp
             include/edit_atlas/services/timeline_template_service.hpp
+            include/edit_atlas/services/timeline_video_inspection_service.hpp
 )
 
 target_link_libraries(
@@ -39,6 +41,7 @@ target_link_libraries(
     PUBLIC
         EditAtlas::Cmx3600
         EditAtlas::Core
+        EditAtlas::Media
         EditAtlas::Storage
         EditAtlas::Xlsx
     PRIVATE

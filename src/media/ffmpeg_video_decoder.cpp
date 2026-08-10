@@ -171,14 +171,40 @@ MetadataEntries(const AVDictionary *metadata) {
     }
 }
 
-[[nodiscard]] bool IsSupportedContainer(const AVInputFormat *format) {
-    if (format == nullptr || format->name == nullptr) {
-        return false;
+[[nodiscard]] bool ContainsFormatName(std::string_view names,
+                                      std::string_view expected) noexcept {
+    while (!names.empty()) {
+        const auto separator = names.find(',');
+        const auto name = names.substr(0, separator);
+        if (name == expected) {
+            return true;
+        }
+        if (separator == std::string_view::npos) {
+            break;
+        }
+        names.remove_prefix(separator + 1);
     }
-    const auto names = std::string_view{format->name};
-    return names.find("mov") != std::string_view::npos ||
-           names.find("mp4") != std::string_view::npos ||
-           names.find("mxf") != std::string_view::npos;
+    return false;
+}
+
+[[nodiscard]] MediaContainer ContainerType(const AVFormatContext &context) {
+    if (context.iformat == nullptr || context.iformat->name == nullptr) {
+        return MediaContainer::kOther;
+    }
+    const auto names = std::string_view{context.iformat->name};
+    if (ContainsFormatName(names, "mxf")) {
+        return MediaContainer::kMxf;
+    }
+    if (ContainsFormatName(names, "mov") || ContainsFormatName(names, "mp4")) {
+        const auto *major_brand =
+            av_dict_get(context.metadata, "major_brand", nullptr, 0);
+        if (major_brand == nullptr || major_brand->value == nullptr ||
+            std::string_view{major_brand->value}.starts_with("qt")) {
+            return MediaContainer::kMov;
+        }
+        return MediaContainer::kMp4;
+    }
+    return MediaContainer::kOther;
 }
 
 [[nodiscard]] MediaStreamInfo StreamInformation(const AVStream &stream) {
@@ -438,7 +464,8 @@ VideoDecoder::Open(const std::filesystem::path &path) {
             stream_result, {}, "could not read media stream information"));
     }
 
-    if (!IsSupportedContainer(format_context->Get()->iformat)) {
+    const auto container = ContainerType(*format_context->Get());
+    if (container == MediaContainer::kOther) {
         return std::unexpected(
             MakeFailure(path, VideoDecoderFailureKind::kUnsupportedContainer, 0,
                         {}, "the detected container is not MOV, MP4, or MXF"));
@@ -503,6 +530,7 @@ VideoDecoder::Open(const std::filesystem::path &path) {
     const auto *input_format = format_context->Get()->iformat;
     VideoMediaInfo information{
         .path = path,
+        .container = container,
         .container_names =
             input_format->name == nullptr ? std::string{} : input_format->name,
         .container_long_name = input_format->long_name == nullptr
