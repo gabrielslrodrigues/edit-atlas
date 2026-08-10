@@ -243,15 +243,18 @@ def test_native_file_dialog_uses_semantic_win32_controls(
     dialog_open.set()
 
     class Editor:
-        element_info = ElementInfo("", "Edit")
+        element_info = ElementInfo("", "Edit", control_id=1148)
         value = ""
 
         @staticmethod
         def verify_actionable() -> None:
-            return None
+            raise RuntimeError("Windows 11 reports the filename edit as hidden")
 
-        def set_edit_text(self, value: str) -> None:
-            self.value = value
+        def send_message(
+            self, message: int, _wparam: int, value: Any
+        ) -> None:
+            assert message == 0x000C
+            self.value = value.value
 
         def window_text(self) -> str:
             return ""
@@ -278,22 +281,13 @@ def test_native_file_dialog_uses_semantic_win32_controls(
     editor = Editor()
     button = Button()
 
-    class HiddenEditor(Editor):
-        element_info = ElementInfo("", "Edit", control_id=1152)
-
-        @staticmethod
-        def verify_actionable() -> None:
-            raise RuntimeError("hidden")
-
-    hidden_editor = HiddenEditor()
-
     class FileNameCombo:
         element_info = ElementInfo("", "ComboBox", control_id=1148)
 
         @staticmethod
         def descendants(*, class_name: str) -> list[Editor]:
             assert class_name == "Edit"
-            return [hidden_editor, editor]
+            return [editor]
 
     file_name_combo = FileNameCombo()
 
@@ -302,7 +296,7 @@ def test_native_file_dialog_uses_semantic_win32_controls(
         def descendants(*, class_name: str) -> list[Any]:
             return {
                 "ComboBox": [file_name_combo],
-                "Edit": [hidden_editor, editor],
+                "Edit": [editor],
                 "Button": [button],
             }[class_name]
 

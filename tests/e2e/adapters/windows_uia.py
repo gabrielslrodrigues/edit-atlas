@@ -9,6 +9,7 @@ matching, and synthesized keyboard input are intentionally absent.
 from __future__ import annotations
 
 from collections import deque
+import ctypes
 import os
 from pathlib import Path
 import subprocess
@@ -319,7 +320,7 @@ class WindowsApplicationSession:
             )
         expected_path = os.fspath(path)
         try:
-            editor.set_edit_text(expected_path)
+            self._set_win32_edit_text(editor, expected_path)
         except Exception as error:
             raise ActionNotSupportedError(
                 "native file chooser path could not be set: "
@@ -708,16 +709,13 @@ class WindowsApplicationSession:
             combo for combo in combo_boxes if self._control_id(combo) == 1148
         ]
         for combo in file_name_combos:
-            editors = self._actionable_win32_controls(
-                self._win32_descendants(combo, "Edit")
-            )
+            editors = self._win32_descendants(combo, "Edit")
             if editors:
-                return editors[-1]
+                editor = self._preferred_control_id(editors, (1148, 1152))
+                return editor if editor is not None else editors[-1]
 
-        editors = self._actionable_win32_controls(
-            self._win32_descendants(dialog, "Edit")
-        )
-        editor = self._preferred_control_id(editors, (1152, 1148))
+        editors = self._win32_descendants(dialog, "Edit")
+        editor = self._preferred_control_id(editors, (1148, 1152))
         if editor is not None:
             return editor
         return editors[-1] if editors else None
@@ -867,6 +865,11 @@ class WindowsApplicationSession:
             return str(node.text_block() or "")
         except Exception:
             return ""
+
+    @staticmethod
+    def _set_win32_edit_text(node: Any, text: str) -> None:
+        buffer = ctypes.c_wchar_p(text)
+        node.send_message(0x000C, 0, buffer)  # WM_SETTEXT
 
     @staticmethod
     def _node_name(node: Any) -> str:
