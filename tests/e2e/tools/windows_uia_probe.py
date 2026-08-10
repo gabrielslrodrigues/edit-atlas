@@ -70,7 +70,7 @@ def _dump_node(node: Any, lines: list[str], depth: int) -> None:
 
 def main() -> int:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--process-id", required=True, type=int)
+    parser.add_argument("--handle", required=True, type=int)
     parser.add_argument("--output", required=True, type=Path)
     arguments = parser.parse_args()
     arguments.output.parent.mkdir(parents=True, exist_ok=True)
@@ -78,15 +78,11 @@ def main() -> int:
     try:
         from pywinauto import Desktop
 
-        dialogs = Desktop(backend="uia").windows(
-            process=arguments.process_id,
-            class_name="#32770",
-            visible_only=False,
-        )
-        if not dialogs:
-            raise RuntimeError("no #32770 UIA window belongs to the application")
+        dialog = Desktop(backend="uia").window(
+            handle=arguments.handle
+        ).wrapper_object()
         lines: list[str] = []
-        _dump_node(dialogs[-1], lines, 0)
+        _dump_node(dialog, lines, 0)
         arguments.output.write_text("\n".join(lines) + "\n", encoding="utf-8")
         return 0
     except Exception:

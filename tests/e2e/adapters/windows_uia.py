@@ -314,7 +314,7 @@ class WindowsApplicationSession:
 
     def open_file_dialog(self, dialog_identifier: str, path: Path) -> None:
         dialog = self._native_file_dialog(dialog_identifier)
-        self._probe_native_dialog_uia(dialog_identifier)
+        self._probe_native_dialog_uia(dialog_identifier, dialog)
         editor = self._native_file_name_editor(dialog)
         if editor is None:
             raise ElementNotFoundError(
@@ -705,7 +705,7 @@ class WindowsApplicationSession:
             return None
         return dialogs[-1] if dialogs else None
 
-    def _probe_native_dialog_uia(self, identifier: str) -> None:
+    def _probe_native_dialog_uia(self, identifier: str, dialog: Any) -> None:
         output_path = (
             self._artifact_directory
             / "accessibility"
@@ -723,8 +723,8 @@ class WindowsApplicationSession:
                 [
                     sys.executable,
                     probe,
-                    "--process-id",
-                    str(self._process.pid),
+                    "--handle",
+                    str(dialog.handle),
                     "--output",
                     output_path,
                 ],
