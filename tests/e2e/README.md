@@ -111,10 +111,10 @@ pytest reports are written below `build/e2e`.
 
 ## Dependency management
 
-`pyproject.toml` declares pytest, HTML reporting, pywinauto on Windows, dogtail
-and its PyGObject/PyCairo bridge on Linux, and the macOS ApplicationServices
-PyObjC bridge. `uv.lock` pins the complete cross-platform resolution. The entry
-points use `uv run --locked`, so an outdated or missing lockfile is an error
-rather than an implicit dependency update. Native packages needed by a
-platform accessibility backend are installed by that platform's CI job rather
-than by uv.
+`pyproject.toml` declares pytest, HTML reporting, pywinauto and Pillow on
+Windows, dogtail and its PyGObject/PyCairo bridge on Linux, and the macOS
+ApplicationServices PyObjC bridge. `uv.lock` pins the complete cross-platform
+resolution. The entry points use `uv run --locked`, so an outdated or missing
+lockfile is an error rather than an implicit dependency update. Native packages
+needed by a platform accessibility backend are installed by that platform's CI
+job rather than by uv.

@@ -172,6 +172,23 @@ def test_menu_option_selection_uses_uia_invoke_pattern(tmp_path: Path) -> None:
     assert english.iface_invoke.invoked.is_set()
 
 
+def test_identifier_lookup_accepts_qt_hierarchical_automation_id(
+    tmp_path: Path,
+) -> None:
+    session = application_session(tmp_path)
+    language = Node(
+        "Language",
+        "MenuItem",
+        automation_id=(
+            "QApplication.mainWindow.applicationMenuBar.languageSelector"
+        ),
+    )
+    root = Node("Edit Atlas", "Window", children=(language,))
+
+    assert session._find_identifier_in(root, "languageSelector") is language
+    assert session._find_identifier_in(root, "otherSelector") is None
+
+
 def test_uia_actions_do_not_block_the_driver(tmp_path: Path) -> None:
     session = application_session(tmp_path)
     node = Node("Open", "Button")

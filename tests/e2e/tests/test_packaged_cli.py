@@ -78,8 +78,8 @@ def test_installed_cli_preserves_unicode_paths(
     result = installed_cli.convert(source, destination, "--fps=24")
 
     assert result.exit_code == 0
-    assert str(source) in result.standard_output
-    assert str(destination) in result.standard_output
+    assert source.as_posix() in result.standard_output
+    assert destination.as_posix() in result.standard_output
     assert XlsxWorkbook(destination).event_row_count() == 0
 
 

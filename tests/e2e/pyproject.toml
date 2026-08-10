@@ -9,6 +9,7 @@ dependencies = [
   "pygobject==3.48.2; sys_platform == 'linux'",
   "pyobjc-core==12.2.1; sys_platform == 'darwin'",
   "pyobjc-framework-ApplicationServices==12.2.1; sys_platform == 'darwin'",
+  "pillow==12.3.0; sys_platform == 'win32'",
   "pytest==9.1.1",
   "pytest-html==4.2.0",
   "pywinauto==0.6.9; sys_platform == 'win32'",

@@ -662,7 +662,9 @@ class WindowsApplicationSession:
     ) -> Any | None:
         for node in (root, *self._descendants(root)):
             try:
-                if self._automation_id(node) == identifier and (
+                if self._identifier_matches(
+                    self._automation_id(node), identifier
+                ) and (
                     not showing or node.is_visible()
                 ):
                     return node
@@ -719,6 +721,10 @@ class WindowsApplicationSession:
     @staticmethod
     def _automation_id(node: Any) -> str:
         return str(node.element_info.automation_id or "")
+
+    @staticmethod
+    def _identifier_matches(actual: str, expected: str) -> bool:
+        return actual == expected or actual.endswith(f".{expected}")
 
     @staticmethod
     def _control_type(node: Any) -> str:
