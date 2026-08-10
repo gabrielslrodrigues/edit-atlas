@@ -81,6 +81,9 @@ class Node:
             descendants.extend(child.descendants())
         return descendants
 
+    def children(self) -> list["Node"]:
+        return list(self._children)
+
     @staticmethod
     def is_visible() -> bool:
         return True
@@ -214,17 +217,15 @@ def test_native_file_dialog_lookup_does_not_traverse_main_window(
         def descendants(self) -> list[Node]:
             raise AssertionError("main window must not be traversed")
 
-    main_window = MainWindow(
-        "Edit Atlas", "Window", automation_id="QApplication.mainWindow"
-    )
-    dialog = Node("Open", "Window")
+    dialog = Node("Open Timeline", "Window")
     dialog.element_info.class_name = "#32770"
+    main_window = MainWindow("Edit Atlas", "Window", children=(dialog,))
 
     class Desktop:
         @staticmethod
         def windows(*, process: int) -> list[Node]:
             assert process == RunningProcess.pid
-            return [main_window, dialog]
+            return [main_window]
 
     session._desktop = Desktop()
 

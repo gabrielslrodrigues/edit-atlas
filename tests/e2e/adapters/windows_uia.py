@@ -661,8 +661,21 @@ class WindowsApplicationSession:
 
     def _find_native_file_dialog(self, identifier: str) -> Any | None:
         self._ensure_running()
-        candidates: list[Any] = []
+        nested_candidates: list[Any] = []
         for window in reversed(self._windows()):
+            for child in reversed(self._direct_children(window, "Window")):
+                try:
+                    if not child.is_visible():
+                        continue
+                    automation_id = self._automation_id(child)
+                    if self._identifier_matches(automation_id, identifier):
+                        return child
+                    if self._window_class(child) == "#32770":
+                        return child
+                    nested_candidates.append(child)
+                except Exception:
+                    continue
+
             try:
                 if not window.is_visible():
                     continue
@@ -673,19 +686,12 @@ class WindowsApplicationSession:
                     continue
                 if self._identifier_matches(automation_id, identifier):
                     return window
-                candidates.append(window)
+                if self._window_class(window) == "#32770":
+                    return window
             except Exception:
                 continue
 
-        return next(
-            (
-                window
-                for window in candidates
-                if str(getattr(window.element_info, "class_name", ""))
-                == "#32770"
-            ),
-            candidates[0] if candidates else None,
-        )
+        return nested_candidates[0] if nested_candidates else None
 
     def _find_identifier(
         self, identifier: str, *, showing: bool = True
@@ -748,6 +754,22 @@ class WindowsApplicationSession:
     def _descendants(root: Any) -> list[Any]:
         try:
             return list(root.descendants())
+        except Exception:
+            return []
+
+    @classmethod
+    def _direct_children(cls, root: Any, control_type: str) -> list[Any]:
+        try:
+            return list(root.children(control_type=control_type))
+        except TypeError:
+            try:
+                return [
+                    node
+                    for node in root.children()
+                    if cls._control_type(node) == control_type
+                ]
+            except Exception:
+                return []
         except Exception:
             return []
 
@@ -822,6 +844,10 @@ class WindowsApplicationSession:
     @staticmethod
     def _control_type(node: Any) -> str:
         return str(node.element_info.control_type or "")
+
+    @staticmethod
+    def _window_class(node: Any) -> str:
+        return str(getattr(node.element_info, "class_name", "") or "")
 
     @staticmethod
     def _node_name(node: Any) -> str:
