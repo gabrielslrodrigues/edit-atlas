@@ -1,10 +1,11 @@
-#include "media_fixture.hpp"
+#include <edit_atlas/test/media_fixture.hpp>
 
 extern "C" {
 #include <libavcodec/avcodec.h>
 #include <libavcodec/packet.h>
 #include <libavformat/avformat.h>
 #include <libavformat/avio.h>
+#include <libavutil/dict.h>
 #include <libavutil/error.h>
 #include <libavutil/frame.h>
 #include <libavutil/pixfmt.h>
@@ -137,7 +138,12 @@ void FillFrame(AVFrame &frame, int frame_index) {
 
 std::expected<void, std::string>
 WriteVideoFixture(const std::filesystem::path &path,
-                  std::string_view container_name, FixtureVideoCodec codec) {
+                  std::string_view container_name,
+                  const VideoFixtureOptions &options) {
+    if (options.frame_rate_numerator <= 0 ||
+        options.frame_rate_denominator <= 0 || options.frame_count <= 0) {
+        return std::unexpected("the fixture timing must be positive");
+    }
     AVFormatContext *raw_format_context = nullptr;
     const auto path_text = PathText(path);
     const auto container_text = std::string{container_name};
@@ -153,7 +159,7 @@ WriteVideoFixture(const std::filesystem::path &path,
         return std::unexpected("could not allocate the fixture container");
     }
 
-    const auto codec_id = codec == FixtureVideoCodec::kMpeg2Video
+    const auto codec_id = options.codec == FixtureVideoCodec::kMpeg2Video
                               ? AV_CODEC_ID_MPEG2VIDEO
                               : AV_CODEC_ID_RAWVIDEO;
     const auto *encoder = avcodec_find_encoder(codec_id);
@@ -173,12 +179,14 @@ WriteVideoFixture(const std::filesystem::path &path,
     codec_context->codec_type = AVMEDIA_TYPE_VIDEO;
     codec_context->width = 720;
     codec_context->height = 576;
-    codec_context->pix_fmt = codec == FixtureVideoCodec::kMpeg2Video
+    codec_context->pix_fmt = options.codec == FixtureVideoCodec::kMpeg2Video
                                  ? AV_PIX_FMT_YUV420P
                                  : AV_PIX_FMT_RGB24;
-    codec_context->time_base = AVRational{1, 25};
-    codec_context->framerate = AVRational{25, 1};
-    if (codec == FixtureVideoCodec::kMpeg2Video) {
+    codec_context->time_base = AVRational{options.frame_rate_denominator,
+                                          options.frame_rate_numerator};
+    codec_context->framerate = AVRational{options.frame_rate_numerator,
+                                          options.frame_rate_denominator};
+    if (options.codec == FixtureVideoCodec::kMpeg2Video) {
         codec_context->bit_rate = 1'000'000;
         codec_context->gop_size = 1;
         codec_context->max_b_frames = 0;
@@ -202,6 +210,15 @@ WriteVideoFixture(const std::filesystem::path &path,
     stream->time_base = codec_context->time_base;
     stream->avg_frame_rate = codec_context->framerate;
     stream->r_frame_rate = codec_context->framerate;
+    if (options.starting_timecode.has_value()) {
+        const auto *timecode = options.starting_timecode->c_str();
+        if (av_dict_set(&format_context->metadata, "timecode", timecode, 0) <
+                0 ||
+            av_dict_set(&stream->metadata, "timecode", timecode, 0) < 0) {
+            return std::unexpected(
+                "could not set the fixture starting timecode");
+        }
+    }
 
     if ((format_context->oformat->flags & AVFMT_NOFILE) == 0) {
         const auto io_result =
@@ -232,7 +249,8 @@ WriteVideoFixture(const std::filesystem::path &path,
                                        frame_buffer_result));
     }
 
-    for (int frame_index = 0; frame_index < 3; ++frame_index) {
+    for (int frame_index = 0; frame_index < options.frame_count;
+         ++frame_index) {
         const auto writable_result = av_frame_make_writable(frame.get());
         if (writable_result < 0) {
             return std::unexpected(Failure(

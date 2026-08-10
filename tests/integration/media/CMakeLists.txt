@@ -1,25 +1,43 @@
+add_library(edit_atlas_media_fixture STATIC)
+add_library(EditAtlas::MediaFixture ALIAS edit_atlas_media_fixture)
+
+target_sources(
+    edit_atlas_media_fixture
+    PRIVATE media_fixture.cpp
+    PUBLIC
+        FILE_SET HEADERS
+        BASE_DIRS include
+        FILES include/edit_atlas/test/media_fixture.hpp
+)
+
+target_include_directories(
+    edit_atlas_media_fixture
+    PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include
+)
+
+target_include_directories(
+    edit_atlas_media_fixture
+    SYSTEM PRIVATE
+        ${FFMPEG_INCLUDE_DIRS}
+)
+
+target_link_libraries(edit_atlas_media_fixture PRIVATE ${FFMPEG_LIBRARIES})
+target_compile_features(edit_atlas_media_fixture PUBLIC cxx_std_23)
+edit_atlas_set_project_warnings(edit_atlas_media_fixture)
+
 add_executable(edit_atlas_media_integration_tests)
 
 target_sources(
     edit_atlas_media_integration_tests
-    PRIVATE
-        media_fixture.cpp
-        media_fixture.hpp
-        video_decoder_test.cpp
-)
-
-target_include_directories(
-    edit_atlas_media_integration_tests
-    SYSTEM PRIVATE
-        ${FFMPEG_INCLUDE_DIRS}
+    PRIVATE video_decoder_test.cpp
 )
 
 target_link_libraries(
     edit_atlas_media_integration_tests
     PRIVATE
         EditAtlas::Media
+        EditAtlas::MediaFixture
         GTest::gtest_main
-        ${FFMPEG_LIBRARIES}
 )
 
 target_compile_features(edit_atlas_media_integration_tests PRIVATE cxx_std_23)

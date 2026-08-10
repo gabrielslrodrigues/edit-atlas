@@ -1,4 +1,4 @@
-#include "media_fixture.hpp"
+#include <edit_atlas/test/media_fixture.hpp>
 
 #include <edit_atlas/media/video_decoder.hpp>
 
@@ -50,6 +50,7 @@ struct ContainerCase final {
     std::string_view extension;
     std::string_view muxer;
     std::string_view detected_name;
+    MediaContainer detected_container;
 };
 
 class VideoDecoderContainerTest : public testing::TestWithParam<ContainerCase> {
@@ -58,8 +59,10 @@ class VideoDecoderContainerTest : public testing::TestWithParam<ContainerCase> {
 TEST_P(VideoDecoderContainerTest, OpensAndDecodesSupportedContainer) {
     const auto &container = GetParam();
     TemporaryMediaFile fixture{container.extension};
-    const auto fixture_result = test::WriteVideoFixture(
-        fixture.Path(), container.muxer, test::FixtureVideoCodec::kMpeg2Video);
+    auto options = test::VideoFixtureOptions{};
+    options.codec = test::FixtureVideoCodec::kMpeg2Video;
+    const auto fixture_result =
+        test::WriteVideoFixture(fixture.Path(), container.muxer, options);
     ASSERT_TRUE(fixture_result.has_value())
         << (fixture_result.has_value() ? "" : fixture_result.error());
 
@@ -70,6 +73,7 @@ TEST_P(VideoDecoderContainerTest, OpensAndDecodesSupportedContainer) {
     EXPECT_NE(
         decoder.Information().container_names.find(container.detected_name),
         std::string::npos);
+    EXPECT_EQ(decoder.Information().container, container.detected_container);
     ASSERT_LT(decoder.Information().selected_video_stream,
               decoder.Information().streams.size());
     EXPECT_EQ(decoder.Information()
@@ -95,10 +99,11 @@ TEST_P(VideoDecoderContainerTest, OpensAndDecodesSupportedContainer) {
     EXPECT_TRUE(repeated_frame->has_value());
 }
 
-INSTANTIATE_TEST_SUITE_P(SupportedContainers, VideoDecoderContainerTest,
-                         testing::Values(ContainerCase{"mov", "mov", "mov"},
-                                         ContainerCase{"mp4", "mp4", "mov"},
-                                         ContainerCase{"mxf", "mxf", "mxf"}));
+INSTANTIATE_TEST_SUITE_P(
+    SupportedContainers, VideoDecoderContainerTest,
+    testing::Values(ContainerCase{"mov", "mov", "mov", MediaContainer::kMov},
+                    ContainerCase{"mp4", "mp4", "mov", MediaContainer::kMp4},
+                    ContainerCase{"mxf", "mxf", "mxf", MediaContainer::kMxf}));
 
 TEST(VideoDecoderTest, ReturnsStructuredFailureForMissingInput) {
     const auto path =
@@ -117,8 +122,10 @@ TEST(VideoDecoderTest, ReturnsStructuredFailureForMissingInput) {
 
 TEST(VideoDecoderTest, ReturnsActionableFailureForUnsupportedCodec) {
     TemporaryMediaFile fixture{"mov"};
-    const auto fixture_result = test::WriteVideoFixture(
-        fixture.Path(), "mov", test::FixtureVideoCodec::kRawVideo);
+    auto options = test::VideoFixtureOptions{};
+    options.codec = test::FixtureVideoCodec::kRawVideo;
+    const auto fixture_result =
+        test::WriteVideoFixture(fixture.Path(), "mov", options);
     ASSERT_TRUE(fixture_result.has_value())
         << (fixture_result.has_value() ? "" : fixture_result.error());
 
