@@ -312,10 +312,7 @@ class WindowsApplicationSession:
 
     def open_file_dialog(self, dialog_identifier: str, path: Path) -> None:
         dialog = self._native_file_dialog(dialog_identifier)
-        editors = self._win32_descendants(dialog, "Edit")
-        editor = self._preferred_control_id(editors, (1148, 1001))
-        if editor is None and editors:
-            editor = editors[-1]
+        editor = self._native_file_name_editor(dialog)
         if editor is None:
             raise ElementNotFoundError(
                 f"{dialog_identifier!r} contains no editable path field"
@@ -325,16 +322,19 @@ class WindowsApplicationSession:
             editor.set_edit_text(expected_path)
         except Exception as error:
             raise ActionNotSupportedError(
-                f"native file chooser path could not be set: {error}"
+                "native file chooser path could not be set: "
+                f"{type(error).__name__}: {error}"
             ) from error
         wait_until(
-            lambda: str(editor.window_text()),
+            lambda: self._win32_edit_text(editor),
             lambda text: text == expected_path,
             timeout=self._timeout,
             description=f"native file chooser path to become {expected_path!r}",
         )
 
-        buttons = self._win32_descendants(dialog, "Button")
+        buttons = self._actionable_win32_controls(
+            self._win32_descendants(dialog, "Button")
+        )
         button = self._preferred_control_id(buttons, (1,))
         if button is None:
             button = self._named_win32_control(
@@ -354,7 +354,7 @@ class WindowsApplicationSession:
             raise ElementNotFoundError("native file chooser accept button is absent")
         self._execute_async(button.click, self._win32_text(button))
         wait_until(
-            lambda: self._window_exists(dialog),
+            lambda: self._window_exists_while_running(dialog),
             lambda present: not present,
             timeout=self._timeout,
             description=f"native file chooser {dialog_identifier!r} to close",
@@ -435,8 +435,21 @@ class WindowsApplicationSession:
             self._artifact_directory / "accessibility" / f"{safe_stem}.txt"
         )
         accessibility_path.parent.mkdir(parents=True, exist_ok=True)
-        accessibility_path.write_text(self._tree_dump(), encoding="utf-8")
-        windows = self._windows()
+        try:
+            native_dialog = self._current_win32_file_dialog()
+        except Exception:
+            native_dialog = None
+        accessibility_tree = (
+            self._win32_tree_dump(native_dialog)
+            if native_dialog is not None
+            else self._tree_dump()
+        )
+        accessibility_path.write_text(accessibility_tree, encoding="utf-8")
+        windows = (
+            [native_dialog]
+            if native_dialog is not None
+            else self._windows()
+        )
         if not windows:
             return
         screenshot_path = (
@@ -450,6 +463,9 @@ class WindowsApplicationSession:
 
     def close(self) -> None:
         if self._process.poll() is not None:
+            self._registry.stop(self._process)
+            return
+        if self._current_win32_file_dialog() is not None:
             self._registry.stop(self._process)
             return
         try:
@@ -673,6 +689,9 @@ class WindowsApplicationSession:
 
     def _find_native_file_dialog(self) -> Any | None:
         self._ensure_running()
+        return self._current_win32_file_dialog()
+
+    def _current_win32_file_dialog(self) -> Any | None:
         try:
             dialogs = self._win32_desktop.windows(
                 process=self._process.pid,
@@ -682,6 +701,26 @@ class WindowsApplicationSession:
         except Exception:
             return None
         return dialogs[-1] if dialogs else None
+
+    def _native_file_name_editor(self, dialog: Any) -> Any | None:
+        combo_boxes = self._win32_descendants(dialog, "ComboBox")
+        file_name_combos = [
+            combo for combo in combo_boxes if self._control_id(combo) == 1148
+        ]
+        for combo in file_name_combos:
+            editors = self._actionable_win32_controls(
+                self._win32_descendants(combo, "Edit")
+            )
+            if editors:
+                return editors[-1]
+
+        editors = self._actionable_win32_controls(
+            self._win32_descendants(dialog, "Edit")
+        )
+        editor = self._preferred_control_id(editors, (1152, 1148))
+        if editor is not None:
+            return editor
+        return editors[-1] if editors else None
 
     def _find_identifier(
         self, identifier: str, *, showing: bool = True
@@ -754,6 +793,17 @@ class WindowsApplicationSession:
         except Exception:
             return []
 
+    @staticmethod
+    def _actionable_win32_controls(nodes: Sequence[Any]) -> list[Any]:
+        actionable: list[Any] = []
+        for node in nodes:
+            try:
+                node.verify_actionable()
+                actionable.append(node)
+            except Exception:
+                continue
+        return actionable
+
     @classmethod
     def _preferred_control_id(
         cls, nodes: Sequence[Any], control_ids: Sequence[int]
@@ -812,6 +862,13 @@ class WindowsApplicationSession:
             return ""
 
     @staticmethod
+    def _win32_edit_text(node: Any) -> str:
+        try:
+            return str(node.text_block() or "")
+        except Exception:
+            return ""
+
+    @staticmethod
     def _node_name(node: Any) -> str:
         try:
             return str(node.element_info.name or "")
@@ -852,6 +909,10 @@ class WindowsApplicationSession:
         except Exception:
             return False
 
+    def _window_exists_while_running(self, window: Any) -> bool:
+        self._ensure_running()
+        return self._window_exists(window)
+
     def _ensure_running(self) -> None:
         if self._process.poll() is not None:
             raise RuntimeError(
@@ -880,3 +941,35 @@ class WindowsApplicationSession:
         for window in self._windows():
             append_node(window, 0)
         return "\n".join(lines) + ("\n" if lines else "")
+
+    def _win32_tree_dump(self, root: Any) -> str:
+        lines: list[str] = []
+
+        def append_node(node: Any, depth: int) -> None:
+            try:
+                class_name = str(node.class_name() or "")
+            except Exception:
+                class_name = ""
+            try:
+                visible = bool(node.is_visible())
+            except Exception:
+                visible = False
+            try:
+                enabled = bool(node.is_enabled())
+            except Exception:
+                enabled = False
+            lines.append(
+                f"{'  ' * depth}{class_name} "
+                f"text={self._win32_text(node)!r} "
+                f"control_id={self._control_id(node)} "
+                f"visible={visible} enabled={enabled}"
+            )
+            try:
+                children = node.children()
+            except Exception:
+                children = ()
+            for child in children:
+                append_node(child, depth + 1)
+
+        append_node(root, 0)
+        return "\n".join(lines) + "\n"

@@ -243,13 +243,20 @@ def test_native_file_dialog_uses_semantic_win32_controls(
     dialog_open.set()
 
     class Editor:
-        element_info = ElementInfo("", "Edit", control_id=1148)
+        element_info = ElementInfo("", "Edit")
         value = ""
+
+        @staticmethod
+        def verify_actionable() -> None:
+            return None
 
         def set_edit_text(self, value: str) -> None:
             self.value = value
 
         def window_text(self) -> str:
+            return ""
+
+        def text_block(self) -> str:
             return self.value
 
     class Button:
@@ -261,16 +268,43 @@ def test_native_file_dialog_uses_semantic_win32_controls(
             dialog_open.clear()
 
         @staticmethod
+        def verify_actionable() -> None:
+            return None
+
+        @staticmethod
         def window_text() -> str:
             return "Open"
 
     editor = Editor()
     button = Button()
 
+    class HiddenEditor(Editor):
+        element_info = ElementInfo("", "Edit", control_id=1152)
+
+        @staticmethod
+        def verify_actionable() -> None:
+            raise RuntimeError("hidden")
+
+    hidden_editor = HiddenEditor()
+
+    class FileNameCombo:
+        element_info = ElementInfo("", "ComboBox", control_id=1148)
+
+        @staticmethod
+        def descendants(*, class_name: str) -> list[Editor]:
+            assert class_name == "Edit"
+            return [hidden_editor, editor]
+
+    file_name_combo = FileNameCombo()
+
     class Dialog:
         @staticmethod
         def descendants(*, class_name: str) -> list[Any]:
-            return {"Edit": [editor], "Button": [button]}[class_name]
+            return {
+                "ComboBox": [file_name_combo],
+                "Edit": [hidden_editor, editor],
+                "Button": [button],
+            }[class_name]
 
         @staticmethod
         def exists() -> bool:
