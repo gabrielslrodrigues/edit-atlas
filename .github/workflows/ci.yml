@@ -605,6 +605,86 @@ jobs:
       - name: Verify package
         run: ./scripts/ci/verify-macos-package.sh build/packages/universal-osx
 
+  e2e-macos-package:
+    # GitHub-hosted macOS runners cannot grant Accessibility permission to the
+    # test process non-interactively. Keep the experimental job visible, but
+    # disabled until it can run on a pre-authorized interactive runner.
+    name: E2E / macOS packaged desktop (experimental, disabled)
+    needs: package-macos-universal
+    if: >-
+      false &&
+      (github.event_name == 'schedule' ||
+       github.event_name == 'workflow_dispatch') &&
+      needs['package-macos-universal'].result == 'success'
+    continue-on-error: true
+    runs-on: macos-15
+    timeout-minutes: 30
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v7.0.1
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
+        with:
+          version: 0.12.3
+
+      - name: Download macOS package
+        uses: actions/download-artifact@v8
+        with:
+          name: edit-atlas-universal-osx-packages
+          path: build/packages/universal-osx
+
+      - name: Install generated PKG
+        run: |
+          packages=()
+          while IFS= read -r package; do
+            packages+=("${package}")
+          done < <(find build/packages/universal-osx -type f -name '*.pkg')
+          if [[ "${#packages[@]}" -ne 1 ]]; then
+            echo "Expected exactly one PKG, found ${#packages[@]}" >&2
+            exit 1
+          fi
+          if [[ -e /Applications/edit-atlas.app ]]; then
+            echo "Package target already exists: /Applications/edit-atlas.app" >&2
+            exit 1
+          fi
+          sudo installer -pkg "${packages[0]}" -target /
+          package_id="$(
+            /usr/libexec/PlistBuddy \
+              -c 'Print :CFBundleIdentifier' \
+              /Applications/edit-atlas.app/Contents/Info.plist
+          )"
+          echo "EDIT_ATLAS_E2E_PACKAGE_ID=${package_id}" >>"${GITHUB_ENV}"
+
+      - name: Run packaged CLI and desktop E2E tests
+        run: |
+          tests/e2e/run-macos.sh \
+            --app /Applications/edit-atlas.app/Contents/MacOS/edit-atlas \
+            --cli /Applications/edit-atlas.app/Contents/MacOS/edit-atlas-cli
+
+      - name: Remove installed package and test state
+        if: always()
+        run: |
+          pkill -x edit-atlas || true
+          sudo rm -rf /Applications/edit-atlas.app
+          if [[ -n "${EDIT_ATLAS_E2E_PACKAGE_ID:-}" ]]; then
+            sudo pkgutil --forget "${EDIT_ATLAS_E2E_PACKAGE_ID}" || true
+          fi
+          rm -rf build/e2e/state
+
+      - name: Upload macOS E2E reports and artifacts
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: macos-packaged-e2e-results
+          path: |
+            build/e2e/reports
+            build/e2e/artifacts
+            build/e2e/output
+          if-no-files-found: ignore
+          retention-days: 7
+
   verify-windows-package:
     name: Verify Windows package / Windows x64
     needs: build-and-package

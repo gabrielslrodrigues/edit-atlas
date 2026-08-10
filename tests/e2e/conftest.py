@@ -182,6 +182,12 @@ def edit_atlas_application(
         adapter = WindowsUiaAdapter(
             process_registry, artifact_directory, timeout
         )
+    elif sys.platform == "darwin":
+        from adapters.macos_ax import MacAxAdapter
+
+        adapter = MacAxAdapter(
+            process_registry, artifact_directory, timeout
+        )
     else:
         raise pytest.UsageError(
             f"packaged desktop E2E is unsupported on {sys.platform!r}"
