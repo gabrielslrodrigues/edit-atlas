@@ -109,6 +109,55 @@ Tests run serially with bounded state polling. UIA-tree dumps, application
 logs, PNG screenshots on failure, generated workbooks, the support bundle, and
 pytest reports are written below `build/e2e`.
 
+### macOS desktop tests
+
+The experimental macOS suite drives the universal application through PyObjC
+and the macOS Accessibility API. It uses the same stable identifiers and shared
+GUI scenarios as Linux and Windows. Native open/save panels are discovered in
+the focused system accessibility hierarchy because macOS hosts them in a
+separate process. Controls, path fields, and confirmation buttons use AX
+attributes and actions; the standard Command-Shift-G shortcut is used only to
+open the native Go to Folder sheet. No pointer coordinates, image matching, or
+fixed sleeps are used.
+
+macOS requires the process driving the Accessibility API to be approved under
+**System Settings > Privacy & Security > Accessibility**. That approval is tied
+to the interactive user's protected privacy database and cannot be granted
+reliably to a test process on a fresh, non-interactive GitHub-hosted runner.
+
+The CI workflow contains the scheduled/manual-only
+`e2e-macos-package` job so the intended package dependency and experimental,
+non-blocking status remain explicit. A constant-false guard keeps the job
+skipped. The complete installation, test, artifact-upload, and teardown steps
+remain in the job so it can be enabled without reconstructing the workflow.
+Enabling it requires:
+
+- a persistent interactive macOS runner whose test user has granted
+  Accessibility permission to the pinned automation executable;
+- confirmation that the runner remains trusted after dependency or executable
+  updates.
+
+After installing the universal PKG, run the complete suite from that trusted
+interactive session:
+
+```sh
+tests/e2e/run-macos.sh \
+  --app /Applications/edit-atlas.app/Contents/MacOS/edit-atlas \
+  --cli /Applications/edit-atlas.app/Contents/MacOS/edit-atlas-cli
+```
+
+The runner performs an explicit `AXIsProcessTrusted` preflight before pytest.
+An unavailable or untrusted backend is an error, never a skipped test. Tests
+run serially with bounded polling. AX-tree dumps, application logs, screenshots
+when macOS permits capture, generated outputs, and pytest reports are written
+below `build/e2e`. Because the CI job is disabled, the real packaged AX path
+remains experimental and must be validated manually on a trusted runner before
+the guard is removed.
+
+The existing macOS package-verification jobs still install and launch both
+native slices of the universal application. Packaged CLI tests can also be run
+locally with `run.sh`; neither check requires Accessibility permission.
+
 ## Dependency management
 
 `pyproject.toml` declares pytest, HTML reporting, pywinauto and Pillow on

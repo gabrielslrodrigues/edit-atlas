@@ -158,7 +158,10 @@ packages and treat them like end-user downloads:
   its CLI converts a representative CMX 3600 fixture;
 - installs the macOS package on both Apple Silicon and Intel runners, verifies
   its deployed Qt runtime, launches each native slice, and checks every Mach-O
-  file for both x86_64 and ARM64 slices;
+  file for both x86_64 and ARM64 slices; packaged GUI automation remains an
+  explicitly skipped experimental job because GitHub-hosted runners cannot be
+  reliably pre-authorized for the macOS Accessibility API, while its complete
+  PyObjC AX runner is retained for a trusted interactive runner;
 - silently installs the Windows package into an isolated directory, verifies
   Qt and the Windows platform plugin, confirms the uninstall registry entry,
   runs the uninstaller, and confirms the executable was removed.
