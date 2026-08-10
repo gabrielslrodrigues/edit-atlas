@@ -146,13 +146,14 @@ def test_checkable_menu_item_uses_uia_invoke_pattern(tmp_path: Path) -> None:
     assert node.iface_toggle.CurrentToggleState == 1
 
 
-def test_combo_selection_prefers_uia_selection_item_pattern(
+def test_combo_selection_prefers_uia_invoke_pattern(
     tmp_path: Path,
 ) -> None:
     session = application_session(tmp_path)
     control = Node("Event", "ComboBox")
     reel = Node("Reel", "ListItem")
-    reel.iface_selection_item = SelectionPattern(
+    reel.iface_selection_item = SelectionPattern(lambda: None)
+    reel.iface_invoke = InvokePattern(
         lambda: setattr(control.element_info, "name", "Reel")
     )
     control._children = (reel,)
@@ -160,7 +161,8 @@ def test_combo_selection_prefers_uia_selection_item_pattern(
 
     session.select_option("filterCondition0Field", "Reel")
 
-    assert reel.iface_selection_item.CurrentIsSelected
+    assert reel.iface_invoke.invoked.wait(1.0)
+    assert not reel.iface_selection_item.CurrentIsSelected
     assert session.selected_option("filterCondition0Field") == "Reel"
 
 

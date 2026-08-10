@@ -319,10 +319,12 @@ class WindowsApplicationSession:
 
     def open_file_dialog(self, dialog_identifier: str, path: Path) -> None:
         dialog = self._native_file_dialog(dialog_identifier)
-        if not dialog.has_focus():
-            raise ActionNotSupportedError(
-                f"native file chooser {dialog_identifier!r} is not focused"
-            )
+        wait_until(
+            dialog.has_focus,
+            lambda focused: focused,
+            timeout=self._timeout,
+            description=f"native file chooser {dialog_identifier!r} to receive focus",
+        )
         try:
             self._keyboard_sender(
                 os.fspath(path), with_spaces=True, pause=0, vk_packet=True
@@ -494,11 +496,6 @@ class WindowsApplicationSession:
     def _select_option_node(
         self, control: Any, target: Any, option: str
     ) -> bool:
-        selection = self._pattern(target, "iface_selection_item")
-        if selection is not None:
-            self._execute_pattern(selection.Select, target)
-            self._wait_selected_option_for(control, target, option)
-            return True
         invoke = self._pattern(target, "iface_invoke")
         if invoke is not None:
             completed = self._invoke(target)
@@ -509,6 +506,19 @@ class WindowsApplicationSession:
                 description=f"menu option {option!r} invocation to complete",
             )
             self._ensure_running()
+            if self._control_type(control) == "ComboBox":
+                wait_until(
+                    lambda: self._node_text(control),
+                    lambda selected: self._normalized_name(selected)
+                    == self._normalized_name(option),
+                    timeout=self._timeout,
+                    description=f"combo box option {option!r} to become active",
+                )
+            return True
+        selection = self._pattern(target, "iface_selection_item")
+        if selection is not None:
+            self._execute_pattern(selection.Select, target)
+            self._wait_selected_option_for(control, target, option)
             return True
         toggle = self._pattern(target, "iface_toggle")
         if toggle is not None:
