@@ -124,7 +124,7 @@ def test_filtered_spreadsheet_and_private_support_bundle(
     app.set_filter_text(0, "BROLL")
     app.wait_event_count(2)
 
-    destination = output_directory / "linux-gui-filtered.xlsx"
+    destination = output_directory / "gui-filtered.xlsx"
     destination.unlink(missing_ok=True)
     app.begin_spreadsheet_export()
     app.set_export_columns({"Comments", "Event"}, ["Comments", "Event"])
@@ -149,7 +149,7 @@ def test_filtered_spreadsheet_and_private_support_bundle(
     app.finish_spreadsheet_export()
     assert XlsxWorkbook(destination).event_row_count() == 2
 
-    bundle_path = output_directory / "linux-gui-support.zip"
+    bundle_path = output_directory / "gui-support.zip"
     bundle_path.unlink(missing_ok=True)
     app.export_support_bundle(bundle_path)
     bundle = SupportBundle(bundle_path)

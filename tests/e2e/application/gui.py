@@ -180,8 +180,9 @@ class EditAtlasApplication:
         self._session.wait_absent("spreadsheetExportResultDialog")
 
     def export_support_bundle(self, destination: Path) -> None:
-        self._open_menu("helpMenu")
-        self._session.activate("exportDiagnosticLogsAction")
+        self._session.activate_menu_action(
+            "helpMenu", "exportDiagnosticLogsAction"
+        )
         self._session.element("supportBundleDisclosureDialog")
         self._session.activate("continueSupportBundleButton")
         self._session.open_file_dialog("supportBundleSaveFileDialog", destination)

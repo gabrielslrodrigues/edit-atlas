@@ -31,7 +31,7 @@
 
 namespace edit_atlas::app {
 
-#if defined(Q_OS_LINUX)
+#if defined(Q_OS_LINUX) || defined(Q_OS_WIN)
 namespace {
 
 class AccessibleComboBox final : public QAccessibleWidget,
@@ -451,11 +451,13 @@ QAccessibleInterface *CreateApplicationAccessibleInterface(const QString &,
         combo_box != nullptr) {
         return new AccessibleComboBox{combo_box};
     }
+#if defined(Q_OS_LINUX)
     if (auto *button = qobject_cast<QToolButton *>(object);
         button != nullptr &&
         button->objectName() == QStringLiteral("templateActionsButton")) {
         return new AccessibleTemplateActionsButton{button};
     }
+#endif
     if (auto *list = qobject_cast<QListWidget *>(object); list != nullptr) {
         return new AccessibleProjectionList{list};
     }
@@ -466,7 +468,7 @@ QAccessibleInterface *CreateApplicationAccessibleInterface(const QString &,
 #endif
 
 void InstallApplicationAccessibility(void) {
-#if defined(Q_OS_LINUX)
+#if defined(Q_OS_LINUX) || defined(Q_OS_WIN)
     QAccessible::installFactory(CreateApplicationAccessibleInterface);
 #endif
 }

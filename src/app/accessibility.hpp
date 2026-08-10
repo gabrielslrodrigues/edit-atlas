@@ -9,7 +9,7 @@ class QWidget;
 
 namespace edit_atlas::app {
 
-/// Installs Linux accessibility interfaces for application controls whose
+/// Installs desktop accessibility interfaces for application controls whose
 /// native Qt interfaces do not expose complete semantic operations.
 void InstallApplicationAccessibility(void);
 

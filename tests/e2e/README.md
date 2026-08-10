@@ -24,9 +24,9 @@ Only `conftest.py` and files under `tests/` may import pytest.
 
 The entry points use uv and the committed lockfile to create a pinned Python
 3.12 virtual environment at `build/e2e/venv`. They write JUnit XML, a
-self-contained HTML report, command transcripts, outputs, and future GUI
-failure artifacts beneath `build/e2e`. Install a compatible uv 0.12 release
-before using either entry point.
+self-contained HTML report, command transcripts, outputs, and GUI failure
+artifacts beneath `build/e2e`. Install a compatible uv 0.12 release
+before using an entry point.
 
 Packaged CLI tests on Linux and macOS:
 
@@ -86,12 +86,35 @@ error. Tests run serially with bounded state polling. Accessibility-tree dumps,
 application logs, XWD screenshots when available, generated workbooks, the
 support bundle, and pytest reports are written below `build/e2e`.
 
+### Windows desktop tests
+
+The required Windows suite drives the GUI installed by the generated MSI with
+pywinauto's UIA backend. It uses UIA Invoke, Toggle, Selection, Value, and
+ExpandCollapse patterns and native file-dialog controls. It does not use
+pointer coordinates, image matching, synthesized keyboard input, or fixed
+sleeps.
+
+Install the MSI into a private directory, then run the complete required suite
+from an interactive PowerShell desktop session:
+
+```powershell
+tests/e2e/run-windows.ps1 `
+  -App "C:\path\to\install\bin\edit-atlas.exe" `
+  -Cli "C:\path\to\install\bin\edit-atlas-cli.exe"
+```
+
+Both paths must point to executables installed by the MSI. The runner performs
+an explicit UIA backend preflight and treats a missing backend as an error.
+Tests run serially with bounded state polling. UIA-tree dumps, application
+logs, PNG screenshots on failure, generated workbooks, the support bundle, and
+pytest reports are written below `build/e2e`.
+
 ## Dependency management
 
-`pyproject.toml` declares pytest, HTML reporting, pywinauto on Windows, dogtail
-and its PyGObject/PyCairo bridge on Linux, and the macOS ApplicationServices
-PyObjC bridge. `uv.lock` pins the complete cross-platform resolution. The entry
-points use `uv run --locked`, so an outdated or missing lockfile is an error
-rather than an implicit dependency update. Native packages needed by a
-platform accessibility backend are installed by that platform's CI job rather
-than by uv.
+`pyproject.toml` declares pytest, HTML reporting, pywinauto and Pillow on
+Windows, dogtail and its PyGObject/PyCairo bridge on Linux, and the macOS
+ApplicationServices PyObjC bridge. `uv.lock` pins the complete cross-platform
+resolution. The entry points use `uv run --locked`, so an outdated or missing
+lockfile is an error rather than an implicit dependency update. Native packages
+needed by a platform accessibility backend are installed by that platform's CI
+job rather than by uv.
