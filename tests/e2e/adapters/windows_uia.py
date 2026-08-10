@@ -3,8 +3,9 @@
 Interactions in this module use UIA control patterns, except for Windows'
 native file chooser. Its blocking modal UIA provider exposes neither its
 filename field nor accept button, so the adapter types into the field that the
-operating system focuses when the chooser opens. Pointer coordinates and image
-matching are intentionally absent.
+operating system focuses when the chooser opens. Qt combo items use pointer
+input derived from their accessible bounds because Qt does not commit desktop
+SelectionItem actions. Explicit coordinates and image matching are absent.
 """
 
 from __future__ import annotations
@@ -264,6 +265,12 @@ class WindowsApplicationSession:
         ):
             return
 
+        if self._control_type(control) == "ComboBox":
+            self._select_combo_option_by_accessible_click(
+                control, identifier, option
+            )
+            return
+
         options = self._option_nodes(control)
         target = self._named_node(options, option)
         if target is not None:
@@ -359,11 +366,22 @@ class WindowsApplicationSession:
 
     def text_content(self, identifier: str) -> list[str]:
         root = self.element(identifier)
-        return [
+        content = [
             text
             for node in (root, *self._descendants(root))
             if (text := self._node_text(node))
         ]
+        grid = self._pattern(root, "iface_grid")
+        if grid is not None:
+            try:
+                for row in range(int(grid.CurrentRowCount)):
+                    for column in range(int(grid.CurrentColumnCount)):
+                        name = str(grid.GetItem(row, column).CurrentName or "")
+                        if name:
+                            content.append(name)
+            except Exception:
+                pass
+        return content
 
     def visible_text(self, identifier: str) -> list[str]:
         root = self.element(identifier)
@@ -506,14 +524,6 @@ class WindowsApplicationSession:
                 description=f"menu option {option!r} invocation to complete",
             )
             self._ensure_running()
-            if self._control_type(control) == "ComboBox":
-                wait_until(
-                    lambda: self._node_text(control),
-                    lambda selected: self._normalized_name(selected)
-                    == self._normalized_name(option),
-                    timeout=self._timeout,
-                    description=f"combo box option {option!r} to become active",
-                )
             return True
         selection = self._pattern(target, "iface_selection_item")
         if selection is not None:
@@ -525,6 +535,42 @@ class WindowsApplicationSession:
             self._set_toggle_state(target, True, f"option {option!r}")
             return True
         return False
+
+    def _select_combo_option_by_accessible_click(
+        self, control: Any, identifier: str, option: str
+    ) -> None:
+        expand = self._pattern(control, "iface_expand_collapse")
+        if expand is None:
+            raise ActionNotSupportedError(
+                f"combo box {identifier!r} exposes no UIA ExpandCollapse pattern"
+            )
+        try:
+            expanded = int(expand.CurrentExpandCollapseState) == 1
+        except Exception:
+            expanded = False
+        if not expanded:
+            self._execute_pattern(expand.Expand, control)
+        target = wait_until(
+            lambda: self._find_named(
+                (option,), root=control, control_types=("ListItem",)
+            ),
+            lambda value: value is not None,
+            timeout=self._timeout,
+            description=f"showing combo box option {option!r} for {identifier!r}",
+        )
+        try:
+            target.click_input()
+        except Exception as error:
+            raise ActionNotSupportedError(
+                f"combo box option {option!r} could not be clicked: {error}"
+            ) from error
+        wait_until(
+            lambda: self._node_text(control),
+            lambda selected: self._normalized_name(selected)
+            == self._normalized_name(option),
+            timeout=self._timeout,
+            description=f"combo box option {option!r} to become active",
+        )
 
     def _wait_selected_option_for(
         self, control: Any, target: Any, expected: str

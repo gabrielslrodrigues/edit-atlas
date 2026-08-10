@@ -67,6 +67,14 @@ class RangeValuePattern:
         self._set_value(value)
 
 
+class ExpandCollapsePattern:
+    def __init__(self) -> None:
+        self.CurrentExpandCollapseState = 0
+
+    def Expand(self) -> None:
+        self.CurrentExpandCollapseState = 1
+
+
 class Node:
     def __init__(
         self,
@@ -75,9 +83,11 @@ class Node:
         *,
         automation_id: str = "",
         children: tuple["Node", ...] = (),
+        click: Any | None = None,
     ) -> None:
         self.element_info = ElementInfo(name, control_type, automation_id)
         self._children = children
+        self._click = click
 
     def descendants(self) -> list["Node"]:
         descendants: list[Node] = []
@@ -88,6 +98,11 @@ class Node:
 
     def children(self) -> list["Node"]:
         return list(self._children)
+
+    def click_input(self) -> None:
+        if self._click is None:
+            raise RuntimeError("node is not clickable")
+        self._click()
 
     @staticmethod
     def is_visible() -> bool:
@@ -146,23 +161,23 @@ def test_checkable_menu_item_uses_uia_invoke_pattern(tmp_path: Path) -> None:
     assert node.iface_toggle.CurrentToggleState == 1
 
 
-def test_combo_selection_prefers_uia_invoke_pattern(
+def test_combo_selection_uses_accessible_item_bounds(
     tmp_path: Path,
 ) -> None:
     session = application_session(tmp_path)
     control = Node("Event", "ComboBox")
-    reel = Node("Reel", "ListItem")
-    reel.iface_selection_item = SelectionPattern(lambda: None)
-    reel.iface_invoke = InvokePattern(
-        lambda: setattr(control.element_info, "name", "Reel")
+    control.iface_expand_collapse = ExpandCollapsePattern()
+    reel = Node(
+        "Reel",
+        "ListItem",
+        click=lambda: setattr(control.element_info, "name", "Reel"),
     )
     control._children = (reel,)
     session.element = lambda identifier: control
 
     session.select_option("filterCondition0Field", "Reel")
 
-    assert reel.iface_invoke.invoked.wait(1.0)
-    assert not reel.iface_selection_item.CurrentIsSelected
+    assert control.iface_expand_collapse.CurrentExpandCollapseState == 1
     assert session.selected_option("filterCondition0Field") == "Reel"
 
 
@@ -175,7 +190,7 @@ def test_combo_selection_uses_uia_range_value_without_input_simulation(
         Node("Reel", "ListItem"),
         Node("Track type", "ListItem"),
     )
-    control = Node("Event", "ComboBox", children=options)
+    control = Node("Event", "Custom", children=options)
 
     def select(index: float) -> None:
         control.element_info.name = options[int(index)].element_info.name
@@ -186,6 +201,31 @@ def test_combo_selection_uses_uia_range_value_without_input_simulation(
     session.select_option("filterCondition0Field", "Track type")
 
     assert session.selected_option("filterCondition0Field") == "Track type"
+
+
+def test_table_text_includes_virtualized_uia_grid_cells(
+    tmp_path: Path,
+) -> None:
+    session = application_session(tmp_path)
+    table = Node("Timeline edit events", "Table")
+
+    class Cell:
+        def __init__(self, name: str) -> None:
+            self.CurrentName = name
+
+    class GridPattern:
+        CurrentRowCount = 2
+        CurrentColumnCount = 1
+
+        @staticmethod
+        def GetItem(row: int, column: int) -> Cell:
+            assert column == 0
+            return Cell(("opening.mov", "SYNTHETIC AUDIO NOTE")[row])
+
+    table.iface_grid = GridPattern()
+    session.element = lambda identifier: table
+
+    assert "SYNTHETIC AUDIO NOTE" in session.text_content("eventTable")
 
 
 def test_menu_option_selection_uses_uia_invoke_pattern(tmp_path: Path) -> None:
