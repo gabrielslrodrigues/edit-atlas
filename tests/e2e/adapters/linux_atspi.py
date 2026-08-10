@@ -281,17 +281,17 @@ class LinuxApplicationSession:
 
     def set_checked(self, identifier: str, checked: bool) -> None:
         node = self.element(identifier)
-        if bool(node.checked) != checked:
+        if self._is_checked(node) != checked:
             self._activate_node(node)
         wait_until(
-            lambda: bool(self.element(identifier).checked),
+            lambda: self._checked_state(node),
             lambda value: value == checked,
             timeout=self._timeout,
             description=f"{identifier!r} checked state to become {checked}",
         )
 
     def is_checked(self, identifier: str) -> bool:
-        return bool(self.element(identifier).checked)
+        return self._is_checked(self.element(identifier))
 
     def is_sensitive(self, identifier: str) -> bool:
         return bool(self.element(identifier).sensitive)
@@ -319,7 +319,7 @@ class LinuxApplicationSession:
         except Exception:
             self._activate_node(node)
         wait_until(
-            lambda: bool(node.selected),
+            lambda: self._selected_state(node),
             lambda selected: selected,
             timeout=self._timeout,
             description=f"list item {name!r} to become selected",
@@ -331,10 +331,10 @@ class LinuxApplicationSession:
         control = self.element(identifier)
         node = self._list_item(identifier, name, control=control)
         self._scroll_into_view(node)
-        if bool(node.checked) != checked:
+        if self._is_checked(node) != checked:
             self._activate_node(node)
         wait_until(
-            lambda: bool(node.checked),
+            lambda: self._checked_state(node),
             lambda value: value == checked,
             timeout=self._timeout,
             description=f"list item {name!r} checked state to become {checked}",
@@ -371,6 +371,18 @@ class LinuxApplicationSession:
                 raise ActionNotSupportedError(
                     f"option {option!r} exposes neither action nor selection"
                 ) from error
+        wait_until(
+            lambda: self._option_is_selected(control, node, option),
+            lambda selected: selected,
+            timeout=self._timeout,
+            description=f"option {option!r} to become selected",
+        )
+        wait_until(
+            lambda: self._showing_state(node),
+            lambda showing: not showing,
+            timeout=self._timeout,
+            description=f"option {option!r} popup to close",
+        )
 
     def selected_option(self, identifier: str) -> str:
         control = self.element(identifier)
@@ -406,6 +418,13 @@ class LinuxApplicationSession:
             result = True
         if result is False:
             raise ActionNotSupportedError("native file chooser rejected the path")
+        expected_path = os.fspath(path)
+        wait_until(
+            lambda: self._node_text(editor),
+            lambda text: text == expected_path,
+            timeout=self._timeout,
+            description=f"native file chooser path to become {expected_path!r}",
+        )
 
         button = self._find_named(
             dialog,
@@ -447,6 +466,26 @@ class LinuxApplicationSession:
             lambda value: expected in value,
             timeout=self._timeout,
             description=f"{identifier!r} name to contain {expected!r}",
+        )
+
+    def wait_list_items(
+        self, identifier: str, expected: Sequence[str]
+    ) -> list[str]:
+        expected_items = list(expected)
+        return wait_until(
+            lambda: self.list_items(identifier),
+            lambda items: items == expected_items,
+            timeout=self._timeout,
+            description=f"{identifier!r} items to become {expected_items!r}",
+        )
+
+    def wait_selected_option(self, identifier: str, expected: str) -> str:
+        return wait_until(
+            lambda: self.selected_option(identifier),
+            lambda selected: self._normalized_name(selected)
+            == self._normalized_name(expected),
+            timeout=self._timeout,
+            description=f"{identifier!r} selection to become {expected!r}",
         )
 
     def wait_text_contains(self, identifier: str, expected: str) -> str:
@@ -528,18 +567,13 @@ class LinuxApplicationSession:
                 f"{getattr(node, 'name', '')!r} exposes actions "
                 f"{tuple(actions)!r}, none of which is supported"
             )
-        if self._normalized_action_name(action) == "showmenu":
-            threading.Thread(
-                target=self._invoke_action,
-                args=(node, action, True),
-                daemon=True,
-            ).start()
-            return
-        self._invoke_action(node, action)
+        threading.Thread(
+            target=self._invoke_action,
+            args=(node, action),
+            daemon=True,
+        ).start()
 
-    def _invoke_action(
-        self, node: Any, action: str, defer_error: bool = False
-    ) -> None:
+    def _invoke_action(self, node: Any, action: str) -> None:
         try:
             if node.do_action_named(action) is False:
                 raise ActionNotSupportedError(
@@ -549,8 +583,6 @@ class LinuxApplicationSession:
             failure = ActionNotSupportedError(
                 f"accessibility action {action!r} failed: {error}"
             )
-            if not defer_error:
-                raise failure from error
             with self._action_error_lock:
                 self._action_errors.append(failure)
 
@@ -682,6 +714,43 @@ class LinuxApplicationSession:
             return bool(node.showing)
         except Exception:
             return False
+
+    @staticmethod
+    def _is_checked(node: Any) -> bool:
+        try:
+            return bool(node.checked)
+        except Exception:
+            return False
+
+    def _checked_state(self, node: Any) -> bool:
+        self._ensure_running()
+        return self._is_checked(node)
+
+    def _showing_state(self, node: Any) -> bool:
+        self._ensure_running()
+        return self._is_showing(node)
+
+    def _selected_state(self, node: Any) -> bool:
+        self._ensure_running()
+        try:
+            return bool(node.selected)
+        except Exception:
+            return False
+
+    def _option_is_selected(
+        self, control: Any, option: Any, expected: str
+    ) -> bool:
+        self._ensure_running()
+        for attribute in ("selected", "checked"):
+            try:
+                if bool(getattr(option, attribute)):
+                    return True
+            except Exception:
+                continue
+        current = self._node_text(control) or str(
+            getattr(control, "name", "")
+        )
+        return self._normalized_name(current) == self._normalized_name(expected)
 
     @staticmethod
     def _node_identifier(node: Any) -> str:

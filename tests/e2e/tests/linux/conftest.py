@@ -1,13 +1,29 @@
 from __future__ import annotations
 
+from collections.abc import Generator
 import os
 from pathlib import Path
 import shutil
+import warnings
 
 import pytest
 
 from adapters.linux_atspi import LinuxAtspiAdapter
 from application.gui import EditAtlasApplication
+
+
+REPORTS_KEY = pytest.StashKey[dict[str, pytest.TestReport]]()
+
+
+@pytest.hookimpl(hookwrapper=True)
+def pytest_runtest_makereport(
+    item: pytest.Item, call: pytest.CallInfo[None]
+) -> Generator[None, None, None]:
+    outcome = yield
+    report = outcome.get_result()
+    reports = item.stash.get(REPORTS_KEY, {})
+    reports[report.when] = report
+    item.stash[REPORTS_KEY] = reports
 
 
 @pytest.fixture
@@ -49,14 +65,20 @@ def edit_atlas_application(
         )
 
     application = EditAtlasApplication(launch)
-    failed = False
     try:
         yield application
-    except BaseException:
-        failed = True
-        application.capture_artifacts(request.node.name)
-        raise
     finally:
+        reports = request.node.stash.get(REPORTS_KEY, {})
+        failed = any(report.failed for report in reports.values())
+        if failed:
+            try:
+                application.capture_artifacts(request.node.name)
+            except Exception as error:
+                warnings.warn(
+                    f"could not capture Linux E2E failure artifacts: {error}",
+                    RuntimeWarning,
+                    stacklevel=1,
+                )
         application.close()
         if failed:
             log_directory = test_state_root / "logs"

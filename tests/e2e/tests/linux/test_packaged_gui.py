@@ -42,7 +42,7 @@ def test_startup_import_failure_recovery_and_preferences_persist(
     app.session.activate("fileMenu")
     assert app.session.is_checked("rememberRecentFilesAction")
     app.session.activate("recentFilesMenu")
-    assert app.session.has_element("recentFileAction0")
+    app.session.element("recentFileAction0")
     assert "mixed_tracks.edl" in app.session.element_name("recentFileAction0")
 
 

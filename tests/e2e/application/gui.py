@@ -39,6 +39,7 @@ class EditAtlasApplication:
     def set_recent_files_enabled(self, enabled: bool) -> None:
         self._open_menu("fileMenu")
         self._session.set_checked("rememberRecentFilesAction", enabled)
+        self._session.wait_absent("rememberRecentFilesAction")
 
     def open_timeline(
         self,
@@ -82,6 +83,9 @@ class EditAtlasApplication:
 
     def clear_filters(self) -> None:
         self._session.activate("clearFiltersButton")
+        self._session.wait_text_contains(
+            "filterResultLabel", "Showing 4 of 4 events"
+        )
 
     def wait_event_count(self, visible: int, total: int = 4) -> str:
         return self._session.wait_text_contains(
@@ -103,6 +107,7 @@ class EditAtlasApplication:
 
     def update_template(self) -> None:
         self._session.activate("templatePrimaryButton")
+        self._session.wait_name_contains("templatePrimaryButton", "Save as")
 
     def select_template(self, name: str) -> None:
         self._session.select_option("templateSelector", name)
@@ -119,6 +124,7 @@ class EditAtlasApplication:
         self._template_action("deleteTemplateAction")
         self._session.activate("confirmDeleteTemplateButton")
         self._session.wait_absent("deleteTemplateDialog")
+        self._session.wait_selected_option("templateSelector", "No template")
 
     def set_export_columns(self, checked: set[str], order: list[str]) -> None:
         available = self._session.list_items("eventColumnsList")
@@ -135,6 +141,7 @@ class EditAtlasApplication:
                     available[position],
                     available[position - 1],
                 )
+                self._session.wait_list_items("eventColumnsList", available)
 
     def begin_spreadsheet_export(
         self,
@@ -188,6 +195,7 @@ class EditAtlasApplication:
         self._session.set_text("templateNameEditor", name)
         self._session.activate("acceptTemplateNameButton")
         self._session.wait_absent("templateNameDialog")
+        self._session.wait_selected_option("templateSelector", name)
 
     def _template_action(self, identifier: str) -> None:
         self._session.activate("templateActionsButton")
