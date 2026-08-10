@@ -1,8 +1,9 @@
 """Windows desktop automation through pywinauto and UI Automation.
 
-Interactions in this module use UIA control patterns exclusively. Pointer
-coordinates, image matching, and synthesized keyboard input are intentionally
-absent.
+Interactions in this module use UIA control patterns, except for Windows'
+native file chooser. Its blocking modal UIA provider requires semantic Win32
+control messages for discovery and operation. Pointer coordinates, image
+matching, and synthesized keyboard input are intentionally absent.
 """
 
 from __future__ import annotations
@@ -27,7 +28,7 @@ class ElementNotFoundError(LookupError):
 
 
 class ActionNotSupportedError(RuntimeError):
-    """Raised when an element exposes no suitable UIA control pattern."""
+    """Raised when an element exposes no suitable automation action."""
 
 
 class WindowsUiaAdapter:
@@ -46,6 +47,7 @@ class WindowsUiaAdapter:
         self._timeout = timeout
         self._application_class: Any = None
         self._desktop: Any = None
+        self._win32_desktop: Any = None
 
     def preflight(self) -> None:
         if os.name != "nt":
@@ -57,12 +59,15 @@ class WindowsUiaAdapter:
 
             desktop = Desktop(backend="uia")
             desktop.windows()
+            win32_desktop = Desktop(backend="win32")
+            win32_desktop.windows()
         except Exception as error:
             raise AccessibilityBackendError(
-                f"pywinauto/UIA backend could not be loaded: {error}"
+                f"pywinauto Windows backends could not be loaded: {error}"
             ) from error
         self._application_class = Application
         self._desktop = desktop
+        self._win32_desktop = win32_desktop
 
     def launch(
         self,
@@ -104,6 +109,7 @@ class WindowsUiaAdapter:
             session = WindowsApplicationSession(
                 application=application,
                 desktop=self._desktop,
+                win32_desktop=self._win32_desktop,
                 registry=self._registry,
                 process=process,
                 artifact_directory=self._artifact_directory,
@@ -126,6 +132,7 @@ class WindowsApplicationSession:
         *,
         application: Any,
         desktop: Any,
+        win32_desktop: Any,
         registry: ProcessRegistry,
         process: subprocess.Popen[str],
         artifact_directory: Path,
@@ -133,6 +140,7 @@ class WindowsApplicationSession:
     ) -> None:
         self._application = application
         self._desktop = desktop
+        self._win32_desktop = win32_desktop
         self._registry = registry
         self._process = process
         self._artifact_directory = artifact_directory
@@ -304,32 +312,32 @@ class WindowsApplicationSession:
 
     def open_file_dialog(self, dialog_identifier: str, path: Path) -> None:
         dialog = self._native_file_dialog(dialog_identifier)
-        editors = self._descendants_by_control_type(dialog, "Edit")
-        editor = self._preferred_identifier(editors, ("1148", "1001"))
+        editors = self._win32_descendants(dialog, "Edit")
+        editor = self._preferred_control_id(editors, (1148, 1001))
         if editor is None and editors:
             editor = editors[-1]
         if editor is None:
             raise ElementNotFoundError(
-                f"{dialog_identifier!r} contains no showing editable path field"
-            )
-        pattern = self._pattern(editor, "iface_value")
-        if pattern is None:
-            raise ActionNotSupportedError(
-                "native file chooser path field exposes no UIA Value pattern"
+                f"{dialog_identifier!r} contains no editable path field"
             )
         expected_path = os.fspath(path)
-        pattern.SetValue(expected_path)
+        try:
+            editor.set_edit_text(expected_path)
+        except Exception as error:
+            raise ActionNotSupportedError(
+                f"native file chooser path could not be set: {error}"
+            ) from error
         wait_until(
-            lambda: self._node_text(editor),
+            lambda: str(editor.window_text()),
             lambda text: text == expected_path,
             timeout=self._timeout,
             description=f"native file chooser path to become {expected_path!r}",
         )
 
-        buttons = self._descendants_by_control_type(dialog, "Button")
-        button = self._preferred_identifier(buttons, ("1",))
+        buttons = self._win32_descendants(dialog, "Button")
+        button = self._preferred_control_id(buttons, (1,))
         if button is None:
-            button = self._named_node_from_options(
+            button = self._named_win32_control(
                 buttons,
                 (
                     "Open",
@@ -344,7 +352,7 @@ class WindowsApplicationSession:
             )
         if button is None:
             raise ElementNotFoundError("native file chooser accept button is absent")
-        self._invoke(button)
+        self._execute_async(button.click, self._win32_text(button))
         wait_until(
             lambda: self._window_exists(dialog),
             lambda present: not present,
@@ -537,7 +545,11 @@ class WindowsApplicationSession:
     def _invoke_pattern(
         self, operation: Any, node: Any
     ) -> threading.Event:
-        node_name = self._node_name(node)
+        return self._execute_async(operation, self._node_name(node))
+
+    def _execute_async(
+        self, operation: Any, node_name: str
+    ) -> threading.Event:
         completed = threading.Event()
 
         def invoke() -> None:
@@ -550,7 +562,7 @@ class WindowsApplicationSession:
                 operation()
             except Exception as error:
                 failure = ActionNotSupportedError(
-                    f"UIA action failed for {node_name!r}: {error}"
+                    f"automation action failed for {node_name!r}: {error}"
                 )
                 with self._action_error_lock:
                     self._action_errors.append(failure)
@@ -653,43 +665,23 @@ class WindowsApplicationSession:
 
     def _native_file_dialog(self, identifier: str) -> Any:
         return wait_until(
-            lambda: self._find_native_file_dialog(identifier),
+            lambda: self._find_native_file_dialog(),
             lambda value: value is not None,
             timeout=self._timeout,
             description=f"native file chooser {identifier!r}",
         )
 
-    def _find_native_file_dialog(self, identifier: str) -> Any | None:
+    def _find_native_file_dialog(self) -> Any | None:
         self._ensure_running()
-        nested_candidates: list[Any] = []
-        for window in reversed(self._windows()):
-            for child in reversed(self._direct_children(window, "Window")):
-                try:
-                    automation_id = self._automation_id(child)
-                    if self._identifier_matches(automation_id, identifier):
-                        return child
-                    if self._window_class(child) == "#32770":
-                        return child
-                    nested_candidates.append(child)
-                except Exception:
-                    continue
-
-            try:
-                if not window.is_visible():
-                    continue
-                if self._control_type(window) not in ("Window", "Pane"):
-                    continue
-                automation_id = self._automation_id(window)
-                if self._identifier_matches(automation_id, "mainWindow"):
-                    continue
-                if self._identifier_matches(automation_id, identifier):
-                    return window
-                if self._window_class(window) == "#32770":
-                    return window
-            except Exception:
-                continue
-
-        return nested_candidates[0] if nested_candidates else None
+        try:
+            dialogs = self._win32_desktop.windows(
+                process=self._process.pid,
+                class_name="#32770",
+                visible_only=False,
+            )
+        except Exception:
+            return None
+        return dialogs[-1] if dialogs else None
 
     def _find_identifier(
         self, identifier: str, *, showing: bool = True
@@ -755,47 +747,25 @@ class WindowsApplicationSession:
         except Exception:
             return []
 
-    @classmethod
-    def _direct_children(cls, root: Any, control_type: str) -> list[Any]:
+    @staticmethod
+    def _win32_descendants(root: Any, class_name: str) -> list[Any]:
         try:
-            return [
-                node
-                for node in root.children()
-                if cls._control_type(node) == control_type
-            ]
+            return list(root.descendants(class_name=class_name))
         except Exception:
             return []
 
     @classmethod
-    def _descendants_by_control_type(
-        cls, root: Any, control_type: str
-    ) -> list[Any]:
-        try:
-            descendants = list(root.descendants(control_type=control_type))
-        except Exception:
-            descendants = []
-        if not descendants:
-            descendants = [
-                node
-                for node in cls._descendants(root)
-                if cls._control_type(node) == control_type
-            ]
-        return descendants
-
-    @classmethod
-    def _preferred_identifier(
-        cls, nodes: Sequence[Any], identifiers: Sequence[str]
+    def _preferred_control_id(
+        cls, nodes: Sequence[Any], control_ids: Sequence[int]
     ) -> Any | None:
-        for identifier in identifiers:
+        for control_id in control_ids:
             for node in nodes:
-                if cls._identifier_matches(
-                    cls._automation_id(node), identifier
-                ):
+                if cls._control_id(node) == control_id:
                     return node
         return None
 
     @classmethod
-    def _named_node_from_options(
+    def _named_win32_control(
         cls, nodes: Sequence[Any], names: Sequence[str]
     ) -> Any | None:
         expected = {cls._normalized_name(name) for name in names}
@@ -803,7 +773,7 @@ class WindowsApplicationSession:
             (
                 node
                 for node in nodes
-                if cls._normalized_name(cls._node_name(node)) in expected
+                if cls._normalized_name(cls._win32_text(node)) in expected
             ),
             None,
         )
@@ -828,8 +798,18 @@ class WindowsApplicationSession:
         return str(node.element_info.control_type or "")
 
     @staticmethod
-    def _window_class(node: Any) -> str:
-        return str(getattr(node.element_info, "class_name", "") or "")
+    def _control_id(node: Any) -> int:
+        try:
+            return int(node.element_info.control_id)
+        except Exception:
+            return -1
+
+    @staticmethod
+    def _win32_text(node: Any) -> str:
+        try:
+            return str(node.window_text() or "")
+        except Exception:
+            return ""
 
     @staticmethod
     def _node_name(node: Any) -> str:

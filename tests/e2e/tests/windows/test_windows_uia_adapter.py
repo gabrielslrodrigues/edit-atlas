@@ -9,11 +9,16 @@ from adapters.windows_uia import WindowsApplicationSession
 
 class ElementInfo:
     def __init__(
-        self, name: str, control_type: str, automation_id: str = ""
+        self,
+        name: str,
+        control_type: str,
+        automation_id: str = "",
+        control_id: int = -1,
     ) -> None:
         self.name = name
         self.control_type = control_type
         self.automation_id = automation_id
+        self.control_id = control_id
 
 
 class RunningProcess:
@@ -97,6 +102,7 @@ def application_session(artifact_directory: Path) -> WindowsApplicationSession:
     return WindowsApplicationSession(
         application=None,
         desktop=None,
+        win32_desktop=None,
         registry=None,
         process=RunningProcess(),
         artifact_directory=artifact_directory,
@@ -208,33 +214,82 @@ def test_identifier_lookup_accepts_qt_hierarchical_automation_id(
     assert session._find_identifier_in(root, "otherSelector") is None
 
 
-def test_native_file_dialog_lookup_does_not_traverse_main_window(
+def test_native_file_dialog_uses_win32_backend_without_uia_traversal(
     tmp_path: Path,
 ) -> None:
     session = application_session(tmp_path)
-
-    class MainWindow(Node):
-        def descendants(self) -> list[Node]:
-            raise AssertionError("main window must not be traversed")
-
-    class OffscreenDialog(Node):
-        @staticmethod
-        def is_visible() -> bool:
-            return False
-
-    dialog = OffscreenDialog("Open Timeline", "Window")
-    dialog.element_info.class_name = "#32770"
-    main_window = MainWindow("Edit Atlas", "Window", children=(dialog,))
+    dialog = object()
 
     class Desktop:
         @staticmethod
-        def windows(*, process: int) -> list[Node]:
+        def windows(
+            *, process: int, class_name: str, visible_only: bool
+        ) -> list[object]:
             assert process == RunningProcess.pid
-            return [main_window]
+            assert class_name == "#32770"
+            assert not visible_only
+            return [dialog]
 
-    session._desktop = Desktop()
+    session._win32_desktop = Desktop()
 
     assert session._native_file_dialog("timelineOpenFileDialog") is dialog
+
+
+def test_native_file_dialog_uses_semantic_win32_controls(
+    tmp_path: Path,
+) -> None:
+    session = application_session(tmp_path)
+    dialog_open = Event()
+    dialog_open.set()
+
+    class Editor:
+        element_info = ElementInfo("", "Edit", control_id=1148)
+        value = ""
+
+        def set_edit_text(self, value: str) -> None:
+            self.value = value
+
+        def window_text(self) -> str:
+            return self.value
+
+    class Button:
+        element_info = ElementInfo("Open", "Button", control_id=1)
+        clicked = Event()
+
+        def click(self) -> None:
+            self.clicked.set()
+            dialog_open.clear()
+
+        @staticmethod
+        def window_text() -> str:
+            return "Open"
+
+    editor = Editor()
+    button = Button()
+
+    class Dialog:
+        @staticmethod
+        def descendants(*, class_name: str) -> list[Any]:
+            return {"Edit": [editor], "Button": [button]}[class_name]
+
+        @staticmethod
+        def exists() -> bool:
+            return dialog_open.is_set()
+
+    dialog = Dialog()
+
+    class Desktop:
+        @staticmethod
+        def windows(**criteria: Any) -> list[Dialog]:
+            return [dialog]
+
+    session._win32_desktop = Desktop()
+    path = tmp_path / "timeline.edl"
+
+    session.open_file_dialog("timelineOpenFileDialog", path)
+
+    assert editor.value == str(path)
+    assert button.clicked.wait(1.0)
 
 
 def test_uia_actions_do_not_block_the_driver(tmp_path: Path) -> None:
