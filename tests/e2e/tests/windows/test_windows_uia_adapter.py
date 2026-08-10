@@ -217,7 +217,12 @@ def test_native_file_dialog_lookup_does_not_traverse_main_window(
         def descendants(self) -> list[Node]:
             raise AssertionError("main window must not be traversed")
 
-    dialog = Node("Open Timeline", "Window")
+    class OffscreenDialog(Node):
+        @staticmethod
+        def is_visible() -> bool:
+            return False
+
+    dialog = OffscreenDialog("Open Timeline", "Window")
     dialog.element_info.class_name = "#32770"
     main_window = MainWindow("Edit Atlas", "Window", children=(dialog,))
 

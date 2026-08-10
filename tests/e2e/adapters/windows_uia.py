@@ -304,7 +304,7 @@ class WindowsApplicationSession:
 
     def open_file_dialog(self, dialog_identifier: str, path: Path) -> None:
         dialog = self._native_file_dialog(dialog_identifier)
-        editors = self._showing_descendants(dialog, "Edit")
+        editors = self._descendants_by_control_type(dialog, "Edit")
         editor = self._preferred_identifier(editors, ("1148", "1001"))
         if editor is None and editors:
             editor = editors[-1]
@@ -326,7 +326,7 @@ class WindowsApplicationSession:
             description=f"native file chooser path to become {expected_path!r}",
         )
 
-        buttons = self._showing_descendants(dialog, "Button")
+        buttons = self._descendants_by_control_type(dialog, "Button")
         button = self._preferred_identifier(buttons, ("1",))
         if button is None:
             button = self._named_node_from_options(
@@ -665,8 +665,6 @@ class WindowsApplicationSession:
         for window in reversed(self._windows()):
             for child in reversed(self._direct_children(window, "Window")):
                 try:
-                    if not child.is_visible():
-                        continue
                     automation_id = self._automation_id(child)
                     if self._identifier_matches(automation_id, identifier):
                         return child
@@ -760,38 +758,29 @@ class WindowsApplicationSession:
     @classmethod
     def _direct_children(cls, root: Any, control_type: str) -> list[Any]:
         try:
-            return list(root.children(control_type=control_type))
-        except TypeError:
-            try:
-                return [
-                    node
-                    for node in root.children()
-                    if cls._control_type(node) == control_type
-                ]
-            except Exception:
-                return []
+            return [
+                node
+                for node in root.children()
+                if cls._control_type(node) == control_type
+            ]
         except Exception:
             return []
 
     @classmethod
-    def _showing_descendants(
+    def _descendants_by_control_type(
         cls, root: Any, control_type: str
     ) -> list[Any]:
         try:
             descendants = list(root.descendants(control_type=control_type))
-        except TypeError:
+        except Exception:
+            descendants = []
+        if not descendants:
             descendants = [
                 node
                 for node in cls._descendants(root)
                 if cls._control_type(node) == control_type
             ]
-        except Exception:
-            return []
-        return [
-            node
-            for node in descendants
-            if cls._is_visible(node)
-        ]
+        return descendants
 
     @classmethod
     def _preferred_identifier(
@@ -818,13 +807,6 @@ class WindowsApplicationSession:
             ),
             None,
         )
-
-    @staticmethod
-    def _is_visible(node: Any) -> bool:
-        try:
-            return bool(node.is_visible())
-        except Exception:
-            return False
 
     @staticmethod
     def _pattern(node: Any, name: str) -> Any | None:
