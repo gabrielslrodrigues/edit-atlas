@@ -13,6 +13,7 @@ import ctypes
 import os
 from pathlib import Path
 import subprocess
+import sys
 import threading
 from typing import Any, Mapping, Sequence
 
@@ -313,6 +314,7 @@ class WindowsApplicationSession:
 
     def open_file_dialog(self, dialog_identifier: str, path: Path) -> None:
         dialog = self._native_file_dialog(dialog_identifier)
+        self._probe_native_dialog_uia(dialog_identifier)
         editor = self._native_file_name_editor(dialog)
         if editor is None:
             raise ElementNotFoundError(
@@ -702,6 +704,54 @@ class WindowsApplicationSession:
         except Exception:
             return None
         return dialogs[-1] if dialogs else None
+
+    def _probe_native_dialog_uia(self, identifier: str) -> None:
+        output_path = (
+            self._artifact_directory
+            / "accessibility"
+            / f"{self._process.pid}-{identifier}-uia.txt"
+        )
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+        probe = (
+            Path(__file__).resolve().parent.parent
+            / "tools"
+            / "windows_uia_probe.py"
+        )
+        timeout = min(self._timeout, 10.0)
+        try:
+            result = subprocess.run(
+                [
+                    sys.executable,
+                    probe,
+                    "--process-id",
+                    str(self._process.pid),
+                    "--output",
+                    output_path,
+                ],
+                capture_output=True,
+                check=False,
+                text=True,
+                timeout=timeout,
+            )
+        except subprocess.TimeoutExpired:
+            output_path.write_text(
+                f"UIA probe timed out after {timeout:g} seconds\n",
+                encoding="utf-8",
+            )
+            return
+        if result.returncode != 0:
+            details = (
+                output_path.read_text(encoding="utf-8")
+                if output_path.is_file()
+                else ""
+            )
+            output_path.write_text(
+                "UIA probe failed\n"
+                f"stdout:\n{result.stdout}\n"
+                f"stderr:\n{result.stderr}\n"
+                f"details:\n{details}",
+                encoding="utf-8",
+            )
 
     def _native_file_name_editor(self, dialog: Any) -> Any | None:
         combo_boxes = self._win32_descendants(dialog, "ComboBox")
