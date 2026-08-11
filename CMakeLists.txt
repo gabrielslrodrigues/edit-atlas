@@ -30,6 +30,8 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
+edit_atlas_configure_apple_libcxx()
+
 option(
     EDIT_ATLAS_BUILD_DOCUMENTATION
     "Generate public C++ API documentation"
