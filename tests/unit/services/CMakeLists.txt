@@ -4,6 +4,7 @@ target_sources(
     edit_atlas_services_unit_tests
     PRIVATE
         timeline_filter_test.cpp
+        timeline_frame_extraction_service_test.cpp
         timeline_video_inspection_service_test.cpp
 )
 

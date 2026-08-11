@@ -14,6 +14,7 @@ extern "C" {
 #include <libswscale/swscale.h>
 }
 
+#include <algorithm>
 #include <array>
 #include <cerrno>
 #include <cstddef>
@@ -68,6 +69,11 @@ struct ScaleContextDeleter final {
     void operator()(SwsContext *context) const noexcept {
         sws_freeContext(context);
     }
+};
+
+struct FrameDimensions final {
+    int width;
+    int height;
 };
 
 using CodecContextPointer =
@@ -274,9 +280,39 @@ class FfmpegVideoDecoder final : public VideoDecoder {
         return {};
     }
 
+    [[nodiscard]] std::expected<void, VideoDecoderFailure>
+    SeekToFrame(std::int64_t frame_index) override {
+        const auto *stream =
+            format_context_->Get()->streams[selected_video_stream_];
+        if (frame_index < 0 || stream->avg_frame_rate.num <= 0 ||
+            stream->avg_frame_rate.den <= 0 || stream->time_base.num <= 0 ||
+            stream->time_base.den <= 0) {
+            return std::unexpected(MakeFailure(
+                path_, VideoDecoderFailureKind::kSeek, 0,
+                information_.streams[selected_video_stream_].codec_name,
+                "could not convert the requested frame index to a media "
+                "timestamp"));
+        }
+        const auto stream_start = stream->start_time == AV_NOPTS_VALUE
+                                      ? std::int64_t{0}
+                                      : stream->start_time;
+        const auto timestamp_offset = av_rescale_q(
+            frame_index, av_inv_q(stream->avg_frame_rate), stream->time_base);
+        if (timestamp_offset < 0 ||
+            stream_start >
+                std::numeric_limits<std::int64_t>::max() - timestamp_offset) {
+            return std::unexpected(MakeFailure(
+                path_, VideoDecoderFailureKind::kSeek, 0,
+                information_.streams[selected_video_stream_].codec_name,
+                "the requested frame index is outside the supported media "
+                "timestamp range"));
+        }
+        return Seek(stream_start + timestamp_offset);
+    }
+
     [[nodiscard]] std::expected<std::optional<DecodedVideoFrame>,
                                 VideoDecoderFailure>
-    ReadFrame(void) override {
+    ReadFrame(const VideoFrameOutputOptions &options) override {
         if (exhausted_) {
             return std::optional<DecodedVideoFrame>{};
         }
@@ -285,7 +321,7 @@ class FfmpegVideoDecoder final : public VideoDecoder {
             const auto receive_result =
                 avcodec_receive_frame(codec_context_.get(), frame_.get());
             if (receive_result == 0) {
-                auto converted = ConvertFrame();
+                auto converted = ConvertFrame(options);
                 av_frame_unref(frame_.get());
                 if (!converted.has_value()) {
                     return std::unexpected(std::move(converted.error()));
@@ -369,8 +405,8 @@ class FfmpegVideoDecoder final : public VideoDecoder {
         }
     }
 
-    [[nodiscard]] std::expected<DecodedVideoFrame, VideoDecoderFailure>
-    ConvertFrame(void) {
+    [[nodiscard]] std::expected<FrameDimensions, VideoDecoderFailure>
+    ResolveOutputDimensions(const VideoFrameOutputOptions &options) const {
         if (frame_->width <= 0 || frame_->height <= 0 ||
             frame_->width > std::numeric_limits<int>::max() / 3) {
             return std::unexpected(MakeFailure(
@@ -379,8 +415,56 @@ class FfmpegVideoDecoder final : public VideoDecoder {
                 "the decoded frame dimensions are invalid"));
         }
 
-        const auto row_stride = static_cast<std::size_t>(frame_->width) * 3U;
-        if (static_cast<std::size_t>(frame_->height) >
+        auto output_width = frame_->width;
+        auto output_height = frame_->height;
+        if (options.size_limit.has_value()) {
+            const auto &size_limit = *options.size_limit;
+            if (size_limit.maximum_width <= 0 ||
+                size_limit.maximum_height <= 0) {
+                return std::unexpected(MakeFailure(
+                    path_, VideoDecoderFailureKind::kConvertFrame, 0,
+                    information_.streams[selected_video_stream_].codec_name,
+                    "the requested frame output dimensions are invalid"));
+            }
+            if (output_width > size_limit.maximum_width ||
+                output_height > size_limit.maximum_height) {
+                const auto width_limited =
+                    static_cast<std::int64_t>(size_limit.maximum_width) *
+                        output_height <=
+                    static_cast<std::int64_t>(size_limit.maximum_height) *
+                        output_width;
+                if (width_limited) {
+                    output_height = std::max(
+                        1, static_cast<int>(
+                               static_cast<std::int64_t>(frame_->height) *
+                               size_limit.maximum_width / frame_->width));
+                    output_width = size_limit.maximum_width;
+                } else {
+                    output_width = std::max(
+                        1, static_cast<int>(
+                               static_cast<std::int64_t>(frame_->width) *
+                               size_limit.maximum_height / frame_->height));
+                    output_height = size_limit.maximum_height;
+                }
+            }
+        }
+
+        return FrameDimensions{
+            .width = output_width,
+            .height = output_height,
+        };
+    }
+
+    [[nodiscard]] std::expected<RgbImage, VideoDecoderFailure>
+    ConvertImage(const VideoFrameOutputOptions &options) {
+        auto dimensions = ResolveOutputDimensions(options);
+        if (!dimensions.has_value()) {
+            return std::unexpected(std::move(dimensions.error()));
+        }
+
+        const auto row_stride =
+            static_cast<std::size_t>(dimensions->width) * 3U;
+        if (static_cast<std::size_t>(dimensions->height) >
             std::numeric_limits<std::size_t>::max() / row_stride) {
             return std::unexpected(MakeFailure(
                 path_, VideoDecoderFailureKind::kConvertFrame, 0,
@@ -388,14 +472,14 @@ class FfmpegVideoDecoder final : public VideoDecoder {
                 "the decoded frame is too large to store"));
         }
         const auto pixel_count =
-            row_stride * static_cast<std::size_t>(frame_->height);
+            row_stride * static_cast<std::size_t>(dimensions->height);
         std::vector<std::byte> pixels(pixel_count);
 
         auto *scale_context = sws_getCachedContext(
             scale_context_.release(), frame_->width, frame_->height,
-            static_cast<AVPixelFormat>(frame_->format), frame_->width,
-            frame_->height, AV_PIX_FMT_RGB24, SWS_BILINEAR, nullptr, nullptr,
-            nullptr);
+            static_cast<AVPixelFormat>(frame_->format), dimensions->width,
+            dimensions->height, AV_PIX_FMT_RGB24, SWS_BILINEAR, nullptr,
+            nullptr, nullptr);
         scale_context_.reset(scale_context);
         if (scale_context == nullptr) {
             return std::unexpected(MakeFailure(
@@ -412,22 +496,65 @@ class FfmpegVideoDecoder final : public VideoDecoder {
         const auto converted_height = sws_scale(
             scale_context, frame_->data, frame_->linesize, 0, frame_->height,
             destination_planes.data(), destination_strides.data());
-        if (converted_height != frame_->height) {
+        if (converted_height != dimensions->height) {
             return std::unexpected(MakeFailure(
                 path_, VideoDecoderFailureKind::kConvertFrame, 0,
                 information_.streams[selected_video_stream_].codec_name,
                 "could not convert the complete frame to RGB24"));
         }
 
-        return DecodedVideoFrame{
-            .presentation_timestamp =
-                OptionalTimestamp(frame_->best_effort_timestamp),
-            .width = frame_->width,
-            .height = frame_->height,
+        return RgbImage{
+            .width = dimensions->width,
+            .height = dimensions->height,
             .row_stride = row_stride,
             .pixels = std::move(pixels),
+        };
+    }
+
+    [[nodiscard]] std::expected<DecodedVideoFrame, VideoDecoderFailure>
+    ConvertFrame(const VideoFrameOutputOptions &options) {
+        auto image = ConvertImage(options);
+        if (!image.has_value()) {
+            return std::unexpected(std::move(image.error()));
+        }
+        return DecodedVideoFrame{
+            .frame_index = FrameIndex(frame_->best_effort_timestamp),
+            .presentation_timestamp =
+                OptionalTimestamp(frame_->best_effort_timestamp),
+            .image = std::move(*image),
             .key_frame = (frame_->flags & AV_FRAME_FLAG_KEY) != 0,
         };
+    }
+
+    [[nodiscard]] std::optional<std::int64_t>
+    FrameIndex(std::int64_t timestamp) const noexcept {
+        const auto *stream =
+            format_context_->Get()->streams[selected_video_stream_];
+        if (timestamp == AV_NOPTS_VALUE || stream->avg_frame_rate.num <= 0 ||
+            stream->avg_frame_rate.den <= 0 || stream->time_base.num <= 0 ||
+            stream->time_base.den <= 0) {
+            return std::nullopt;
+        }
+        const auto stream_start = stream->start_time == AV_NOPTS_VALUE
+                                      ? std::int64_t{0}
+                                      : stream->start_time;
+        if ((stream_start > 0 &&
+             timestamp <
+                 std::numeric_limits<std::int64_t>::min() + stream_start) ||
+            (stream_start < 0 &&
+             timestamp >
+                 std::numeric_limits<std::int64_t>::max() + stream_start)) {
+            return std::nullopt;
+        }
+        const auto timestamp_offset = timestamp - stream_start;
+        if (timestamp_offset < 0) {
+            return std::nullopt;
+        }
+        const auto frame_index =
+            av_rescale_q(timestamp_offset, stream->time_base,
+                         av_inv_q(stream->avg_frame_rate));
+        return frame_index < 0 ? std::nullopt
+                               : std::optional<std::int64_t>{frame_index};
     }
 
     std::filesystem::path path_;

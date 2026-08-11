@@ -85,10 +85,11 @@ TEST_P(VideoDecoderContainerTest, OpensAndDecodesSupportedContainer) {
     ASSERT_TRUE(frame_result.has_value())
         << (frame_result.has_value() ? "" : frame_result.error().message);
     ASSERT_TRUE(frame_result->has_value());
-    EXPECT_EQ((*frame_result)->width, 720);
-    EXPECT_EQ((*frame_result)->height, 576);
-    EXPECT_EQ((*frame_result)->row_stride, 2'160U);
-    EXPECT_EQ((*frame_result)->pixels.size(), 1'244'160U);
+    EXPECT_EQ((*frame_result)->frame_index, 0);
+    EXPECT_EQ((*frame_result)->image.width, 720);
+    EXPECT_EQ((*frame_result)->image.height, 576);
+    EXPECT_EQ((*frame_result)->image.row_stride, 2'160U);
+    EXPECT_EQ((*frame_result)->image.pixels.size(), 1'244'160U);
 
     const auto seek_result = decoder.Seek(0);
     ASSERT_TRUE(seek_result.has_value())
@@ -97,6 +98,26 @@ TEST_P(VideoDecoderContainerTest, OpensAndDecodesSupportedContainer) {
     ASSERT_TRUE(repeated_frame.has_value())
         << (repeated_frame.has_value() ? "" : repeated_frame.error().message);
     EXPECT_TRUE(repeated_frame->has_value());
+
+    const auto frame_seek_result = decoder.SeekToFrame(2);
+    ASSERT_TRUE(frame_seek_result.has_value())
+        << (frame_seek_result.has_value() ? ""
+                                          : frame_seek_result.error().message);
+    const media::VideoFrameOutputOptions output_options{
+        .size_limit =
+            media::VideoFrameSizeLimit{
+                .maximum_width = 320,
+                .maximum_height = 180,
+            },
+    };
+    const auto last_frame = decoder.ReadFrame(output_options);
+    ASSERT_TRUE(last_frame.has_value())
+        << (last_frame.has_value() ? "" : last_frame.error().message);
+    ASSERT_TRUE(last_frame->has_value());
+    EXPECT_EQ((*last_frame)->frame_index, 2);
+    EXPECT_EQ((*last_frame)->image.width, 225);
+    EXPECT_EQ((*last_frame)->image.height, 180);
+    EXPECT_EQ((*last_frame)->image.row_stride, 675U);
 }
 
 INSTANTIATE_TEST_SUITE_P(

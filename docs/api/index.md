@@ -20,6 +20,8 @@ formats, media decoding, and privacy-limited diagnostic support.
   filter and export-column templates without depending on a frontend.
 - `edit_atlas::services::TimelineVideoInspectionService` validates rendered
   video timing against an imported record timeline.
+- `edit_atlas::services::TimelineFrameExtractionService` extracts exact,
+  deduplicated initial-frame images at caller-selected output dimensions.
 - `edit_atlas::storage::ReadLocalFile()` and
   `edit_atlas::storage::WriteLocalFileAtomically()` provide the shared local
   storage boundary.
