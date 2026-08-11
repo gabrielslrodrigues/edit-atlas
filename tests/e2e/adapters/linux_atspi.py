@@ -242,6 +242,7 @@ class LinuxApplicationSession:
             lambda: self.has_element(identifier),
             lambda present: not present,
             timeout=self._timeout,
+            consecutive=2,
             description=f"accessible identifier {identifier!r} to disappear",
         )
 
@@ -602,12 +603,29 @@ class LinuxApplicationSession:
             description=f"{identifier!r} selection to become {expected!r}",
         )
 
+    def wait_sensitive(self, identifier: str, expected: bool) -> bool:
+        node = self.element(identifier)
+        return wait_until(
+            lambda: self._sensitive_state(node),
+            lambda sensitive: sensitive == expected,
+            timeout=self._timeout,
+            description=f"{identifier!r} sensitivity to become {expected}",
+        )
+
     def wait_text_contains(self, identifier: str, expected: str) -> str:
         return wait_until(
             lambda: self.text(identifier),
             lambda value: expected in value,
             timeout=self._timeout,
             description=f"{identifier!r} text to contain {expected!r}",
+        )
+
+    def wait_text_nonempty(self, identifier: str) -> str:
+        return wait_until(
+            lambda: self.text(identifier),
+            lambda value: bool(value),
+            timeout=self._timeout,
+            description=f"{identifier!r} text to become nonempty",
         )
 
     def capture_artifacts(self, stem: str) -> None:
@@ -728,18 +746,28 @@ class LinuxApplicationSession:
         valid_roles = (
             None if roles is None else {role.casefold() for role in roles}
         )
-        for node in self._walk(root):
+        roots = (root,)
+        if root is self._application:
             try:
-                name = self._normalized_name(str(node.name))
-                role = str(node.role_name).casefold()
-                if (
-                    name in candidates
-                    and (valid_roles is None or role in valid_roles)
-                    and (not showing_only or node.showing)
-                ):
-                    return node
+                roots = tuple(reversed(tuple(root.children))) or (root,)
             except Exception:
-                continue
+                pass
+        for candidate_root in roots:
+            for node in self._walk(
+                candidate_root,
+                descendant_leaves=self._IDENTIFIER_SEARCH_LEAVES,
+            ):
+                try:
+                    name = self._normalized_name(str(node.name))
+                    role = str(node.role_name).casefold()
+                    if (
+                        name in candidates
+                        and (valid_roles is None or role in valid_roles)
+                        and (not showing_only or node.showing)
+                    ):
+                        return node
+                except Exception:
+                    continue
         return None
 
     def _find_role(self, root: Any, role: str) -> Any | None:
@@ -890,6 +918,13 @@ class LinuxApplicationSession:
     def _checked_state(self, node: Any) -> bool:
         self._ensure_running()
         return self._is_checked(node)
+
+    def _sensitive_state(self, node: Any) -> bool | None:
+        self._ensure_running()
+        try:
+            return bool(node.sensitive)
+        except Exception:
+            return None
 
     def _showing_state(self, node: Any) -> bool:
         self._ensure_running()

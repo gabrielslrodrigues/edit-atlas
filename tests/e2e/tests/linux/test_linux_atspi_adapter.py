@@ -68,10 +68,17 @@ class RunningProcess:
 
 class AccessibilityNode:
     def __init__(
-        self, identifier: str, children: tuple[object, ...] = ()
+        self,
+        identifier: str,
+        children: tuple[object, ...] = (),
+        *,
+        name: str = "",
+        role_name: str = "panel",
     ) -> None:
         self.accessible_id = identifier
         self.children = children
+        self.name = name
+        self.role_name = role_name
         self.showing = True
 
 
@@ -192,6 +199,21 @@ def test_identifier_lookup_skips_timeline_table_descendants(
     session._application = application
 
     assert session._find_identifier(application, "progressDialog") is dialog
+
+
+def test_named_lookup_prioritizes_dialogs_and_skips_timeline_rows(
+    tmp_path: Path,
+) -> None:
+    session = application_session(tmp_path)
+    dialog_action = AccessibilityNode(
+        "cancelButton", name="Cancel", role_name="push button"
+    )
+    main_window = AccessibilityNode("mainWindow", (TimelineTableNode(),))
+    dialog = AccessibilityNode("progressDialog", (dialog_action,))
+    application = AccessibilityNode("application", (main_window, dialog))
+    session._application = application
+
+    assert session._find_named(application, ("Cancel",)) is dialog_action
 
 
 @pytest.mark.parametrize("action", ["Press", "ShowMenu"])

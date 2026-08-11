@@ -179,6 +179,7 @@ class WindowsApplicationSession:
             lambda: self.has_element(identifier),
             lambda present: not present,
             timeout=self._timeout,
+            consecutive=2,
             description=f"accessible identifier {identifier!r} to disappear",
         )
 
@@ -422,12 +423,29 @@ class WindowsApplicationSession:
             description=f"{identifier!r} selection to become {expected!r}",
         )
 
+    def wait_sensitive(self, identifier: str, expected: bool) -> bool:
+        node = self.element(identifier)
+        return wait_until(
+            lambda: self._sensitive_state(node),
+            lambda sensitive: sensitive == expected,
+            timeout=self._timeout,
+            description=f"{identifier!r} sensitivity to become {expected}",
+        )
+
     def wait_text_contains(self, identifier: str, expected: str) -> str:
         return wait_until(
             lambda: self.text(identifier),
             lambda value: expected in value,
             timeout=self._timeout,
             description=f"{identifier!r} text to contain {expected!r}",
+        )
+
+    def wait_text_nonempty(self, identifier: str) -> str:
+        return wait_until(
+            lambda: self.text(identifier),
+            lambda value: bool(value),
+            timeout=self._timeout,
+            description=f"{identifier!r} text to become nonempty",
         )
 
     def capture_artifacts(self, stem: str) -> None:
@@ -701,6 +719,13 @@ class WindowsApplicationSession:
         self._ensure_running()
         return self._toggle_state(toggle)
 
+    def _sensitive_state(self, node: Any) -> bool | None:
+        self._ensure_running()
+        try:
+            return bool(node.is_enabled())
+        except Exception:
+            return None
+
     @staticmethod
     def _toggle_state(toggle: Any) -> bool:
         return int(toggle.CurrentToggleState) == 1
@@ -755,25 +780,33 @@ class WindowsApplicationSession:
         self, identifier: str, *, showing: bool = True
     ) -> Any | None:
         self._ensure_running()
-        for window in reversed(self._windows()):
-            node = self._find_identifier_in(window, identifier, showing=showing)
+        windows = tuple(reversed(self._windows()))
+        for window in windows:
+            if self._identifier_node_matches(window, identifier, showing):
+                return window
+        for window in windows:
+            node = self._find_identifier_in(
+                window, identifier, showing=showing, include_root=False
+            )
             if node is not None:
                 return node
         return None
 
     def _find_identifier_in(
-        self, root: Any, identifier: str, *, showing: bool = False
+        self,
+        root: Any,
+        identifier: str,
+        *,
+        showing: bool = False,
+        include_root: bool = True,
     ) -> Any | None:
-        for node in (root, *self._descendants(root)):
-            try:
-                if self._identifier_matches(
-                    self._automation_id(node), identifier
-                ) and (
-                    not showing or node.is_visible()
-                ):
-                    return node
-            except Exception:
-                continue
+        if include_root and self._identifier_node_matches(
+            root, identifier, showing
+        ):
+            return root
+        for node in self._descendants(root):
+            if self._identifier_node_matches(node, identifier, showing):
+                return node
         return None
 
     def _find_named(
@@ -787,19 +820,12 @@ class WindowsApplicationSession:
         valid_types = None if control_types is None else set(control_types)
         roots = (root,) if root is not None else tuple(reversed(self._windows()))
         for candidate_root in roots:
-            for node in (candidate_root, *self._descendants(candidate_root)):
-                try:
-                    if (
-                        self._normalized_name(self._node_name(node)) in candidates
-                        and (
-                            valid_types is None
-                            or self._control_type(node) in valid_types
-                        )
-                        and node.is_visible()
-                    ):
-                        return node
-                except Exception:
-                    continue
+            if self._named_node_matches(candidate_root, candidates, valid_types):
+                return candidate_root
+        for candidate_root in roots:
+            for node in self._descendants(candidate_root):
+                if self._named_node_matches(node, candidates, valid_types):
+                    return node
         return None
 
     def _windows(self) -> list[Any]:
@@ -829,6 +855,34 @@ class WindowsApplicationSession:
     @staticmethod
     def _identifier_matches(actual: str, expected: str) -> bool:
         return actual == expected or actual.endswith(f".{expected}")
+
+    def _identifier_node_matches(
+        self, node: Any, identifier: str, showing: bool
+    ) -> bool:
+        try:
+            return self._identifier_matches(
+                self._automation_id(node), identifier
+            ) and (not showing or node.is_visible())
+        except Exception:
+            return False
+
+    def _named_node_matches(
+        self,
+        node: Any,
+        candidates: set[str],
+        valid_types: set[str] | None,
+    ) -> bool:
+        try:
+            return (
+                self._normalized_name(self._node_name(node)) in candidates
+                and (
+                    valid_types is None
+                    or self._control_type(node) in valid_types
+                )
+                and node.is_visible()
+            )
+        except Exception:
+            return False
 
     @staticmethod
     def _control_type(node: Any) -> str:

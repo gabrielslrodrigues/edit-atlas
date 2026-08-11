@@ -57,7 +57,7 @@ class EditAtlasApplication:
             self._session.element("timelineTitleLabel")
 
     def wait_import_failure(self) -> str:
-        return self._session.text("failureDescriptionLabel")
+        return self._session.wait_text_nonempty("failureDescriptionLabel")
 
     def table_text(self) -> list[str]:
         return self._session.text_content("eventTable")
