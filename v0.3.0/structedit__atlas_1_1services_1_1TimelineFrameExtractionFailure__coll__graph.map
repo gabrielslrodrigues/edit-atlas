@@ -1,0 +1,11 @@
+<map id="edit_atlas::services::TimelineFrameExtractionFailure" name="edit_atlas::services::TimelineFrameExtractionFailure">
+<area shape="rect" id="Node000001" title="Structured failure returned without partial frame output." alt="" coords="5,388,243,428"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="39,285,209,325"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="127,339,127,388,121,388,121,339"/>
+<area shape="rect" id="Node000003" href="$structedit__atlas_1_1core_1_1Diagnostic.html" title="A machine&#45;identifiable diagnostic with a human&#45;readable explanation." alt="" coords="25,197,223,223"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="127,236,127,285,121,285,121,236"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="81,95,167,120"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="127,134,127,197,121,197,121,134"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="55,5,193,45"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="127,59,127,94,121,94,121,59"/>
+</map>

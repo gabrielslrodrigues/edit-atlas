@@ -1,0 +1,13 @@
+<map id="edit_atlas::services::TimelineRenderedVideoExportReceipt" name="edit_atlas::services::TimelineRenderedVideoExportReceipt">
+<area shape="rect" id="Node000001" title="Successful document export and optional rendered&#45;video details." alt="" coords="14,491,242,545"/>
+<area shape="rect" id="Node000002" href="$structedit__atlas_1_1services_1_1TimelineDocumentExportReceipt.html" title="Contains the destination and diagnostics from a successful export." alt="" coords="5,388,251,428"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="131,441,131,491,125,491,125,441"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="43,285,213,325"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="131,339,131,388,125,388,125,339"/>
+<area shape="rect" id="Node000004" href="$structedit__atlas_1_1core_1_1Diagnostic.html" title="A machine&#45;identifiable diagnostic with a human&#45;readable explanation." alt="" coords="29,197,227,223"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="131,236,131,285,125,285,125,236"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="85,95,171,120"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="131,134,131,197,125,197,125,134"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="59,5,197,45"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="131,59,131,94,125,94,125,59"/>
+</map>

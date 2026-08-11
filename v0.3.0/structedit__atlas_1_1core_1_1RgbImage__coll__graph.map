@@ -1,0 +1,5 @@
+<map id="edit_atlas::core::RgbImage" name="edit_atlas::core::RgbImage">
+<area shape="rect" id="Node000001" title="An owned top&#45;to&#45;bottom packed RGB24 image." alt="" coords="5,93,201,119"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="14,5,193,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="106,45,106,93,101,93,101,45"/>
+</map>
