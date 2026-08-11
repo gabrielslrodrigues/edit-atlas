@@ -1,0 +1,5 @@
+<map id="edit_atlas::services::TimelineFrameExtractionOptions" name="edit_atlas::services::TimelineFrameExtractionOptions">
+<area shape="rect" id="Node000001" title="Caller&#45;selected output settings applied while frames are decoded." alt="" coords="5,108,249,148"/>
+<area shape="rect" id="Node000002" href="$structedit__atlas_1_1media_1_1VideoFrameOutputOptions.html" title="Options controlling decoded frame output without changing its timing." alt="" coords="30,5,225,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="130,59,130,108,125,108,125,59"/>
+</map>

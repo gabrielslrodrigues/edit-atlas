@@ -1,5 +1,6 @@
 var searchData=
 [
-  ['diagnostic_0',['Diagnostic',['../structedit__atlas_1_1core_1_1Diagnostic.html',1,'edit_atlas::core']]],
-  ['diagnosticenvironment_1',['DiagnosticEnvironment',['../structedit__atlas_1_1support_1_1DiagnosticEnvironment.html',1,'edit_atlas::support']]]
+  ['decodedvideoframe_0',['DecodedVideoFrame',['../structedit__atlas_1_1media_1_1DecodedVideoFrame.html',1,'edit_atlas::media']]],
+  ['diagnostic_1',['Diagnostic',['../structedit__atlas_1_1core_1_1Diagnostic.html',1,'edit_atlas::core']]],
+  ['diagnosticenvironment_2',['DiagnosticEnvironment',['../structedit__atlas_1_1support_1_1DiagnosticEnvironment.html',1,'edit_atlas::support']]]
 ];

@@ -92,10 +92,12 @@ $(document).ready(function(){initNavTree('namespaceedit__atlas_1_1services.html'
 
 <div class="header">
   <div class="summary">
+<a href="#namespaces">Namespaces</a> &#124;
 <a href="#nested-classes">Classes</a> &#124;
 <a href="#typedef-members">Typedefs</a> &#124;
 <a href="#enum-members">Enumerations</a> &#124;
-<a href="#func-members">Functions</a>  </div>
+<a href="#func-members">Functions</a> &#124;
+<a href="#var-members">Variables</a>  </div>
   <div class="headertitle"><div class="title">edit_atlas::services Namespace Reference</div></div>
 </div><!--header-->
 <div class="contents">
@@ -103,6 +105,12 @@ $(document).ready(function(){initNavTree('namespaceedit__atlas_1_1services.html'
 <p>UI-independent local-document application workflows.  
 <a href="namespaceedit__atlas_1_1services.html#details">More...</a></p>
 <table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="namespaces" name="namespaces"></a>
+Namespaces</h2></td></tr>
+<tr class="memitem:namespaceedit__atlas_1_1services_1_1timeline__video__diagnostic__code" id="r_namespaceedit__atlas_1_1services_1_1timeline__video__diagnostic__code"><td class="memItemLeft" align="right" valign="top">namespace &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceedit__atlas_1_1services_1_1timeline__video__diagnostic__code.html">timeline_video_diagnostic_code</a></td></tr>
+<tr class="memdesc:namespaceedit__atlas_1_1services_1_1timeline__video__diagnostic__code"><td class="mdescLeft">&#160;</td><td class="mdescRight">Stable diagnostic identifiers produced by timeline video inspection. <br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="nested-classes" name="nested-classes"></a>
 Classes</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structedit__atlas_1_1services_1_1TimelineDocumentExportFailure.html">TimelineDocumentExportFailure</a></td></tr>
@@ -135,11 +143,41 @@ Classes</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structedit__atlas_1_1services_1_1TimelineEditTypeFilterCondition.html">TimelineEditTypeFilterCondition</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Selects events with one exact edit type.  <a href="structedit__atlas_1_1services_1_1TimelineEditTypeFilterCondition.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structedit__atlas_1_1services_1_1TimelineEventFrame.html">TimelineEventFrame</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Associates one timeline event with its extracted initial frame.  <a href="structedit__atlas_1_1services_1_1TimelineEventFrame.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structedit__atlas_1_1services_1_1TimelineFilterError.html">TimelineFilterError</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Describes a filter condition that could not be prepared.  <a href="structedit__atlas_1_1services_1_1TimelineFilterError.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structedit__atlas_1_1services_1_1TimelineFilterQuery.html">TimelineFilterQuery</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">A reusable, presentation-independent timeline event query.  <a href="structedit__atlas_1_1services_1_1TimelineFilterQuery.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structedit__atlas_1_1services_1_1TimelineFrameExtractionFailure.html">TimelineFrameExtractionFailure</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Structured failure returned without partial frame output.  <a href="structedit__atlas_1_1services_1_1TimelineFrameExtractionFailure.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structedit__atlas_1_1services_1_1TimelineFrameExtractionOptions.html">TimelineFrameExtractionOptions</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Caller-selected output settings applied while frames are decoded.  <a href="structedit__atlas_1_1services_1_1TimelineFrameExtractionOptions.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structedit__atlas_1_1services_1_1TimelineFrameExtractionProgress.html">TimelineFrameExtractionProgress</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reports completed work after each unique frame is extracted.  <a href="structedit__atlas_1_1services_1_1TimelineFrameExtractionProgress.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structedit__atlas_1_1services_1_1TimelineFrameExtractionReceipt.html">TimelineFrameExtractionReceipt</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Complete all-or-nothing initial-frame extraction output.  <a href="structedit__atlas_1_1services_1_1TimelineFrameExtractionReceipt.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classedit__atlas_1_1services_1_1TimelineFrameExtractionService.html">TimelineFrameExtractionService</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Extracts initial event frames from validated rendered videos.  <a href="classedit__atlas_1_1services_1_1TimelineFrameExtractionService.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structedit__atlas_1_1services_1_1TimelineRenderedVideoExportFailure.html">TimelineRenderedVideoExportFailure</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Failure from rendered-video preparation or document export.  <a href="structedit__atlas_1_1services_1_1TimelineRenderedVideoExportFailure.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structedit__atlas_1_1services_1_1TimelineRenderedVideoExportReceipt.html">TimelineRenderedVideoExportReceipt</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Successful document export and optional rendered-video details.  <a href="structedit__atlas_1_1services_1_1TimelineRenderedVideoExportReceipt.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structedit__atlas_1_1services_1_1TimelineRenderedVideoExportRequest.html">TimelineRenderedVideoExportRequest</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Input for an export that may require frames from a rendered video.  <a href="structedit__atlas_1_1services_1_1TimelineRenderedVideoExportRequest.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classedit__atlas_1_1services_1_1TimelineRenderedVideoExportService.html">TimelineRenderedVideoExportService</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Coordinates optional rendered-video preparation with document export.  <a href="classedit__atlas_1_1services_1_1TimelineRenderedVideoExportService.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structedit__atlas_1_1services_1_1TimelineTemplate.html">TimelineTemplate</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">A named reusable combination of filtering and export choices.  <a href="structedit__atlas_1_1services_1_1TimelineTemplate.html#details">More...</a><br /></td></tr>
@@ -162,6 +200,21 @@ Classes</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structedit__atlas_1_1services_1_1TimelineTrackKindFilterCondition.html">TimelineTrackKindFilterCondition</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Selects events with one exact track kind.  <a href="structedit__atlas_1_1services_1_1TimelineTrackKindFilterCondition.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structedit__atlas_1_1services_1_1TimelineVideoInspectionFailure.html">TimelineVideoInspectionFailure</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">A rejected video path and its structured failure details.  <a href="structedit__atlas_1_1services_1_1TimelineVideoInspectionFailure.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structedit__atlas_1_1services_1_1TimelineVideoInspectionReceipt.html">TimelineVideoInspectionReceipt</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">A validated video whose decoder remains available for frame extraction.  <a href="structedit__atlas_1_1services_1_1TimelineVideoInspectionReceipt.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classedit__atlas_1_1services_1_1TimelineVideoInspectionService.html">TimelineVideoInspectionService</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Validates rendered video inputs against imported record timelines.  <a href="classedit__atlas_1_1services_1_1TimelineVideoInspectionService.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structedit__atlas_1_1services_1_1TimelineVideoMapping.html">TimelineVideoMapping</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Exact mapping between an accepted video and its record timeline.  <a href="structedit__atlas_1_1services_1_1TimelineVideoMapping.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structedit__atlas_1_1services_1_1TimelineVideoValidationFailure.html">TimelineVideoValidationFailure</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">A rejected media/timeline combination and its structured diagnostics.  <a href="structedit__atlas_1_1services_1_1TimelineVideoValidationFailure.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="typedef-members" name="typedef-members"></a>
 Typedefs</h2></td></tr>
@@ -180,6 +233,15 @@ Typedefs</h2></td></tr>
 <tr class="memitem:ab697ed6d82e68747bc181eed79e8dfd0" id="r_ab697ed6d82e68747bc181eed79e8dfd0"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceedit__atlas_1_1services.html#ab697ed6d82e68747bc181eed79e8dfd0">TimelineFilterResult</a> = std::expected&lt; <a class="el" href="namespaceedit__atlas_1_1services.html#aa1ea8b9848e624b54ce625d826a79ad2">TimelineEventSelection</a>, <a class="el" href="structedit__atlas_1_1services_1_1TimelineFilterError.html">TimelineFilterError</a> &gt;</td></tr>
 <tr class="memdesc:ab697ed6d82e68747bc181eed79e8dfd0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Either an ordered event selection or a filter validation error.  <br /></td></tr>
 <tr class="separator:ab697ed6d82e68747bc181eed79e8dfd0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a92d9e26c06d8fb544575d4633c4e4915" id="r_a92d9e26c06d8fb544575d4633c4e4915"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceedit__atlas_1_1services.html#a92d9e26c06d8fb544575d4633c4e4915">TimelineFrameExtractionProgressCallback</a> = std::function&lt; void(const <a class="el" href="structedit__atlas_1_1services_1_1TimelineFrameExtractionProgress.html">TimelineFrameExtractionProgress</a> &amp;)&gt;</td></tr>
+<tr class="memdesc:a92d9e26c06d8fb544575d4633c4e4915"><td class="mdescLeft">&#160;</td><td class="mdescRight">Receives synchronous extraction progress notifications.  <br /></td></tr>
+<tr class="separator:a92d9e26c06d8fb544575d4633c4e4915"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0794e68aa066fdf0683927c146df523d" id="r_a0794e68aa066fdf0683927c146df523d"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceedit__atlas_1_1services.html#a0794e68aa066fdf0683927c146df523d">TimelineFrameExtractionResult</a> = std::expected&lt; <a class="el" href="structedit__atlas_1_1services_1_1TimelineFrameExtractionReceipt.html">TimelineFrameExtractionReceipt</a>, <a class="el" href="structedit__atlas_1_1services_1_1TimelineFrameExtractionFailure.html">TimelineFrameExtractionFailure</a> &gt;</td></tr>
+<tr class="memdesc:a0794e68aa066fdf0683927c146df523d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Result of extracting every event's initial rendered-video frame.  <br /></td></tr>
+<tr class="separator:a0794e68aa066fdf0683927c146df523d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1e0f7e3c656537061aad7acb4b89a174" id="r_a1e0f7e3c656537061aad7acb4b89a174"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceedit__atlas_1_1services.html#a1e0f7e3c656537061aad7acb4b89a174">TimelineRenderedVideoExportResult</a> = std::expected&lt; <a class="el" href="structedit__atlas_1_1services_1_1TimelineRenderedVideoExportReceipt.html">TimelineRenderedVideoExportReceipt</a>, <a class="el" href="structedit__atlas_1_1services_1_1TimelineRenderedVideoExportFailure.html">TimelineRenderedVideoExportFailure</a> &gt;</td></tr>
+<tr class="memdesc:a1e0f7e3c656537061aad7acb4b89a174"><td class="mdescLeft">&#160;</td><td class="mdescRight">Either a committed export or a rendered-video-aware failure.  <br /></td></tr>
+<tr class="separator:a1e0f7e3c656537061aad7acb4b89a174"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0c0aabf992515a713b9e0441efab6b0b" id="r_a0c0aabf992515a713b9e0441efab6b0b"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceedit__atlas_1_1services.html#a0c0aabf992515a713b9e0441efab6b0b">TimelineTemplateLoadResult</a> = std::expected&lt; std::vector&lt; <a class="el" href="structedit__atlas_1_1services_1_1TimelineTemplateLoadDiagnostic.html">TimelineTemplateLoadDiagnostic</a> &gt;, <a class="el" href="structedit__atlas_1_1services_1_1TimelineTemplateFailure.html">TimelineTemplateFailure</a> &gt;</td></tr>
 <tr class="memdesc:a0c0aabf992515a713b9e0441efab6b0b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Successful catalog loading and recoverable per-file diagnostics.  <br /></td></tr>
 <tr class="separator:a0c0aabf992515a713b9e0441efab6b0b"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -189,6 +251,12 @@ Typedefs</h2></td></tr>
 <tr class="memitem:aa82822dd048e8c57c6d527eaf177b9d4" id="r_aa82822dd048e8c57c6d527eaf177b9d4"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceedit__atlas_1_1services.html#aa82822dd048e8c57c6d527eaf177b9d4">TimelineTemplateMutationResult</a> = std::expected&lt; void, <a class="el" href="structedit__atlas_1_1services_1_1TimelineTemplateFailure.html">TimelineTemplateFailure</a> &gt;</td></tr>
 <tr class="memdesc:aa82822dd048e8c57c6d527eaf177b9d4"><td class="mdescLeft">&#160;</td><td class="mdescRight">A successful template mutation or a structured failure.  <br /></td></tr>
 <tr class="separator:aa82822dd048e8c57c6d527eaf177b9d4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1a257c084739c24b265639386ce01f15" id="r_a1a257c084739c24b265639386ce01f15"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceedit__atlas_1_1services.html#a1a257c084739c24b265639386ce01f15">TimelineVideoValidationResult</a> = std::expected&lt; <a class="el" href="structedit__atlas_1_1services_1_1TimelineVideoMapping.html">TimelineVideoMapping</a>, <a class="el" href="structedit__atlas_1_1services_1_1TimelineVideoValidationFailure.html">TimelineVideoValidationFailure</a> &gt;</td></tr>
+<tr class="memdesc:a1a257c084739c24b265639386ce01f15"><td class="mdescLeft">&#160;</td><td class="mdescRight">Result of validating already-inspected media information.  <br /></td></tr>
+<tr class="separator:a1a257c084739c24b265639386ce01f15"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4b6976b54aa69f7b22fb2534932f8dff" id="r_a4b6976b54aa69f7b22fb2534932f8dff"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceedit__atlas_1_1services.html#a4b6976b54aa69f7b22fb2534932f8dff">TimelineVideoInspectionResult</a> = std::expected&lt; <a class="el" href="structedit__atlas_1_1services_1_1TimelineVideoInspectionReceipt.html">TimelineVideoInspectionReceipt</a>, <a class="el" href="structedit__atlas_1_1services_1_1TimelineVideoInspectionFailure.html">TimelineVideoInspectionFailure</a> &gt;</td></tr>
+<tr class="memdesc:a4b6976b54aa69f7b22fb2534932f8dff"><td class="mdescLeft">&#160;</td><td class="mdescRight">Result of opening and validating a rendered timeline video.  <br /></td></tr>
+<tr class="separator:a4b6976b54aa69f7b22fb2534932f8dff"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="enum-members" name="enum-members"></a>
 Enumerations</h2></td></tr>
@@ -232,6 +300,13 @@ Enumerations</h2></td></tr>
  }</td></tr>
 <tr class="memdesc:a86889d992a4a1acffa24c2a0b204bdcb"><td class="mdescLeft">&#160;</td><td class="mdescRight">Selects how multiple non-empty filter conditions are combined.  <a href="namespaceedit__atlas_1_1services.html#a86889d992a4a1acffa24c2a0b204bdcb">More...</a><br /></td></tr>
 <tr class="separator:a86889d992a4a1acffa24c2a0b204bdcb"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:acf20a33e742b5b24008888c16194f3bf" id="r_acf20a33e742b5b24008888c16194f3bf"><td class="memItemLeft" align="right" valign="top">enum class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceedit__atlas_1_1services.html#acf20a33e742b5b24008888c16194f3bf">TimelineRenderedVideoExportFailureKind</a> { <a class="el" href="namespaceedit__atlas_1_1services.html#acf20a33e742b5b24008888c16194f3bfa016722b2273cd3b38ee39b72b4bbe2bd">kVideoRequired</a>
+, <a class="el" href="namespaceedit__atlas_1_1services.html#acf20a33e742b5b24008888c16194f3bfa2bd3afe90acb50923009b723ec025ba9">kVideoInspectionFailed</a>
+, <a class="el" href="namespaceedit__atlas_1_1services.html#acf20a33e742b5b24008888c16194f3bfa132fababb79ab523fefd76dd171ea1ac">kFrameExtractionFailed</a>
+, <a class="el" href="namespaceedit__atlas_1_1services.html#acf20a33e742b5b24008888c16194f3bfa4c9987df203aa4427619aa32d522532a">kDocumentExportFailed</a>
+ }</td></tr>
+<tr class="memdesc:acf20a33e742b5b24008888c16194f3bf"><td class="mdescLeft">&#160;</td><td class="mdescRight">Identifies the stage at which a rendered-video export failed.  <a href="namespaceedit__atlas_1_1services.html#acf20a33e742b5b24008888c16194f3bf">More...</a><br /></td></tr>
+<tr class="separator:acf20a33e742b5b24008888c16194f3bf"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aaf8351b06f879f09023aca8b83fdbde4" id="r_aaf8351b06f879f09023aca8b83fdbde4"><td class="memItemLeft" align="right" valign="top">enum class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceedit__atlas_1_1services.html#aaf8351b06f879f09023aca8b83fdbde4">TimelineTemplateFailureKind</a> { <br />
 &#160;&#160;<a class="el" href="namespaceedit__atlas_1_1services.html#aaf8351b06f879f09023aca8b83fdbde4a66f6c8c8f899853a80418298208a12fa">kNotLoaded</a>
 , <a class="el" href="namespaceedit__atlas_1_1services.html#aaf8351b06f879f09023aca8b83fdbde4ab096e4f92f6c4184d188166e8f156fbb">kNotFound</a>
@@ -259,6 +334,15 @@ Functions</h2></td></tr>
 std::string&#160;</td><td class="memItemRight" valign="bottom"><b>GenerateTimelineTemplateIdentifier</b> (void)</td></tr>
 <tr class="memdesc:a6ddb5a97676c8b632bf61d6c220f65f3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Generates a random lowercase identifier suitable for a new template. <br /></td></tr>
 <tr class="separator:a6ddb5a97676c8b632bf61d6c220f65f3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="var-members" name="var-members"></a>
+Variables</h2></td></tr>
+<tr class="memitem:ad486cce46fb280caee6a111b189906b2" id="r_ad486cce46fb280caee6a111b189906b2"><td class="memItemLeft" align="right" valign="top">constexpr std::int64_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceedit__atlas_1_1services.html#ad486cce46fb280caee6a111b189906b2">kVideoDurationToleranceFrames</a> = 1</td></tr>
+<tr class="memdesc:ad486cce46fb280caee6a111b189906b2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Maximum accepted difference between the video and record-timeline duration.  <br /></td></tr>
+<tr class="separator:ad486cce46fb280caee6a111b189906b2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab5a007e8edfcf88686e010bbc19e2f17" id="r_ab5a007e8edfcf88686e010bbc19e2f17"><td class="memItemLeft" align="right" valign="top">constexpr std::string_view&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceedit__atlas_1_1services.html#ab5a007e8edfcf88686e010bbc19e2f17">kRenderedVideoInputContract</a></td></tr>
+<tr class="memdesc:ab5a007e8edfcf88686e010bbc19e2f17"><td class="mdescLeft">&#160;</td><td class="mdescRight">The rendered-video requirements shared by all user-facing frontends.  <br /></td></tr>
+<tr class="separator:ab5a007e8edfcf88686e010bbc19e2f17"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>UI-independent local-document application workflows. </p>
@@ -277,7 +361,7 @@ std::string&#160;</td><td class="memItemRight" valign="bottom"><b>GenerateTimeli
 
 <p>Either a committed export receipt or a presentation-neutral failure. </p>
 
-<p class="definition">Definition at line <a class="el" href="timeline__document__export__service_8hpp_source.html#l00072">72</a> of file <a class="el" href="timeline__document__export__service_8hpp_source.html">timeline_document_export_service.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="timeline__document__export__service_8hpp_source.html#l00075">75</a> of file <a class="el" href="timeline__document__export__service_8hpp_source.html">timeline_document_export_service.hpp</a>.</p>
 
 </div>
 </div>
@@ -353,6 +437,60 @@ std::string&#160;</td><td class="memItemRight" valign="bottom"><b>GenerateTimeli
 
 </div>
 </div>
+<a id="a92d9e26c06d8fb544575d4633c4e4915" name="a92d9e26c06d8fb544575d4633c4e4915"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a92d9e26c06d8fb544575d4633c4e4915">&#9670;&#160;</a></span>TimelineFrameExtractionProgressCallback</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">using <a class="el" href="namespaceedit__atlas_1_1services.html#a92d9e26c06d8fb544575d4633c4e4915">edit_atlas::services::TimelineFrameExtractionProgressCallback</a> = typedef std::function&lt;void(const <a class="el" href="structedit__atlas_1_1services_1_1TimelineFrameExtractionProgress.html">TimelineFrameExtractionProgress</a> &amp;)&gt;</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Receives synchronous extraction progress notifications. </p>
+
+<p class="definition">Definition at line <a class="el" href="timeline__frame__extraction__service_8hpp_source.html#l00084">84</a> of file <a class="el" href="timeline__frame__extraction__service_8hpp_source.html">timeline_frame_extraction_service.hpp</a>.</p>
+
+</div>
+</div>
+<a id="a0794e68aa066fdf0683927c146df523d" name="a0794e68aa066fdf0683927c146df523d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0794e68aa066fdf0683927c146df523d">&#9670;&#160;</a></span>TimelineFrameExtractionResult</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">using <a class="el" href="namespaceedit__atlas_1_1services.html#a0794e68aa066fdf0683927c146df523d">edit_atlas::services::TimelineFrameExtractionResult</a> = typedef std::expected&lt;<a class="el" href="structedit__atlas_1_1services_1_1TimelineFrameExtractionReceipt.html">TimelineFrameExtractionReceipt</a>, <a class="el" href="structedit__atlas_1_1services_1_1TimelineFrameExtractionFailure.html">TimelineFrameExtractionFailure</a>&gt;</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Result of extracting every event's initial rendered-video frame. </p>
+
+<p class="definition">Definition at line <a class="el" href="timeline__frame__extraction__service_8hpp_source.html#l00104">104</a> of file <a class="el" href="timeline__frame__extraction__service_8hpp_source.html">timeline_frame_extraction_service.hpp</a>.</p>
+
+</div>
+</div>
+<a id="a1e0f7e3c656537061aad7acb4b89a174" name="a1e0f7e3c656537061aad7acb4b89a174"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1e0f7e3c656537061aad7acb4b89a174">&#9670;&#160;</a></span>TimelineRenderedVideoExportResult</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">using <a class="el" href="namespaceedit__atlas_1_1services.html#a1e0f7e3c656537061aad7acb4b89a174">edit_atlas::services::TimelineRenderedVideoExportResult</a> = typedef std::expected&lt;<a class="el" href="structedit__atlas_1_1services_1_1TimelineRenderedVideoExportReceipt.html">TimelineRenderedVideoExportReceipt</a>, <a class="el" href="structedit__atlas_1_1services_1_1TimelineRenderedVideoExportFailure.html">TimelineRenderedVideoExportFailure</a>&gt;</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Either a committed export or a rendered-video-aware failure. </p>
+
+<p class="definition">Definition at line <a class="el" href="timeline__rendered__video__export__service_8hpp_source.html#l00079">79</a> of file <a class="el" href="timeline__rendered__video__export__service_8hpp_source.html">timeline_rendered_video_export_service.hpp</a>.</p>
+
+</div>
+</div>
 <a id="a0c0aabf992515a713b9e0441efab6b0b" name="a0c0aabf992515a713b9e0441efab6b0b"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a0c0aabf992515a713b9e0441efab6b0b">&#9670;&#160;</a></span>TimelineTemplateLoadResult</h2>
 
@@ -407,6 +545,42 @@ std::string&#160;</td><td class="memItemRight" valign="bottom"><b>GenerateTimeli
 
 </div>
 </div>
+<a id="a4b6976b54aa69f7b22fb2534932f8dff" name="a4b6976b54aa69f7b22fb2534932f8dff"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4b6976b54aa69f7b22fb2534932f8dff">&#9670;&#160;</a></span>TimelineVideoInspectionResult</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">using <a class="el" href="namespaceedit__atlas_1_1services.html#a4b6976b54aa69f7b22fb2534932f8dff">edit_atlas::services::TimelineVideoInspectionResult</a> = typedef std::expected&lt;<a class="el" href="structedit__atlas_1_1services_1_1TimelineVideoInspectionReceipt.html">TimelineVideoInspectionReceipt</a>, <a class="el" href="structedit__atlas_1_1services_1_1TimelineVideoInspectionFailure.html">TimelineVideoInspectionFailure</a>&gt;</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Result of opening and validating a rendered timeline video. </p>
+
+<p class="definition">Definition at line <a class="el" href="timeline__video__inspection__service_8hpp_source.html#l00112">112</a> of file <a class="el" href="timeline__video__inspection__service_8hpp_source.html">timeline_video_inspection_service.hpp</a>.</p>
+
+</div>
+</div>
+<a id="a1a257c084739c24b265639386ce01f15" name="a1a257c084739c24b265639386ce01f15"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1a257c084739c24b265639386ce01f15">&#9670;&#160;</a></span>TimelineVideoValidationResult</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">using <a class="el" href="namespaceedit__atlas_1_1services.html#a1a257c084739c24b265639386ce01f15">edit_atlas::services::TimelineVideoValidationResult</a> = typedef std::expected&lt;<a class="el" href="structedit__atlas_1_1services_1_1TimelineVideoMapping.html">TimelineVideoMapping</a>, <a class="el" href="structedit__atlas_1_1services_1_1TimelineVideoValidationFailure.html">TimelineVideoValidationFailure</a>&gt;</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Result of validating already-inspected media information. </p>
+
+<p class="definition">Definition at line <a class="el" href="timeline__video__inspection__service_8hpp_source.html#l00090">90</a> of file <a class="el" href="timeline__video__inspection__service_8hpp_source.html">timeline_video_inspection_service.hpp</a>.</p>
+
+</div>
+</div>
 <h2 class="groupheader">Enumeration Type Documentation</h2>
 <a id="a01381282229cdf248b428212bb48fd20" name="a01381282229cdf248b428212bb48fd20"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a01381282229cdf248b428212bb48fd20">&#9670;&#160;</a></span>TimelineDocumentExportFailureKind</h2>
@@ -442,7 +616,7 @@ std::string&#160;</td><td class="memItemRight" valign="bottom"><b>GenerateTimeli
 </td></tr>
 </table>
 
-<p class="definition">Definition at line <a class="el" href="timeline__document__export__service_8hpp_source.html#l00038">38</a> of file <a class="el" href="timeline__document__export__service_8hpp_source.html">timeline_document_export_service.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="timeline__document__export__service_8hpp_source.html#l00041">41</a> of file <a class="el" href="timeline__document__export__service_8hpp_source.html">timeline_document_export_service.hpp</a>.</p>
 
 </div>
 </div>
@@ -509,6 +683,42 @@ std::string&#160;</td><td class="memItemRight" valign="bottom"><b>GenerateTimeli
 </table>
 
 <p class="definition">Definition at line <a class="el" href="timeline__filter_8hpp_source.html#l00044">44</a> of file <a class="el" href="timeline__filter_8hpp_source.html">timeline_filter.hpp</a>.</p>
+
+</div>
+</div>
+<a id="acf20a33e742b5b24008888c16194f3bf" name="acf20a33e742b5b24008888c16194f3bf"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#acf20a33e742b5b24008888c16194f3bf">&#9670;&#160;</a></span>TimelineRenderedVideoExportFailureKind</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">enum class <a class="el" href="namespaceedit__atlas_1_1services.html#acf20a33e742b5b24008888c16194f3bf">edit_atlas::services::TimelineRenderedVideoExportFailureKind</a></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">strong</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Identifies the stage at which a rendered-video export failed. </p>
+<table class="fieldtable">
+<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="acf20a33e742b5b24008888c16194f3bfa016722b2273cd3b38ee39b72b4bbe2bd" name="acf20a33e742b5b24008888c16194f3bfa016722b2273cd3b38ee39b72b4bbe2bd"></a>kVideoRequired&#160;</td><td class="fielddoc"><p>The selected projection requires a video, but none was supplied. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="acf20a33e742b5b24008888c16194f3bfa2bd3afe90acb50923009b723ec025ba9" name="acf20a33e742b5b24008888c16194f3bfa2bd3afe90acb50923009b723ec025ba9"></a>kVideoInspectionFailed&#160;</td><td class="fielddoc"><p>The rendered video could not be opened or validated. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="acf20a33e742b5b24008888c16194f3bfa132fababb79ab523fefd76dd171ea1ac" name="acf20a33e742b5b24008888c16194f3bfa132fababb79ab523fefd76dd171ea1ac"></a>kFrameExtractionFailed&#160;</td><td class="fielddoc"><p>Initial event frames could not be extracted. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="acf20a33e742b5b24008888c16194f3bfa4c9987df203aa4427619aa32d522532a" name="acf20a33e742b5b24008888c16194f3bfa4c9987df203aa4427619aa32d522532a"></a>kDocumentExportFailed&#160;</td><td class="fielddoc"><p>The prepared document could not be exported. </p>
+</td></tr>
+</table>
+
+<p class="definition">Definition at line <a class="el" href="timeline__rendered__video__export__service_8hpp_source.html#l00041">41</a> of file <a class="el" href="timeline__rendered__video__export__service_8hpp_source.html">timeline_rendered_video_export_service.hpp</a>.</p>
 
 </div>
 </div>
@@ -705,6 +915,63 @@ std::string&#160;</td><td class="memItemRight" valign="bottom"><b>GenerateTimeli
 
 <p>Copies <code>document</code> while retaining only events referenced by <code>selection</code>. </p>
 <p>Invalid indices are ignored. Document metadata, provenance, and diagnostics are preserved. </p>
+
+</div>
+</div>
+<h2 class="groupheader">Variable Documentation</h2>
+<a id="ab5a007e8edfcf88686e010bbc19e2f17" name="ab5a007e8edfcf88686e010bbc19e2f17"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab5a007e8edfcf88686e010bbc19e2f17">&#9670;&#160;</a></span>kRenderedVideoInputContract</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">constexpr std::string_view edit_atlas::services::kRenderedVideoInputContract</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<b>Initial value:</b><div class="fragment"><div class="line">=</div>
+<div class="line">    <span class="stringliteral">&quot;Select a constant-frame-rate MOV, MP4, or MXF render whose embedded &quot;</span></div>
+<div class="line">    <span class="stringliteral">&quot;starting timecode, frame rate, and duration match the imported EDL &quot;</span></div>
+<div class="line">    <span class="stringliteral">&quot;record timeline. Videos without usable embedded timecode cannot be used.&quot;</span></div>
+</div><!-- fragment -->
+<p>The rendered-video requirements shared by all user-facing frontends. </p>
+
+<p class="definition">Definition at line <a class="el" href="timeline__video__inspection__service_8hpp_source.html#l00022">22</a> of file <a class="el" href="timeline__video__inspection__service_8hpp_source.html">timeline_video_inspection_service.hpp</a>.</p>
+
+</div>
+</div>
+<a id="ad486cce46fb280caee6a111b189906b2" name="ad486cce46fb280caee6a111b189906b2"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad486cce46fb280caee6a111b189906b2">&#9670;&#160;</a></span>kVideoDurationToleranceFrames</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">constexpr std::int64_t edit_atlas::services::kVideoDurationToleranceFrames = 1</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Maximum accepted difference between the video and record-timeline duration. </p>
+
+<p class="definition">Definition at line <a class="el" href="timeline__video__inspection__service_8hpp_source.html#l00019">19</a> of file <a class="el" href="timeline__video__inspection__service_8hpp_source.html">timeline_video_inspection_service.hpp</a>.</p>
 
 </div>
 </div>

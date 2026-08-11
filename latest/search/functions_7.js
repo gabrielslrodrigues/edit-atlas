@@ -5,7 +5,9 @@ var searchData=
   ['importer_5fformats_2',['importer_formats',['../classedit__atlas_1_1core_1_1FormatRegistry.html#a86f06799ea3fe8a049803c3a7091c1bb',1,'edit_atlas::core::FormatRegistry']]],
   ['importers_3',['importers',['../classedit__atlas_1_1core_1_1FormatRegistry.html#a6ee39b6ff8e869e722386b587b2c9c6e',1,'edit_atlas::core::FormatRegistry']]],
   ['importersforextension_4',['ImportersForExtension',['../classedit__atlas_1_1core_1_1FormatRegistry.html#a93cffdd2a64e76fdee629c63490fbc14',1,'edit_atlas::core::FormatRegistry']]],
-  ['initializeapplicationlogging_5',['InitializeApplicationLogging',['../namespaceedit__atlas_1_1support.html#a57375ce28cc6e47f336418a64c9152a6',1,'edit_atlas::support']]],
-  ['isapplicationlogfilename_6',['IsApplicationLogFilename',['../namespaceedit__atlas_1_1support.html#ac7ef298b88f3598deb466cc110d2263d',1,'edit_atlas::support']]],
-  ['isvalidtimelineeventprojection_7',['IsValidTimelineEventProjection',['../namespaceedit__atlas_1_1core.html#abacec32d25d90bd888fd71ad75070ba2',1,'edit_atlas::core']]]
+  ['information_5',['Information',['../classedit__atlas_1_1media_1_1VideoDecoder.html#aac41d7e90a2403250b89d30d3645d57c',1,'edit_atlas::media::VideoDecoder']]],
+  ['initializeapplicationlogging_6',['InitializeApplicationLogging',['../namespaceedit__atlas_1_1support.html#a57375ce28cc6e47f336418a64c9152a6',1,'edit_atlas::support']]],
+  ['inspect_7',['Inspect',['../classedit__atlas_1_1services_1_1TimelineVideoInspectionService.html#a46ae2739d2a060cc0608064149b8da59',1,'edit_atlas::services::TimelineVideoInspectionService']]],
+  ['isapplicationlogfilename_8',['IsApplicationLogFilename',['../namespaceedit__atlas_1_1support.html#ac7ef298b88f3598deb466cc110d2263d',1,'edit_atlas::support']]],
+  ['isvalidtimelineeventprojection_9',['IsValidTimelineEventProjection',['../namespaceedit__atlas_1_1core.html#abacec32d25d90bd888fd71ad75070ba2',1,'edit_atlas::core']]]
 ];

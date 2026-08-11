@@ -94,23 +94,28 @@ $(document).ready(function(){initNavTree('index.html',''); initResizable(); });
   <div class="headertitle"><div class="title">Edit Atlas C++ API </div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="anchor" id="mainpage"></a> Edit Atlas provides a UI-independent C++23 foundation for importing editorial timeline formats and exporting structured reports. The documented API covers the domain model, format extension points, application services, built-in formats, and privacy-limited diagnostic support.</p>
-<h1><a class="anchor" id="autotoc_md5"></a>
+<div class="textblock"><p><a class="anchor" id="mainpage"></a> Edit Atlas provides a UI-independent C++23 foundation for importing editorial timeline formats and exporting structured reports. The documented API covers the domain model, format extension points, application services, built-in formats, media decoding, and privacy-limited diagnostic support.</p>
+<h1><a class="anchor" id="autotoc_md6"></a>
 Start here</h1>
 <ul>
 <li><a class="el" href="api_architecture.html">Architecture and dependency direction</a></li>
 <li><code><a class="el" href="structedit__atlas_1_1core_1_1TimelineDocument.html" title="A format-independent editorial timeline and its import diagnostics.">edit_atlas::core::TimelineDocument</a></code> is the shared editorial model.</li>
 <li><code><a class="el" href="classedit__atlas_1_1core_1_1Importer.html" title="Converts in-memory content into the format-independent timeline model.">edit_atlas::core::Importer</a></code> and <code><a class="el" href="classedit__atlas_1_1core_1_1Exporter.html" title="Converts a timeline document into an interchange or report format.">edit_atlas::core::Exporter</a></code> are the format extension points.</li>
 <li><code><a class="el" href="namespaceedit__atlas_1_1core.html#a8202057a8e50482dd31c61e0f36c8411" title="Identifies one exportable field of an editorial timeline event.">edit_atlas::core::TimelineEventField</a></code> provides stable event-column identifiers and the default report projection.</li>
+<li><code><a class="el" href="structedit__atlas_1_1core_1_1RgbImage.html" title="An owned top-to-bottom packed RGB24 image.">edit_atlas::core::RgbImage</a></code> provides presentation-neutral RGB24 ownership for event images passed through export requests.</li>
 <li><code><a class="el" href="classedit__atlas_1_1services_1_1TimelineDocumentImportService.html" title="Coordinates filesystem input with the format-independent import pipeline.">edit_atlas::services::TimelineDocumentImportService</a></code> and <code><a class="el" href="classedit__atlas_1_1services_1_1TimelineDocumentExportService.html" title="Coordinates format-independent export with atomic local-file output.">edit_atlas::services::TimelineDocumentExportService</a></code> provide filesystem workflows that do not depend on a frontend.</li>
 <li><code><a class="el" href="classedit__atlas_1_1services_1_1TimelineTemplateService.html" title="Owns and persists the reusable timeline-template catalog.">edit_atlas::services::TimelineTemplateService</a></code> manages and persists reusable filter and export-column templates without depending on a frontend.</li>
+<li><code><a class="el" href="classedit__atlas_1_1services_1_1TimelineVideoInspectionService.html" title="Validates rendered video inputs against imported record timelines.">edit_atlas::services::TimelineVideoInspectionService</a></code> validates rendered video timing against an imported record timeline.</li>
+<li><code><a class="el" href="classedit__atlas_1_1services_1_1TimelineFrameExtractionService.html" title="Extracts initial event frames from validated rendered videos.">edit_atlas::services::TimelineFrameExtractionService</a></code> extracts exact, deduplicated initial-frame images at caller-selected output dimensions.</li>
+<li><code><a class="el" href="classedit__atlas_1_1services_1_1TimelineRenderedVideoExportService.html" title="Coordinates optional rendered-video preparation with document export.">edit_atlas::services::TimelineRenderedVideoExportService</a></code> coordinates validation, filtered frame extraction, and ordinary document export for all frontends.</li>
 <li><code>edit_atlas::storage::ReadLocalFile()</code> and <code>edit_atlas::storage::WriteLocalFileAtomically()</code> provide the shared local storage boundary.</li>
 <li><code><a class="el" href="namespaceedit__atlas_1_1services.html#a13782bb5f3054df75536d5a2d53dba00" title="Creates a registry containing every format built into Edit Atlas.">edit_atlas::services::CreateBuiltInFormatRegistry()</a></code> composes the handlers shipped with the application.</li>
+<li><code><a class="el" href="classedit__atlas_1_1media_1_1VideoDecoder.html#a161a0c27f2ddcf54f45e1adbfd995498" title="Opens a supported MOV, MP4, or MXF file and selects its best video stream.">edit_atlas::media::VideoDecoder::Open()</a></code> opens supported MOV, MP4, and MXF inputs behind a frontend-independent decoding interface.</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md6"></a>
+<h1><a class="anchor" id="autotoc_md7"></a>
 API stability</h1>
 <p>Format identifiers, option keys, and diagnostic codes are stable integration values. Other APIs currently follow the application version and may evolve before Edit Atlas reaches version 1.0.</p>
-<h1><a class="anchor" id="autotoc_md7"></a>
+<h1><a class="anchor" id="autotoc_md8"></a>
 Source documentation</h1>
 <p>Public declarations use LLVM-style <code>///</code> comments. A declaration's first sentence is its brief summary. Document parameters with <code>\param</code>, return values with <code>\returns</code>, invariants and ownership in the detailed description, and enumeration values or public data members at their declarations.</p>
 <p>Generated documentation is an engineering reference. It does not replace the end-user application manual or describe private implementation details. </p>

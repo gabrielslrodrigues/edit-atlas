@@ -155,6 +155,9 @@ Classes</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structedit__atlas_1_1core_1_1MetadataEntry.html">MetadataEntry</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">A metadata property.  <a href="structedit__atlas_1_1core_1_1MetadataEntry.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structedit__atlas_1_1core_1_1RgbImage.html">RgbImage</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">An owned top-to-bottom packed RGB24 image.  <a href="structedit__atlas_1_1core_1_1RgbImage.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structedit__atlas_1_1core_1_1SourceLineProvenance.html">SourceLineProvenance</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">The original source line and the location from which a value was derived.  <a href="structedit__atlas_1_1core_1_1SourceLineProvenance.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -172,6 +175,9 @@ Classes</h2></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classedit__atlas_1_1core_1_1TimelineDocumentPipeline.html">TimelineDocumentPipeline</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Selects registered handlers and contains failures at the application edge.  <a href="classedit__atlas_1_1core_1_1TimelineDocumentPipeline.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structedit__atlas_1_1core_1_1TimelineEventImage.html">TimelineEventImage</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Associates an immutable RGB image with one event in an export document.  <a href="structedit__atlas_1_1core_1_1TimelineEventImage.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structedit__atlas_1_1core_1_1Track.html">Track</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">A format-independent track category and its source identifier.  <a href="structedit__atlas_1_1core_1_1Track.html#details">More...</a><br /></td></tr>
@@ -268,26 +274,27 @@ Enumerations</h2></td></tr>
 <tr class="separator:a13a4eaa410bf0f06432c2c4a8989b6e5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8202057a8e50482dd31c61e0f36c8411" id="r_a8202057a8e50482dd31c61e0f36c8411"><td class="memItemLeft" align="right" valign="top">enum class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceedit__atlas_1_1core.html#a8202057a8e50482dd31c61e0f36c8411">TimelineEventField</a> { <br />
 &#160;&#160;<a class="el" href="namespaceedit__atlas_1_1core.html#a8202057a8e50482dd31c61e0f36c8411a5ee6f8647b008eed1cd49fe6851f561c">kEventIdentifier</a>
+, <a class="el" href="namespaceedit__atlas_1_1core.html#a8202057a8e50482dd31c61e0f36c8411a7ecf2117ad6be7d3edd119dff3b67366">kInitialFrame</a>
 , <a class="el" href="namespaceedit__atlas_1_1core.html#a8202057a8e50482dd31c61e0f36c8411ab2c1da196107285d9a6bfa45433c3411">kReel</a>
 , <a class="el" href="namespaceedit__atlas_1_1core.html#a8202057a8e50482dd31c61e0f36c8411a8a5248cdc856177ca071cf95a7962ad9">kTrackKind</a>
-, <a class="el" href="namespaceedit__atlas_1_1core.html#a8202057a8e50482dd31c61e0f36c8411a2d2ba14f33e51f326b34f35f4c954f38">kTrackIdentifier</a>
 , <br />
-&#160;&#160;<a class="el" href="namespaceedit__atlas_1_1core.html#a8202057a8e50482dd31c61e0f36c8411a6904222c04ad060b83592d537ded2e9c">kEditType</a>
+&#160;&#160;<a class="el" href="namespaceedit__atlas_1_1core.html#a8202057a8e50482dd31c61e0f36c8411a2d2ba14f33e51f326b34f35f4c954f38">kTrackIdentifier</a>
+, <a class="el" href="namespaceedit__atlas_1_1core.html#a8202057a8e50482dd31c61e0f36c8411a6904222c04ad060b83592d537ded2e9c">kEditType</a>
 , <a class="el" href="namespaceedit__atlas_1_1core.html#a8202057a8e50482dd31c61e0f36c8411a2aabdcc30e923ce53829a33f2c46dcb6">kTransitionIdentifier</a>
 , <a class="el" href="namespaceedit__atlas_1_1core.html#a8202057a8e50482dd31c61e0f36c8411a936a74cd6cd4486b64ccb9dd3dffbe31">kTransitionDuration</a>
-, <a class="el" href="namespaceedit__atlas_1_1core.html#a8202057a8e50482dd31c61e0f36c8411ad8691aca9b3e0e9a830927153f71b7ec">kSourceIn</a>
 , <br />
-&#160;&#160;<a class="el" href="namespaceedit__atlas_1_1core.html#a8202057a8e50482dd31c61e0f36c8411afd9c91dcd454e109bcc4b6af841c1f69">kSourceOut</a>
+&#160;&#160;<a class="el" href="namespaceedit__atlas_1_1core.html#a8202057a8e50482dd31c61e0f36c8411ad8691aca9b3e0e9a830927153f71b7ec">kSourceIn</a>
+, <a class="el" href="namespaceedit__atlas_1_1core.html#a8202057a8e50482dd31c61e0f36c8411afd9c91dcd454e109bcc4b6af841c1f69">kSourceOut</a>
 , <a class="el" href="namespaceedit__atlas_1_1core.html#a8202057a8e50482dd31c61e0f36c8411ad48955dd6530d928240c912332db450f">kRecordIn</a>
 , <a class="el" href="namespaceedit__atlas_1_1core.html#a8202057a8e50482dd31c61e0f36c8411ada0dda1d6a6ff6e63864afb7a028cbb6">kRecordOut</a>
-, <a class="el" href="namespaceedit__atlas_1_1core.html#a8202057a8e50482dd31c61e0f36c8411a7dcc4622bc059e993b67e3a34788959d">kDuration</a>
 , <br />
-&#160;&#160;<a class="el" href="namespaceedit__atlas_1_1core.html#a8202057a8e50482dd31c61e0f36c8411aa68044d9f10008e71b0987e00f3970a7">kDurationFrames</a>
+&#160;&#160;<a class="el" href="namespaceedit__atlas_1_1core.html#a8202057a8e50482dd31c61e0f36c8411a7dcc4622bc059e993b67e3a34788959d">kDuration</a>
+, <a class="el" href="namespaceedit__atlas_1_1core.html#a8202057a8e50482dd31c61e0f36c8411aa68044d9f10008e71b0987e00f3970a7">kDurationFrames</a>
 , <a class="el" href="namespaceedit__atlas_1_1core.html#a8202057a8e50482dd31c61e0f36c8411a211eb4d2c6c97e5d87bb3208a48d7c11">kClipName</a>
 , <a class="el" href="namespaceedit__atlas_1_1core.html#a8202057a8e50482dd31c61e0f36c8411a634606a16f62b39964a51a45d1696dd3">kSourceFile</a>
-, <a class="el" href="namespaceedit__atlas_1_1core.html#a8202057a8e50482dd31c61e0f36c8411a8a531c1d62341ca4bc39616ff0d58bdf">kComments</a>
 , <br />
-&#160;&#160;<a class="el" href="namespaceedit__atlas_1_1core.html#a8202057a8e50482dd31c61e0f36c8411ae21d627814fef31491925245502864ac">kSourceLine</a>
+&#160;&#160;<a class="el" href="namespaceedit__atlas_1_1core.html#a8202057a8e50482dd31c61e0f36c8411a8a531c1d62341ca4bc39616ff0d58bdf">kComments</a>
+, <a class="el" href="namespaceedit__atlas_1_1core.html#a8202057a8e50482dd31c61e0f36c8411ae21d627814fef31491925245502864ac">kSourceLine</a>
 , <a class="el" href="namespaceedit__atlas_1_1core.html#a8202057a8e50482dd31c61e0f36c8411a5a162d352f3b3603e03fc9b2f043fb40">kCount</a>
 <br />
  }</td></tr>
@@ -303,6 +310,9 @@ Functions</h2></td></tr>
 std::optional&lt; <a class="el" href="namespaceedit__atlas_1_1core.html#a8202057a8e50482dd31c61e0f36c8411">TimelineEventField</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>TimelineEventFieldFromIdentifier</b> (std::string_view identifier) noexcept</td></tr>
 <tr class="memdesc:ac34b8b151021221f6d0ed3786c72d07c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Resolves the stable timeline event field <code>identifier</code>. <br /></td></tr>
 <tr class="separator:ac34b8b151021221f6d0ed3786c72d07c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a82e34ba500e68b0d0cbafd62ce943f36" id="r_a82e34ba500e68b0d0cbafd62ce943f36"><td class="memItemLeft" align="right" valign="top">std::span&lt; const <a class="el" href="namespaceedit__atlas_1_1core.html#a8202057a8e50482dd31c61e0f36c8411">TimelineEventField</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceedit__atlas_1_1core.html#a82e34ba500e68b0d0cbafd62ce943f36">TimelineEventFields</a> (void) noexcept</td></tr>
+<tr class="memdesc:a82e34ba500e68b0d0cbafd62ce943f36"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns every known timeline event field in standard selection order.  <br /></td></tr>
+<tr class="separator:a82e34ba500e68b0d0cbafd62ce943f36"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a870a4bc8f453085a97f2aff9cb3ad256" id="r_a870a4bc8f453085a97f2aff9cb3ad256"><td class="memItemLeft" align="right" valign="top">std::span&lt; const <a class="el" href="namespaceedit__atlas_1_1core.html#a8202057a8e50482dd31c61e0f36c8411">TimelineEventField</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceedit__atlas_1_1core.html#a870a4bc8f453085a97f2aff9cb3ad256">DefaultTimelineEventProjection</a> (void) noexcept</td></tr>
 <tr class="memdesc:a870a4bc8f453085a97f2aff9cb3ad256"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns every timeline event field in the default export order.  <br /></td></tr>
 <tr class="separator:a870a4bc8f453085a97f2aff9cb3ad256"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -318,7 +328,7 @@ std::string_view&#160;</td><td class="memItemRight" valign="bottom"><b>Version</
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="var-members" name="var-members"></a>
 Variables</h2></td></tr>
 <tr class="memitem:a6ced2e6b9b620aa4e0365117c194822a" id="r_a6ced2e6b9b620aa4e0365117c194822a"><td class="memItemLeft" align="right" valign="top">constexpr std::size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceedit__atlas_1_1core.html#a6ced2e6b9b620aa4e0365117c194822a">kTimelineEventFieldCount</a></td></tr>
-<tr class="memdesc:a6ced2e6b9b620aa4e0365117c194822a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Number of fields in the default timeline event projection.  <br /></td></tr>
+<tr class="memdesc:a6ced2e6b9b620aa4e0365117c194822a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Number of known timeline event fields, including optional fields.  <br /></td></tr>
 <tr class="separator:a6ced2e6b9b620aa4e0365117c194822a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
@@ -523,7 +533,7 @@ Variables</h2></td></tr>
 </td></tr>
 </table>
 
-<p class="definition">Definition at line <a class="el" href="format_8hpp_source.html#l00034">34</a> of file <a class="el" href="format_8hpp_source.html">format.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="format_8hpp_source.html#l00036">36</a> of file <a class="el" href="format_8hpp_source.html">format.hpp</a>.</p>
 
 </div>
 </div>
@@ -661,6 +671,8 @@ Variables</h2></td></tr>
 <table class="fieldtable">
 <tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="a8202057a8e50482dd31c61e0f36c8411a5ee6f8647b008eed1cd49fe6851f561c" name="a8202057a8e50482dd31c61e0f36c8411a5ee6f8647b008eed1cd49fe6851f561c"></a>kEventIdentifier&#160;</td><td class="fielddoc"><p>Source event identifier. </p>
 </td></tr>
+<tr><td class="fieldname"><a id="a8202057a8e50482dd31c61e0f36c8411a7ecf2117ad6be7d3edd119dff3b67366" name="a8202057a8e50482dd31c61e0f36c8411a7ecf2117ad6be7d3edd119dff3b67366"></a>kInitialFrame&#160;</td><td class="fielddoc"><p>Initial rendered-video frame associated with the event. </p>
+</td></tr>
 <tr><td class="fieldname"><a id="a8202057a8e50482dd31c61e0f36c8411ab2c1da196107285d9a6bfa45433c3411" name="a8202057a8e50482dd31c61e0f36c8411ab2c1da196107285d9a6bfa45433c3411"></a>kReel&#160;</td><td class="fielddoc"><p>Source reel identifier. </p>
 </td></tr>
 <tr><td class="fieldname"><a id="a8202057a8e50482dd31c61e0f36c8411a8a5248cdc856177ca071cf95a7962ad9" name="a8202057a8e50482dd31c61e0f36c8411a8a5248cdc856177ca071cf95a7962ad9"></a>kTrackKind&#160;</td><td class="fielddoc"><p>Domain track kind. </p>
@@ -763,6 +775,7 @@ Variables</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Returns every timeline event field in the default export order. </p>
+<p>Optional fields that require supplemental data, such as <code>kInitialFrame</code>, are not selected by default.</p>
 <p>The returned view has static storage duration. </p>
 
 </div>
@@ -796,6 +809,35 @@ Variables</h2></td></tr>
 
 </div>
 </div>
+<a id="a82e34ba500e68b0d0cbafd62ce943f36" name="a82e34ba500e68b0d0cbafd62ce943f36"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a82e34ba500e68b0d0cbafd62ce943f36">&#9670;&#160;</a></span>TimelineEventFields()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::span&lt; const <a class="el" href="namespaceedit__atlas_1_1core.html#a8202057a8e50482dd31c61e0f36c8411">TimelineEventField</a> &gt; edit_atlas::core::TimelineEventFields </td>
+          <td>(</td>
+          <td class="paramtype">void&#160;</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Returns every known timeline event field in standard selection order. </p>
+<p>The returned view has static storage duration. </p>
+
+</div>
+</div>
 <h2 class="groupheader">Variable Documentation</h2>
 <a id="a6ced2e6b9b620aa4e0365117c194822a" name="a6ced2e6b9b620aa4e0365117c194822a"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a6ced2e6b9b620aa4e0365117c194822a">&#9670;&#160;</a></span>kTimelineEventFieldCount</h2>
@@ -819,9 +861,9 @@ Variables</h2></td></tr>
 <b>Initial value:</b><div class="fragment"><div class="line">=</div>
 <div class="line">    <span class="keyword">static_cast&lt;</span>std::size_t<span class="keyword">&gt;</span>(TimelineEventField::kCount)</div>
 </div><!-- fragment -->
-<p>Number of fields in the default timeline event projection. </p>
+<p>Number of known timeline event fields, including optional fields. </p>
 
-<p class="definition">Definition at line <a class="el" href="timeline__projection_8hpp_source.html#l00052">52</a> of file <a class="el" href="timeline__projection_8hpp_source.html">timeline_projection.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="timeline__projection_8hpp_source.html#l00054">54</a> of file <a class="el" href="timeline__projection_8hpp_source.html">timeline_projection.hpp</a>.</p>
 
 </div>
 </div>

@@ -24,12 +24,14 @@ var namespaceedit__atlas_1_1core =
     [ "ImportRequest", "structedit__atlas_1_1core_1_1ImportRequest.html", "structedit__atlas_1_1core_1_1ImportRequest" ],
     [ "ImportResult", "structedit__atlas_1_1core_1_1ImportResult.html", "structedit__atlas_1_1core_1_1ImportResult" ],
     [ "MetadataEntry", "structedit__atlas_1_1core_1_1MetadataEntry.html", "structedit__atlas_1_1core_1_1MetadataEntry" ],
+    [ "RgbImage", "structedit__atlas_1_1core_1_1RgbImage.html", "structedit__atlas_1_1core_1_1RgbImage" ],
     [ "SourceLineProvenance", "structedit__atlas_1_1core_1_1SourceLineProvenance.html", "structedit__atlas_1_1core_1_1SourceLineProvenance" ],
     [ "SourceLocation", "structedit__atlas_1_1core_1_1SourceLocation.html", "structedit__atlas_1_1core_1_1SourceLocation" ],
     [ "Timecode", "classedit__atlas_1_1core_1_1Timecode.html", "classedit__atlas_1_1core_1_1Timecode" ],
     [ "TimecodeRange", "classedit__atlas_1_1core_1_1TimecodeRange.html", "classedit__atlas_1_1core_1_1TimecodeRange" ],
     [ "TimelineDocument", "structedit__atlas_1_1core_1_1TimelineDocument.html", "structedit__atlas_1_1core_1_1TimelineDocument" ],
     [ "TimelineDocumentPipeline", "classedit__atlas_1_1core_1_1TimelineDocumentPipeline.html", "classedit__atlas_1_1core_1_1TimelineDocumentPipeline" ],
+    [ "TimelineEventImage", "structedit__atlas_1_1core_1_1TimelineEventImage.html", "structedit__atlas_1_1core_1_1TimelineEventImage" ],
     [ "Track", "structedit__atlas_1_1core_1_1Track.html", "structedit__atlas_1_1core_1_1Track" ],
     [ "Transition", "structedit__atlas_1_1core_1_1Transition.html", "structedit__atlas_1_1core_1_1Transition" ],
     [ "MetadataValue", "namespaceedit__atlas_1_1core.html#a96dc0d3f47b870e3176d45e3376f35d5", null ],
@@ -86,6 +88,7 @@ var namespaceedit__atlas_1_1core =
     ] ],
     [ "TimelineEventField", "namespaceedit__atlas_1_1core.html#a8202057a8e50482dd31c61e0f36c8411", [
       [ "kEventIdentifier", "namespaceedit__atlas_1_1core.html#a8202057a8e50482dd31c61e0f36c8411a5ee6f8647b008eed1cd49fe6851f561c", null ],
+      [ "kInitialFrame", "namespaceedit__atlas_1_1core.html#a8202057a8e50482dd31c61e0f36c8411a7ecf2117ad6be7d3edd119dff3b67366", null ],
       [ "kReel", "namespaceedit__atlas_1_1core.html#a8202057a8e50482dd31c61e0f36c8411ab2c1da196107285d9a6bfa45433c3411", null ],
       [ "kTrackKind", "namespaceedit__atlas_1_1core.html#a8202057a8e50482dd31c61e0f36c8411a8a5248cdc856177ca071cf95a7962ad9", null ],
       [ "kTrackIdentifier", "namespaceedit__atlas_1_1core.html#a8202057a8e50482dd31c61e0f36c8411a2d2ba14f33e51f326b34f35f4c954f38", null ],
@@ -114,6 +117,7 @@ var namespaceedit__atlas_1_1core =
     [ "IsValidTimelineEventProjection", "namespaceedit__atlas_1_1core.html#abacec32d25d90bd888fd71ad75070ba2", null ],
     [ "TimelineEventFieldFromIdentifier", "namespaceedit__atlas_1_1core.html#ac34b8b151021221f6d0ed3786c72d07c", null ],
     [ "TimelineEventFieldIdentifier", "namespaceedit__atlas_1_1core.html#a01840176fc0140143ad91aa209c7ac53", null ],
+    [ "TimelineEventFields", "namespaceedit__atlas_1_1core.html#a82e34ba500e68b0d0cbafd62ce943f36", null ],
     [ "Version", "namespaceedit__atlas_1_1core.html#a2bdec25002f14591add35d69a97e8362", null ],
     [ "kTimelineEventFieldCount", "namespaceedit__atlas_1_1core.html#a6ced2e6b9b620aa4e0365117c194822a", null ]
 ];

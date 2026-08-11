@@ -1,28 +1,8 @@
 var searchData=
 [
-  ['timecode_0',['Timecode',['../classedit__atlas_1_1core_1_1Timecode.html',1,'edit_atlas::core']]],
-  ['timecoderange_1',['TimecodeRange',['../classedit__atlas_1_1core_1_1TimecodeRange.html',1,'edit_atlas::core']]],
-  ['timelinedocument_2',['TimelineDocument',['../structedit__atlas_1_1core_1_1TimelineDocument.html',1,'edit_atlas::core']]],
-  ['timelinedocumentexportfailure_3',['TimelineDocumentExportFailure',['../structedit__atlas_1_1services_1_1TimelineDocumentExportFailure.html',1,'edit_atlas::services']]],
-  ['timelinedocumentexportreceipt_4',['TimelineDocumentExportReceipt',['../structedit__atlas_1_1services_1_1TimelineDocumentExportReceipt.html',1,'edit_atlas::services']]],
-  ['timelinedocumentexportrequest_5',['TimelineDocumentExportRequest',['../structedit__atlas_1_1services_1_1TimelineDocumentExportRequest.html',1,'edit_atlas::services']]],
-  ['timelinedocumentexportservice_6',['TimelineDocumentExportService',['../classedit__atlas_1_1services_1_1TimelineDocumentExportService.html',1,'edit_atlas::services']]],
-  ['timelinedocumentimportfailure_7',['TimelineDocumentImportFailure',['../structedit__atlas_1_1services_1_1TimelineDocumentImportFailure.html',1,'edit_atlas::services']]],
-  ['timelinedocumentimportreceipt_8',['TimelineDocumentImportReceipt',['../structedit__atlas_1_1services_1_1TimelineDocumentImportReceipt.html',1,'edit_atlas::services']]],
-  ['timelinedocumentimportrequest_9',['TimelineDocumentImportRequest',['../structedit__atlas_1_1services_1_1TimelineDocumentImportRequest.html',1,'edit_atlas::services']]],
-  ['timelinedocumentimportservice_10',['TimelineDocumentImportService',['../classedit__atlas_1_1services_1_1TimelineDocumentImportService.html',1,'edit_atlas::services']]],
-  ['timelinedocumentpipeline_11',['TimelineDocumentPipeline',['../classedit__atlas_1_1core_1_1TimelineDocumentPipeline.html',1,'edit_atlas::core']]],
-  ['timelinedurationfiltercondition_12',['TimelineDurationFilterCondition',['../structedit__atlas_1_1services_1_1TimelineDurationFilterCondition.html',1,'edit_atlas::services']]],
-  ['timelineedittypefiltercondition_13',['TimelineEditTypeFilterCondition',['../structedit__atlas_1_1services_1_1TimelineEditTypeFilterCondition.html',1,'edit_atlas::services']]],
-  ['timelinefiltererror_14',['TimelineFilterError',['../structedit__atlas_1_1services_1_1TimelineFilterError.html',1,'edit_atlas::services']]],
-  ['timelinefilterquery_15',['TimelineFilterQuery',['../structedit__atlas_1_1services_1_1TimelineFilterQuery.html',1,'edit_atlas::services']]],
-  ['timelinetemplate_16',['TimelineTemplate',['../structedit__atlas_1_1services_1_1TimelineTemplate.html',1,'edit_atlas::services']]],
-  ['timelinetemplatefailure_17',['TimelineTemplateFailure',['../structedit__atlas_1_1services_1_1TimelineTemplateFailure.html',1,'edit_atlas::services']]],
-  ['timelinetemplateloaddiagnostic_18',['TimelineTemplateLoadDiagnostic',['../structedit__atlas_1_1services_1_1TimelineTemplateLoadDiagnostic.html',1,'edit_atlas::services']]],
-  ['timelinetemplateservice_19',['TimelineTemplateService',['../classedit__atlas_1_1services_1_1TimelineTemplateService.html',1,'edit_atlas::services']]],
-  ['timelinetextfiltercondition_20',['TimelineTextFilterCondition',['../structedit__atlas_1_1services_1_1TimelineTextFilterCondition.html',1,'edit_atlas::services']]],
-  ['timelinetimecodefiltercondition_21',['TimelineTimecodeFilterCondition',['../structedit__atlas_1_1services_1_1TimelineTimecodeFilterCondition.html',1,'edit_atlas::services']]],
-  ['timelinetrackkindfiltercondition_22',['TimelineTrackKindFilterCondition',['../structedit__atlas_1_1services_1_1TimelineTrackKindFilterCondition.html',1,'edit_atlas::services']]],
-  ['track_23',['Track',['../structedit__atlas_1_1core_1_1Track.html',1,'edit_atlas::core']]],
-  ['transition_24',['Transition',['../structedit__atlas_1_1core_1_1Transition.html',1,'edit_atlas::core']]]
+  ['sourcelineprovenance_0',['SourceLineProvenance',['../structedit__atlas_1_1core_1_1SourceLineProvenance.html',1,'edit_atlas::core']]],
+  ['sourcelocation_1',['SourceLocation',['../structedit__atlas_1_1core_1_1SourceLocation.html',1,'edit_atlas::core']]],
+  ['supportbundlefailure_2',['SupportBundleFailure',['../structedit__atlas_1_1support_1_1SupportBundleFailure.html',1,'edit_atlas::support']]],
+  ['supportbundlereceipt_3',['SupportBundleReceipt',['../structedit__atlas_1_1support_1_1SupportBundleReceipt.html',1,'edit_atlas::support']]],
+  ['supportbundlerequest_4',['SupportBundleRequest',['../structedit__atlas_1_1support_1_1SupportBundleRequest.html',1,'edit_atlas::support']]]
 ];

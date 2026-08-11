@@ -1,6 +1,7 @@
 var namespaceedit__atlas_1_1formats_1_1xlsx =
 [
     [ "diagnostic_code", "namespaceedit__atlas_1_1formats_1_1xlsx_1_1diagnostic__code.html", [
+      [ "kImageWriteFailed", "namespaceedit__atlas_1_1formats_1_1xlsx_1_1diagnostic__code.html#af4063c5c66e5f43518cf2dd156549ade", null ],
       [ "kInvalidEventProjection", "namespaceedit__atlas_1_1formats_1_1xlsx_1_1diagnostic__code.html#aec871c5e092af625ba0f7dff665ca889", null ],
       [ "kWorkbookCreationFailed", "namespaceedit__atlas_1_1formats_1_1xlsx_1_1diagnostic__code.html#a150ab79a0ff3f918fb504f2957251fc8", null ],
       [ "kWorkbookWriteFailed", "namespaceedit__atlas_1_1formats_1_1xlsx_1_1diagnostic__code.html#a2db57f35638fce668b3abdb231fcf40d", null ]
@@ -14,5 +15,7 @@ var namespaceedit__atlas_1_1formats_1_1xlsx =
     [ "kFormatIdentifier", "namespaceedit__atlas_1_1formats_1_1xlsx.html#ac8b8e3e810c5f635654b565eecd81f97", null ],
     [ "kIncludeDiagnosticsSheetOption", "namespaceedit__atlas_1_1formats_1_1xlsx.html#a2de20fd612872156d7d7be1416b11d12", null ],
     [ "kIncludeTimelineSheetOption", "namespaceedit__atlas_1_1formats_1_1xlsx.html#ab98c51c195f9225804a81fa10d138d08", null ],
+    [ "kInitialFrameMaximumHeight", "namespaceedit__atlas_1_1formats_1_1xlsx.html#a0b8134f3f206caee1ad96475ab9e6918", null ],
+    [ "kInitialFrameMaximumWidth", "namespaceedit__atlas_1_1formats_1_1xlsx.html#af052adbae5a8e80de66d7616d653de1c", null ],
     [ "kWorkbookLanguageOption", "namespaceedit__atlas_1_1formats_1_1xlsx.html#a08eeea8b3c540e4076b418f38e86e433", null ]
 ];

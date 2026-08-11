@@ -94,8 +94,8 @@ $(document).ready(function(){initNavTree('md_docs_2cli.html',''); initResizable(
   <div class="headertitle"><div class="title">Command-line interface</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="anchor" id="autotoc_md8"></a> <code>edit-atlas-cli</code> is the Qt-free terminal frontend for the same local CMX 3600 EDL to XLSX conversion workflow provided by the desktop application. It invokes the shared document import and export services and performs no network operations.</p>
-<h1><a class="anchor" id="autotoc_md9"></a>
+<div class="textblock"><p><a class="anchor" id="autotoc_md9"></a> <code>edit-atlas-cli</code> is the Qt-free terminal frontend for the same local CMX 3600 EDL to XLSX conversion workflow provided by the desktop application. It invokes the shared document import and export services and performs no network operations.</p>
+<h1><a class="anchor" id="autotoc_md10"></a>
 Convert an EDL</h1>
 <p>A non-drop-frame EDL requires its exact frame rate:</p>
 <div class="fragment"><div class="line">edit-atlas-cli convert --fps 24 timeline.edl report.xlsx</div>
@@ -106,7 +106,7 @@ Convert an EDL</h1>
 <p>Run <code>edit-atlas-cli --help</code> for the command summary, <code>edit-atlas-cli convert --help</code> for conversion options, and <code>edit-atlas-cli --version</code> for the installed version.</p>
 <p>Use <code>--</code> to end option processing when an input or output filename begins with a hyphen:</p>
 <div class="fragment"><div class="line">edit-atlas-cli convert --fps 24 -- -input.edl -report.xlsx</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md10"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md11"></a>
 Workbook options</h1>
 <p>Brazilian Portuguese is the default workbook language, matching the desktop application's initial language. Select English with:</p>
 <div class="fragment"><div class="line">edit-atlas-cli convert \</div>
@@ -129,12 +129,23 @@ Workbook options</h1>
 <div class="line">  --columns event,reel,clip-name,comments \</div>
 <div class="line">  timeline.edl \</div>
 <div class="line">  report.xlsx</div>
-</div><!-- fragment --><p>Available identifiers are <code>event</code>, <code>reel</code>, <code>track-kind</code>, <code>track</code>, <code>edit-type</code>, <code>transition</code>, <code>transition-frames</code>, <code>source-in</code>, <code>source-out</code>, <code>record-in</code>, <code>record-out</code>, <code>duration</code>, <code>duration-frames</code>, <code>clip-name</code>, <code>source-file</code>, <code>comments</code>, and <code>source-line</code>. The default includes all columns in that order. <code>duration</code> is an artist-friendly elapsed value in <code>HH:MM:SS:FF</code> form (or <code>HH:MM:SS;FF</code> for drop-frame timelines); <code>duration-frames</code> is the raw numeric frame count for calculations, sorting, and exact filtering. Identifiers are always English, lowercase integration values regardless of workbook language. Each identifier may occur only once.</p>
-<h1><a class="anchor" id="autotoc_md11"></a>
+</div><!-- fragment --><p>Available identifiers are <code>event</code>, <code>initial-frame</code>, <code>reel</code>, <code>track-kind</code>, <code>track</code>, <code>edit-type</code>, <code>transition</code>, <code>transition-frames</code>, <code>source-in</code>, <code>source-out</code>, <code>record-in</code>, <code>record-out</code>, <code>duration</code>, <code>duration-frames</code>, <code>clip-name</code>, <code>source-file</code>, <code>comments</code>, and <code>source-line</code>. The default includes every standard textual and numeric column in that order; <code>initial-frame</code> is opt-in. <code>duration</code> is an artist-friendly elapsed value in <code>HH:MM:SS:FF</code> form (or <code>HH:MM:SS;FF</code> for drop-frame timelines); <code>duration-frames</code> is the raw numeric frame count for calculations, sorting, and exact filtering. Identifiers are always English, lowercase integration values regardless of workbook language. Each identifier may occur only once.</p>
+<h1><a class="anchor" id="autotoc_md12"></a>
+Initial-frame images</h1>
+<p>Select <code>initial-frame</code> and provide the matching rendered video with <code>--video</code>:</p>
+<div class="fragment"><div class="line">edit-atlas-cli convert \</div>
+<div class="line">  --fps 24 \</div>
+<div class="line">  --columns event,initial-frame,reel,record-in,comments \</div>
+<div class="line">  --video matching-render.mov \</div>
+<div class="line">  timeline.edl \</div>
+<div class="line">  report.xlsx</div>
+</div><!-- fragment --><p>The video must be a constant-frame-rate MOV, MP4, or MXF file with readable embedded starting timecode. Its timecode mode, frame rate, starting frame, and duration must match the imported EDL record timeline. A video without usable embedded timecode is rejected even when its visual content or duration appears to match. <code>--video</code> is required when <code>initial-frame</code> is selected and rejected when that column is absent.</p>
+<p>Each exported event receives the frame at its Record In timecode. Filtering and column reordering do not change the event-to-frame mapping. Images are resized within 320×180 pixels, encoded as PNG, and embedded directly in the workbook.</p>
+<h1><a class="anchor" id="autotoc_md13"></a>
 Existing destinations</h1>
 <p>Conversion never overwrites an existing destination implicitly. If <code>report.xlsx</code> already exists, the command exits with code <code>4</code> and preserves the file. Authorize atomic replacement explicitly with:</p>
 <div class="fragment"><div class="line">edit-atlas-cli convert --force --fps 24 timeline.edl report.xlsx</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md12"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md14"></a>
 Diagnostics and exit codes</h1>
 <p>Successful conversion writes a one-line summary to standard output. Warnings and errors are written to standard error with their severity, stable code, and <code>source:line:column</code> location when available.</p>
 <table class="markdownTable">
@@ -154,12 +165,12 @@ Diagnostics and exit codes</h1>
 <td class="markdownTableBodyRight"><code>5</code>   </td><td class="markdownTableBodyNone">A filesystem or application operation failed   </td></tr>
 </table>
 <p>Use diagnostic codes rather than matching their human-readable messages in automation.</p>
-<h1><a class="anchor" id="autotoc_md13"></a>
+<h1><a class="anchor" id="autotoc_md15"></a>
 Executable locations</h1>
 <p>The build-tree executable is located at <code>src/cli/edit-atlas-cli</code> below the selected preset directory, with <code>.exe</code> appended on Windows. Installed Linux packages place it in <code>/usr/bin</code>. The Windows MSI places it beside <code>edit-atlas.exe</code>. The macOS package places it inside <code>/Applications/edit-atlas.app/Contents/MacOS</code> so it remains part of the application bundle.</p>
-<h1><a class="anchor" id="autotoc_md14"></a>
+<h1><a class="anchor" id="autotoc_md16"></a>
 Privacy and encoding</h1>
-<p>Input and output files remain local and are never uploaded. Paths and imported text are preserved as UTF-8. On Windows, the executable obtains arguments through the native UTF-16 command line and converts them explicitly rather than using the active legacy code page. </p>
+<p>Input, video, and output files remain local and are never uploaded. Paths and imported text are preserved as UTF-8. On Windows, the executable obtains arguments through the native UTF-16 command line and converts them explicitly rather than using the active legacy code page. </p>
 </div></div><!-- contents -->
 </div><!-- PageDoc -->
 </div><!-- doc-content -->

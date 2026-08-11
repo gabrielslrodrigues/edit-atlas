@@ -1,11 +1,13 @@
 var searchData=
 [
-  ['text_0',['text',['../structedit__atlas_1_1core_1_1Comment.html#abcf81d51a686f678c48c51082d2eae0a',1,'edit_atlas::core::Comment::text'],['../structedit__atlas_1_1services_1_1TimelineTextFilterCondition.html#a086be1326be6214479af168f4f16de04',1,'edit_atlas::services::TimelineTextFilterCondition::text']]],
-  ['timecode_1',['timecode',['../structedit__atlas_1_1services_1_1TimelineTimecodeFilterCondition.html#a8198aab276e07cb169dbb567398196e4',1,'edit_atlas::services::TimelineTimecodeFilterCondition']]],
-  ['timecode_5fmode_2',['timecode_mode',['../structedit__atlas_1_1core_1_1TimelineDocument.html#acbcaab031a9aaf95d79ac46e19771503',1,'edit_atlas::core::TimelineDocument']]],
-  ['timeline_3',['timeline',['../structedit__atlas_1_1services_1_1TimelineDocumentExportRequest.html#a5976f5fa0a00336b2cb57f37fa754c04',1,'edit_atlas::services::TimelineDocumentExportRequest::timeline'],['../structedit__atlas_1_1services_1_1TimelineDocumentImportReceipt.html#a8f5ba69f16b4b1018505f7b9baf24fa8',1,'edit_atlas::services::TimelineDocumentImportReceipt::timeline']]],
-  ['title_4',['title',['../structedit__atlas_1_1core_1_1TimelineDocument.html#af72942ef93e472e2ea973ff4b3656910',1,'edit_atlas::core::TimelineDocument']]],
-  ['track_5',['track',['../structedit__atlas_1_1core_1_1EditEvent.html#a6e10282e8abd99debb12d1a961cfdae2',1,'edit_atlas::core::EditEvent']]],
-  ['track_5fkind_6',['track_kind',['../structedit__atlas_1_1services_1_1TimelineTrackKindFilterCondition.html#a68e6f8e0008ad5fdb0e81a05535348b8',1,'edit_atlas::services::TimelineTrackKindFilterCondition']]],
-  ['transition_7',['transition',['../structedit__atlas_1_1core_1_1EditEvent.html#ae62763e78b5deb81be01612e16550e75',1,'edit_atlas::core::EditEvent']]]
+  ['record_5fend_5fframe_5fexclusive_0',['record_end_frame_exclusive',['../structedit__atlas_1_1services_1_1TimelineVideoMapping.html#ade4b627e4dc0b561d6fe7b9f4ddcc9af',1,'edit_atlas::services::TimelineVideoMapping']]],
+  ['record_5fframe_1',['record_frame',['../structedit__atlas_1_1services_1_1TimelineEventFrame.html#a78801a01145200e07fdaa64e0c1acbe9',1,'edit_atlas::services::TimelineEventFrame']]],
+  ['record_5frange_2',['record_range',['../structedit__atlas_1_1core_1_1EditEvent.html#a622b3f08ab2707b4e64064b9c5f42322',1,'edit_atlas::core::EditEvent']]],
+  ['record_5fstart_5fframe_3',['record_start_frame',['../structedit__atlas_1_1services_1_1TimelineVideoMapping.html#a14087e0aa4a233c296f710fac408687e',1,'edit_atlas::services::TimelineVideoMapping']]],
+  ['record_5fto_5fvideo_5fframe_5foffset_4',['record_to_video_frame_offset',['../structedit__atlas_1_1services_1_1TimelineVideoMapping.html#acef0a61bfd80e0df74f77011c3e2534c',1,'edit_atlas::services::TimelineVideoMapping']]],
+  ['reel_5',['reel',['../structedit__atlas_1_1core_1_1EditEvent.html#a029d205d96c35b634e9ff9dd57562211',1,'edit_atlas::core::EditEvent']]],
+  ['reference_5ftimeline_6',['reference_timeline',['../structedit__atlas_1_1services_1_1TimelineRenderedVideoExportRequest.html#a9636ca4486fd3737e5e9f5bac2a358ab',1,'edit_atlas::services::TimelineRenderedVideoExportRequest']]],
+  ['regular_5fexpression_7',['regular_expression',['../structedit__atlas_1_1services_1_1TimelineTextFilterCondition.html#af44830eb29a2d1a60eeb006561fddf87',1,'edit_atlas::services::TimelineTextFilterCondition']]],
+  ['replace_5fexisting_8',['replace_existing',['../structedit__atlas_1_1services_1_1TimelineDocumentExportRequest.html#a977b792fa54baa9c914bcbf2597db1ec',1,'edit_atlas::services::TimelineDocumentExportRequest::replace_existing'],['../structedit__atlas_1_1support_1_1SupportBundleRequest.html#a8c1a642488a8d2621b727f8a38b63c45',1,'edit_atlas::support::SupportBundleRequest::replace_existing']]],
+  ['row_5fstride_9',['row_stride',['../structedit__atlas_1_1core_1_1RgbImage.html#adab4e8639d49e8aee226ade3e8cd1169',1,'edit_atlas::core::RgbImage']]]
 ];

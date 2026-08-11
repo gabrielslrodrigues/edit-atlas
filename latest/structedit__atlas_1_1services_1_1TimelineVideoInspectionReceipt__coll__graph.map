@@ -1,0 +1,11 @@
+<map id="edit_atlas::services::TimelineVideoInspectionReceipt" name="edit_atlas::services::TimelineVideoInspectionReceipt">
+<area shape="rect" id="Node000001" title="A validated video whose decoder remains available for frame extraction." alt="" coords="727,37,967,77"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="393,5,617,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="631,34,727,43,726,49,631,40"/>
+<area shape="rect" id="Node000003" href="$classedit__atlas_1_1media_1_1VideoDecoder.html" title="Decodes a selected video stream without depending on a frontend toolkit." alt="" coords="31,5,174,45"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="188,23,393,23,393,28,188,28"/>
+<area shape="rect" id="Node000004" href="$structedit__atlas_1_1services_1_1TimelineVideoMapping.html" title="Exact mapping between an accepted video and its record timeline." alt="" coords="415,69,595,109"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="609,77,726,66,727,71,609,82"/>
+<area shape="rect" id="Node000005" href="$classedit__atlas_1_1core_1_1Timecode.html" title="A validated SMPTE&#45;style timecode label and its exact frame rate." alt="" coords="5,77,200,102"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="214,87,415,87,415,92,214,92"/>
+</map>

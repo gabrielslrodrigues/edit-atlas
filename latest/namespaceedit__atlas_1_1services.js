@@ -1,5 +1,20 @@
 var namespaceedit__atlas_1_1services =
 [
+    [ "timeline_video_diagnostic_code", "namespaceedit__atlas_1_1services_1_1timeline__video__diagnostic__code.html", [
+      [ "kDurationMismatch", "namespaceedit__atlas_1_1services_1_1timeline__video__diagnostic__code.html#a79aa4c77537711169f30977f12639f68", null ],
+      [ "kEmptyTimeline", "namespaceedit__atlas_1_1services_1_1timeline__video__diagnostic__code.html#a1b5c3acfe41d1e8895321a711de89436", null ],
+      [ "kFrameRateMismatch", "namespaceedit__atlas_1_1services_1_1timeline__video__diagnostic__code.html#a906bad123cc304930e5303fad4071973", null ],
+      [ "kInconsistentTimeline", "namespaceedit__atlas_1_1services_1_1timeline__video__diagnostic__code.html#a8e4318ed3b39362f4b3b3b27aad38ce7", null ],
+      [ "kInvalidTimecode", "namespaceedit__atlas_1_1services_1_1timeline__video__diagnostic__code.html#a96636c28243aff27829afbc763b36a80", null ],
+      [ "kMissingDuration", "namespaceedit__atlas_1_1services_1_1timeline__video__diagnostic__code.html#a315141a42c9e9343c563bf25d91aa093", null ],
+      [ "kMissingFrameRate", "namespaceedit__atlas_1_1services_1_1timeline__video__diagnostic__code.html#a375937fd29cbfacf7684408244adb0b9", null ],
+      [ "kMissingTimecode", "namespaceedit__atlas_1_1services_1_1timeline__video__diagnostic__code.html#a18d43152b607c8b1583b04ed4a17c560", null ],
+      [ "kOpenFailed", "namespaceedit__atlas_1_1services_1_1timeline__video__diagnostic__code.html#a9527d747fa15576b83ade3ed764e0d72", null ],
+      [ "kTimecodeModeMismatch", "namespaceedit__atlas_1_1services_1_1timeline__video__diagnostic__code.html#a232166ccb5221e75fcbab980f8898ec7", null ],
+      [ "kTimelineStartMismatch", "namespaceedit__atlas_1_1services_1_1timeline__video__diagnostic__code.html#a43c2746a65262f7ccb685b9bca83cdd6", null ],
+      [ "kUnsupportedContainer", "namespaceedit__atlas_1_1services_1_1timeline__video__diagnostic__code.html#acc09c9207e1be13e71f2b377cdb7cfb0", null ],
+      [ "kVariableFrameRate", "namespaceedit__atlas_1_1services_1_1timeline__video__diagnostic__code.html#a0e234874f8b1944d209408095f63e7dd", null ]
+    ] ],
     [ "TimelineDocumentExportFailure", "structedit__atlas_1_1services_1_1TimelineDocumentExportFailure.html", "structedit__atlas_1_1services_1_1TimelineDocumentExportFailure" ],
     [ "TimelineDocumentExportReceipt", "structedit__atlas_1_1services_1_1TimelineDocumentExportReceipt.html", "structedit__atlas_1_1services_1_1TimelineDocumentExportReceipt" ],
     [ "TimelineDocumentExportRequest", "structedit__atlas_1_1services_1_1TimelineDocumentExportRequest.html", "structedit__atlas_1_1services_1_1TimelineDocumentExportRequest" ],
@@ -10,8 +25,18 @@ var namespaceedit__atlas_1_1services =
     [ "TimelineDocumentImportService", "classedit__atlas_1_1services_1_1TimelineDocumentImportService.html", "classedit__atlas_1_1services_1_1TimelineDocumentImportService" ],
     [ "TimelineDurationFilterCondition", "structedit__atlas_1_1services_1_1TimelineDurationFilterCondition.html", "structedit__atlas_1_1services_1_1TimelineDurationFilterCondition" ],
     [ "TimelineEditTypeFilterCondition", "structedit__atlas_1_1services_1_1TimelineEditTypeFilterCondition.html", "structedit__atlas_1_1services_1_1TimelineEditTypeFilterCondition" ],
+    [ "TimelineEventFrame", "structedit__atlas_1_1services_1_1TimelineEventFrame.html", "structedit__atlas_1_1services_1_1TimelineEventFrame" ],
     [ "TimelineFilterError", "structedit__atlas_1_1services_1_1TimelineFilterError.html", "structedit__atlas_1_1services_1_1TimelineFilterError" ],
     [ "TimelineFilterQuery", "structedit__atlas_1_1services_1_1TimelineFilterQuery.html", "structedit__atlas_1_1services_1_1TimelineFilterQuery" ],
+    [ "TimelineFrameExtractionFailure", "structedit__atlas_1_1services_1_1TimelineFrameExtractionFailure.html", "structedit__atlas_1_1services_1_1TimelineFrameExtractionFailure" ],
+    [ "TimelineFrameExtractionOptions", "structedit__atlas_1_1services_1_1TimelineFrameExtractionOptions.html", "structedit__atlas_1_1services_1_1TimelineFrameExtractionOptions" ],
+    [ "TimelineFrameExtractionProgress", "structedit__atlas_1_1services_1_1TimelineFrameExtractionProgress.html", "structedit__atlas_1_1services_1_1TimelineFrameExtractionProgress" ],
+    [ "TimelineFrameExtractionReceipt", "structedit__atlas_1_1services_1_1TimelineFrameExtractionReceipt.html", "structedit__atlas_1_1services_1_1TimelineFrameExtractionReceipt" ],
+    [ "TimelineFrameExtractionService", "classedit__atlas_1_1services_1_1TimelineFrameExtractionService.html", "classedit__atlas_1_1services_1_1TimelineFrameExtractionService" ],
+    [ "TimelineRenderedVideoExportFailure", "structedit__atlas_1_1services_1_1TimelineRenderedVideoExportFailure.html", "structedit__atlas_1_1services_1_1TimelineRenderedVideoExportFailure" ],
+    [ "TimelineRenderedVideoExportReceipt", "structedit__atlas_1_1services_1_1TimelineRenderedVideoExportReceipt.html", "structedit__atlas_1_1services_1_1TimelineRenderedVideoExportReceipt" ],
+    [ "TimelineRenderedVideoExportRequest", "structedit__atlas_1_1services_1_1TimelineRenderedVideoExportRequest.html", "structedit__atlas_1_1services_1_1TimelineRenderedVideoExportRequest" ],
+    [ "TimelineRenderedVideoExportService", "classedit__atlas_1_1services_1_1TimelineRenderedVideoExportService.html", "classedit__atlas_1_1services_1_1TimelineRenderedVideoExportService" ],
     [ "TimelineTemplate", "structedit__atlas_1_1services_1_1TimelineTemplate.html", "structedit__atlas_1_1services_1_1TimelineTemplate" ],
     [ "TimelineTemplateFailure", "structedit__atlas_1_1services_1_1TimelineTemplateFailure.html", "structedit__atlas_1_1services_1_1TimelineTemplateFailure" ],
     [ "TimelineTemplateLoadDiagnostic", "structedit__atlas_1_1services_1_1TimelineTemplateLoadDiagnostic.html", "structedit__atlas_1_1services_1_1TimelineTemplateLoadDiagnostic" ],
@@ -19,14 +44,24 @@ var namespaceedit__atlas_1_1services =
     [ "TimelineTextFilterCondition", "structedit__atlas_1_1services_1_1TimelineTextFilterCondition.html", "structedit__atlas_1_1services_1_1TimelineTextFilterCondition" ],
     [ "TimelineTimecodeFilterCondition", "structedit__atlas_1_1services_1_1TimelineTimecodeFilterCondition.html", "structedit__atlas_1_1services_1_1TimelineTimecodeFilterCondition" ],
     [ "TimelineTrackKindFilterCondition", "structedit__atlas_1_1services_1_1TimelineTrackKindFilterCondition.html", "structedit__atlas_1_1services_1_1TimelineTrackKindFilterCondition" ],
+    [ "TimelineVideoInspectionFailure", "structedit__atlas_1_1services_1_1TimelineVideoInspectionFailure.html", "structedit__atlas_1_1services_1_1TimelineVideoInspectionFailure" ],
+    [ "TimelineVideoInspectionReceipt", "structedit__atlas_1_1services_1_1TimelineVideoInspectionReceipt.html", "structedit__atlas_1_1services_1_1TimelineVideoInspectionReceipt" ],
+    [ "TimelineVideoInspectionService", "classedit__atlas_1_1services_1_1TimelineVideoInspectionService.html", "classedit__atlas_1_1services_1_1TimelineVideoInspectionService" ],
+    [ "TimelineVideoMapping", "structedit__atlas_1_1services_1_1TimelineVideoMapping.html", "structedit__atlas_1_1services_1_1TimelineVideoMapping" ],
+    [ "TimelineVideoValidationFailure", "structedit__atlas_1_1services_1_1TimelineVideoValidationFailure.html", "structedit__atlas_1_1services_1_1TimelineVideoValidationFailure" ],
     [ "TimelineDocumentExportResult", "namespaceedit__atlas_1_1services.html#a8e3f7887f53fdd89a41d881d77944ee6", null ],
     [ "TimelineDocumentImportResult", "namespaceedit__atlas_1_1services.html#af20261a97560bf1f4d7037f72577677e", null ],
     [ "TimelineEventSelection", "namespaceedit__atlas_1_1services.html#aa1ea8b9848e624b54ce625d826a79ad2", null ],
     [ "TimelineFilterCondition", "namespaceedit__atlas_1_1services.html#a1b72f32b86fa278303665df2b69bb2f5", null ],
     [ "TimelineFilterResult", "namespaceedit__atlas_1_1services.html#ab697ed6d82e68747bc181eed79e8dfd0", null ],
+    [ "TimelineFrameExtractionProgressCallback", "namespaceedit__atlas_1_1services.html#a92d9e26c06d8fb544575d4633c4e4915", null ],
+    [ "TimelineFrameExtractionResult", "namespaceedit__atlas_1_1services.html#a0794e68aa066fdf0683927c146df523d", null ],
+    [ "TimelineRenderedVideoExportResult", "namespaceedit__atlas_1_1services.html#a1e0f7e3c656537061aad7acb4b89a174", null ],
     [ "TimelineTemplateLoadResult", "namespaceedit__atlas_1_1services.html#a0c0aabf992515a713b9e0441efab6b0b", null ],
     [ "TimelineTemplateMutationResult", "namespaceedit__atlas_1_1services.html#aa82822dd048e8c57c6d527eaf177b9d4", null ],
     [ "TimelineTemplateResult", "namespaceedit__atlas_1_1services.html#afdb3b4a2c63d2cc1fb5a447a72476686", null ],
+    [ "TimelineVideoInspectionResult", "namespaceedit__atlas_1_1services.html#a4b6976b54aa69f7b22fb2534932f8dff", null ],
+    [ "TimelineVideoValidationResult", "namespaceedit__atlas_1_1services.html#a1a257c084739c24b265639386ce01f15", null ],
     [ "TimelineDocumentExportFailureKind", "namespaceedit__atlas_1_1services.html#a01381282229cdf248b428212bb48fd20", [
       [ "kInvalidRequest", "namespaceedit__atlas_1_1services.html#a01381282229cdf248b428212bb48fd20a6c4ae9ad285a625b8bfdc0a62e289f6e", null ],
       [ "kExportFailed", "namespaceedit__atlas_1_1services.html#a01381282229cdf248b428212bb48fd20a797ffa4b2d6944dedd466a142de3368b", null ],
@@ -42,6 +77,12 @@ var namespaceedit__atlas_1_1services =
     [ "TimelineFilterCombination", "namespaceedit__atlas_1_1services.html#a86889d992a4a1acffa24c2a0b204bdcb", [
       [ "kAll", "namespaceedit__atlas_1_1services.html#a86889d992a4a1acffa24c2a0b204bdcba34bdbffdb1c0e1b603f58fc0d49548b6", null ],
       [ "kAny", "namespaceedit__atlas_1_1services.html#a86889d992a4a1acffa24c2a0b204bdcba198158a4155a179dc73ad4bea1159c1d", null ]
+    ] ],
+    [ "TimelineRenderedVideoExportFailureKind", "namespaceedit__atlas_1_1services.html#acf20a33e742b5b24008888c16194f3bf", [
+      [ "kVideoRequired", "namespaceedit__atlas_1_1services.html#acf20a33e742b5b24008888c16194f3bfa016722b2273cd3b38ee39b72b4bbe2bd", null ],
+      [ "kVideoInspectionFailed", "namespaceedit__atlas_1_1services.html#acf20a33e742b5b24008888c16194f3bfa2bd3afe90acb50923009b723ec025ba9", null ],
+      [ "kFrameExtractionFailed", "namespaceedit__atlas_1_1services.html#acf20a33e742b5b24008888c16194f3bfa132fababb79ab523fefd76dd171ea1ac", null ],
+      [ "kDocumentExportFailed", "namespaceedit__atlas_1_1services.html#acf20a33e742b5b24008888c16194f3bfa4c9987df203aa4427619aa32d522532a", null ]
     ] ],
     [ "TimelineTemplateFailureKind", "namespaceedit__atlas_1_1services.html#aaf8351b06f879f09023aca8b83fdbde4", [
       [ "kNotLoaded", "namespaceedit__atlas_1_1services.html#aaf8351b06f879f09023aca8b83fdbde4a66f6c8c8f899853a80418298208a12fa", null ],
@@ -66,5 +107,7 @@ var namespaceedit__atlas_1_1services =
     [ "CreateBuiltInFormatRegistry", "namespaceedit__atlas_1_1services.html#a13782bb5f3054df75536d5a2d53dba00", null ],
     [ "FilterTimelineEvents", "namespaceedit__atlas_1_1services.html#a21e0d56b0cc809d962b3adfc4ab77c13", null ],
     [ "GenerateTimelineTemplateIdentifier", "namespaceedit__atlas_1_1services.html#a6ddb5a97676c8b632bf61d6c220f65f3", null ],
-    [ "SelectTimelineEvents", "namespaceedit__atlas_1_1services.html#ae172b346ed16079935468b7631c2058f", null ]
+    [ "SelectTimelineEvents", "namespaceedit__atlas_1_1services.html#ae172b346ed16079935468b7631c2058f", null ],
+    [ "kRenderedVideoInputContract", "namespaceedit__atlas_1_1services.html#ab5a007e8edfcf88686e010bbc19e2f17", null ],
+    [ "kVideoDurationToleranceFrames", "namespaceedit__atlas_1_1services.html#ad486cce46fb280caee6a111b189906b2", null ]
 ];

@@ -30,16 +30,18 @@ var NAVTREE =
       [ "Core model and pipeline", "api_architecture.html#autotoc_md0", null ],
       [ "Format extensions", "api_architecture.html#autotoc_md1", null ],
       [ "Application services", "api_architecture.html#autotoc_md2", null ],
-      [ "Diagnostic support", "api_architecture.html#autotoc_md3", null ],
-      [ "Frontend boundary", "api_architecture.html#autotoc_md4", null ]
+      [ "Media decoding", "api_architecture.html#autotoc_md3", null ],
+      [ "Diagnostic support", "api_architecture.html#autotoc_md4", null ],
+      [ "Frontend boundary", "api_architecture.html#autotoc_md5", null ]
     ] ],
     [ "Command-line interface", "md_docs_2cli.html", [
-      [ "Convert an EDL", "md_docs_2cli.html#autotoc_md9", null ],
-      [ "Workbook options", "md_docs_2cli.html#autotoc_md10", null ],
-      [ "Existing destinations", "md_docs_2cli.html#autotoc_md11", null ],
-      [ "Diagnostics and exit codes", "md_docs_2cli.html#autotoc_md12", null ],
-      [ "Executable locations", "md_docs_2cli.html#autotoc_md13", null ],
-      [ "Privacy and encoding", "md_docs_2cli.html#autotoc_md14", null ]
+      [ "Convert an EDL", "md_docs_2cli.html#autotoc_md10", null ],
+      [ "Workbook options", "md_docs_2cli.html#autotoc_md11", null ],
+      [ "Initial-frame images", "md_docs_2cli.html#autotoc_md12", null ],
+      [ "Existing destinations", "md_docs_2cli.html#autotoc_md13", null ],
+      [ "Diagnostics and exit codes", "md_docs_2cli.html#autotoc_md14", null ],
+      [ "Executable locations", "md_docs_2cli.html#autotoc_md15", null ],
+      [ "Privacy and encoding", "md_docs_2cli.html#autotoc_md16", null ]
     ] ],
     [ "Namespaces", "namespaces.html", [
       [ "Namespace List", "namespaces.html", "namespaces_dup" ],
@@ -58,7 +60,7 @@ var NAVTREE =
       [ "Class Members", "functions.html", [
         [ "All", "functions.html", "functions_dup" ],
         [ "Functions", "functions_func.html", null ],
-        [ "Variables", "functions_vars.html", null ]
+        [ "Variables", "functions_vars.html", "functions_vars" ]
       ] ]
     ] ],
     [ "Files", "files.html", [
@@ -70,9 +72,10 @@ var NAVTREE =
 var NAVTREEINDEX =
 [
 "annotated.html",
-"md_docs_2cli.html#autotoc_md13",
-"structedit__atlas_1_1core_1_1ExportResult.html",
-"structedit__atlas_1_1support_1_1LoggingInitializationFailure.html#a2d9a41e7cff59607cc889081ddd36ed9"
+"files.html",
+"namespaceedit__atlas_1_1services_1_1timeline__video__diagnostic__code.html#a375937fd29cbfacf7684408244adb0b9",
+"structedit__atlas_1_1media_1_1VideoMediaInfo.html#a826b32f9ea7e3dc9654f9540c16e2af3",
+"structedit__atlas_1_1support_1_1DiagnosticEnvironment.html#a0434b43221813ea5308f7d01c9d288c0"
 ];
 
 var SYNCONMSG = 'click to disable panel synchronisation';
