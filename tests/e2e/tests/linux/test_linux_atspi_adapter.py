@@ -66,6 +66,40 @@ class RunningProcess:
         return None
 
 
+class AccessibilityNode:
+    def __init__(
+        self,
+        identifier: str,
+        children: tuple[object, ...] = (),
+        *,
+        name: str = "",
+        role_name: str = "panel",
+    ) -> None:
+        self.accessible_id = identifier
+        self.children = children
+        self.name = name
+        self.role_name = role_name
+        self.showing = True
+
+
+class UnexpectedTraversalNode:
+    accessible_id = "mainWindow"
+    showing = True
+
+    @property
+    def children(self) -> tuple[object, ...]:
+        raise AssertionError("inactive window was traversed")
+
+
+class TimelineTableNode:
+    accessible_id = "QApplication.mainWindow.eventTable"
+    showing = True
+
+    @property
+    def children(self) -> tuple[object, ...]:
+        raise AssertionError("timeline table descendants were traversed")
+
+
 class PopupNode:
     children = ()
     role_name = "popup menu"
@@ -141,6 +175,45 @@ def application_session(artifact_directory: Path) -> LinuxApplicationSession:
         artifact_directory=artifact_directory,
         timeout=1.0,
     )
+
+
+def test_identifier_lookup_prioritizes_the_newest_window(tmp_path: Path) -> None:
+    session = application_session(tmp_path)
+    inactive = UnexpectedTraversalNode()
+    dialog = AccessibilityNode("progressDialog")
+    application = AccessibilityNode("application", (inactive, dialog))
+    session._application = application
+
+    assert session._find_identifier(application, "progressDialog") is dialog
+
+
+def test_identifier_lookup_skips_timeline_table_descendants(
+    tmp_path: Path,
+) -> None:
+    session = application_session(tmp_path)
+    dialog = AccessibilityNode("progressDialog")
+    main_window = AccessibilityNode(
+        "mainWindow", (TimelineTableNode(), dialog)
+    )
+    application = AccessibilityNode("application", (main_window,))
+    session._application = application
+
+    assert session._find_identifier(application, "progressDialog") is dialog
+
+
+def test_named_lookup_prioritizes_dialogs_and_skips_timeline_rows(
+    tmp_path: Path,
+) -> None:
+    session = application_session(tmp_path)
+    dialog_action = AccessibilityNode(
+        "cancelButton", name="Cancel", role_name="push button"
+    )
+    main_window = AccessibilityNode("mainWindow", (TimelineTableNode(),))
+    dialog = AccessibilityNode("progressDialog", (dialog_action,))
+    application = AccessibilityNode("application", (main_window, dialog))
+    session._application = application
+
+    assert session._find_named(application, ("Cancel",)) is dialog_action
 
 
 @pytest.mark.parametrize("action", ["Press", "ShowMenu"])

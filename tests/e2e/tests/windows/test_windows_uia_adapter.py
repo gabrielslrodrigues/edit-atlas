@@ -279,6 +279,66 @@ def test_identifier_lookup_accepts_qt_hierarchical_automation_id(
     assert session._find_identifier_in(root, "otherSelector") is None
 
 
+def test_identifier_lookup_checks_window_before_its_descendants(
+    tmp_path: Path,
+) -> None:
+    session = application_session(tmp_path)
+
+    class Window(Node):
+        def descendants(self) -> list[Node]:
+            raise AssertionError("matching window descendants were traversed")
+
+    window = Window("Edit Atlas", "Window", automation_id="mainWindow")
+
+    assert session._find_identifier_in(window, "mainWindow") is window
+
+
+def test_named_lookup_checks_window_before_its_descendants(
+    tmp_path: Path,
+) -> None:
+    session = application_session(tmp_path)
+
+    class Window(Node):
+        def descendants(self) -> list[Node]:
+            raise AssertionError("matching window descendants were traversed")
+
+    window = Window("Export progress", "Window")
+
+    assert session._find_named(("Export progress",), root=window) is window
+
+
+def test_lookup_checks_all_windows_before_any_descendants(
+    tmp_path: Path,
+) -> None:
+    session = application_session(tmp_path)
+
+    class MainWindow(Node):
+        def descendants(self) -> list[Node]:
+            raise AssertionError("main window descendants were traversed")
+
+    main_window = MainWindow(
+        "Edit Atlas", "Window", automation_id="mainWindow"
+    )
+    dialog = Node(
+        "Export progress",
+        "Window",
+        automation_id="spreadsheetExportProgressDialog",
+    )
+
+    class Desktop:
+        @staticmethod
+        def windows(**criteria: Any) -> list[Node]:
+            assert criteria == {"process": RunningProcess.pid}
+            return [dialog, main_window]
+
+    session._desktop = Desktop()
+
+    assert (
+        session._find_identifier("spreadsheetExportProgressDialog") is dialog
+    )
+    assert session._find_named(("Export progress",)) is dialog
+
+
 def test_native_file_dialog_uses_win32_backend_without_uia_traversal(
     tmp_path: Path,
 ) -> None:

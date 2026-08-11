@@ -20,16 +20,22 @@ def wait_until(
     *,
     timeout: float,
     interval: float = 0.05,
+    consecutive: int = 1,
     description: str = "condition",
 ) -> Value:
-    if timeout <= 0 or interval <= 0:
-        raise ValueError("timeout and interval must be positive")
+    if timeout <= 0 or interval <= 0 or consecutive <= 0:
+        raise ValueError("timeout, interval, and consecutive must be positive")
     deadline = time.monotonic() + timeout
     wake = Event()
+    accepted = 0
     while True:
         value = observe()
         if accept(value):
-            return value
+            accepted += 1
+            if accepted >= consecutive:
+                return value
+        else:
+            accepted = 0
         remaining = deadline - time.monotonic()
         if remaining <= 0:
             raise PollTimeoutError(

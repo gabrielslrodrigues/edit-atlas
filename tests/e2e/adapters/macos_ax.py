@@ -200,6 +200,7 @@ class MacApplicationSession:
             lambda: self.has_element(identifier),
             lambda present: not present,
             timeout=self._timeout,
+            consecutive=2,
             description=f"accessible identifier {identifier!r} to disappear",
         )
 
@@ -392,12 +393,29 @@ class MacApplicationSession:
             description=f"{identifier!r} selection to become {expected!r}",
         )
 
+    def wait_sensitive(self, identifier: str, expected: bool) -> bool:
+        node = self.element(identifier)._raw
+        return wait_until(
+            lambda: self._sensitive_state(node),
+            lambda sensitive: sensitive == expected,
+            timeout=self._timeout,
+            description=f"{identifier!r} sensitivity to become {expected}",
+        )
+
     def wait_text_contains(self, identifier: str, expected: str) -> str:
         return wait_until(
             lambda: self.text(identifier),
             lambda value: expected in value,
             timeout=self._timeout,
             description=f"{identifier!r} text to contain {expected!r}",
+        )
+
+    def wait_text_nonempty(self, identifier: str) -> str:
+        return wait_until(
+            lambda: self.text(identifier),
+            lambda value: bool(value),
+            timeout=self._timeout,
+            description=f"{identifier!r} text to become nonempty",
         )
 
     def capture_artifacts(self, stem: str) -> None:
@@ -832,6 +850,11 @@ class MacApplicationSession:
     def _selected_state_while_running(self, node: Any) -> bool:
         self._ensure_running()
         return self._is_selected(node)
+
+    def _sensitive_state(self, node: Any) -> bool | None:
+        self._ensure_running()
+        value = self._attribute(node, "AXEnabled", None)
+        return None if value is None else bool(value)
 
     def _is_showing(self, node: Any) -> bool:
         if bool(self._attribute(node, "AXHidden", False)):

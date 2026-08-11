@@ -25,6 +25,24 @@ target_link_libraries(edit_atlas_media_fixture PRIVATE ${FFMPEG_LIBRARIES})
 target_compile_features(edit_atlas_media_fixture PUBLIC cxx_std_23)
 edit_atlas_set_project_warnings(edit_atlas_media_fixture)
 
+add_executable(edit_atlas_e2e_media_fixture_generator)
+
+target_sources(
+    edit_atlas_e2e_media_fixture_generator
+    PRIVATE e2e_fixture_generator.cpp
+)
+
+target_link_libraries(
+    edit_atlas_e2e_media_fixture_generator
+    PRIVATE EditAtlas::MediaFixture
+)
+
+target_compile_features(
+    edit_atlas_e2e_media_fixture_generator
+    PRIVATE cxx_std_23
+)
+edit_atlas_set_project_warnings(edit_atlas_e2e_media_fixture_generator)
+
 add_executable(edit_atlas_media_integration_tests)
 
 target_sources(
