@@ -1,10 +1,11 @@
 #include "accessibility.hpp"
 
-#include <QAction>
 #include <QAbstractItemView>
 #include <QAccessible>
 #include <QAccessibleWidget>
+#include <QAction>
 #include <QComboBox>
+#include <QCoreApplication>
 #include <QDialogButtonBox>
 #include <QInputDialog>
 #include <QItemSelectionModel>
@@ -13,7 +14,6 @@
 #include <QListWidget>
 #include <QListWidgetItem>
 #include <QMenu>
-#include <QPointer>
 #include <QPushButton>
 #include <QRect>
 #include <QString>
@@ -25,7 +25,6 @@
 #include <QWidget>
 
 #include <algorithm>
-#include <memory>
 #include <utility>
 #include <vector>
 
@@ -273,6 +272,15 @@ class AccessibleProjectionList final : public QAccessibleWidget,
 public:
     explicit AccessibleProjectionList(QListWidget *list)
         : QAccessibleWidget{list, QAccessible::List} {}
+    ~AccessibleProjectionList(void) override {
+        if (QCoreApplication::closingDown()) {
+            return;
+        }
+        for (auto *child : children_) {
+            QAccessible::deleteAccessibleInterface(
+                QAccessible::uniqueId(child));
+        }
+    }
 
     void *interface_cast(QAccessible::InterfaceType type) override {
         if (type == QAccessible::SelectionInterface) {
@@ -297,16 +305,15 @@ public:
         }
         auto *item = list()->item(index);
         const auto match = std::ranges::find_if(
-            children_, [item](const auto &candidate) {
+            children_, [item](const auto *candidate) {
                 return candidate->item() == item;
             });
         if (match != children_.end()) {
-            return match->get();
+            return *match;
         }
-        children_.push_back(
-            std::make_unique<AccessibleProjectionItem>(
-                const_cast<AccessibleProjectionList *>(this), item));
-        return children_.back().get();
+        children_.push_back(new AccessibleProjectionItem{
+            const_cast<AccessibleProjectionList *>(this), item});
+        return children_.back();
     }
 
     int childCount(void) const override { return list()->count(); }
@@ -376,7 +383,7 @@ public:
     }
 
 private:
-    mutable std::vector<std::unique_ptr<AccessibleProjectionItem>> children_;
+    mutable std::vector<AccessibleProjectionItem *> children_;
 };
 
 bool AccessibleProjectionItem::isValid(void) const {

@@ -578,18 +578,28 @@ jobs:
           fi
           sudo apt-get install --yes "${packages[0]}"
 
+      - name: Configure Linux crash dumps
+        shell: bash
+        run: |
+          dump_directory="${GITHUB_WORKSPACE}/build/e2e/crash-dumps"
+          mkdir -p "$dump_directory"
+          cat /proc/sys/kernel/core_pattern >build/e2e/original-core-pattern
+          sudo sysctl -w \
+            "kernel.core_pattern=${dump_directory}/core.%e.%p.%t"
+
       - name: Run packaged CLI and desktop E2E tests
         shell: bash
         env:
           GSETTINGS_BACKEND: memory
-        run: >-
-          dbus-run-session --
-          xvfb-run
-          --auto-servernum
-          --server-args="-screen 0 1440x1000x24 -nolisten tcp"
-          tests/e2e/run-linux.sh
-          --app /usr/bin/edit-atlas
-          --cli /usr/bin/edit-atlas-cli
+        run: |
+          ulimit -c unlimited
+          dbus-run-session -- \
+            xvfb-run \
+            --auto-servernum \
+            --server-args="-screen 0 1440x1000x24 -nolisten tcp" \
+            tests/e2e/run-linux.sh \
+            --app /usr/bin/edit-atlas \
+            --cli /usr/bin/edit-atlas-cli
 
       - name: Upload Linux E2E reports and artifacts
         if: always()
@@ -599,6 +609,7 @@ jobs:
           path: |
             build/e2e/reports
             build/e2e/artifacts
+            build/e2e/crash-dumps
             build/e2e/output
           if-no-files-found: ignore
           retention-days: 7
@@ -606,6 +617,10 @@ jobs:
       - name: Remove installed package
         if: always()
         run: |
+          if [[ -f build/e2e/original-core-pattern ]]; then
+            sudo sysctl -w \
+              "kernel.core_pattern=$(<build/e2e/original-core-pattern)"
+          fi
           if dpkg-query --show edit-atlas >/dev/null 2>&1; then
             sudo apt-get remove --yes edit-atlas
           fi
@@ -623,8 +638,10 @@ jobs:
         include:
           - name: Apple Silicon
             os: macos-15
+            artifact: apple-silicon
           - name: Intel
             os: macos-15-intel
+            artifact: intel
 
     steps:
       - name: Check out source
@@ -639,8 +656,29 @@ jobs:
           name: edit-atlas-universal-osx-packages
           path: build/packages/universal-osx
 
+      - name: Mark macOS crash-report window
+        run: |
+          mkdir -p build/package-check-macos/crash-reports
+          touch build/package-check-macos/crash-report-start
+
       - name: Verify package
         run: ./scripts/ci/verify-macos-package.sh build/packages/universal-osx
+
+      - name: Collect macOS crash reports
+        if: always()
+        run: |
+          ./scripts/ci/collect-macos-crash-reports.sh \
+            build/package-check-macos/crash-report-start \
+            build/package-check-macos/crash-reports
+
+      - name: Upload macOS crash reports
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: macos-package-crash-reports-${{ matrix.artifact }}
+          path: build/package-check-macos/crash-reports
+          if-no-files-found: ignore
+          retention-days: 7
 
   e2e-macos-package:
     # GitHub-hosted macOS runners cannot grant Accessibility permission to the
@@ -694,11 +732,23 @@ jobs:
           )"
           echo "EDIT_ATLAS_E2E_PACKAGE_ID=${package_id}" >>"${GITHUB_ENV}"
 
+      - name: Mark macOS crash-report window
+        run: |
+          mkdir -p build/e2e/crash-dumps
+          touch build/e2e/crash-report-start
+
       - name: Run packaged CLI and desktop E2E tests
         run: |
           tests/e2e/run-macos.sh \
             --app /Applications/edit-atlas.app/Contents/MacOS/edit-atlas \
             --cli /Applications/edit-atlas.app/Contents/MacOS/edit-atlas-cli
+
+      - name: Collect macOS crash reports
+        if: always()
+        run: |
+          ./scripts/ci/collect-macos-crash-reports.sh \
+            build/e2e/crash-report-start \
+            build/e2e/crash-dumps
 
       - name: Remove installed package and test state
         if: always()
@@ -718,6 +768,7 @@ jobs:
           path: |
             build/e2e/reports
             build/e2e/artifacts
+            build/e2e/crash-dumps
             build/e2e/output
           if-no-files-found: ignore
           retention-days: 7
@@ -814,6 +865,37 @@ jobs:
             throw "MSI installation failed with exit code $($process.ExitCode)."
           }
 
+      - name: Configure Windows crash dumps
+        shell: pwsh
+        run: |
+          $dumpDirectory = Join-Path `
+            $env:GITHUB_WORKSPACE "build/e2e/crash-dumps"
+          New-Item -ItemType Directory -Force $dumpDirectory | Out-Null
+          $registryRoot = `
+            "HKCU:\Software\Microsoft\Windows\Windows Error Reporting\LocalDumps"
+          foreach ($executable in @("edit-atlas.exe", "edit-atlas-cli.exe")) {
+            $registryPath = Join-Path $registryRoot $executable
+            New-Item -Path $registryPath -Force | Out-Null
+            New-ItemProperty `
+              -Path $registryPath `
+              -Name DumpFolder `
+              -PropertyType ExpandString `
+              -Value $dumpDirectory `
+              -Force | Out-Null
+            New-ItemProperty `
+              -Path $registryPath `
+              -Name DumpType `
+              -PropertyType DWord `
+              -Value 2 `
+              -Force | Out-Null
+            New-ItemProperty `
+              -Path $registryPath `
+              -Name DumpCount `
+              -PropertyType DWord `
+              -Value 5 `
+              -Force | Out-Null
+          }
+
       - name: Run packaged CLI and desktop E2E tests
         shell: pwsh
         run: |
@@ -842,6 +924,15 @@ jobs:
               throw "MSI uninstall failed with exit code $($process.ExitCode)."
             }
           }
+          $registryRoot = `
+            "HKCU:\Software\Microsoft\Windows\Windows Error Reporting\LocalDumps"
+          foreach ($executable in @("edit-atlas.exe", "edit-atlas-cli.exe")) {
+            Remove-Item `
+              (Join-Path $registryRoot $executable) `
+              -Recurse `
+              -Force `
+              -ErrorAction SilentlyContinue
+          }
           Remove-Item build/e2e/state -Recurse -Force -ErrorAction SilentlyContinue
 
       - name: Upload Windows E2E reports and artifacts
@@ -852,6 +943,7 @@ jobs:
           path: |
             build/e2e/reports
             build/e2e/artifacts
+            build/e2e/crash-dumps
             build/e2e/output
             build/e2e/*.log
           if-no-files-found: ignore
