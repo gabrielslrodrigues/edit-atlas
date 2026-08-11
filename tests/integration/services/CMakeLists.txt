@@ -6,9 +6,10 @@ target_sources(
         built_in_formats_test.cpp
         timeline_document_export_service_test.cpp
         timeline_document_import_service_test.cpp
-        test_main.cpp
+        timeline_frame_extraction_service_test.cpp
         timeline_template_service_test.cpp
         timeline_video_inspection_service_test.cpp
+        test_main.cpp
 )
 
 target_link_libraries(

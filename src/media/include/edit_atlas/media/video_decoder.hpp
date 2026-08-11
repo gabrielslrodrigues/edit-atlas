@@ -112,10 +112,22 @@ struct VideoMediaInfo final {
     std::size_t selected_video_stream;
 };
 
-/// An RGB24 frame decoded from the selected video stream.
-struct DecodedVideoFrame final {
-    /// The presentation timestamp in the selected stream's time base.
-    std::optional<std::int64_t> presentation_timestamp;
+/// Maximum dimensions for decoded frame output.
+struct VideoFrameSizeLimit final {
+    /// Maximum output width in pixels.
+    std::int32_t maximum_width;
+    /// Maximum output height in pixels.
+    std::int32_t maximum_height;
+};
+
+/// Options controlling decoded frame output without changing its timing.
+struct VideoFrameOutputOptions final {
+    /// Optional bounds; absent bounds preserve the source dimensions.
+    std::optional<VideoFrameSizeLimit> size_limit;
+};
+
+/// An owned packed RGB24 image.
+struct RgbImage final {
     /// The frame width in pixels.
     std::int32_t width;
     /// The frame height in pixels.
@@ -124,6 +136,16 @@ struct DecodedVideoFrame final {
     std::size_t row_stride;
     /// Top-to-bottom packed RGB24 pixels.
     std::vector<std::byte> pixels;
+};
+
+/// An RGB24 frame decoded from the selected video stream.
+struct DecodedVideoFrame final {
+    /// Zero-based frame index relative to the beginning of the video stream.
+    std::optional<std::int64_t> frame_index;
+    /// The presentation timestamp in the selected stream's time base.
+    std::optional<std::int64_t> presentation_timestamp;
+    /// Owned RGB24 output at the requested size.
+    RgbImage image;
     /// Whether the decoder identifies this frame as a key frame.
     bool key_frame;
 };
@@ -213,10 +235,24 @@ class VideoDecoder {
     [[nodiscard]] virtual std::expected<void, VideoDecoderFailure>
     Seek(std::int64_t timestamp) = 0;
 
+    /// Seeks backward to a usable point at or before a zero-based frame index.
+    [[nodiscard]] virtual std::expected<void, VideoDecoderFailure>
+    SeekToFrame(std::int64_t frame_index) = 0;
+
+    /// Decodes the next selected-stream frame at its source dimensions.
+    [[nodiscard]] std::expected<std::optional<DecodedVideoFrame>,
+                                VideoDecoderFailure>
+    ReadFrame(void) {
+        return ReadFrame(VideoFrameOutputOptions{});
+    }
+
     /// Decodes the next selected-stream frame, or returns no frame at EOF.
+    ///
+    /// When maximum dimensions are supplied, the implementation preserves the
+    /// source aspect ratio and never enlarges the image.
     [[nodiscard]] virtual std::expected<std::optional<DecodedVideoFrame>,
                                         VideoDecoderFailure>
-    ReadFrame(void) = 0;
+    ReadFrame(const VideoFrameOutputOptions &options) = 0;
 
   protected:
     /// Constructs the interface for a concrete decoder.

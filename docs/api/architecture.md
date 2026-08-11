@@ -53,6 +53,12 @@ the imported record timeline. A one-frame duration difference is tolerated;
 larger differences reject the video rather than guessing an alignment.
 Successful inspection retains the opened decoder and an exact frame mapping
 for later extraction without coupling a frontend to the media backend.
+`edit_atlas::services::TimelineFrameExtractionService` consumes that validated
+decoder, maps each event's Record In to an exact video frame, and produces
+owned RGB frame images at caller-selected output dimensions. Duplicate frame
+mappings share immutable image ownership, while cancellation and failures
+return no partial collection. Thumbnail dimensions, encoding, and placement
+remain policies of the consuming exporter.
 
 The `edit_atlas::storage` namespace provides shared complete-file reads and
 atomic local-file writes for services and diagnostic support.
@@ -63,10 +69,12 @@ The `edit_atlas::media` namespace owns the presentation-neutral video boundary.
 Its public metadata, failure, decoder, and RGB24 frame types do not expose
 FFmpeg declarations. The private FFmpeg implementation opens MOV, MP4, and MXF
 containers, applies the documented codec policy, and returns structured errors
-to its caller. Timeline validation and event mapping belong to application
-services; thumbnail selection, user interaction, and spreadsheet embedding
-remain responsibilities of later services and format adapters rather than this
-backend.
+to its caller. Frame-index seeking and timestamp conversion stay inside this
+boundary. The caller may request bounded output dimensions, which the backend
+applies during RGB conversion without assigning presentation semantics to the
+result. Timeline validation, event mapping, cancellation, and progress belong
+to application services; thumbnail policy, user interaction, and spreadsheet
+embedding remain responsibilities of frontends and format adapters.
 
 ## Diagnostic support
 
