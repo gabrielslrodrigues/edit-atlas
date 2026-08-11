@@ -46,10 +46,11 @@ distribution must separately review the codecs enabled for each target market.
 
 Edit Atlas also dynamically links to spdlog and fmt under the MIT License,
 libxlsxwriter under the BSD 2-Clause License, and minizip and zlib under their
-respective zlib-style licenses. Timeline filtering uses RE2 under the BSD
-3-Clause License and its Abseil dependency under the Apache License 2.0.
-Binary distributions include the copyright and license notice supplied by
-vcpkg for each exact dependency version.
+respective zlib-style licenses. RGB frame images are encoded with libpng under
+the libpng License. Timeline filtering uses RE2 under the BSD 3-Clause License
+and its Abseil dependency under the Apache License 2.0. Binary distributions
+include the copyright and license notice supplied by vcpkg for each exact
+dependency version.
 
 The Edit Atlas command-line frontend incorporates the header-only CLI11
 library under the BSD 3-Clause License. Binary distributions include its

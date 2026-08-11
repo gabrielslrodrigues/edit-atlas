@@ -2,6 +2,7 @@
 
 #include <gtest/gtest.h>
 
+#include <algorithm>
 #include <array>
 #include <cstddef>
 #include <optional>
@@ -31,6 +32,14 @@ TEST(TimelineProjectionTest, ProvidesStableIdentifiersAndDefaultOrder) {
     }
     EXPECT_EQ(TimelineEventFieldFromIdentifier("Track type"), std::nullopt);
     EXPECT_TRUE(IsValidTimelineEventProjection(projection));
+
+    const auto fields = TimelineEventFields();
+    ASSERT_EQ(fields.size(), kTimelineEventFieldCount);
+    EXPECT_EQ(fields[1], TimelineEventField::kInitialFrame);
+    EXPECT_EQ(TimelineEventFieldIdentifier(fields[1]), "initial-frame");
+    EXPECT_EQ(TimelineEventFieldFromIdentifier("initial-frame"), fields[1]);
+    EXPECT_EQ(std::ranges::find(projection, TimelineEventField::kInitialFrame),
+              projection.end());
 }
 
 TEST(TimelineProjectionTest, RejectsEmptyAndDuplicateProjections) {

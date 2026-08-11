@@ -1,5 +1,6 @@
 find_package(Libxlsxwriter REQUIRED)
 find_package(minizip CONFIG REQUIRED)
+find_package(PNG REQUIRED)
 find_package(ZLIB REQUIRED)
 
 add_library(edit_atlas_xlsx STATIC)
@@ -16,7 +17,9 @@ target_sources(
     edit_atlas_xlsx
     PRIVATE
         xlsx_exporter.cpp
+        xlsx_image_encoder.cpp
         xlsx_workbook_text.cpp
+        include/edit_atlas/formats/xlsx/detail/xlsx_image_encoder.hpp
         include/edit_atlas/formats/xlsx/detail/xlsx_workbook_text.hpp
     PUBLIC
         FILE_SET HEADERS
@@ -29,6 +32,7 @@ target_link_libraries(
     PUBLIC EditAtlas::Core
     PRIVATE
         Libxlsxwriter::Libxlsxwriter
+        PNG::PNG
         $<IF:$<TARGET_EXISTS:MINIZIP::minizip>,MINIZIP::minizip,MINIZIP::minizipstatic>
         ZLIB::ZLIB
 )
@@ -64,6 +68,7 @@ if(APPLE)
         FILES
             "$<TARGET_FILE:Libxlsxwriter::Libxlsxwriter>"
             "$<TARGET_FILE:${edit_atlas_minizip_target}>"
+            "$<TARGET_FILE:PNG::PNG>"
         DESTINATION "edit-atlas.app/Contents/Frameworks"
         COMPONENT Runtime
     )

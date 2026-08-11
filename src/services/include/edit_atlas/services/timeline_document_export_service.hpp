@@ -2,6 +2,7 @@
 #define EDIT_ATLAS_SERVICES_TIMELINE_DOCUMENT_EXPORT_SERVICE_HPP_
 
 #include <edit_atlas/core/editorial_timeline.hpp>
+#include <edit_atlas/core/format.hpp>
 #include <edit_atlas/core/format_registry.hpp>
 #include <edit_atlas/core/timeline_document_pipeline.hpp>
 #include <edit_atlas/core/timeline_projection.hpp>
@@ -30,6 +31,8 @@ struct TimelineDocumentExportRequest final {
     };
     /// Format-specific export options.
     std::vector<core::MetadataEntry> options;
+    /// Optional images associated with event positions in `timeline`.
+    std::vector<core::TimelineEventImage> event_images{};
     /// Whether an existing destination may be atomically replaced.
     bool replace_existing;
 };

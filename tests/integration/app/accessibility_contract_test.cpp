@@ -309,6 +309,18 @@ TEST(AccessibilityContractTest, CoversSpreadsheetOptionsAndProjectionControls) {
     ASSERT_NE(columns, nullptr);
     ASSERT_NE(move_down, nullptr);
     ASSERT_NE(timeline, nullptr);
+    auto initial_frame_row = -1;
+    for (int row = 0; row < columns->count(); ++row) {
+        if (static_cast<core::TimelineEventField>(
+                columns->item(row)->data(Qt::UserRole).toInt()) ==
+            core::TimelineEventField::kInitialFrame) {
+            initial_frame_row = row;
+            break;
+        }
+    }
+    ASSERT_GE(initial_frame_row, 0);
+    EXPECT_EQ(columns->item(initial_frame_row)->checkState(), Qt::Unchecked);
+    columns->item(initial_frame_row)->setCheckState(Qt::Checked);
     const auto original_first = dialog.EventProjection().front();
     columns->setCurrentRow(0);
     move_down->click();
@@ -317,6 +329,9 @@ TEST(AccessibilityContractTest, CoversSpreadsheetOptionsAndProjectionControls) {
     const auto changed = dialog.EventProjection();
     ASSERT_GE(changed.size(), 2);
     EXPECT_NE(changed.front(), original_first);
+    EXPECT_NE(
+        std::ranges::find(changed, core::TimelineEventField::kInitialFrame),
+        changed.end());
     const auto options = dialog.Options();
     const auto timeline_option = std::ranges::find(
         options, std::string{formats::xlsx::kIncludeTimelineSheetOption},
@@ -437,8 +452,8 @@ TEST(AccessibilityContractTest, PersistsLanguageWithoutChangingIdentifiers) {
                       std::filesystem::path{}, DiagnosticEnvironment()};
     auto *selector =
         window.findChild<QAction *>(QStringLiteral("languageSelector"));
-    auto *english = window.findChild<QAction *>(
-        QStringLiteral("englishLanguageAction"));
+    auto *english =
+        window.findChild<QAction *>(QStringLiteral("englishLanguageAction"));
     auto *open =
         window.findChild<QAction *>(QStringLiteral("openDocumentAction"));
     ASSERT_NE(selector, nullptr);

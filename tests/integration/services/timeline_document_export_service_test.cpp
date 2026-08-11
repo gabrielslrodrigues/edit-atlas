@@ -92,6 +92,7 @@ TEST(TimelineDocumentExportServiceTest, ExportsTimelineAtomically) {
                 core::DefaultTimelineEventProjection().end(),
             },
         .options = {},
+        .event_images = {},
         .replace_existing = false,
     });
 
@@ -122,6 +123,7 @@ TEST(TimelineDocumentExportServiceTest,
                 core::DefaultTimelineEventProjection().end(),
             },
         .options = {},
+        .event_images = {},
         .replace_existing = false,
     });
 
@@ -149,6 +151,7 @@ TEST(TimelineDocumentExportServiceTest,
                 core::DefaultTimelineEventProjection().end(),
             },
         .options = {},
+        .event_images = {},
         .replace_existing = true,
     });
 
@@ -175,6 +178,7 @@ TEST(TimelineDocumentExportServiceTest, ReturnsExporterDiagnostics) {
                 core::DefaultTimelineEventProjection().end(),
             },
         .options = {},
+        .event_images = {},
         .replace_existing = false,
     });
 
@@ -197,6 +201,7 @@ TEST(TimelineDocumentExportServiceTest, RejectsAnEmptyEventProjection) {
         .timeline = Document(),
         .event_projection = {},
         .options = {},
+        .event_images = {},
         .replace_existing = false,
     });
 

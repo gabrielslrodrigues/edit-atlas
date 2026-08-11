@@ -64,7 +64,7 @@ AddFrames(std::int64_t frame, std::int64_t offset) noexcept {
 }
 
 [[nodiscard]] bool
-ValidImage(const media::RgbImage &image,
+ValidImage(const core::RgbImage &image,
            const TimelineFrameExtractionOptions &options) noexcept {
     if (image.width <= 0 || image.height <= 0 ||
         image.width > std::numeric_limits<std::int32_t>::max() / 3) {
@@ -215,7 +215,7 @@ TimelineFrameExtractionResult TimelineFrameExtractionService::Extract(
                 "The decoded RGB frame image is invalid or exceeds the "
                 "requested output dimensions."));
         }
-        auto image = std::make_shared<const media::RgbImage>(
+        auto image = std::make_shared<const core::RgbImage>(
             std::move(exact_frame->image));
         for (const auto event_index : event_indices) {
             const auto &event = timeline.events[event_index];

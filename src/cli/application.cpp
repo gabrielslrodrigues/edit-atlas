@@ -310,6 +310,7 @@ EventProjection(const Options &options) {
             .timeline = std::move(import_result->timeline),
             .event_projection = std::move(*event_projection),
             .options = ExportOptions(options),
+            .event_images = {},
             .replace_existing = options.replace_existing,
         });
     if (!export_result.has_value()) {

@@ -4,17 +4,20 @@
 
 #include <edit_atlas/core/editorial_timeline.hpp>
 #include <edit_atlas/core/format.hpp>
+#include <edit_atlas/core/rgb_image.hpp>
 #include <edit_atlas/core/timecode.hpp>
 #include <edit_atlas/core/timeline_projection.hpp>
 
 #include <gtest/gtest.h>
 #include <minizip/unzip.h>
 
+#include <array>
 #include <cstddef>
 #include <cstdint>
 #include <filesystem>
 #include <fstream>
 #include <ios>
+#include <memory>
 #include <optional>
 #include <string>
 #include <string_view>
@@ -245,6 +248,16 @@ SharedStringIndex(std::string_view shared_strings, std::string_view text) {
     };
 }
 
+[[nodiscard]] std::shared_ptr<const core::RgbImage>
+InitialFrame(std::byte value) {
+    return std::make_shared<const core::RgbImage>(core::RgbImage{
+        .width = 2,
+        .height = 2,
+        .row_stride = 6,
+        .pixels = std::vector<std::byte>(12, value),
+    });
+}
+
 [[nodiscard]] core::ExportResult ExportDocument(WorkbookLanguage language) {
     const XlsxExporter exporter;
     const auto document = Document();
@@ -262,17 +275,20 @@ SharedStringIndex(std::string_view shared_strings, std::string_view text) {
                     .value = std::string{WorkbookLanguageTag(language)},
                 },
             },
+        .event_images = {},
     });
 }
 
 [[nodiscard]] core::ExportResult
-ExportDocument(std::vector<core::TimelineEventField> projection) {
+ExportDocument(std::vector<core::TimelineEventField> projection,
+               std::vector<core::TimelineEventImage> event_images = {}) {
     const XlsxExporter exporter;
     const auto document = Document();
     return exporter.Export(core::ExportRequest{
         .document = document,
         .event_projection = std::move(projection),
         .options = {},
+        .event_images = std::move(event_images),
     });
 }
 
@@ -310,6 +326,10 @@ TEST(XlsxWorkbookTextTest, ResolvesLabelsByKeyAndLanguage) {
               "Duration");
     EXPECT_EQ(portuguese.EventColumn(core::TimelineEventField::kDurationFrames),
               "Duração em quadros");
+    EXPECT_EQ(english.EventColumn(core::TimelineEventField::kInitialFrame),
+              "Initial Frame");
+    EXPECT_EQ(portuguese.EventColumn(core::TimelineEventField::kInitialFrame),
+              "Quadro inicial");
     EXPECT_TRUE(english.Get(detail::WorkbookTextKey::kCount).empty());
 }
 
@@ -453,6 +473,134 @@ TEST(XlsxExporterTest, WritesOnlySelectedEventColumnsInSelectedOrder) {
     EXPECT_EQ(events->find("r=\"C1\""), std::string::npos);
 }
 
+TEST(XlsxExporterTest,
+     EmbedsInitialFramesAtReorderedColumnsAndFilteredEventRows) {
+    const XlsxExporter exporter;
+    auto document = Document();
+    auto second_event = document.events.front();
+    second_event.identifier = "002";
+    document.events.push_back(std::move(second_event));
+    const auto result = exporter.Export(core::ExportRequest{
+        .document = document,
+        .event_projection =
+            {
+                core::TimelineEventField::kComments,
+                core::TimelineEventField::kInitialFrame,
+                core::TimelineEventField::kEventIdentifier,
+            },
+        .options = {},
+        .event_images =
+            {
+                core::TimelineEventImage{
+                    .event_index = 0,
+                    .image = InitialFrame(std::byte{0x11}),
+                },
+                core::TimelineEventImage{
+                    .event_index = 1,
+                    .image = InitialFrame(std::byte{0x22}),
+                },
+            },
+    });
+    ASSERT_TRUE(result.artifact.has_value());
+    const TemporaryWorkbook workbook{result.artifact->content};
+
+    const auto shared_strings =
+        ReadZipEntry(workbook.path(), "xl/sharedStrings.xml");
+    const auto events =
+        ReadZipEntry(workbook.path(), "xl/worksheets/sheet1.xml");
+    const auto drawing =
+        ReadZipEntry(workbook.path(), "xl/drawings/drawing1.xml");
+    const auto first_image =
+        ReadZipEntry(workbook.path(), "xl/media/image1.png");
+    const auto second_image =
+        ReadZipEntry(workbook.path(), "xl/media/image2.png");
+    ASSERT_TRUE(shared_strings.has_value());
+    ASSERT_TRUE(events.has_value());
+    ASSERT_TRUE(drawing.has_value());
+    ASSERT_TRUE(first_image.has_value());
+    ASSERT_TRUE(second_image.has_value());
+
+    const auto frame_header =
+        SharedStringIndex(*shared_strings, "Initial Frame");
+    ASSERT_TRUE(frame_header.has_value());
+    EXPECT_TRUE(CellUsesSharedString(*events, "B1", *frame_header));
+    EXPECT_EQ(drawing->find("<xdr:col>0</xdr:col>"), std::string::npos);
+    EXPECT_NE(drawing->find("<xdr:col>1</xdr:col>"), std::string::npos);
+    EXPECT_NE(drawing->find("<xdr:row>1</xdr:row>"), std::string::npos);
+    EXPECT_NE(drawing->find("<xdr:row>2</xdr:row>"), std::string::npos);
+    ASSERT_GE(first_image->size(), 8);
+    EXPECT_EQ(static_cast<unsigned char>((*first_image)[0]), 0x89U);
+    EXPECT_EQ(first_image->substr(1, 3), "PNG");
+}
+
+TEST(XlsxExporterTest, LeavesWorkbookUnchangedWithoutInitialFrameField) {
+    const auto result =
+        ExportDocument({core::TimelineEventField::kEventIdentifier},
+                       {
+                           core::TimelineEventImage{
+                               .event_index = 0,
+                               .image = InitialFrame(std::byte{0x33}),
+                           },
+                       });
+    ASSERT_TRUE(result.artifact.has_value());
+    const TemporaryWorkbook workbook{result.artifact->content};
+
+    const auto shared_strings =
+        ReadZipEntry(workbook.path(), "xl/sharedStrings.xml");
+    ASSERT_TRUE(shared_strings.has_value());
+    EXPECT_EQ(shared_strings->find("Initial Frame"), std::string::npos);
+    EXPECT_FALSE(
+        ReadZipEntry(workbook.path(), "xl/drawings/drawing1.xml").has_value());
+    EXPECT_FALSE(
+        ReadZipEntry(workbook.path(), "xl/media/image1.png").has_value());
+}
+
+TEST(XlsxExporterTest, LocalizesInitialFrameWorkbookHeader) {
+    const XlsxExporter exporter;
+    const auto document = Document();
+    const auto result = exporter.Export(core::ExportRequest{
+        .document = document,
+        .event_projection = {core::TimelineEventField::kInitialFrame},
+        .options =
+            {
+                core::MetadataEntry{
+                    .key = std::string{kWorkbookLanguageOption},
+                    .value = std::string{WorkbookLanguageTag(
+                        WorkbookLanguage::kBrazilianPortuguese)},
+                },
+            },
+        .event_images =
+            {
+                core::TimelineEventImage{
+                    .event_index = 0,
+                    .image = InitialFrame(std::byte{0x44}),
+                },
+            },
+    });
+    ASSERT_TRUE(result.artifact.has_value());
+    const TemporaryWorkbook workbook{result.artifact->content};
+
+    const auto shared_strings =
+        ReadZipEntry(workbook.path(), "xl/sharedStrings.xml");
+    const auto events =
+        ReadZipEntry(workbook.path(), "xl/worksheets/sheet1.xml");
+    ASSERT_TRUE(shared_strings.has_value());
+    ASSERT_TRUE(events.has_value());
+    const auto header = SharedStringIndex(*shared_strings, "Quadro inicial");
+    ASSERT_TRUE(header.has_value());
+    EXPECT_TRUE(CellUsesSharedString(*events, "A1", *header));
+}
+
+TEST(XlsxExporterTest, RejectsMissingInitialFrameImages) {
+    const auto result =
+        ExportDocument({core::TimelineEventField::kInitialFrame});
+
+    EXPECT_FALSE(result.artifact.has_value());
+    ASSERT_EQ(result.diagnostics.size(), 1);
+    EXPECT_EQ(result.diagnostics.front().code,
+              diagnostic_code::kImageWriteFailed);
+}
+
 TEST(XlsxExporterTest, RejectsAnEmptyEventProjection) {
     const auto result = ExportDocument(std::vector<core::TimelineEventField>{});
 
@@ -499,6 +647,7 @@ TEST(XlsxExporterTest, OmitsOptionalSheetsWhenRequested) {
                     .value = false,
                 },
             },
+        .event_images = {},
     });
     ASSERT_TRUE(result.artifact.has_value());
     const TemporaryWorkbook workbook{result.artifact->content};

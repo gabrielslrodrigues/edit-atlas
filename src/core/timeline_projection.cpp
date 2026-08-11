@@ -13,6 +13,7 @@ using FieldIdentifier = std::pair<TimelineEventField, std::string_view>;
 
 constexpr std::array kFieldIdentifiers{
     FieldIdentifier{TimelineEventField::kEventIdentifier, "event"},
+    FieldIdentifier{TimelineEventField::kInitialFrame, "initial-frame"},
     FieldIdentifier{TimelineEventField::kReel, "reel"},
     FieldIdentifier{TimelineEventField::kTrackKind, "track-kind"},
     FieldIdentifier{TimelineEventField::kTrackIdentifier, "track"},
@@ -34,10 +35,21 @@ constexpr std::array kFieldIdentifiers{
 
 static_assert(kFieldIdentifiers.size() == kTimelineEventFieldCount);
 
-constexpr auto kDefaultProjection = [] {
-    std::array<TimelineEventField, kFieldIdentifiers.size()> projection{};
+constexpr auto kAllFields = [] {
+    std::array<TimelineEventField, kFieldIdentifiers.size()> fields{};
     for (std::size_t index = 0; index < kFieldIdentifiers.size(); ++index) {
-        projection[index] = kFieldIdentifiers[index].first;
+        fields[index] = kFieldIdentifiers[index].first;
+    }
+    return fields;
+}();
+
+constexpr auto kDefaultProjection = [] {
+    std::array<TimelineEventField, kFieldIdentifiers.size() - 1> projection{};
+    std::size_t output_index = 0;
+    for (const auto field : kAllFields) {
+        if (field != TimelineEventField::kInitialFrame) {
+            projection[output_index++] = field;
+        }
     }
     return projection;
 }();
@@ -59,6 +71,10 @@ TimelineEventFieldFromIdentifier(std::string_view identifier) noexcept {
         return std::nullopt;
     }
     return item->first;
+}
+
+std::span<const TimelineEventField> TimelineEventFields(void) noexcept {
+    return kAllFields;
 }
 
 std::span<const TimelineEventField>

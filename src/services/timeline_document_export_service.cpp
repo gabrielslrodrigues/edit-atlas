@@ -49,6 +49,7 @@ TimelineDocumentExportResult TimelineDocumentExportService::Export(
             .document = request.timeline,
             .event_projection = std::move(request.event_projection),
             .options = std::move(request.options),
+            .event_images = std::move(request.event_images),
         },
         request.format_identifier);
     if (!export_result.artifact.has_value()) {

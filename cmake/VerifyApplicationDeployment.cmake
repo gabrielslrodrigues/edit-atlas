@@ -244,6 +244,7 @@ if(WIN32)
         FFmpeg-avformat
         FFmpeg-avutil
         FFmpeg-swscale
+        libpng
         libxlsxwriter
         minizip
         re2
@@ -257,6 +258,7 @@ if(WIN32)
         "*avformat-*.dll"
         "*avutil-*.dll"
         "*swscale-*.dll"
+        "*png*.dll"
         "*xlsxwriter*.dll"
         "*minizip*.dll"
         "*re2*.dll"
@@ -275,6 +277,7 @@ elseif(APPLE)
         FFmpeg-avformat
         FFmpeg-avutil
         FFmpeg-swscale
+        libpng
         libxlsxwriter
         minizip
         re2
@@ -287,6 +290,7 @@ elseif(APPLE)
         "*libavformat*.dylib"
         "*libavutil*.dylib"
         "*libswscale*.dylib"
+        "*libpng*.dylib"
         "*libxlsxwriter*.dylib"
         "*libminizip*.dylib"
         "*libre2*.dylib"
@@ -339,6 +343,7 @@ elseif(UNIX)
         FFmpeg-avformat
         FFmpeg-avutil
         FFmpeg-swscale
+        libpng
         libxlsxwriter
         minizip
         re2
@@ -351,6 +356,7 @@ elseif(UNIX)
         "*libavformat.so*"
         "*libavutil.so*"
         "*libswscale.so*"
+        "*libpng*.so*"
         "*libxlsxwriter.so*"
         "*libminizip.so*"
         "*libre2.so*"
@@ -449,6 +455,7 @@ foreach(
         cli11
         ffmpeg
         fmt
+        libpng
         libxlsxwriter
         minizip
         nlohmann-json

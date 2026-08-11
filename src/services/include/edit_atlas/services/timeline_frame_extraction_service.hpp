@@ -4,6 +4,7 @@
 #include <edit_atlas/services/timeline_video_inspection_service.hpp>
 
 #include <edit_atlas/core/editorial_timeline.hpp>
+#include <edit_atlas/core/rgb_image.hpp>
 
 #include <edit_atlas/media/video_decoder.hpp>
 
@@ -64,7 +65,7 @@ struct TimelineEventFrame final {
     /// Zero-based frame index extracted from the rendered video.
     std::int64_t video_frame_index;
     /// Shared immutable RGB image; duplicate frame mappings share ownership.
-    std::shared_ptr<const media::RgbImage> image;
+    std::shared_ptr<const core::RgbImage> image;
 };
 
 /// Reports completed work after each unique frame is extracted.

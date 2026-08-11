@@ -27,6 +27,7 @@
       ]
     },
     "gtest",
+    "libpng",
     "libxlsxwriter",
     "minizip",
     "nlohmann-json",

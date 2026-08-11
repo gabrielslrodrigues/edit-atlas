@@ -455,7 +455,7 @@ class FfmpegVideoDecoder final : public VideoDecoder {
         };
     }
 
-    [[nodiscard]] std::expected<RgbImage, VideoDecoderFailure>
+    [[nodiscard]] std::expected<core::RgbImage, VideoDecoderFailure>
     ConvertImage(const VideoFrameOutputOptions &options) {
         auto dimensions = ResolveOutputDimensions(options);
         if (!dimensions.has_value()) {
@@ -503,7 +503,7 @@ class FfmpegVideoDecoder final : public VideoDecoder {
                 "could not convert the complete frame to RGB24"));
         }
 
-        return RgbImage{
+        return core::RgbImage{
             .width = dimensions->width,
             .height = dimensions->height,
             .row_stride = row_stride,
