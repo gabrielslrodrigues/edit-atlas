@@ -84,6 +84,15 @@ class UnexpectedTraversalNode:
         raise AssertionError("inactive window was traversed")
 
 
+class TimelineTableNode:
+    accessible_id = "QApplication.mainWindow.eventTable"
+    showing = True
+
+    @property
+    def children(self) -> tuple[object, ...]:
+        raise AssertionError("timeline table descendants were traversed")
+
+
 class PopupNode:
     children = ()
     role_name = "popup menu"
@@ -166,6 +175,20 @@ def test_identifier_lookup_prioritizes_the_newest_window(tmp_path: Path) -> None
     inactive = UnexpectedTraversalNode()
     dialog = AccessibilityNode("progressDialog")
     application = AccessibilityNode("application", (inactive, dialog))
+    session._application = application
+
+    assert session._find_identifier(application, "progressDialog") is dialog
+
+
+def test_identifier_lookup_skips_timeline_table_descendants(
+    tmp_path: Path,
+) -> None:
+    session = application_session(tmp_path)
+    dialog = AccessibilityNode("progressDialog")
+    main_window = AccessibilityNode(
+        "mainWindow", (TimelineTableNode(), dialog)
+    )
+    application = AccessibilityNode("application", (main_window,))
     session._application = application
 
     assert session._find_identifier(application, "progressDialog") is dialog

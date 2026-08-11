@@ -150,6 +150,7 @@ class LinuxAtspiAdapter:
 
 
 class LinuxApplicationSession:
+    _IDENTIFIER_SEARCH_LEAVES = ("eventTable",)
     _ACTION_PRIORITY = (
         "click",
         "press",
@@ -763,7 +764,10 @@ class LinuxApplicationSession:
             except Exception:
                 pass
         for candidate_root in roots:
-            for node in self._walk(candidate_root):
+            for node in self._walk(
+                candidate_root,
+                descendant_leaves=self._IDENTIFIER_SEARCH_LEAVES,
+            ):
                 node_identifier = self._node_identifier(node)
                 if (
                     node_identifier != identifier
@@ -830,13 +834,25 @@ class LinuxApplicationSession:
         append(self._application, 0)
         return "\n".join(lines) + "\n"
 
-    def _walk(self, root: Any) -> Iterable[Any]:
+    def _walk(
+        self,
+        root: Any,
+        *,
+        descendant_leaves: Sequence[str] = (),
+    ) -> Iterable[Any]:
         pending = [root]
         visited = 0
         while pending and visited < 10000:
             node = pending.pop()
             visited += 1
             yield node
+            node_identifier = self._node_identifier(node)
+            if any(
+                node_identifier == leaf
+                or node_identifier.endswith(f".{leaf}")
+                for leaf in descendant_leaves
+            ):
+                continue
             try:
                 pending.extend(reversed(tuple(node.children)))
             except Exception:
