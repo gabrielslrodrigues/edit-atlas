@@ -84,7 +84,9 @@ The paths must point to executables installed by the DEB. The Linux runner
 performs an explicit backend preflight, and a missing AT-SPI backend is an
 error. Tests run serially with bounded state polling. Accessibility-tree dumps,
 application logs, XWD screenshots when available, generated workbooks, the
-support bundle, and pytest reports are written below `build/e2e`.
+support bundle, and pytest reports are written below `build/e2e`. CI directs
+native core files for crashed packaged executables to
+`build/e2e/crash-dumps` and uploads them with the other E2E artifacts.
 
 ### Windows desktop tests
 
@@ -107,7 +109,9 @@ Both paths must point to executables installed by the MSI. The runner performs
 an explicit UIA backend preflight and treats a missing backend as an error.
 Tests run serially with bounded state polling. UIA-tree dumps, application
 logs, PNG screenshots on failure, generated workbooks, the support bundle, and
-pytest reports are written below `build/e2e`.
+pytest reports are written below `build/e2e`. CI additionally enables Windows
+Error Reporting full dumps for the packaged GUI and CLI and retains crashes
+under `build/e2e/crash-dumps` with the other failure artifacts.
 
 ### macOS desktop tests
 
@@ -150,9 +154,12 @@ The runner performs an explicit `AXIsProcessTrusted` preflight before pytest.
 An unavailable or untrusted backend is an error, never a skipped test. Tests
 run serially with bounded polling. AX-tree dumps, application logs, screenshots
 when macOS permits capture, generated outputs, and pytest reports are written
-below `build/e2e`. Because the CI job is disabled, the real packaged AX path
-remains experimental and must be validated manually on a trusted runner before
-the guard is removed.
+below `build/e2e`. The package-verification jobs and the disabled E2E job collect
+new native `.ips` or `.crash` reports. Verification reports are retained under
+`build/package-check-macos/crash-reports`, while E2E reports are retained under
+`build/e2e/crash-dumps` with the other artifacts. Because the CI job is disabled,
+the real packaged AX path remains experimental and must be validated manually
+on a trusted runner before the guard is removed.
 
 The existing macOS package-verification jobs still install and launch both
 native slices of the universal application. Packaged CLI tests can also be run
