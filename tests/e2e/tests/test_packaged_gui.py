@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from pathlib import Path
 
+import pytest
+
 from application.gui import EditAtlasApplication
 from inspectors.support_bundle import SupportBundle
 from inspectors.xlsx import XlsxWorkbook
@@ -166,3 +168,133 @@ def test_filtered_spreadsheet_and_private_support_bundle(
         assert label in summary
     assert any(name.startswith("logs/") for name in bundle.entry_names())
     bundle.assert_private({"mixed_tracks.edl", destination.name})
+
+
+def test_rendered_video_export_embeds_matching_event_frames(
+    edit_atlas_application: EditAtlasApplication,
+    fixture_directory: Path,
+    media_fixture_directory: Path,
+    output_directory: Path,
+) -> None:
+    app = edit_atlas_application
+    app.switch_language("English")
+    app.open_timeline(
+        fixture_directory / "mixed_tracks.edl", frame_rate="24 fps"
+    )
+
+    destination = output_directory / "gui-rendered-video.xlsx"
+    destination.unlink(missing_ok=True)
+    app.begin_spreadsheet_export()
+    app.set_export_columns(
+        {"Initial Frame", "Event"}, ["Initial Frame", "Event"]
+    )
+    assert app.session.has_element("renderedVideoGroup")
+    assert not app.session.is_sensitive("continueSpreadsheetExportButton")
+    app.select_rendered_video(media_fixture_directory / "matching-render.mov")
+    assert app.session.is_sensitive("continueSpreadsheetExportButton")
+    app.continue_spreadsheet_export(destination)
+    app.session.element("spreadsheetExportResultDialog")
+    assert any(
+        "decoded 4 unique frame(s)" in text
+        for text in app.session.visible_text("spreadsheetExportResultDialog")
+    )
+    app.finish_spreadsheet_export()
+
+    workbook = XlsxWorkbook(destination)
+    assert workbook.event_headers() == ["Initial Frame", "Event"]
+    assert workbook.event_row_count() == 4
+    assert workbook.event_image_entries() == [
+        f"xl/media/image{index}.png" for index in range(1, 5)
+    ]
+    assert workbook.event_images_are_png()
+    assert len(set(workbook.event_image_hashes())) == 4
+    assert workbook.event_image_relationship_targets() == (
+        workbook.event_image_entries()
+    )
+    assert workbook.event_image_anchors() == [
+        (0, row) for row in range(1, 5)
+    ]
+    assert workbook.has_event_drawing_relationship()
+
+
+def test_rendered_video_export_requires_a_video(
+    edit_atlas_application: EditAtlasApplication,
+    fixture_directory: Path,
+) -> None:
+    app = edit_atlas_application
+    app.switch_language("English")
+    app.open_timeline(
+        fixture_directory / "mixed_tracks.edl", frame_rate="24 fps"
+    )
+
+    app.begin_spreadsheet_export()
+    app.set_export_columns(
+        {"Initial Frame", "Event"}, ["Initial Frame", "Event"]
+    )
+    assert app.session.has_element("renderedVideoGroup")
+    assert not app.session.is_sensitive("continueSpreadsheetExportButton")
+    app.cancel_spreadsheet_options()
+
+
+@pytest.mark.parametrize(
+    "video_name",
+    ["missing-timecode.mov", "incompatible-timecode.mov"],
+)
+def test_rendered_video_export_rejects_unmatched_timecode(
+    edit_atlas_application: EditAtlasApplication,
+    fixture_directory: Path,
+    media_fixture_directory: Path,
+    output_directory: Path,
+    video_name: str,
+) -> None:
+    app = edit_atlas_application
+    app.switch_language("English")
+    app.open_timeline(
+        fixture_directory / "mixed_tracks.edl", frame_rate="24 fps"
+    )
+
+    destination = output_directory / f"gui-{Path(video_name).stem}.xlsx"
+    destination.unlink(missing_ok=True)
+    app.begin_spreadsheet_export()
+    app.set_export_columns(
+        {"Initial Frame", "Event"}, ["Initial Frame", "Event"]
+    )
+    app.select_rendered_video(media_fixture_directory / video_name)
+    app.continue_spreadsheet_export(destination)
+    description = app.finish_rendered_video_export_failure()
+
+    assert any("could not be validated" in text for text in description)
+    assert not destination.exists()
+
+
+def test_rendered_video_export_cancellation_leaves_no_workbook(
+    edit_atlas_application: EditAtlasApplication,
+    media_fixture_directory: Path,
+    output_directory: Path,
+) -> None:
+    app = edit_atlas_application
+    app.switch_language("English")
+    app.open_timeline(
+        media_fixture_directory / "cancellation.edl", frame_rate="24 fps"
+    )
+    app.wait_event_count(240, 240)
+
+    destination = output_directory / "gui-cancelled-rendered-video.xlsx"
+    destination.unlink(missing_ok=True)
+    app.begin_spreadsheet_export()
+    app.set_export_columns(
+        {"Initial Frame", "Event"}, ["Initial Frame", "Event"]
+    )
+    app.select_rendered_video(
+        media_fixture_directory / "cancellation-render.mov"
+    )
+    app.continue_spreadsheet_export(destination)
+    progress = app.cancel_rendered_video_export()
+
+    assert any(
+        "Validating rendered video" in text
+        or "Extracting initial frames" in text
+        for text in progress
+    )
+    assert not destination.exists()
+    assert app.session.is_sensitive("timelineExportButton")

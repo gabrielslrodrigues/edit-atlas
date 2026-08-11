@@ -163,9 +163,22 @@ class EditAtlasApplication:
         self._session.activate("cancelSpreadsheetExportButton")
         self._session.wait_absent("spreadsheetOptionsDialog")
 
+    def select_rendered_video(self, path: Path) -> None:
+        self._session.activate("browseRenderedVideoButton")
+        self._session.open_file_dialog("renderedVideoOpenFileDialog", path)
+
     def continue_spreadsheet_export(self, destination: Path) -> None:
         self._session.activate("continueSpreadsheetExportButton")
         self._session.open_file_dialog("spreadsheetSaveFileDialog", destination)
+
+    def cancel_rendered_video_export(self) -> list[str]:
+        self._session.element("spreadsheetExportProgressDialog")
+        progress = self._session.visible_text(
+            "spreadsheetExportProgressDialog"
+        )
+        self._session.activate("cancelFrameExtractionButton")
+        self._session.wait_absent("spreadsheetExportProgressDialog")
+        return progress
 
     def cancel_spreadsheet_replacement(self) -> None:
         self._session.activate("cancelReplaceSpreadsheetButton")
@@ -178,6 +191,15 @@ class EditAtlasApplication:
         self._session.element("spreadsheetExportResultDialog")
         self._session.activate("closeDialogButton")
         self._session.wait_absent("spreadsheetExportResultDialog")
+
+    def finish_rendered_video_export_failure(self) -> list[str]:
+        self._session.element("renderedVideoExportFailureDialog")
+        description = self._session.visible_text(
+            "renderedVideoExportFailureDialog"
+        )
+        self._session.activate("closeDialogButton")
+        self._session.wait_absent("renderedVideoExportFailureDialog")
+        return description
 
     def export_support_bundle(self, destination: Path) -> None:
         self._session.activate_menu_action(

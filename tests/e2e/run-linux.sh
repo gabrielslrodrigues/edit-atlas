@@ -28,6 +28,7 @@ exec uv run --locked --project "${script_directory}" python -m pytest \
   "${script_directory}/tests/test_packaged_gui.py" \
   "${script_directory}/tests/linux" \
   --fixture-dir "${repository_root}/tests/fixtures/cmx3600" \
+  --media-fixture-dir "${e2e_root}/media-fixtures" \
   --output-dir "${e2e_root}/output" \
   --state-root "${e2e_root}/state" \
   --artifact-dir "${e2e_root}/artifacts" \
