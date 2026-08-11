@@ -186,7 +186,7 @@ def test_rendered_video_export_embeds_matching_event_frames(
     destination.unlink(missing_ok=True)
     app.begin_spreadsheet_export()
     app.set_export_columns(
-        {"Initial Frame", "Event"}, ["Initial Frame", "Event"]
+        {"Initial frame", "Event"}, ["Initial frame", "Event"]
     )
     assert app.session.has_element("renderedVideoGroup")
     assert not app.session.is_sensitive("continueSpreadsheetExportButton")
@@ -229,7 +229,7 @@ def test_rendered_video_export_requires_a_video(
 
     app.begin_spreadsheet_export()
     app.set_export_columns(
-        {"Initial Frame", "Event"}, ["Initial Frame", "Event"]
+        {"Initial frame", "Event"}, ["Initial frame", "Event"]
     )
     assert app.session.has_element("renderedVideoGroup")
     assert not app.session.is_sensitive("continueSpreadsheetExportButton")
@@ -257,7 +257,7 @@ def test_rendered_video_export_rejects_unmatched_timecode(
     destination.unlink(missing_ok=True)
     app.begin_spreadsheet_export()
     app.set_export_columns(
-        {"Initial Frame", "Event"}, ["Initial Frame", "Event"]
+        {"Initial frame", "Event"}, ["Initial frame", "Event"]
     )
     app.select_rendered_video(media_fixture_directory / video_name)
     app.continue_spreadsheet_export(destination)
@@ -283,7 +283,7 @@ def test_rendered_video_export_cancellation_leaves_no_workbook(
     destination.unlink(missing_ok=True)
     app.begin_spreadsheet_export()
     app.set_export_columns(
-        {"Initial Frame", "Event"}, ["Initial Frame", "Event"]
+        {"Initial frame", "Event"}, ["Initial frame", "Event"]
     )
     app.select_rendered_video(
         media_fixture_directory / "cancellation-render.mov"
