@@ -7,6 +7,7 @@ target_sources(
         timeline_document_export_service_test.cpp
         timeline_document_import_service_test.cpp
         timeline_frame_extraction_service_test.cpp
+        timeline_rendered_video_export_service_test.cpp
         timeline_template_service_test.cpp
         timeline_video_inspection_service_test.cpp
         test_main.cpp

@@ -19,6 +19,7 @@ target_link_libraries(
     edit_atlas_cli_integration_tests
     PRIVATE
         EditAtlas::CliFrontend
+        EditAtlas::MediaFixture
         GTest::gtest
         $<IF:$<TARGET_EXISTS:MINIZIP::minizip>,MINIZIP::minizip,MINIZIP::minizipstatic>
 )

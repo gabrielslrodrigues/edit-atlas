@@ -289,6 +289,9 @@ TEST(AccessibilityContractTest, CoversSpreadsheetOptionsAndProjectionControls) {
         "moveColumnUpButton",
         "moveColumnDownButton",
         "columnSelectionErrorLabel",
+        "renderedVideoGroup",
+        "renderedVideoPathField",
+        "browseRenderedVideoButton",
         "continueSpreadsheetExportButton",
         "cancelSpreadsheetExportButton",
     };
@@ -321,6 +324,19 @@ TEST(AccessibilityContractTest, CoversSpreadsheetOptionsAndProjectionControls) {
     ASSERT_GE(initial_frame_row, 0);
     EXPECT_EQ(columns->item(initial_frame_row)->checkState(), Qt::Unchecked);
     columns->item(initial_frame_row)->setCheckState(Qt::Checked);
+    auto *video_group = FindByAccessibleIdentifier<QWidget>(
+        dialog, QStringLiteral("renderedVideoGroup"));
+    auto *video_path = FindByAccessibleIdentifier<QLineEdit>(
+        dialog, QStringLiteral("renderedVideoPathField"));
+    auto *continue_button = FindByAccessibleIdentifier<QPushButton>(
+        dialog, QStringLiteral("continueSpreadsheetExportButton"));
+    ASSERT_NE(video_group, nullptr);
+    ASSERT_NE(video_path, nullptr);
+    ASSERT_NE(continue_button, nullptr);
+    EXPECT_FALSE(video_group->isHidden());
+    EXPECT_FALSE(continue_button->isEnabled());
+    video_path->setText(QStringLiteral("matching.mov"));
+    EXPECT_TRUE(continue_button->isEnabled());
     const auto original_first = dialog.EventProjection().front();
     columns->setCurrentRow(0);
     move_down->click();

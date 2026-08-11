@@ -66,6 +66,13 @@ the corresponding images as PNG, and owns their workbook column width, row
 height, placement, and localized header. Projections that omit the field do not
 alter existing workbooks.
 
+`TimelineRenderedVideoExportService` is the shared frontend orchestration for
+image-bearing exports. It validates video timing against the complete imported
+timeline, extracts only the possibly filtered export events, reindexes their
+images against the export document, and then delegates to the ordinary document
+export service. This keeps desktop and CLI validation behavior identical while
+preserving correct frame alignment after filtering.
+
 The `edit_atlas::storage` namespace provides shared complete-file reads and
 atomic local-file writes for services and diagnostic support.
 

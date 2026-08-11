@@ -1,5 +1,7 @@
 #include <edit_atlas/cli/application.hpp>
 
+#include <edit_atlas/test/media_fixture.hpp>
+
 #include <gtest/gtest.h>
 #include <minizip/unzip.h>
 
@@ -263,6 +265,50 @@ TEST(CliApplicationTest, SelectsEventColumns) {
     EXPECT_NE(shared_strings->find("<t>Comments</t>"), std::string::npos);
     EXPECT_NE(shared_strings->find("<t>Event</t>"), std::string::npos);
     EXPECT_EQ(shared_strings->find("<t>Reel</t>"), std::string::npos);
+}
+
+TEST(CliApplicationTest, EmbedsInitialFramesFromMatchingRenderedVideo) {
+    const TemporaryPath video{"edit-atlas-cli-video", ".mov"};
+    const TemporaryPath destination{"edit-atlas-cli-frames", ".xlsx"};
+    auto video_options = media::test::VideoFixtureOptions{};
+    video_options.frame_rate_numerator = 24;
+    video_options.frame_count = 96;
+    video_options.starting_timecode = "01:00:00:00";
+    const auto fixture =
+        media::test::WriteVideoFixture(video.path(), "mov", video_options);
+    ASSERT_TRUE(fixture.has_value())
+        << (fixture.has_value() ? "" : fixture.error());
+
+    const auto result = RunWithArguments(
+        {"convert", "--fps=24", "--language=en",
+         "--columns=initial-frame,event", "--video", PathToUtf8(video.path()),
+         PathToUtf8(FixturePath("mixed_tracks.edl")),
+         PathToUtf8(destination.path())});
+
+    EXPECT_EQ(result.exit_code, ExitCode::kSuccess);
+    EXPECT_NE(result.output.find("Embedded initial frames"), std::string::npos);
+    EXPECT_TRUE(
+        ReadZipEntry(destination.path(), "xl/media/image1.png").has_value());
+    EXPECT_TRUE(
+        ReadZipEntry(destination.path(), "xl/media/image4.png").has_value());
+}
+
+TEST(CliApplicationTest, RequiresVideoForInitialFrameColumn) {
+    const auto result =
+        RunWithArguments({"convert", "--columns=initial-frame,event",
+                          "input.edl", "output.xlsx"});
+
+    EXPECT_EQ(result.exit_code, ExitCode::kUsageError);
+    EXPECT_NE(result.error.find("--video is required"), std::string::npos);
+}
+
+TEST(CliApplicationTest, RejectsUnusedVideoInput) {
+    const auto result = RunWithArguments(
+        {"convert", "--video=render.mov", "input.edl", "output.xlsx"});
+
+    EXPECT_EQ(result.exit_code, ExitCode::kUsageError);
+    EXPECT_NE(result.error.find("--video requires initial-frame"),
+              std::string::npos);
 }
 
 TEST(CliApplicationTest, RejectsDuplicateEventColumns) {

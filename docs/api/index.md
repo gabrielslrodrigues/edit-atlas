@@ -24,6 +24,9 @@ formats, media decoding, and privacy-limited diagnostic support.
   video timing against an imported record timeline.
 - `edit_atlas::services::TimelineFrameExtractionService` extracts exact,
   deduplicated initial-frame images at caller-selected output dimensions.
+- `edit_atlas::services::TimelineRenderedVideoExportService` coordinates
+  validation, filtered frame extraction, and ordinary document export for all
+  frontends.
 - `edit_atlas::storage::ReadLocalFile()` and
   `edit_atlas::storage::WriteLocalFileAtomically()` provide the shared local
   storage boundary.

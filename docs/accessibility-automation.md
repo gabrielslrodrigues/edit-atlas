@@ -52,7 +52,9 @@ a row after operations that add, remove, clear, or apply filter conditions.
 | Projection controls | `eventProjectionWidget`, `eventColumnsList`, `moveColumnUpButton`, `moveColumnDownButton`, `columnSelectionErrorLabel` |
 | Projection dialog buttons | `saveProjectionButton`, `cancelProjectionButton` |
 | Workbook options | `workbookLanguageSelector`, `includeTimelineSheetCheckBox`, `includeDiagnosticsSheetCheckBox` |
+| Spreadsheet video input | `renderedVideoGroup`, `renderedVideoPathField`, `browseRenderedVideoButton` |
 | Spreadsheet option buttons | `continueSpreadsheetExportButton`, `cancelSpreadsheetExportButton` |
+| Initial-frame export progress | `spreadsheetExportProgressDialog`, `cancelFrameExtractionButton` |
 
 ## Workflow dialogs
 

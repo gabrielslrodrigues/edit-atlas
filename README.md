@@ -200,9 +200,9 @@ On Windows PowerShell:
 
 English is the source language. Brazilian Portuguese translations are compiled
 from `src/app/translations/edit_atlas_pt_BR.ts` and embedded in the executable.
-The interface defaults to Brazilian Portuguese on first launch. The language
-selector in the top-right switches between Brazilian Portuguese and English
-and remembers the choice for subsequent launches.
+The interface defaults to Brazilian Portuguese on first launch. The
+**Language** menu switches between Brazilian Portuguese and English and
+remembers the choice for subsequent launches.
 
 Spreadsheet export can follow the active interface language or explicitly use
 English or Brazilian Portuguese. The selected language changes workbook sheet
@@ -213,6 +213,13 @@ choosing a destination, the export dialog also lets users include, exclude, and
 reorder event columns. Standard timeline columns are selected by default;
 fields that require supplemental media, such as an initial frame image, are
 opt-in.
+
+Selecting **Initial frame** reveals a rendered-video selector. The chosen MOV,
+MP4, or MXF file must have a constant frame rate and readable embedded starting
+timecode matching the EDL record timeline; its duration and timecode mode must
+also match. Edit Atlas validates the file locally, extracts each exported
+event's Record In frame with cancellable progress, and embeds the resulting
+images in the workbook. Ordinary exports do not require a video.
 
 Open a CMX 3600 EDL with **File → Open Timeline**, the standard open shortcut,
 or by dropping the file onto the window. Non-drop-frame EDLs that omit their
