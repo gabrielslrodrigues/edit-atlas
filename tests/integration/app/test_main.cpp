@@ -1,5 +1,7 @@
 #include <edit_atlas/app/application_state.hpp>
 
+#include "accessibility.hpp"
+
 #include <QApplication>
 #include <QByteArray>
 #include <QCoreApplication>
@@ -34,6 +36,7 @@ int main(int argc, char *argv[]) {
     qputenv(edit_atlas::app::kTestStateRootEnvironment,
             state_root.path().toUtf8());
     edit_atlas::app::ConfigureApplicationState();
+    edit_atlas::app::InstallApplicationAccessibility();
 
     ::testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();
