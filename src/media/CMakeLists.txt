@@ -48,59 +48,19 @@ install(
 )
 
 if(WIN32)
-    set(edit_atlas_ffmpeg_runtime_directory
-        "$<IF:$<CONFIG:Debug>,${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/debug/bin,${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/bin>"
-    )
     set(edit_atlas_ffmpeg_runtime_destination "${CMAKE_INSTALL_BINDIR}")
-    set(edit_atlas_ffmpeg_runtime_patterns
-        "avcodec-*.dll"
-        "avformat-*.dll"
-        "avutil-*.dll"
-        "swscale-*.dll"
-    )
 elseif(APPLE)
-    set(edit_atlas_ffmpeg_runtime_directory
-        "$<IF:$<CONFIG:Debug>,${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/debug/lib,${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/lib>"
-    )
     set(edit_atlas_ffmpeg_runtime_destination
         "edit-atlas.app/Contents/Frameworks"
     )
-    set(edit_atlas_ffmpeg_runtime_patterns
-        "libavcodec*.dylib"
-        "libavformat*.dylib"
-        "libavutil*.dylib"
-        "libswscale*.dylib"
-    )
 elseif(LINUX)
-    set(edit_atlas_ffmpeg_runtime_directory
-        "$<IF:$<CONFIG:Debug>,${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/debug/lib,${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/lib>"
-    )
     set(edit_atlas_ffmpeg_runtime_destination
         "${edit_atlas_runtime_install_libdir}"
     )
-    set(edit_atlas_ffmpeg_runtime_patterns
-        "libavcodec.so*"
-        "libavformat.so*"
-        "libavutil.so*"
-        "libswscale.so*"
-    )
 endif()
 
-if(DEFINED edit_atlas_ffmpeg_runtime_patterns)
-    set(edit_atlas_ffmpeg_files_matching_arguments FILES_MATCHING)
-    foreach(
-        edit_atlas_ffmpeg_runtime_pattern
-        IN LISTS edit_atlas_ffmpeg_runtime_patterns
-    )
-        list(
-            APPEND edit_atlas_ffmpeg_files_matching_arguments
-            PATTERN "${edit_atlas_ffmpeg_runtime_pattern}"
-        )
-    endforeach()
-    install(
-        DIRECTORY "${edit_atlas_ffmpeg_runtime_directory}/"
-        DESTINATION "${edit_atlas_ffmpeg_runtime_destination}"
-        COMPONENT Runtime
-        ${edit_atlas_ffmpeg_files_matching_arguments}
+if(DEFINED edit_atlas_ffmpeg_runtime_destination)
+    edit_atlas_install_ffmpeg_runtime(
+        "${edit_atlas_ffmpeg_runtime_destination}"
     )
 endif()

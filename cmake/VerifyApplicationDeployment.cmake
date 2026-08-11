@@ -269,6 +269,25 @@ elseif(APPLE)
         "*libqcocoa.dylib"
     )
 
+    file(
+        GLOB edit_atlas_macos_framework_entries
+        LIST_DIRECTORIES TRUE
+        "${EDIT_ATLAS_DEPLOYMENT_ROOT}/edit-atlas.app/Contents/Frameworks/*"
+    )
+    foreach(
+        edit_atlas_macos_framework_entry
+        IN LISTS edit_atlas_macos_framework_entries
+    )
+        if(IS_DIRECTORY "${edit_atlas_macos_framework_entry}")
+            message(
+                FATAL_ERROR
+                "The staged macOS Frameworks directory contains an "
+                "unexpected subdirectory: "
+                "${edit_atlas_macos_framework_entry}"
+            )
+        endif()
+    endforeach()
+
     set(
         edit_atlas_third_party_runtime_descriptions
         spdlog
