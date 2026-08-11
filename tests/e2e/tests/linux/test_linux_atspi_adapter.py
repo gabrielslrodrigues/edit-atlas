@@ -66,6 +66,24 @@ class RunningProcess:
         return None
 
 
+class AccessibilityNode:
+    def __init__(
+        self, identifier: str, children: tuple[object, ...] = ()
+    ) -> None:
+        self.accessible_id = identifier
+        self.children = children
+        self.showing = True
+
+
+class UnexpectedTraversalNode:
+    accessible_id = "mainWindow"
+    showing = True
+
+    @property
+    def children(self) -> tuple[object, ...]:
+        raise AssertionError("inactive window was traversed")
+
+
 class PopupNode:
     children = ()
     role_name = "popup menu"
@@ -141,6 +159,16 @@ def application_session(artifact_directory: Path) -> LinuxApplicationSession:
         artifact_directory=artifact_directory,
         timeout=1.0,
     )
+
+
+def test_identifier_lookup_prioritizes_the_newest_window(tmp_path: Path) -> None:
+    session = application_session(tmp_path)
+    inactive = UnexpectedTraversalNode()
+    dialog = AccessibilityNode("progressDialog")
+    application = AccessibilityNode("application", (inactive, dialog))
+    session._application = application
+
+    assert session._find_identifier(application, "progressDialog") is dialog
 
 
 @pytest.mark.parametrize("action", ["Press", "ShowMenu"])

@@ -95,17 +95,19 @@ int main(int argc, char *argv[]) {
         return EXIT_FAILURE;
     }
 
-    using edit_atlas::media::test::WriteFixture;
     using edit_atlas::media::test::WriteCancellationEdl;
+    using edit_atlas::media::test::WriteFixture;
+    constexpr auto kValidationFrameCount = 96;
+    constexpr auto kCancellationFrameCount = 1'200;
     if (!WriteFixture(output_directory, "matching-render.mov",
-                      96, "01:00:00:00") ||
-        !WriteFixture(output_directory, "missing-timecode.mov", 96,
-                      std::string_view{}) ||
+                      kValidationFrameCount, "01:00:00:00") ||
+        !WriteFixture(output_directory, "missing-timecode.mov",
+                      kValidationFrameCount, std::string_view{}) ||
         !WriteFixture(output_directory, "incompatible-timecode.mov",
-                      96, "00:00:00:00") ||
-        !WriteFixture(output_directory, "cancellation-render.mov", 240,
-                      "01:00:00:00") ||
-        !WriteCancellationEdl(output_directory, 240)) {
+                      kValidationFrameCount, "00:00:00:00") ||
+        !WriteFixture(output_directory, "cancellation-render.mov",
+                      kCancellationFrameCount, "01:00:00:00") ||
+        !WriteCancellationEdl(output_directory, kCancellationFrameCount)) {
         return EXIT_FAILURE;
     }
     return EXIT_SUCCESS;

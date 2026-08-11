@@ -756,14 +756,22 @@ class LinuxApplicationSession:
     def _find_identifier(
         self, root: Any, identifier: str, *, showing_only: bool = True
     ) -> Any | None:
-        for node in self._walk(root):
-            node_identifier = self._node_identifier(node)
-            if node_identifier != identifier and not node_identifier.endswith(
-                f".{identifier}"
-            ):
-                continue
-            if not showing_only or self._is_showing(node):
-                return node
+        roots = (root,)
+        if root is self._application:
+            try:
+                roots = tuple(reversed(tuple(root.children))) or (root,)
+            except Exception:
+                pass
+        for candidate_root in roots:
+            for node in self._walk(candidate_root):
+                node_identifier = self._node_identifier(node)
+                if (
+                    node_identifier != identifier
+                    and not node_identifier.endswith(f".{identifier}")
+                ):
+                    continue
+                if not showing_only or self._is_showing(node):
+                    return node
         return None
 
     def _list_item(

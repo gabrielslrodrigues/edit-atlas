@@ -277,7 +277,6 @@ def test_rendered_video_export_cancellation_leaves_no_workbook(
     app.open_timeline(
         media_fixture_directory / "cancellation.edl", frame_rate="24 fps"
     )
-    app.wait_event_count(240, 240)
 
     destination = output_directory / "gui-cancelled-rendered-video.xlsx"
     destination.unlink(missing_ok=True)
