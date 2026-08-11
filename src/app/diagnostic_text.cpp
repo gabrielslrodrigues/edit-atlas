@@ -5,6 +5,10 @@
 #include <edit_atlas/formats/cmx3600/cmx3600_importer.hpp>
 #include <edit_atlas/formats/xlsx/xlsx_exporter.hpp>
 
+#include <edit_atlas/services/timeline_frame_extraction_service.hpp>
+#include <edit_atlas/services/timeline_rendered_video_export_service.hpp>
+#include <edit_atlas/services/timeline_video_inspection_service.hpp>
+
 #include <QCoreApplication>
 #include <QString>
 #include <QStringList>
@@ -119,6 +123,89 @@ QString Message(const core::Diagnostic &diagnostic) {
         return Translate(
             QT_TRANSLATE_NOOP("edit_atlas::app::DiagnosticText",
                               "The event column selection is invalid."));
+    }
+    if (code == formats::xlsx::diagnostic_code::kImageWriteFailed) {
+        return Translate(
+            QT_TRANSLATE_NOOP("edit_atlas::app::DiagnosticText",
+                              "An initial-frame image could not be written."));
+    }
+    namespace video = services::timeline_video_diagnostic_code;
+    if (code == services::timeline_rendered_video_export_diagnostic_code::
+                    kVideoRequired) {
+        return Translate(QT_TRANSLATE_NOOP(
+            "edit_atlas::app::DiagnosticText",
+            "Select a rendered video for the Initial Frame column."));
+    }
+    if (code == video::kOpenFailed) {
+        return Translate(
+            QT_TRANSLATE_NOOP("edit_atlas::app::DiagnosticText",
+                              "The rendered video could not be opened."));
+    }
+    if (code == video::kUnsupportedContainer) {
+        return Translate(QT_TRANSLATE_NOOP(
+            "edit_atlas::app::DiagnosticText",
+            "The rendered video is not a supported MOV, MP4, or MXF file."));
+    }
+    if (code == video::kEmptyTimeline || code == video::kInconsistentTimeline) {
+        return Translate(QT_TRANSLATE_NOOP(
+            "edit_atlas::app::DiagnosticText",
+            "The imported timeline cannot be mapped to rendered-video "
+            "frames."));
+    }
+    if (code == video::kMissingFrameRate || code == video::kVariableFrameRate) {
+        return Translate(QT_TRANSLATE_NOOP(
+            "edit_atlas::app::DiagnosticText",
+            "The rendered video does not have a verifiable constant frame "
+            "rate."));
+    }
+    if (code == video::kFrameRateMismatch) {
+        return Translate(QT_TRANSLATE_NOOP(
+            "edit_atlas::app::DiagnosticText",
+            "The rendered-video frame rate does not match the timeline."));
+    }
+    if (code == video::kMissingTimecode) {
+        return Translate(QT_TRANSLATE_NOOP(
+            "edit_atlas::app::DiagnosticText",
+            "The rendered video has no readable embedded starting timecode."));
+    }
+    if (code == video::kInvalidTimecode) {
+        return Translate(QT_TRANSLATE_NOOP(
+            "edit_atlas::app::DiagnosticText",
+            "The rendered video's embedded timecode is invalid or "
+            "ambiguous."));
+    }
+    if (code == video::kTimecodeModeMismatch) {
+        return Translate(QT_TRANSLATE_NOOP(
+            "edit_atlas::app::DiagnosticText",
+            "The rendered-video and timeline timecode modes do not match."));
+    }
+    if (code == video::kTimelineStartMismatch) {
+        return Translate(QT_TRANSLATE_NOOP(
+            "edit_atlas::app::DiagnosticText",
+            "The rendered-video starting timecode does not match the first "
+            "record frame."));
+    }
+    if (code == video::kMissingDuration || code == video::kDurationMismatch) {
+        return Translate(QT_TRANSLATE_NOOP(
+            "edit_atlas::app::DiagnosticText",
+            "The rendered-video duration cannot be matched to the timeline."));
+    }
+    namespace extraction = services::timeline_frame_extraction_diagnostic_code;
+    if (code == extraction::kCancelled) {
+        return Translate(
+            QT_TRANSLATE_NOOP("edit_atlas::app::DiagnosticText",
+                              "Initial-frame extraction was cancelled."));
+    }
+    if (code == extraction::kSeekFailed || code == extraction::kDecodeFailed ||
+        code == extraction::kFrameUnavailable ||
+        code == extraction::kInvalidFrame ||
+        code == extraction::kInvalidMapping ||
+        code == extraction::kInvalidOutputSize ||
+        code == extraction::kProgressCallbackFailed) {
+        return Translate(QT_TRANSLATE_NOOP(
+            "edit_atlas::app::DiagnosticText",
+            "An initial frame could not be extracted from the rendered "
+            "video."));
     }
     return Utf8(diagnostic.message);
 }

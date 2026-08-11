@@ -154,6 +154,7 @@ target_link_libraries(
     edit_atlas
     PRIVATE
         EditAtlas::App
+        EditAtlas::Media
         spdlog::spdlog
 )
 

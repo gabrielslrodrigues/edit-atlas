@@ -24,14 +24,33 @@ The version-specific `QT_SOURCE_OFFER.md` installed with each binary package
 identifies the corresponding source archive controlled by the Edit Atlas
 project and provides rebuilding and replacement instructions.
 
+## FFmpeg
+
+Edit Atlas dynamically links to the libavcodec, libavformat, libavutil, and
+libswscale libraries from FFmpeg. The project uses FFmpeg under the GNU Lesser
+General Public License version 2.1 or later. The pinned vcpkg manifest disables
+default features and enables only the decoding, demuxing, utility, and image
+conversion libraries required by Edit Atlas. It does not enable FFmpeg's GPL
+or nonfree modes, x264, or x265.
+
+Binary distributions include FFmpeg's complete license notices, the exact
+corresponding source and vcpkg patches used for the distributed libraries, and
+instructions for rebuilding and replacing those dynamically linked libraries.
+The version-specific `FFMPEG_SOURCE_OFFER.md` identifies the corresponding
+source archive controlled by the Edit Atlas project.
+
+Support for a codec or container does not grant a patent license. Commercial
+distribution must separately review the codecs enabled for each target market.
+
 ## Other third-party libraries
 
 Edit Atlas also dynamically links to spdlog and fmt under the MIT License,
 libxlsxwriter under the BSD 2-Clause License, and minizip and zlib under their
-respective zlib-style licenses. Timeline filtering uses RE2 under the BSD
-3-Clause License and its Abseil dependency under the Apache License 2.0.
-Binary distributions include the copyright and license notice supplied by
-vcpkg for each exact dependency version.
+respective zlib-style licenses. RGB frame images are encoded with libpng under
+the libpng License. Timeline filtering uses RE2 under the BSD 3-Clause License
+and its Abseil dependency under the Apache License 2.0. Binary distributions
+include the copyright and license notice supplied by vcpkg for each exact
+dependency version.
 
 The Edit Atlas command-line frontend incorporates the header-only CLI11
 library under the BSD 3-Clause License. Binary distributions include its

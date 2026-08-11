@@ -6,14 +6,18 @@ target_sources(
         built_in_formats_test.cpp
         timeline_document_export_service_test.cpp
         timeline_document_import_service_test.cpp
-        test_main.cpp
+        timeline_frame_extraction_service_test.cpp
+        timeline_rendered_video_export_service_test.cpp
         timeline_template_service_test.cpp
+        timeline_video_inspection_service_test.cpp
+        test_main.cpp
 )
 
 target_link_libraries(
     edit_atlas_services_integration_tests
     PRIVATE
         EditAtlas::Services
+        EditAtlas::MediaFixture
         GTest::gtest
 )
 

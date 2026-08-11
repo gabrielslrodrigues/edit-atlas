@@ -70,11 +70,19 @@ jobs:
             qt_source_url+="/edit-atlas-$release_version-qt-source.tar.xz"
             qt_source_notes="Qt corresponding source and LGPL replacement"
             qt_source_notes+=" instructions: $qt_source_url"
+            ffmpeg_source_url="https://github.com/$GITHUB_REPOSITORY/releases"
+            ffmpeg_source_url+="/download/$GITHUB_REF_NAME"
+            ffmpeg_source_url+="/edit-atlas-$release_version-ffmpeg-source.tar.xz"
+            ffmpeg_source_notes="FFmpeg corresponding source and LGPL"
+            ffmpeg_source_notes+=" replacement instructions: $ffmpeg_source_url"
+            release_notes="$qt_source_notes"
+            release_notes+=$'\n\n'
+            release_notes+="$ffmpeg_source_notes"
             gh release create "$GITHUB_REF_NAME" \
               --repo "$GITHUB_REPOSITORY" \
               --draft \
               --title "Edit Atlas $GITHUB_REF_NAME" \
-              --notes "$qt_source_notes" \
+              --notes "$release_notes" \
               --generate-notes
           fi
 
@@ -104,6 +112,35 @@ jobs:
         with:
           name: edit-atlas-qt-source
           path: build/qt-source
+          if-no-files-found: error
+          retention-days: 3
+
+  prepare-ffmpeg-source:
+    name: Prepare FFmpeg corresponding source
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: create-release
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: read
+
+    steps:
+      - name: Check out tagged source
+        uses: actions/checkout@v7.0.1
+        with:
+          submodules: recursive
+
+      - name: Prepare FFmpeg corresponding source archive
+        run: >-
+          ./scripts/ci/prepare-ffmpeg-source-archive.sh
+          "$GITHUB_REF_NAME"
+          build/ffmpeg-source
+
+      - name: Upload FFmpeg corresponding source
+        uses: actions/upload-artifact@v7
+        with:
+          name: edit-atlas-ffmpeg-source
+          path: build/ffmpeg-source
           if-no-files-found: error
           retention-days: 3
 
@@ -303,6 +340,46 @@ jobs:
 
       - name: Test Release
         run: ctest --preset ${{ matrix.release_preset }}
+
+      - name: Restore rendered-video E2E fixture cache
+        if: runner.os == 'Linux'
+        id: rendered-video-fixture-cache
+        uses: actions/cache/restore@v6
+        with:
+          path: build/e2e-media-fixtures
+          key: >-
+            rendered-video-e2e-v1-${{ hashFiles(
+              'tests/integration/media/e2e_fixture_generator.cpp',
+              'tests/integration/media/media_fixture.cpp',
+              'tests/integration/media/include/edit_atlas/test/media_fixture.hpp',
+              'vcpkg.json'
+            ) }}
+
+      - name: Prepare rendered-video E2E fixtures
+        if: >-
+          runner.os == 'Linux' &&
+          steps.rendered-video-fixture-cache.outputs.cache-hit != 'true'
+        run: >-
+          build/${{ matrix.release_preset }}/tests/integration/media/edit_atlas_e2e_media_fixture_generator
+          build/e2e-media-fixtures
+
+      - name: Save rendered-video E2E fixture cache
+        if: >-
+          runner.os == 'Linux' &&
+          steps.rendered-video-fixture-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v6
+        with:
+          path: build/e2e-media-fixtures
+          key: ${{ steps.rendered-video-fixture-cache.outputs.cache-primary-key }}
+
+      - name: Publish rendered-video E2E fixtures for this workflow
+        if: runner.os == 'Linux'
+        uses: actions/upload-artifact@v7
+        with:
+          name: edit-atlas-e2e-media-fixtures
+          path: build/e2e-media-fixtures
+          if-no-files-found: error
+          retention-days: 3
 
       - name: Stage Release
         run: >-
@@ -531,6 +608,12 @@ jobs:
           name: edit-atlas-x64-linux-packages
           path: build/packages/x64-linux
 
+      - name: Download rendered-video E2E fixtures
+        uses: actions/download-artifact@v8
+        with:
+          name: edit-atlas-e2e-media-fixtures
+          path: build/e2e/media-fixtures
+
       - name: Install generated DEB
         shell: bash
         run: |
@@ -673,6 +756,12 @@ jobs:
           name: edit-atlas-universal-osx-packages
           path: build/packages/universal-osx
 
+      - name: Download rendered-video E2E fixtures
+        uses: actions/download-artifact@v8
+        with:
+          name: edit-atlas-e2e-media-fixtures
+          path: build/e2e/media-fixtures
+
       - name: Install generated PKG
         run: |
           packages=()
@@ -799,6 +888,12 @@ jobs:
           name: edit-atlas-x64-windows-packages
           path: build/packages/x64-windows
 
+      - name: Download rendered-video E2E fixtures
+        uses: actions/download-artifact@v8
+        with:
+          name: edit-atlas-e2e-media-fixtures
+          path: build/e2e/media-fixtures
+
       - name: Install generated MSI
         shell: pwsh
         run: |
@@ -917,6 +1012,7 @@ jobs:
     if: >-
       always() &&
       needs['create-release'].result == 'success' &&
+      needs['prepare-ffmpeg-source'].result == 'success' &&
       needs['prepare-qt-source'].result == 'success' &&
       needs['verify-linux-packages'].result == 'success' &&
       needs['e2e-linux-package'].result == 'success' &&
@@ -925,6 +1021,7 @@ jobs:
       needs['verify-windows-package'].result == 'success'
     needs:
       - create-release
+      - prepare-ffmpeg-source
       - prepare-qt-source
       - verify-linux-packages
       - e2e-linux-package
@@ -953,6 +1050,12 @@ jobs:
         uses: actions/download-artifact@v8
         with:
           name: edit-atlas-qt-source
+          path: build/release-artifacts
+
+      - name: Download FFmpeg corresponding source
+        uses: actions/download-artifact@v8
+        with:
+          name: edit-atlas-ffmpeg-source
           path: build/release-artifacts
 
       - name: Prepare release assets

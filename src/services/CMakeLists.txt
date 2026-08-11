@@ -18,10 +18,13 @@ target_sources(
         timeline_document_export_service.cpp
         timeline_document_import_service.cpp
         timeline_filter.cpp
+        timeline_frame_extraction_service.cpp
+        timeline_rendered_video_export_service.cpp
         timeline_template.cpp
         timeline_template_service.cpp
         timeline_template_store.cpp
         timeline_template_store.hpp
+        timeline_video_inspection_service.cpp
     PUBLIC
         FILE_SET HEADERS
         BASE_DIRS include
@@ -30,8 +33,11 @@ target_sources(
             include/edit_atlas/services/timeline_document_export_service.hpp
             include/edit_atlas/services/timeline_document_import_service.hpp
             include/edit_atlas/services/timeline_filter.hpp
+            include/edit_atlas/services/timeline_frame_extraction_service.hpp
+            include/edit_atlas/services/timeline_rendered_video_export_service.hpp
             include/edit_atlas/services/timeline_template.hpp
             include/edit_atlas/services/timeline_template_service.hpp
+            include/edit_atlas/services/timeline_video_inspection_service.hpp
 )
 
 target_link_libraries(
@@ -39,6 +45,7 @@ target_link_libraries(
     PUBLIC
         EditAtlas::Cmx3600
         EditAtlas::Core
+        EditAtlas::Media
         EditAtlas::Storage
         EditAtlas::Xlsx
     PRIVATE

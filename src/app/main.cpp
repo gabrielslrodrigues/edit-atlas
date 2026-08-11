@@ -8,6 +8,8 @@
 
 #include <edit_atlas/core/version.hpp>
 
+#include <edit_atlas/media/video_decoder.hpp>
+
 #include <edit_atlas/services/built_in_formats.hpp>
 
 #include <edit_atlas/support/application_logging.hpp>
@@ -54,6 +56,9 @@ int main(int argc, char *argv[]) {
 
     const auto version = std::string{edit_atlas::core::Version()};
     SPDLOG_INFO("Starting Edit Atlas {}", version);
+    const auto video_backend = edit_atlas::media::GetVideoBackendInformation();
+    SPDLOG_INFO("Video backend: {} {}", video_backend.name,
+                video_backend.version);
 
     QTranslator translator;
     auto language = edit_atlas::app::ConfiguredApplicationLanguage();

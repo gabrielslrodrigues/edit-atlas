@@ -32,6 +32,8 @@ class EventProjectionWidget final : public QWidget {
     EventProjectionWidget &operator=(EventProjectionWidget &&) = delete;
 
   signals:
+    /// Emitted whenever selection or ordering changes.
+    void ProjectionChanged(void);
     void ValidityChanged(bool valid);
 
   private:

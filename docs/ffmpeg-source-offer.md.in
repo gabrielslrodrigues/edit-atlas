@@ -1,0 +1,47 @@
+# FFmpeg corresponding source and replacement instructions
+
+Edit Atlas @EDIT_ATLAS_VERSION@ dynamically links to FFmpeg
+@EDIT_ATLAS_FFMPEG_VERSION@ under the GNU Lesser General Public License
+version 2.1 or later.
+
+The complete corresponding FFmpeg source used for this release is available
+from the Edit Atlas release page:
+
+https://github.com/gabrielslrodrigues/edit-atlas/releases/download/v@EDIT_ATLAS_VERSION@/edit-atlas-@EDIT_ATLAS_VERSION@-ffmpeg-source.tar.xz
+
+Verify the archive against `SHA256SUMS` from the same release. The archive
+contains the original FFmpeg source archive, its SHA-512 digest, the exact
+vcpkg FFmpeg port and patches, the pinned vcpkg commit, the Edit Atlas manifest
+and triplets, and the build configuration relevant to FFmpeg.
+
+## Rebuild FFmpeg
+
+1. Check out Edit Atlas tag `v@EDIT_ATLAS_VERSION@` with its vcpkg submodule.
+2. Confirm that vcpkg is at commit `@EDIT_ATLAS_VCPKG_BASELINE@`.
+3. Copy the provided FFmpeg source archive into `vcpkg/downloads` if desired;
+   vcpkg may otherwise download the same archive itself.
+4. Bootstrap vcpkg and configure the appropriate release preset documented in
+   the Edit Atlas README. vcpkg verifies the source digest and applies the
+   included port patches before building FFmpeg.
+5. To modify FFmpeg, use the included source and port as an overlay port, apply
+   your changes, and rebuild Edit Atlas against that FFmpeg build.
+
+The complete Edit Atlas application source is available from the same release
+tag under the Apache License 2.0, so the application can also be rebuilt
+against interface-compatible modified FFmpeg libraries.
+
+## Replace the bundled FFmpeg libraries
+
+Edit Atlas uses ordinary dynamically loaded FFmpeg libraries. Replace the
+complete compatible libavcodec, libavformat, libavutil, and libswscale set
+rather than mixing incompatible builds. Their package locations are:
+
+- Windows: beside `bin/edit-atlas.exe`;
+- Linux: in the private `lib/edit-atlas` or `lib64/edit-atlas` directory; and
+- macOS: in `edit-atlas.app/Contents/Frameworks`.
+
+Preserve the distributed filenames, symbolic links, and, on macOS, universal
+x86_64 and ARM64 slices and install names. Current macOS packages use only an
+ad-hoc signature. After replacing a library, reapply it with
+`codesign --force --deep --sign - edit-atlas.app`. No signing identity, DRM, or
+access control prevents replacement.

@@ -42,6 +42,7 @@ sudo apt-get install --yes --no-install-recommends \
   libxcb1-dev \
   libwayland-dev \
   mono-complete \
+  nasm \
   perl \
   pkg-config \
   rpm \

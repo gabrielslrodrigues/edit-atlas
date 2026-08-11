@@ -138,6 +138,62 @@
         <source>The event column selection is invalid.</source>
         <translation>A seleção de colunas de eventos é inválida.</translation>
     </message>
+    <message>
+        <source>An initial-frame image could not be written.</source>
+        <translation>Não foi possível gravar uma imagem de quadro inicial.</translation>
+    </message>
+    <message>
+        <source>Select a rendered video for the Initial Frame column.</source>
+        <translation>Selecione um vídeo renderizado para a coluna Quadro inicial.</translation>
+    </message>
+    <message>
+        <source>The rendered video could not be opened.</source>
+        <translation>Não foi possível abrir o vídeo renderizado.</translation>
+    </message>
+    <message>
+        <source>The rendered video is not a supported MOV, MP4, or MXF file.</source>
+        <translation>O vídeo renderizado não é um arquivo MOV, MP4 ou MXF compatível.</translation>
+    </message>
+    <message>
+        <source>The imported timeline cannot be mapped to rendered-video frames.</source>
+        <translation>A linha do tempo importada não pode ser mapeada para quadros do vídeo renderizado.</translation>
+    </message>
+    <message>
+        <source>The rendered video does not have a verifiable constant frame rate.</source>
+        <translation>O vídeo renderizado não possui uma taxa de quadros constante verificável.</translation>
+    </message>
+    <message>
+        <source>The rendered-video frame rate does not match the timeline.</source>
+        <translation>A taxa de quadros do vídeo renderizado não corresponde à linha do tempo.</translation>
+    </message>
+    <message>
+        <source>The rendered video has no readable embedded starting timecode.</source>
+        <translation>O vídeo renderizado não possui timecode inicial incorporado legível.</translation>
+    </message>
+    <message>
+        <source>The rendered video's embedded timecode is invalid or ambiguous.</source>
+        <translation>O timecode incorporado do vídeo renderizado é inválido ou ambíguo.</translation>
+    </message>
+    <message>
+        <source>The rendered-video and timeline timecode modes do not match.</source>
+        <translation>Os modos de timecode do vídeo renderizado e da linha do tempo não correspondem.</translation>
+    </message>
+    <message>
+        <source>The rendered-video starting timecode does not match the first record frame.</source>
+        <translation>O timecode inicial do vídeo renderizado não corresponde ao primeiro quadro de gravação.</translation>
+    </message>
+    <message>
+        <source>The rendered-video duration cannot be matched to the timeline.</source>
+        <translation>A duração do vídeo renderizado não pode ser conciliada com a linha do tempo.</translation>
+    </message>
+    <message>
+        <source>Initial-frame extraction was cancelled.</source>
+        <translation>A extração dos quadros iniciais foi cancelada.</translation>
+    </message>
+    <message>
+        <source>An initial frame could not be extracted from the rendered video.</source>
+        <translation>Não foi possível extrair um quadro inicial do vídeo renderizado.</translation>
+    </message>
 </context>
 <context>
     <name>edit_atlas::app::TimelineDocumentController</name>
@@ -294,6 +350,38 @@
     <message>
         <source>The completed spreadsheet could not replace the destination file: %1</source>
         <translation>A planilha concluída não pôde substituir o arquivo de destino: %1</translation>
+    </message>
+    <message>
+        <source>Extracting initial frames: %1 of %2</source>
+        <translation>Extraindo quadros iniciais: %1 de %2</translation>
+    </message>
+    <message>
+        <source>Validating rendered video…</source>
+        <translation>Validando vídeo renderizado…</translation>
+    </message>
+    <message>
+        <source>Embedded initial-frame images from %1 (%2, %3×%4, %5/%6 fps, starting at %7); decoded %8 unique frame(s).</source>
+        <translation>Imagens de quadros iniciais incorporadas de %1 (%2, %3×%4, %5/%6 fps, iniciando em %7); %8 quadro(s) exclusivo(s) decodificado(s).</translation>
+    </message>
+    <message>
+        <source>Select a matching rendered video for the Initial Frame column.</source>
+        <translation>Selecione um vídeo renderizado correspondente para a coluna Quadro inicial.</translation>
+    </message>
+    <message>
+        <source>The rendered video could not be validated. It must be a constant-frame-rate MOV, MP4, or MXF file with embedded starting timecode, frame rate, and duration matching the imported EDL.</source>
+        <translation>Não foi possível validar o vídeo renderizado. Ele deve ser um arquivo MOV, MP4 ou MXF com taxa de quadros constante, timecode inicial incorporado, taxa de quadros e duração correspondentes à EDL importada.</translation>
+    </message>
+    <message>
+        <source>Initial frames could not be extracted from the rendered video.</source>
+        <translation>Não foi possível extrair os quadros iniciais do vídeo renderizado.</translation>
+    </message>
+    <message>
+        <source>The prepared spreadsheet could not be exported.</source>
+        <translation>Não foi possível exportar a planilha preparada.</translation>
+    </message>
+    <message>
+        <source>Could not use rendered video</source>
+        <translation>Não foi possível usar o vídeo renderizado</translation>
     </message>
 </context>
 <context>
@@ -590,6 +678,34 @@ Inspecione linhas do tempo editoriais e exporte relatórios estruturados.</trans
         <translation>Incluir diagnósticos</translation>
     </message>
     <message>
+        <source>Rendered video</source>
+        <translation>Vídeo renderizado</translation>
+    </message>
+    <message>
+        <source>Initial-frame images require a constant-frame-rate MOV, MP4, or MXF render with embedded starting timecode, frame rate, and duration matching the imported EDL.</source>
+        <translation>As imagens de quadros iniciais exigem um render MOV, MP4 ou MXF com taxa de quadros constante, timecode inicial incorporado, taxa de quadros e duração correspondentes à EDL importada.</translation>
+    </message>
+    <message>
+        <source>Select the matching rendered video</source>
+        <translation>Selecione o vídeo renderizado correspondente</translation>
+    </message>
+    <message>
+        <source>Rendered video path</source>
+        <translation>Caminho do vídeo renderizado</translation>
+    </message>
+    <message>
+        <source>Browse…</source>
+        <translation>Procurar…</translation>
+    </message>
+    <message>
+        <source>Select Rendered Video</source>
+        <translation>Selecionar vídeo renderizado</translation>
+    </message>
+    <message>
+        <source>Supported video files (*.mov *.mp4 *.mxf)</source>
+        <translation>Arquivos de vídeo compatíveis (*.mov *.mp4 *.mxf)</translation>
+    </message>
+    <message>
         <source>Event columns</source>
         <translation>Colunas de eventos</translation>
     </message>
@@ -714,6 +830,10 @@ Inspecione linhas do tempo editoriais e exporte relatórios estruturados.</trans
     <message>
         <source>Event</source>
         <translation>Evento</translation>
+    </message>
+    <message>
+        <source>Initial frame</source>
+        <translation>Quadro inicial</translation>
     </message>
     <message>
         <source>Reel</source>

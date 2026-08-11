@@ -12,6 +12,8 @@ namespace edit_atlas::core {
 enum class TimelineEventField {
     /// Source event identifier.
     kEventIdentifier,
+    /// Initial rendered-video frame associated with the event.
+    kInitialFrame,
     /// Source reel identifier.
     kReel,
     /// Domain track kind.
@@ -48,7 +50,7 @@ enum class TimelineEventField {
     kCount,
 };
 
-/// Number of fields in the default timeline event projection.
+/// Number of known timeline event fields, including optional fields.
 inline constexpr std::size_t kTimelineEventFieldCount =
     static_cast<std::size_t>(TimelineEventField::kCount);
 
@@ -63,7 +65,16 @@ TimelineEventFieldIdentifier(TimelineEventField field) noexcept;
 [[nodiscard]] std::optional<TimelineEventField>
 TimelineEventFieldFromIdentifier(std::string_view identifier) noexcept;
 
+/// Returns every known timeline event field in standard selection order.
+///
+/// The returned view has static storage duration.
+[[nodiscard]] std::span<const TimelineEventField>
+TimelineEventFields(void) noexcept;
+
 /// Returns every timeline event field in the default export order.
+///
+/// Optional fields that require supplemental data, such as `kInitialFrame`,
+/// are not selected by default.
 ///
 /// The returned view has static storage duration.
 [[nodiscard]] std::span<const TimelineEventField>

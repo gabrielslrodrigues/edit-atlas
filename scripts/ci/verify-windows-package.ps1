@@ -109,7 +109,7 @@ try {
     "-DEDIT_ATLAS_EXECUTABLE=$executable" `
     -P "$sourceDirectory/cmake/VerifyApplicationDeployment.cmake"
   if ($LASTEXITCODE -ne 0) {
-    throw "The installed Qt deployment verification failed."
+    throw "The installed application deployment verification failed."
   }
 
   if ($null -eq (Get-EditAtlasUninstallEntry)) {

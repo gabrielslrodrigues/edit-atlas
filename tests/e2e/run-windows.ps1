@@ -40,6 +40,7 @@ $Arguments = @(
     "--app", $App,
     "--cli", $Cli,
     "--fixture-dir", (Join-Path $RepositoryRoot "tests/fixtures/cmx3600"),
+    "--media-fixture-dir", (Join-Path $E2eRoot "media-fixtures"),
     "--output-dir", $Output,
     "--state-root", (Join-Path $E2eRoot "state"),
     "--artifact-dir", $Artifacts,

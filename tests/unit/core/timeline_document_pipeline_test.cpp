@@ -250,6 +250,7 @@ TEST(TimelineDocumentPipelineTest, ExportsWithARegisteredFormat) {
                     DefaultTimelineEventProjection().end(),
                 },
             .options = {},
+            .event_images = {},
         },
         "xlsx");
 
@@ -272,6 +273,7 @@ TEST(TimelineDocumentPipelineTest, ReportsUnknownExportFormats) {
                     DefaultTimelineEventProjection().end(),
                 },
             .options = {},
+            .event_images = {},
         },
         "missing");
 
@@ -298,6 +300,7 @@ TEST(TimelineDocumentPipelineTest, ContainsExporterExceptions) {
                     DefaultTimelineEventProjection().end(),
                 },
             .options = {},
+            .event_images = {},
         },
         "xlsx");
 
@@ -323,6 +326,7 @@ TEST(TimelineDocumentPipelineTest,
                     DefaultTimelineEventProjection().end(),
                 },
             .options = {},
+            .event_images = {},
         },
         "xlsx");
 

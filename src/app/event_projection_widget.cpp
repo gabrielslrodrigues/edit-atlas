@@ -24,6 +24,8 @@ namespace {
     switch (field) {
     case core::TimelineEventField::kEventIdentifier:
         return EventProjectionWidget::tr("Event");
+    case core::TimelineEventField::kInitialFrame:
+        return EventProjectionWidget::tr("Initial frame");
     case core::TimelineEventField::kReel:
         return EventProjectionWidget::tr("Reel");
     case core::TimelineEventField::kTrackKind:
@@ -80,7 +82,7 @@ EventProjectionWidget::EventProjectionWidget(
     columns_ = new QListWidget{this};
     columns_->setAccessibleName(tr("Event columns"));
     SetAutomationIdentifier(*columns_, u"eventColumnsList");
-    for (const auto field : core::DefaultTimelineEventProjection()) {
+    for (const auto field : core::TimelineEventFields()) {
         auto *item = new QListWidgetItem{ColumnText(field), columns_};
         item->setData(Qt::UserRole, static_cast<int>(field));
         item->setFlags(item->flags() | Qt::ItemIsUserCheckable);
@@ -162,6 +164,7 @@ void EventProjectionWidget::UpdateControls(void) {
                            current_row + 1 < columns_->count());
     const auto valid = !Projection().empty();
     error_->setVisible(!valid);
+    emit ProjectionChanged();
     emit ValidityChanged(valid);
 }
 

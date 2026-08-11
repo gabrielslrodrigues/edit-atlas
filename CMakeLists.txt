@@ -30,6 +30,8 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
+edit_atlas_configure_apple_libcxx()
+
 option(
     EDIT_ATLAS_BUILD_DOCUMENTATION
     "Generate public C++ API documentation"
@@ -73,12 +75,15 @@ option(
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 include(EditAtlasWarnings)
+include(EditAtlasFfmpegLinkage)
 include(EditAtlasQtLinkage)
 
 find_package(Qt6 REQUIRED COMPONENTS Concurrent LinguistTools Widgets)
+find_package(FFMPEG REQUIRED)
 find_package(spdlog CONFIG REQUIRED)
 
 edit_atlas_require_dynamic_qt()
+edit_atlas_require_dynamic_ffmpeg()
 
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
     get_target_property(
@@ -108,6 +113,12 @@ configure_file(
     "${PROJECT_BINARY_DIR}/QT_SOURCE_OFFER.md"
     @ONLY
 )
+set(EDIT_ATLAS_FFMPEG_VERSION "${FFMPEG_VERSION}")
+configure_file(
+    "${CMAKE_CURRENT_SOURCE_DIR}/docs/ffmpeg-source-offer.md.in"
+    "${PROJECT_BINARY_DIR}/FFMPEG_SOURCE_OFFER.md"
+    @ONLY
+)
 
 set(edit_atlas_vcpkg_share_directory
     "${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/share"
@@ -122,8 +133,19 @@ if(NOT EXISTS "${edit_atlas_qtbase_copyright}")
         "${edit_atlas_qtbase_copyright}."
     )
 endif()
+set(edit_atlas_ffmpeg_copyright
+    "${edit_atlas_vcpkg_share_directory}/ffmpeg/copyright"
+)
+if(NOT EXISTS "${edit_atlas_ffmpeg_copyright}")
+    message(
+        FATAL_ERROR
+        "The resolved FFmpeg copyright file was not found at "
+        "${edit_atlas_ffmpeg_copyright}."
+    )
+endif()
 
 add_subdirectory(src/core)
+add_subdirectory(src/media)
 add_subdirectory(src/storage)
 add_subdirectory(src/formats/cmx3600)
 add_subdirectory(src/formats/xlsx)
@@ -154,6 +176,7 @@ install(
     FILES
         "${CMAKE_CURRENT_SOURCE_DIR}/LICENSE"
         "${CMAKE_CURRENT_SOURCE_DIR}/THIRD_PARTY_NOTICES.md"
+        "${PROJECT_BINARY_DIR}/FFMPEG_SOURCE_OFFER.md"
         "${PROJECT_BINARY_DIR}/QT_SOURCE_OFFER.md"
     DESTINATION "${edit_atlas_license_install_dir}"
     COMPONENT Runtime

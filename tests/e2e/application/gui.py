@@ -57,7 +57,7 @@ class EditAtlasApplication:
             self._session.element("timelineTitleLabel")
 
     def wait_import_failure(self) -> str:
-        return self._session.text("failureDescriptionLabel")
+        return self._session.wait_text_nonempty("failureDescriptionLabel")
 
     def table_text(self) -> list[str]:
         return self._session.text_content("eventTable")
@@ -127,10 +127,8 @@ class EditAtlasApplication:
 
     def set_export_columns(self, checked: set[str], order: list[str]) -> None:
         available = self._session.list_items("eventColumnsList")
-        for name in available:
-            self._session.set_list_item_checked(
-                "eventColumnsList", name, name in checked
-            )
+        # Arrange rows before a selection can reveal conditional controls and
+        # shrink the list's visible area.
         for target_index, name in enumerate(order):
             while available.index(name) > target_index:
                 self._session.select_list_item("eventColumnsList", name)
@@ -141,6 +139,11 @@ class EditAtlasApplication:
                     available[position - 1],
                 )
                 self._session.wait_list_items("eventColumnsList", available)
+        # Apply the leading selections last so all remaining rows stay visible.
+        for name in reversed(available):
+            self._session.set_list_item_checked(
+                "eventColumnsList", name, name in checked
+            )
 
     def begin_spreadsheet_export(
         self,
@@ -163,9 +166,22 @@ class EditAtlasApplication:
         self._session.activate("cancelSpreadsheetExportButton")
         self._session.wait_absent("spreadsheetOptionsDialog")
 
+    def select_rendered_video(self, path: Path) -> None:
+        self._session.activate("browseRenderedVideoButton")
+        self._session.open_file_dialog("renderedVideoOpenFileDialog", path)
+
     def continue_spreadsheet_export(self, destination: Path) -> None:
         self._session.activate("continueSpreadsheetExportButton")
         self._session.open_file_dialog("spreadsheetSaveFileDialog", destination)
+
+    def cancel_rendered_video_export(self) -> list[str]:
+        self._session.element("spreadsheetExportProgressDialog")
+        progress = self._session.visible_text(
+            "spreadsheetExportProgressDialog"
+        )
+        self._session.activate("cancelFrameExtractionButton")
+        self._session.wait_absent("spreadsheetExportProgressDialog")
+        return progress
 
     def cancel_spreadsheet_replacement(self) -> None:
         self._session.activate("cancelReplaceSpreadsheetButton")
@@ -178,6 +194,15 @@ class EditAtlasApplication:
         self._session.element("spreadsheetExportResultDialog")
         self._session.activate("closeDialogButton")
         self._session.wait_absent("spreadsheetExportResultDialog")
+
+    def finish_rendered_video_export_failure(self) -> list[str]:
+        self._session.element("renderedVideoExportFailureDialog")
+        description = self._session.visible_text(
+            "renderedVideoExportFailureDialog"
+        )
+        self._session.activate("closeDialogButton")
+        self._session.wait_absent("renderedVideoExportFailureDialog")
+        return description
 
     def export_support_bundle(self, destination: Path) -> None:
         self._session.activate_menu_action(

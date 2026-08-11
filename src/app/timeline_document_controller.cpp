@@ -12,6 +12,7 @@
 #include "timeline_template_controller.hpp"
 
 #include <edit_atlas/core/editorial_timeline.hpp>
+#include <edit_atlas/core/timecode.hpp>
 #include <edit_atlas/core/timeline_projection.hpp>
 
 #include <edit_atlas/formats/cmx3600/cmx3600_importer.hpp>
@@ -19,7 +20,10 @@
 #include <edit_atlas/services/timeline_document_export_service.hpp>
 #include <edit_atlas/services/timeline_document_import_service.hpp>
 #include <edit_atlas/services/timeline_filter.hpp>
+#include <edit_atlas/services/timeline_frame_extraction_service.hpp>
+#include <edit_atlas/services/timeline_rendered_video_export_service.hpp>
 
+#include <QChar>
 #include <QComboBox>
 #include <QDialog>
 #include <QDir>
@@ -27,11 +31,13 @@
 #include <QFileInfo>
 #include <QInputDialog>
 #include <QMessageBox>
+#include <QProgressDialog>
 #include <QPushButton>
 #include <QSettings>
 #include <QString>
 #include <QStringList>
 #include <QWidget>
+#include <Qt>
 
 #include <spdlog/spdlog.h>
 
@@ -65,6 +71,18 @@ namespace {
                              static_cast<qsizetype>(utf8.size()));
 }
 
+[[nodiscard]] QString TimecodeText(const core::Timecode &timecode) {
+    const auto separator = timecode.mode() == core::TimecodeMode::kDropFrame
+                               ? QChar{u';'}
+                               : QChar{u':'};
+    return QStringLiteral("%1:%2:%3%4%5")
+        .arg(timecode.hours(), 2, 10, QChar{u'0'})
+        .arg(timecode.minutes(), 2, 10, QChar{u'0'})
+        .arg(timecode.seconds(), 2, 10, QChar{u'0'})
+        .arg(separator)
+        .arg(timecode.frames(), 2, 10, QChar{u'0'});
+}
+
 [[nodiscard]] bool
 HasDiagnosticCode(const std::vector<core::Diagnostic> &diagnostics,
                   std::string_view code) {
@@ -85,8 +103,22 @@ TimelineDocumentController::TimelineDocumentController(
     template_controller_ = new TimelineTemplateController{view_, window_, this};
     connect(workflow_, &TimelineDocumentWorkflow::ImportFinished, this,
             &TimelineDocumentController::HandleImportFinished);
-    connect(workflow_, &TimelineDocumentWorkflow::ExportFinished, this,
-            &TimelineDocumentController::HandleExportFinished);
+    connect(workflow_, &TimelineDocumentWorkflow::RenderedVideoExportFinished,
+            this,
+            &TimelineDocumentController::HandleRenderedVideoExportFinished);
+    connect(workflow_,
+            &TimelineDocumentWorkflow::FrameExtractionProgressChanged, this,
+            [this](qulonglong completed, qulonglong total) {
+                if (export_progress_ == nullptr) {
+                    return;
+                }
+                export_progress_->setRange(0, static_cast<int>(total));
+                export_progress_->setValue(static_cast<int>(completed));
+                export_progress_->setLabelText(
+                    tr("Extracting initial frames: %1 of %2")
+                        .arg(completed)
+                        .arg(total));
+            });
     connect(&menu_bar_, &ApplicationMenuBar::OpenRequested, this,
             [this](void) { OpenTimeline(); });
     connect(&menu_bar_, &ApplicationMenuBar::OpenPathRequested, this,
@@ -164,6 +196,7 @@ void TimelineDocumentController::ExportSpreadsheet(void) {
         return;
     }
     auto options = options_dialog.Options();
+    const auto video_path = options_dialog.VideoPath();
     template_controller_->SetEventProjection(options_dialog.EventProjection());
 
     const QFileInfo source{current_path_};
@@ -241,6 +274,7 @@ void TimelineDocumentController::ExportSpreadsheet(void) {
                 template_controller_->EventProjection().begin(),
                 template_controller_->EventProjection().end()},
         .options = std::move(options),
+        .event_images = {},
         .replace_existing = replace_existing,
     };
     SPDLOG_INFO("Spreadsheet export started with {} of {} event(s)",
@@ -248,7 +282,33 @@ void TimelineDocumentController::ExportSpreadsheet(void) {
     emit BusyChanged(true);
     emit StatusMessageChanged(
         tr("Exporting %1…").arg(QFileInfo{destination}.fileName()));
-    workflow_->Export(std::move(request));
+    if (!video_path.isEmpty()) {
+        export_progress_ = new QProgressDialog{tr("Validating rendered video…"),
+                                               tr("Cancel"), 0, 0, &window_};
+        export_progress_->setWindowTitle(tr("Export Spreadsheet"));
+        export_progress_->setWindowModality(Qt::WindowModal);
+        export_progress_->setAutoClose(false);
+        export_progress_->setAutoReset(false);
+        SetAutomationIdentifier(*export_progress_,
+                                u"spreadsheetExportProgressDialog");
+        if (auto *cancel = export_progress_->findChild<QPushButton *>();
+            cancel != nullptr) {
+            SetAutomationIdentifier(*cancel, u"cancelFrameExtractionButton");
+        }
+        connect(export_progress_, &QProgressDialog::canceled, workflow_,
+                &TimelineDocumentWorkflow::CancelRenderedVideoExport);
+        export_progress_->show();
+    }
+    workflow_->ExportWithRenderedVideo(
+        services::TimelineRenderedVideoExportRequest{
+            .document_export = std::move(request),
+            .reference_timeline = *timeline_,
+            .video_path =
+                video_path.isEmpty()
+                    ? std::optional<std::filesystem::path>{}
+                    : std::optional<std::filesystem::path>{FilesystemPath(
+                          video_path)},
+        });
 }
 
 bool TimelineDocumentController::IsBusy(void) const noexcept {
@@ -316,35 +376,75 @@ void TimelineDocumentController::ClearTimeline(void) {
     template_controller_->RestoreForTimeline();
 }
 
-void TimelineDocumentController::HandleExportFinished(void) {
+void TimelineDocumentController::HandleRenderedVideoExportFinished(void) {
     emit BusyChanged(false);
     emit StatusMessageCleared();
+    if (export_progress_ != nullptr) {
+        export_progress_->close();
+        export_progress_->deleteLater();
+        export_progress_ = nullptr;
+    }
 
-    auto result = workflow_->ExportResult();
+    auto result = workflow_->RenderedVideoExportResult();
     if (!result.has_value()) {
-        SPDLOG_ERROR("Spreadsheet export failed at stage {} with {} "
+        SPDLOG_ERROR("Rendered-video spreadsheet export failed at stage {} "
+                     "with {} "
                      "diagnostic(s)",
                      static_cast<int>(result.error().kind),
                      result.error().diagnostics.size());
-        ShowExportFailure(result.error());
+        if (!HasDiagnosticCode(
+                result.error().diagnostics,
+                services::timeline_frame_extraction_diagnostic_code::
+                    kCancelled)) {
+            ShowRenderedVideoExportFailure(result.error());
+        }
         return;
     }
     SPDLOG_INFO("Spreadsheet export completed with {} diagnostic(s)",
-                result->diagnostics.size());
+                result->document_export.diagnostics.size());
 
-    const auto path = PathText(result->path);
+    const auto path = PathText(result->document_export.path);
     QMessageBox message{&window_};
-    message.setWindowTitle(result->diagnostics.empty()
+    message.setWindowTitle(result->document_export.diagnostics.empty()
                                ? tr("Spreadsheet Exported")
                                : tr("Spreadsheet Exported with Warnings"));
-    message.setIcon(result->diagnostics.empty() ? QMessageBox::Information
-                                                : QMessageBox::Warning);
+    message.setIcon(result->document_export.diagnostics.empty()
+                        ? QMessageBox::Information
+                        : QMessageBox::Warning);
     message.setText(tr("The spreadsheet was saved to:\n%1").arg(path));
-    if (!result->diagnostics.empty()) {
-        message.setInformativeText(
+    QStringList informative_text;
+    if (result->video_information.has_value() &&
+        result->video_mapping.has_value()) {
+        informative_text.emplace_back(
+            tr("Embedded initial-frame images from %1 (%2, %3×%4, %5/%6 "
+               "fps, starting at %7); decoded %8 unique frame(s).")
+                .arg(QFileInfo{PathText(result->video_information->path)}
+                         .fileName())
+                .arg(Utf8(result->video_information->container_long_name))
+                .arg(result->video_information
+                         ->streams[result->video_information
+                                       ->selected_video_stream]
+                         .width)
+                .arg(result->video_information
+                         ->streams[result->video_information
+                                       ->selected_video_stream]
+                         .height)
+                .arg(result->video_mapping->video_start_timecode.rate()
+                         .numerator())
+                .arg(result->video_mapping->video_start_timecode.rate()
+                         .denominator())
+                .arg(TimecodeText(result->video_mapping->video_start_timecode))
+                .arg(static_cast<qulonglong>(result->unique_frame_count)));
+    }
+    if (!result->document_export.diagnostics.empty()) {
+        informative_text.emplace_back(
             tr("The workbook was created, but the exporter reported "
                "warnings."));
-        message.setDetailedText(diagnostic_text::Summary(result->diagnostics));
+        message.setDetailedText(
+            diagnostic_text::Summary(result->document_export.diagnostics));
+    }
+    if (!informative_text.empty()) {
+        message.setInformativeText(informative_text.join(u'\n'));
     }
     auto *reveal_button =
         message.addButton(tr("Reveal File"), QMessageBox::ActionRole);
@@ -482,6 +582,55 @@ void TimelineDocumentController::ShowExportFailure(
     SetAutomationIdentifier(message, u"spreadsheetExportFailureDialog");
     SetAutomationIdentifier(*close, u"closeDialogButton");
 
+    message.exec();
+}
+
+void TimelineDocumentController::ShowRenderedVideoExportFailure(
+    const services::TimelineRenderedVideoExportFailure &failure) {
+    if (failure.document_export_failure.has_value()) {
+        ShowExportFailure(*failure.document_export_failure);
+        return;
+    }
+
+    QString description;
+    switch (failure.kind) {
+    case services::TimelineRenderedVideoExportFailureKind::kVideoRequired:
+        description = tr("Select a matching rendered video for the Initial "
+                         "Frame column.");
+        break;
+    case services::TimelineRenderedVideoExportFailureKind::
+        kVideoInspectionFailed:
+        description =
+            tr("The rendered video could not be validated. It must be a "
+               "constant-frame-rate MOV, MP4, or MXF file with embedded "
+               "starting timecode, frame rate, and duration matching the "
+               "imported EDL.");
+        break;
+    case services::TimelineRenderedVideoExportFailureKind::
+        kFrameExtractionFailed:
+        description =
+            tr("Initial frames could not be extracted from the rendered "
+               "video.");
+        break;
+    case services::TimelineRenderedVideoExportFailureKind::
+        kDocumentExportFailed:
+        description = tr("The prepared spreadsheet could not be exported.");
+        break;
+    }
+
+    QMessageBox message{
+        QMessageBox::Critical,
+        tr("Could not use rendered video"),
+        description,
+        QMessageBox::NoButton,
+        &window_,
+    };
+    if (!failure.diagnostics.empty()) {
+        message.setDetailedText(diagnostic_text::Summary(failure.diagnostics));
+    }
+    auto *close = message.addButton(tr("Close"), QMessageBox::RejectRole);
+    SetAutomationIdentifier(message, u"renderedVideoExportFailureDialog");
+    SetAutomationIdentifier(*close, u"closeDialogButton");
     message.exec();
 }
 

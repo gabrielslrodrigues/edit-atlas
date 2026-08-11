@@ -3,6 +3,7 @@
 
 #include <edit_atlas/core/format.hpp>
 
+#include <cstdint>
 #include <string_view>
 
 namespace edit_atlas::formats::xlsx {
@@ -18,6 +19,10 @@ inline constexpr std::string_view kIncludeDiagnosticsSheetOption =
 /// Export option containing an IETF workbook presentation language tag.
 inline constexpr std::string_view kWorkbookLanguageOption =
     "xlsx.workbook_language";
+/// Maximum width requested for initial-frame images embedded in workbooks.
+inline constexpr std::int32_t kInitialFrameMaximumWidth = 320;
+/// Maximum height requested for initial-frame images embedded in workbooks.
+inline constexpr std::int32_t kInitialFrameMaximumHeight = 180;
 
 /// A presentation language supported by the XLSX report.
 enum class WorkbookLanguage {
@@ -51,6 +56,8 @@ inline constexpr std::string_view kWorkbookWriteFailed =
 /// The event projection is empty or contains duplicate fields.
 inline constexpr std::string_view kInvalidEventProjection =
     "xlsx.invalid_event_projection";
+/// Initial-frame data could not be encoded or embedded in the workbook.
+inline constexpr std::string_view kImageWriteFailed = "xlsx.image_write_failed";
 
 } // namespace diagnostic_code
 

@@ -8,4 +8,5 @@ brew install \
   automake \
   libtool \
   mono \
+  nasm \
   pkg-config

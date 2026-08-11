@@ -35,6 +35,11 @@ def pytest_addoption(parser: pytest.Parser) -> None:
     group.addoption(
         "--fixture-dir", type=Path, required=True, help="CMX fixture directory"
     )
+    group.addoption(
+        "--media-fixture-dir",
+        type=Path,
+        help="generated rendered-video fixture directory",
+    )
     group.addoption("--output-dir", type=Path, required=True)
     group.addoption("--state-root", type=Path, required=True)
     group.addoption("--artifact-dir", type=Path, required=True)
@@ -77,6 +82,34 @@ def fixture_directory(pytestconfig: pytest.Config) -> Path:
     path = pytestconfig.getoption("fixture_dir").resolve()
     if not path.is_dir():
         raise pytest.UsageError(f"fixture directory does not exist: {path}")
+    return path
+
+
+@pytest.fixture(scope="session")
+def media_fixture_directory(pytestconfig: pytest.Config) -> Path:
+    option = pytestconfig.getoption("media_fixture_dir")
+    if option is None:
+        raise pytest.UsageError(
+            "desktop rendered-video E2E requires --media-fixture-dir"
+        )
+    path = option.resolve()
+    if not path.is_dir():
+        raise pytest.UsageError(
+            f"rendered-video fixture directory does not exist: {path}"
+        )
+    required = {
+        "cancellation-render.mov",
+        "cancellation.edl",
+        "incompatible-timecode.mov",
+        "matching-render.mov",
+        "missing-timecode.mov",
+    }
+    missing = sorted(name for name in required if not (path / name).is_file())
+    if missing:
+        raise pytest.UsageError(
+            "rendered-video fixture directory is incomplete: "
+            + ", ".join(missing)
+        )
     return path
 
 

@@ -10,6 +10,7 @@
 #include <edit_atlas/services/built_in_formats.hpp>
 #include <edit_atlas/services/timeline_document_export_service.hpp>
 #include <edit_atlas/services/timeline_document_import_service.hpp>
+#include <edit_atlas/services/timeline_rendered_video_export_service.hpp>
 
 #include <CLI/CLI.hpp>
 
@@ -33,6 +34,7 @@ struct Options final {
     std::optional<std::string> frame_rate;
     std::string workbook_language = "pt-BR";
     std::optional<std::string> columns;
+    std::optional<std::string> video;
     bool omit_timeline_sheet = false;
     bool omit_diagnostics_sheet = false;
     bool replace_existing = false;
@@ -64,6 +66,11 @@ struct Options final {
     convert
         ->add_option("--columns", options.columns,
                      "Ordered event columns, separated by commas")
+        ->multi_option_policy(CLI::MultiOptionPolicy::Throw);
+    convert
+        ->add_option("--video", options.video,
+                     "Matching MOV, MP4, or MXF render used by the "
+                     "initial-frame column")
         ->multi_option_policy(CLI::MultiOptionPolicy::Throw);
     convert->add_flag("--no-timeline-sheet", options.omit_timeline_sheet,
                       "Omit the timeline summary sheet");
@@ -185,6 +192,28 @@ ExportFailureCode(services::TimelineDocumentExportFailureKind kind) {
     return "cli.output.export_failed";
 }
 
+[[nodiscard]] std::string RenderedVideoExportFailureMessage(
+    const services::TimelineRenderedVideoExportFailure &failure) {
+    if (failure.document_export_failure.has_value()) {
+        return ExportFailureMessage(*failure.document_export_failure);
+    }
+    switch (failure.kind) {
+    case services::TimelineRenderedVideoExportFailureKind::kVideoRequired:
+        return "--video is required when the initial-frame column is selected";
+    case services::TimelineRenderedVideoExportFailureKind::
+        kVideoInspectionFailed:
+        return "The rendered video does not satisfy the timeline timing "
+               "contract";
+    case services::TimelineRenderedVideoExportFailureKind::
+        kFrameExtractionFailed:
+        return "Initial frames could not be extracted from the rendered video";
+    case services::TimelineRenderedVideoExportFailureKind::
+        kDocumentExportFailed:
+        return "The XLSX report could not be created";
+    }
+    return "The rendered-video export failed";
+}
+
 [[nodiscard]] std::vector<core::MetadataEntry>
 ImportOptions(const Options &options) {
     if (!options.frame_rate.has_value()) {
@@ -256,6 +285,16 @@ EventProjection(const Options &options) {
                  "identifiers\n";
         return ExitCode::kUsageError;
     }
+    const auto uses_initial_frames = std::ranges::contains(
+        *event_projection, core::TimelineEventField::kInitialFrame);
+    if (uses_initial_frames && !options.video.has_value()) {
+        error << "--video is required when --columns includes initial-frame\n";
+        return ExitCode::kUsageError;
+    }
+    if (!uses_initial_frames && options.video.has_value()) {
+        error << "--video requires initial-frame in --columns\n";
+        return ExitCode::kUsageError;
+    }
     auto registry = services::CreateBuiltInFormatRegistry();
     if (!registry.has_value()) {
         constexpr std::string_view kMessage =
@@ -302,38 +341,63 @@ EventProjection(const Options &options) {
     }
 
     const auto event_count = import_result->timeline.events.size();
-    const services::TimelineDocumentExportService export_service{*registry};
+    const services::TimelineRenderedVideoExportService export_service{
+        *registry};
     auto export_result =
-        export_service.Export(services::TimelineDocumentExportRequest{
-            .path = PathFromUtf8(options.output),
-            .format_identifier = std::string{formats::xlsx::kFormatIdentifier},
-            .timeline = std::move(import_result->timeline),
-            .event_projection = std::move(*event_projection),
-            .options = ExportOptions(options),
-            .replace_existing = options.replace_existing,
+        export_service.Export(services::TimelineRenderedVideoExportRequest{
+            .document_export =
+                services::TimelineDocumentExportRequest{
+                    .path = PathFromUtf8(options.output),
+                    .format_identifier =
+                        std::string{formats::xlsx::kFormatIdentifier},
+                    .timeline = import_result->timeline,
+                    .event_projection = std::move(*event_projection),
+                    .options = ExportOptions(options),
+                    .event_images = {},
+                    .replace_existing = options.replace_existing,
+                },
+            .reference_timeline = std::move(import_result->timeline),
+            .video_path =
+                options.video.has_value()
+                    ? std::optional<std::filesystem::path>{PathFromUtf8(
+                          *options.video)}
+                    : std::nullopt,
         });
     if (!export_result.has_value()) {
         auto failure = std::move(export_result.error());
-        const auto message = ExportFailureMessage(failure);
+        const auto message = RenderedVideoExportFailureMessage(failure);
         if (failure.diagnostics.empty()) {
-            diagnostics.emplace_back(FilesystemDiagnostic(
-                ExportFailureCode(failure.kind), message, failure.path));
+            if (failure.document_export_failure.has_value()) {
+                const auto &document_failure = *failure.document_export_failure;
+                diagnostics.emplace_back(FilesystemDiagnostic(
+                    ExportFailureCode(document_failure.kind), message,
+                    document_failure.path));
+            }
         } else {
             diagnostics.insert(diagnostics.end(), failure.diagnostics.begin(),
                                failure.diagnostics.end());
         }
         WriteFailure(message, diagnostics, error);
-        return failure.kind == services::TimelineDocumentExportFailureKind::
-                                   kDestinationExists
+        return failure.document_export_failure.has_value() &&
+                       failure.document_export_failure->kind ==
+                           services::TimelineDocumentExportFailureKind::
+                               kDestinationExists
                    ? ExitCode::kDestinationExists
                    : ExitCode::kOperationalFailure;
     }
 
-    diagnostics.insert(diagnostics.end(), export_result->diagnostics.begin(),
-                       export_result->diagnostics.end());
+    diagnostics.insert(diagnostics.end(),
+                       export_result->document_export.diagnostics.begin(),
+                       export_result->document_export.diagnostics.end());
     output << "Converted " << event_count << " event(s) from "
            << PathToUtf8(import_result->path) << " to "
-           << PathToUtf8(export_result->path) << '\n';
+           << PathToUtf8(export_result->document_export.path) << '\n';
+    if (export_result->video_information.has_value()) {
+        output << "Embedded initial frames from "
+               << PathToUtf8(export_result->video_information->path) << " ("
+               << export_result->video_information->container_long_name << ", "
+               << export_result->unique_frame_count << " unique frame(s))\n";
+    }
     WriteDiagnostics(diagnostics, error);
     if (HasSeverity(diagnostics, core::DiagnosticSeverity::kError)) {
         return ExitCode::kOperationalFailure;

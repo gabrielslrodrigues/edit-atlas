@@ -50,6 +50,7 @@ sudo dnf install \
   libxkbcommon-devel \
   libxkbcommon-x11-devel \
   make \
+  nasm \
   perl \
   pkgconf-pkg-config \
   tar \
@@ -87,6 +88,7 @@ sudo apt-get install \
   libxkbcommon-x11-dev \
   libwayland-dev \
   make \
+  nasm \
   perl \
   pkg-config \
   tar \
@@ -114,6 +116,7 @@ brew install \
   curl \
   libtool \
   make \
+  nasm \
   pkg-config \
   unzip \
   zip
@@ -130,6 +133,9 @@ winget install --exact --id Microsoft.VisualStudio.2022.BuildTools `
 ```
 
 Open a new terminal after installation so the compiler is available.
+
+On Windows, the pinned vcpkg FFmpeg port downloads its pinned NASM host tool
+automatically. Linux and macOS use the system NASM installations listed above.
 
 ### Bootstrap vcpkg
 
@@ -194,9 +200,9 @@ On Windows PowerShell:
 
 English is the source language. Brazilian Portuguese translations are compiled
 from `src/app/translations/edit_atlas_pt_BR.ts` and embedded in the executable.
-The interface defaults to Brazilian Portuguese on first launch. The language
-selector in the top-right switches between Brazilian Portuguese and English
-and remembers the choice for subsequent launches.
+The interface defaults to Brazilian Portuguese on first launch. The
+**Language** menu switches between Brazilian Portuguese and English and
+remembers the choice for subsequent launches.
 
 Spreadsheet export can follow the active interface language or explicitly use
 English or Brazilian Portuguese. The selected language changes workbook sheet
@@ -204,7 +210,16 @@ names, headings, generated labels, and document properties. Imported titles,
 identifiers, comments, file paths, timecodes, metadata keys, and diagnostic
 details remain unchanged, while numeric values remain numeric cells. Before
 choosing a destination, the export dialog also lets users include, exclude, and
-reorder event columns. All current columns are selected by default.
+reorder event columns. Standard timeline columns are selected by default;
+fields that require supplemental media, such as an initial frame image, are
+opt-in.
+
+Selecting **Initial frame** reveals a rendered-video selector. The chosen MOV,
+MP4, or MXF file must have a constant frame rate and readable embedded starting
+timecode matching the EDL record timeline; its duration and timecode mode must
+also match. Edit Atlas validates the file locally, extracts each exported
+event's Record In frame with cancellable progress, and embeds the resulting
+images in the workbook. Ordinary exports do not require a video.
 
 Open a CMX 3600 EDL with **File → Open Timeline**, the standard open shortcut,
 or by dropping the file onto the window. Non-drop-frame EDLs that omit their
@@ -354,3 +369,8 @@ Edit Atlas dynamically links to Qt 6 under the LGPL-3.0-only option. See
 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) and the
 [Qt LGPL compliance policy](docs/qt-lgpl-compliance.md) for the distribution
 requirements enforced by the project.
+
+The video backend dynamically links to a minimal LGPL-compatible FFmpeg build.
+See the [FFmpeg LGPL compliance policy](docs/ffmpeg-lgpl-compliance.md) for the
+enabled libraries, codec policy, source-distribution requirements, and patent
+licensing boundary.

@@ -255,6 +255,7 @@ TEST(TimelineDocumentWorkflowTest,
                     .value = "pt-BR",
                 },
             },
+        .event_images = {},
         .replace_existing = false,
     });
     ASSERT_TRUE(WaitForSignal(exported));
@@ -347,6 +348,7 @@ TEST(TimelineDocumentWorkflowTest, RecoversAfterAnExportFailure) {
         .timeline = imported->timeline,
         .event_projection = {},
         .options = {},
+        .event_images = {},
         .replace_existing = false,
     });
     ASSERT_TRUE(WaitForSignal(finished));
@@ -366,6 +368,7 @@ TEST(TimelineDocumentWorkflowTest, RecoversAfterAnExportFailure) {
                 core::TimelineEventField::kEventIdentifier,
             },
         .options = {},
+        .event_images = {},
         .replace_existing = false,
     });
     ASSERT_TRUE(WaitForSignal(finished));

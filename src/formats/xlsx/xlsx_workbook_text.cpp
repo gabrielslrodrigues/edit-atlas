@@ -64,6 +64,7 @@ constexpr std::array kTexts{
 // with the enum declaration in timeline_projection.hpp.
 constexpr std::array kEventColumns{
     LocalizedText{"Event", "Evento"},
+    LocalizedText{"Initial Frame", "Quadro inicial"},
     LocalizedText{"Reel", "Rolo"},
     LocalizedText{"Track Type", "Tipo de faixa"},
     LocalizedText{"Track", "Faixa"},

@@ -5,6 +5,7 @@ The public API follows one inward dependency direction:
 ```text
 frontend -> application services -> core
                               |----> built-in formats -> core
+                              |----> media decoding backend -> FFmpeg
 frontend -> diagnostic support -> local storage
 ```
 
@@ -46,8 +47,47 @@ catalog and persistence-neutral CRUD behavior. Its private store writes
 independent schema-versioned local files and reports unsupported entries
 without discarding valid ones.
 
+`edit_atlas::services::TimelineVideoInspectionService` validates a rendered
+video's embedded starting timecode, constant frame rate, and duration against
+the imported record timeline. A one-frame duration difference is tolerated;
+larger differences reject the video rather than guessing an alignment.
+Successful inspection retains the opened decoder and an exact frame mapping
+for later extraction without coupling a frontend to the media backend.
+`edit_atlas::services::TimelineFrameExtractionService` consumes that validated
+decoder, maps each event's Record In to an exact video frame, and produces
+owned RGB frame images at caller-selected output dimensions. Duplicate frame
+mappings share immutable image ownership, while cancellation and failures
+return no partial collection. Thumbnail dimensions, encoding, and placement
+remain policies of the consuming exporter.
+
+Export requests may associate immutable RGB images with event indices. The
+XLSX exporter exposes `Initial Frame` as an optional projection field, encodes
+the corresponding images as PNG, and owns their workbook column width, row
+height, placement, and localized header. Projections that omit the field do not
+alter existing workbooks.
+
+`TimelineRenderedVideoExportService` is the shared frontend orchestration for
+image-bearing exports. It validates video timing against the complete imported
+timeline, extracts only the possibly filtered export events, reindexes their
+images against the export document, and then delegates to the ordinary document
+export service. This keeps desktop and CLI validation behavior identical while
+preserving correct frame alignment after filtering.
+
 The `edit_atlas::storage` namespace provides shared complete-file reads and
 atomic local-file writes for services and diagnostic support.
+
+## Media decoding
+
+The `edit_atlas::media` namespace owns the presentation-neutral video boundary.
+Its public metadata, failure, decoder, and RGB24 frame types do not expose
+FFmpeg declarations. The private FFmpeg implementation opens MOV, MP4, and MXF
+containers, applies the documented codec policy, and returns structured errors
+to its caller. Frame-index seeking and timestamp conversion stay inside this
+boundary. The caller may request bounded output dimensions, which the backend
+applies during RGB conversion without assigning presentation semantics to the
+result. Timeline validation, event mapping, cancellation, and progress belong
+to application services; thumbnail policy, user interaction, and spreadsheet
+embedding remain responsibilities of frontends and format adapters.
 
 ## Diagnostic support
 

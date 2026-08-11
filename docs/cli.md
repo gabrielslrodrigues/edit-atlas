@@ -76,15 +76,41 @@ edit-atlas-cli convert \
   report.xlsx
 ```
 
-Available identifiers are `event`, `reel`, `track-kind`, `track`, `edit-type`,
-`transition`, `transition-frames`, `source-in`, `source-out`, `record-in`,
-`record-out`, `duration`, `duration-frames`, `clip-name`, `source-file`,
-`comments`, and `source-line`. The default includes all columns in that order.
+Available identifiers are `event`, `initial-frame`, `reel`, `track-kind`,
+`track`, `edit-type`, `transition`, `transition-frames`, `source-in`,
+`source-out`, `record-in`, `record-out`, `duration`, `duration-frames`,
+`clip-name`, `source-file`, `comments`, and `source-line`. The default includes
+every standard textual and numeric column in that order; `initial-frame` is
+opt-in.
 `duration` is an artist-friendly elapsed value in `HH:MM:SS:FF` form (or
 `HH:MM:SS;FF` for drop-frame timelines); `duration-frames` is the raw numeric
 frame count for calculations, sorting, and exact filtering. Identifiers are
 always English, lowercase integration values regardless of workbook language.
 Each identifier may occur only once.
+
+## Initial-frame images
+
+Select `initial-frame` and provide the matching rendered video with `--video`:
+
+```sh
+edit-atlas-cli convert \
+  --fps 24 \
+  --columns event,initial-frame,reel,record-in,comments \
+  --video matching-render.mov \
+  timeline.edl \
+  report.xlsx
+```
+
+The video must be a constant-frame-rate MOV, MP4, or MXF file with readable
+embedded starting timecode. Its timecode mode, frame rate, starting frame, and
+duration must match the imported EDL record timeline. A video without usable
+embedded timecode is rejected even when its visual content or duration appears
+to match. `--video` is required when `initial-frame` is selected and rejected
+when that column is absent.
+
+Each exported event receives the frame at its Record In timecode. Filtering and
+column reordering do not change the event-to-frame mapping. Images are resized
+within 320×180 pixels, encoded as PNG, and embedded directly in the workbook.
 
 ## Existing destinations
 
@@ -125,7 +151,7 @@ application bundle.
 
 ## Privacy and encoding
 
-Input and output files remain local and are never uploaded. Paths and imported
-text are preserved as UTF-8. On Windows, the executable obtains arguments
-through the native UTF-16 command line and converts them explicitly rather than
-using the active legacy code page.
+Input, video, and output files remain local and are never uploaded. Paths and
+imported text are preserved as UTF-8. On Windows, the executable obtains
+arguments through the native UTF-16 command line and converts them explicitly
+rather than using the active legacy code page.

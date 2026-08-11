@@ -11,6 +11,8 @@
 
 #include <edit_atlas/formats/cmx3600/cmx3600_importer.hpp>
 
+#include <edit_atlas/services/timeline_video_inspection_service.hpp>
+
 #include <QCoreApplication>
 #include <QString>
 #include <QTranslator>
@@ -55,6 +57,10 @@ TEST(ApplicationTest, LoadsBrazilianPortugueseTranslations) {
               QStringLiteral("Idioma da pasta de trabalho"));
     EXPECT_EQ(SpreadsheetExportOptionsDialog::tr("Same as application"),
               QStringLiteral("Mesmo idioma do aplicativo"));
+    EXPECT_EQ(SpreadsheetExportOptionsDialog::tr("Rendered video"),
+              QStringLiteral("Vídeo renderizado"));
+    EXPECT_EQ(SpreadsheetExportOptionsDialog::tr("Rendered video path"),
+              QStringLiteral("Caminho do vídeo renderizado"));
     EXPECT_EQ(QCoreApplication::translate(
                   "edit_atlas::app::EventProjectionWidget", "Event columns"),
               QStringLiteral("Colunas de eventos"));
@@ -64,6 +70,9 @@ TEST(ApplicationTest, LoadsBrazilianPortugueseTranslations) {
     EXPECT_EQ(QCoreApplication::translate(
                   "edit_atlas::app::EventProjectionWidget", "Duration frames"),
               QStringLiteral("Duração em quadros"));
+    EXPECT_EQ(QCoreApplication::translate(
+                  "edit_atlas::app::EventProjectionWidget", "Initial frame"),
+              QStringLiteral("Quadro inicial"));
     EXPECT_EQ(QCoreApplication::translate(
                   "edit_atlas::app::EventProjectionWidget", "Move up"),
               QStringLiteral("Mover para cima"));
@@ -93,6 +102,17 @@ TEST(ApplicationTest, LoadsBrazilianPortugueseTranslations) {
     EXPECT_EQ(diagnostic_text::Message(diagnostic),
               QStringLiteral("Uma taxa de quadros é necessária para esta EDL "
                              "non-drop-frame."));
+    const core::Diagnostic video_diagnostic{
+        .severity = core::DiagnosticSeverity::kError,
+        .code =
+            std::string{
+                services::timeline_video_diagnostic_code::kMissingTimecode},
+        .message = "untranslated fallback",
+        .location = std::nullopt,
+    };
+    EXPECT_EQ(diagnostic_text::Message(video_diagnostic),
+              QStringLiteral("O vídeo renderizado não possui timecode inicial "
+                             "incorporado legível."));
 }
 
 TEST(ApplicationStyleTest, LoadsEmbeddedStyleSheet) {
