@@ -5,8 +5,8 @@
 #include <QAccessibleWidget>
 #include <QAction>
 #include <QComboBox>
+#include <QCoreApplication>
 #include <QDialogButtonBox>
-#include <QHash>
 #include <QInputDialog>
 #include <QItemSelectionModel>
 #include <QKeySequence>
@@ -14,7 +14,6 @@
 #include <QListWidget>
 #include <QListWidgetItem>
 #include <QMenu>
-#include <QPointer>
 #include <QPushButton>
 #include <QRect>
 #include <QString>
@@ -25,7 +24,9 @@
 #include <QVariant>
 #include <QWidget>
 
+#include <algorithm>
 #include <utility>
+#include <vector>
 
 namespace edit_atlas::app {
 
@@ -224,8 +225,9 @@ class AccessibleProjectionList;
 class AccessibleProjectionItem final : public QAccessibleInterface,
                                        public QAccessibleActionInterface {
 public:
-    AccessibleProjectionItem(QListWidget *list, int field)
-        : list_{list}, field_{field} {}
+    AccessibleProjectionItem(AccessibleProjectionList *parent,
+                             QListWidgetItem *item)
+        : parent_{parent}, item_{item} {}
 
     bool isValid(void) const override;
     QObject *object(void) const override { return nullptr; }
@@ -258,12 +260,11 @@ public:
         return {};
     }
 
-    QListWidgetItem *item(void) const;
-    QListWidget *list(void) const { return list_.data(); }
+    QListWidgetItem *item(void) const { return item_; }
 
 private:
-    QPointer<QListWidget> list_;
-    int field_;
+    AccessibleProjectionList *parent_;
+    QListWidgetItem *item_;
 };
 
 class AccessibleProjectionList final : public QAccessibleWidget,
@@ -272,8 +273,12 @@ public:
     explicit AccessibleProjectionList(QListWidget *list)
         : QAccessibleWidget{list, QAccessible::List} {}
     ~AccessibleProjectionList(void) override {
-        for (const auto id : std::as_const(child_ids_)) {
-            QAccessible::deleteAccessibleInterface(id);
+        if (QCoreApplication::closingDown()) {
+            return;
+        }
+        for (auto *child : children_) {
+            QAccessible::deleteAccessibleInterface(
+                QAccessible::uniqueId(child));
         }
     }
 
@@ -299,19 +304,16 @@ public:
             return nullptr;
         }
         auto *item = list()->item(index);
-        const auto field = item->data(Qt::UserRole).toInt();
-        const auto match = child_ids_.find(field);
-        if (match != child_ids_.end()) {
-            if (auto *interface = QAccessible::accessibleInterface(*match);
-                interface != nullptr) {
-                return interface;
-            }
-            child_ids_.erase(match);
+        const auto match = std::ranges::find_if(
+            children_, [item](const auto *candidate) {
+                return candidate->item() == item;
+            });
+        if (match != children_.end()) {
+            return *match;
         }
-        auto *interface = new AccessibleProjectionItem{list(), field};
-        const auto id = QAccessible::registerAccessibleInterface(interface);
-        child_ids_.insert(field, id);
-        return interface;
+        children_.push_back(new AccessibleProjectionItem{
+            const_cast<AccessibleProjectionList *>(this), item});
+        return children_.back();
     }
 
     int childCount(void) const override { return list()->count(); }
@@ -319,7 +321,7 @@ public:
     int indexOfChild(const QAccessibleInterface *child_interface) const override {
         const auto *item_interface =
             dynamic_cast<const AccessibleProjectionItem *>(child_interface);
-        return item_interface == nullptr || item_interface->list() != list()
+        return item_interface == nullptr
                    ? -1
                    : list()->row(item_interface->item());
     }
@@ -344,20 +346,18 @@ public:
     bool select(QAccessibleInterface *child_interface) override {
         auto *item_interface =
             dynamic_cast<AccessibleProjectionItem *>(child_interface);
-        if (item_interface == nullptr || item_interface->list() != list() ||
-            !item_interface->isValid()) {
+        if (item_interface == nullptr) {
             return false;
         }
-        auto *item = item_interface->item();
-        list()->setCurrentItem(item, QItemSelectionModel::ClearAndSelect);
+        list()->setCurrentItem(item_interface->item(),
+                               QItemSelectionModel::ClearAndSelect);
         return true;
     }
 
     bool unselect(QAccessibleInterface *child_interface) override {
         auto *item_interface =
             dynamic_cast<AccessibleProjectionItem *>(child_interface);
-        if (item_interface == nullptr || item_interface->list() != list() ||
-            !item_interface->isValid()) {
+        if (item_interface == nullptr) {
             return false;
         }
         item_interface->item()->setSelected(false);
@@ -383,78 +383,48 @@ public:
     }
 
 private:
-    mutable QHash<int, QAccessible::Id> child_ids_;
+    mutable std::vector<AccessibleProjectionItem *> children_;
 };
 
 bool AccessibleProjectionItem::isValid(void) const {
-    return item() != nullptr;
-}
-
-QListWidgetItem *AccessibleProjectionItem::item(void) const {
-    if (list_.isNull()) {
-        return nullptr;
-    }
-    for (int row = 0; row < list_->count(); ++row) {
-        auto *candidate = list_->item(row);
-        if (candidate != nullptr &&
-            candidate->data(Qt::UserRole).toInt() == field_) {
-            return candidate;
-        }
-    }
-    return nullptr;
+    return parent_ != nullptr && parent_->list() != nullptr && item_ != nullptr &&
+           parent_->list()->row(item_) >= 0;
 }
 
 QWindow *AccessibleProjectionItem::window(void) const {
-    const auto *parent_interface = parent();
-    return parent_interface == nullptr ? nullptr : parent_interface->window();
+    return parent_->window();
 }
 
 QAccessibleInterface *AccessibleProjectionItem::parent(void) const {
-    return list_.isNull() ? nullptr
-                          : QAccessible::queryAccessibleInterface(list_.data());
+    return parent_;
 }
 
 QString AccessibleProjectionItem::text(QAccessible::Text type) const {
-    const auto *current_item = item();
-    return current_item != nullptr && type == QAccessible::Name
-               ? current_item->text()
-               : QString{};
+    return type == QAccessible::Name ? item_->text() : QString{};
 }
 
 QRect AccessibleProjectionItem::rect(void) const {
-    auto *current_item = item();
-    if (current_item == nullptr) {
-        return {};
-    }
-    auto *list = list_.data();
-    auto item_rect = list->visualItemRect(current_item);
+    auto *list = parent_->list();
+    auto item_rect = list->visualItemRect(item_);
     item_rect.moveTopLeft(list->viewport()->mapToGlobal(item_rect.topLeft()));
     return item_rect;
 }
 
 QAccessible::State AccessibleProjectionItem::state(void) const {
     QAccessible::State accessible_state;
-    auto *current_item = item();
-    if (current_item == nullptr) {
-        accessible_state.invalid = true;
-        return accessible_state;
-    }
-    const auto *list = list_.data();
-    accessible_state.disabled = !(current_item->flags() & Qt::ItemIsEnabled);
-    accessible_state.selectable =
-        bool(current_item->flags() & Qt::ItemIsSelectable);
-    accessible_state.selected = current_item->isSelected();
+    const auto *list = parent_->list();
+    accessible_state.disabled = !(item_->flags() & Qt::ItemIsEnabled);
+    accessible_state.selectable = bool(item_->flags() & Qt::ItemIsSelectable);
+    accessible_state.selected = item_->isSelected();
     accessible_state.focusable = accessible_state.selectable;
-    accessible_state.focused =
-        list->hasFocus() && list->currentItem() == current_item;
-    accessible_state.checkable =
-        bool(current_item->flags() & Qt::ItemIsUserCheckable);
-    accessible_state.checked = current_item->checkState() == Qt::Checked;
+    accessible_state.focused = list->hasFocus() && list->currentItem() == item_;
+    accessible_state.checkable = bool(item_->flags() & Qt::ItemIsUserCheckable);
+    accessible_state.checked = item_->checkState() == Qt::Checked;
     accessible_state.checkStateMixed =
-        current_item->checkState() == Qt::PartiallyChecked;
-    const auto visible =
-        list->isVisible() &&
-        list->viewport()->rect().intersects(list->visualItemRect(current_item));
+        item_->checkState() == Qt::PartiallyChecked;
+    const auto visible = list->isVisible() &&
+                         list->viewport()->rect().intersects(
+                             list->visualItemRect(item_));
     accessible_state.invisible = !visible;
     accessible_state.offscreen = !visible;
     return accessible_state;
@@ -472,18 +442,13 @@ QString AccessibleProjectionItem::localizedActionDescription(
 }
 
 void AccessibleProjectionItem::doAction(const QString &action_name) {
-    auto *current_item = item();
-    if (current_item == nullptr) {
-        return;
-    }
-    auto *list = list_.data();
+    auto *list = parent_->list();
     if (action_name == pressAction()) {
-        list->setCurrentItem(current_item, QItemSelectionModel::ClearAndSelect);
+        list->setCurrentItem(item_, QItemSelectionModel::ClearAndSelect);
     } else if (action_name == toggleAction() &&
-               current_item->flags() & Qt::ItemIsUserCheckable) {
-        current_item->setCheckState(current_item->checkState() == Qt::Checked
-                                        ? Qt::Unchecked
-                                        : Qt::Checked);
+               item_->flags() & Qt::ItemIsUserCheckable) {
+        item_->setCheckState(item_->checkState() == Qt::Checked ? Qt::Unchecked
+                                                                : Qt::Checked);
     }
 }
 
@@ -500,9 +465,7 @@ QAccessibleInterface *CreateApplicationAccessibleInterface(const QString &,
         return new AccessibleTemplateActionsButton{button};
     }
 #endif
-    if (auto *list = qobject_cast<QListWidget *>(object);
-        list != nullptr &&
-        list->objectName() == QStringLiteral("eventColumnsList")) {
+    if (auto *list = qobject_cast<QListWidget *>(object); list != nullptr) {
         return new AccessibleProjectionList{list};
     }
     return nullptr;

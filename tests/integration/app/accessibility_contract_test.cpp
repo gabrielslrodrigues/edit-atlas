@@ -346,6 +346,28 @@ TEST(AccessibilityContractTest, CoversTemplateProjectionDialogControls) {
 
 #if defined(Q_OS_LINUX) || defined(Q_OS_WIN)
 TEST(AccessibilityContractTest,
+     ProjectionChildToggleActionChangesCheckedState) {
+    const auto projection = core::DefaultTimelineEventProjection();
+    EventProjectionDialog dialog{projection};
+    auto *columns = FindByAccessibleIdentifier<QListWidget>(
+        dialog, QStringLiteral("eventColumnsList"));
+    ASSERT_NE(columns, nullptr);
+    auto *list_interface = QAccessible::queryAccessibleInterface(columns);
+    ASSERT_NE(list_interface, nullptr);
+    auto *child_interface = list_interface->child(0);
+    ASSERT_NE(child_interface, nullptr);
+    auto *action_interface = child_interface->actionInterface();
+    ASSERT_NE(action_interface, nullptr);
+    auto *item = columns->item(0);
+    ASSERT_NE(item, nullptr);
+    ASSERT_EQ(item->checkState(), Qt::Checked);
+
+    action_interface->doAction(QAccessibleActionInterface::toggleAction());
+
+    EXPECT_EQ(item->checkState(), Qt::Unchecked);
+}
+
+TEST(AccessibilityContractTest,
      ReleasesProjectionChildInterfacesWhenDialogCloses) {
     QAccessible::Id child_identifier = 0;
     {
