@@ -19,6 +19,7 @@ target_sources(
         timeline_document_import_service.cpp
         timeline_filter.cpp
         timeline_frame_extraction_service.cpp
+        timeline_rendered_video_export_service.cpp
         timeline_template.cpp
         timeline_template_service.cpp
         timeline_template_store.cpp
@@ -33,6 +34,7 @@ target_sources(
             include/edit_atlas/services/timeline_document_import_service.hpp
             include/edit_atlas/services/timeline_filter.hpp
             include/edit_atlas/services/timeline_frame_extraction_service.hpp
+            include/edit_atlas/services/timeline_rendered_video_export_service.hpp
             include/edit_atlas/services/timeline_template.hpp
             include/edit_atlas/services/timeline_template_service.hpp
             include/edit_atlas/services/timeline_video_inspection_service.hpp

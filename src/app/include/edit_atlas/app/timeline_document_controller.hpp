@@ -8,6 +8,7 @@
 
 #include <edit_atlas/services/timeline_document_export_service.hpp>
 #include <edit_atlas/services/timeline_filter.hpp>
+#include <edit_atlas/services/timeline_rendered_video_export_service.hpp>
 
 #include <QObject>
 #include <QString>
@@ -16,6 +17,7 @@
 #include <string>
 
 class QWidget;
+class QProgressDialog;
 
 namespace edit_atlas::app {
 
@@ -57,10 +59,12 @@ class TimelineDocumentController final : public QObject {
   private:
     void ApplyFilter(void);
     void ClearTimeline(void);
-    void HandleExportFinished(void);
     void HandleImportFinished(void);
+    void HandleRenderedVideoExportFinished(void);
     void
     ShowExportFailure(const services::TimelineDocumentExportFailure &failure);
+    void ShowRenderedVideoExportFailure(
+        const services::TimelineRenderedVideoExportFailure &failure);
     void StartImport(const QString &path,
                      std::optional<std::string> frame_rate = std::nullopt);
 
@@ -71,6 +75,7 @@ class TimelineDocumentController final : public QObject {
     QWidget &window_;
     TimelineDocumentWorkflow *workflow_ = nullptr;
     TimelineTemplateController *template_controller_ = nullptr;
+    QProgressDialog *export_progress_ = nullptr;
     bool interactions_enabled_ = true;
     bool filter_valid_ = true;
     std::optional<core::TimelineDocument> timeline_;

@@ -8,11 +8,16 @@
 #include <QCheckBox>
 #include <QComboBox>
 #include <QDialogButtonBox>
+#include <QFileDialog>
+#include <QGroupBox>
+#include <QHBoxLayout>
 #include <QLabel>
+#include <QLineEdit>
 #include <QPushButton>
 #include <QVBoxLayout>
 #include <QWidget>
 
+#include <algorithm>
 #include <span>
 #include <string>
 #include <vector>
@@ -71,6 +76,25 @@ SpreadsheetExportOptionsDialog::SpreadsheetExportOptionsDialog(
     diagnostics_->setChecked(true);
     layout->addWidget(diagnostics_);
 
+    video_group_ = new QGroupBox{tr("Rendered video"), this};
+    auto *video_layout = new QVBoxLayout{video_group_};
+    auto *video_requirement = new QLabel{
+        tr("Initial-frame images require a constant-frame-rate MOV, MP4, or "
+           "MXF render with embedded starting timecode, frame rate, and "
+           "duration matching the imported EDL."),
+        video_group_};
+    video_requirement->setWordWrap(true);
+    video_layout->addWidget(video_requirement);
+    auto *video_path_layout = new QHBoxLayout;
+    video_path_ = new QLineEdit{video_group_};
+    video_path_->setPlaceholderText(tr("Select the matching rendered video"));
+    video_path_->setAccessibleName(tr("Rendered video path"));
+    auto *browse_video = new QPushButton{tr("Browse…"), video_group_};
+    video_path_layout->addWidget(video_path_, 1);
+    video_path_layout->addWidget(browse_video);
+    video_layout->addLayout(video_path_layout);
+    layout->addWidget(video_group_);
+
     projection_ = new EventProjectionWidget{projection, this};
     layout->addWidget(projection_, 1);
 
@@ -84,6 +108,9 @@ SpreadsheetExportOptionsDialog::SpreadsheetExportOptionsDialog(
     SetAutomationIdentifier(*workbook_language_, u"workbookLanguageSelector");
     SetAutomationIdentifier(*timeline_, u"includeTimelineSheetCheckBox");
     SetAutomationIdentifier(*diagnostics_, u"includeDiagnosticsSheetCheckBox");
+    SetAutomationIdentifier(*video_group_, u"renderedVideoGroup");
+    SetAutomationIdentifier(*video_path_, u"renderedVideoPathField");
+    SetAutomationIdentifier(*browse_video, u"browseRenderedVideoButton");
     SetAutomationIdentifier(*continue_, u"continueSpreadsheetExportButton");
     SetAutomationIdentifier(*cancel, u"cancelSpreadsheetExportButton");
 
@@ -91,9 +118,13 @@ SpreadsheetExportOptionsDialog::SpreadsheetExportOptionsDialog(
     connect(buttons, &QDialogButtonBox::rejected, this, &QDialog::reject);
     layout->addWidget(buttons);
 
-    connect(projection_, &EventProjectionWidget::ValidityChanged, continue_,
-            &QPushButton::setEnabled);
-    continue_->setEnabled(!projection_->Projection().empty());
+    connect(projection_, &EventProjectionWidget::ProjectionChanged, this,
+            &SpreadsheetExportOptionsDialog::UpdateControls);
+    connect(video_path_, &QLineEdit::textChanged, this,
+            [this](const QString &) { UpdateControls(); });
+    connect(browse_video, &QPushButton::clicked, this,
+            &SpreadsheetExportOptionsDialog::BrowseForVideo);
+    UpdateControls();
 }
 
 std::vector<core::MetadataEntry>
@@ -128,6 +159,36 @@ SpreadsheetExportOptionsDialog::Options(void) const {
 std::vector<core::TimelineEventField>
 SpreadsheetExportOptionsDialog::EventProjection(void) const {
     return projection_->Projection();
+}
+
+QString SpreadsheetExportOptionsDialog::VideoPath(void) const {
+    return video_group_->isHidden() ? QString{} : video_path_->text().trimmed();
+}
+
+void SpreadsheetExportOptionsDialog::BrowseForVideo(void) {
+    QFileDialog dialog{this, tr("Select Rendered Video")};
+    dialog.setAcceptMode(QFileDialog::AcceptOpen);
+    dialog.setFileMode(QFileDialog::ExistingFile);
+    dialog.setNameFilters(
+        {tr("Supported video files (*.mov *.mp4 *.mxf)"), tr("All files (*)")});
+    dialog.resize(1000, 650);
+    SetAutomationIdentifier(dialog, u"renderedVideoOpenFileDialog");
+    if (dialog.exec() != QDialog::Accepted) {
+        return;
+    }
+    const auto files = dialog.selectedFiles();
+    if (!files.empty()) {
+        video_path_->setText(files.front());
+    }
+}
+
+void SpreadsheetExportOptionsDialog::UpdateControls(void) {
+    const auto projection = projection_->Projection();
+    const auto requires_video = std::ranges::contains(
+        projection, core::TimelineEventField::kInitialFrame);
+    video_group_->setVisible(requires_video);
+    continue_->setEnabled(!projection.empty() &&
+                          (!requires_video || !VideoPath().isEmpty()));
 }
 
 } // namespace edit_atlas::app

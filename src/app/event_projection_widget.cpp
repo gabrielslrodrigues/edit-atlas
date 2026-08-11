@@ -164,6 +164,7 @@ void EventProjectionWidget::UpdateControls(void) {
                            current_row + 1 < columns_->count());
     const auto valid = !Projection().empty();
     error_->setVisible(!valid);
+    emit ProjectionChanged();
     emit ValidityChanged(valid);
 }
 
