@@ -65,6 +65,9 @@ TEST(ApplicationTest, LoadsBrazilianPortugueseTranslations) {
                   "edit_atlas::app::EventProjectionWidget", "Duration frames"),
               QStringLiteral("Duração em quadros"));
     EXPECT_EQ(QCoreApplication::translate(
+                  "edit_atlas::app::EventProjectionWidget", "Initial frame"),
+              QStringLiteral("Quadro inicial"));
+    EXPECT_EQ(QCoreApplication::translate(
                   "edit_atlas::app::EventProjectionWidget", "Move up"),
               QStringLiteral("Mover para cima"));
     EXPECT_EQ(QCoreApplication::translate(

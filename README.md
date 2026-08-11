@@ -210,7 +210,9 @@ names, headings, generated labels, and document properties. Imported titles,
 identifiers, comments, file paths, timecodes, metadata keys, and diagnostic
 details remain unchanged, while numeric values remain numeric cells. Before
 choosing a destination, the export dialog also lets users include, exclude, and
-reorder event columns. All current columns are selected by default.
+reorder event columns. Standard timeline columns are selected by default;
+fields that require supplemental media, such as an initial frame image, are
+opt-in.
 
 Open a CMX 3600 EDL with **File → Open Timeline**, the standard open shortcut,
 or by dropping the file onto the window. Non-drop-frame EDLs that omit their

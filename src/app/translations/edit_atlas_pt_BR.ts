@@ -716,6 +716,10 @@ Inspecione linhas do tempo editoriais e exporte relatórios estruturados.</trans
         <translation>Evento</translation>
     </message>
     <message>
+        <source>Initial frame</source>
+        <translation>Quadro inicial</translation>
+    </message>
+    <message>
         <source>Reel</source>
         <translation>Rolo</translation>
     </message>

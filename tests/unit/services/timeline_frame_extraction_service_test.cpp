@@ -3,6 +3,7 @@
 #include <edit_atlas/services/timeline_video_inspection_service.hpp>
 
 #include <edit_atlas/core/editorial_timeline.hpp>
+#include <edit_atlas/core/rgb_image.hpp>
 #include <edit_atlas/core/timecode.hpp>
 
 #include <edit_atlas/media/video_decoder.hpp>
@@ -96,7 +97,7 @@ Frame(std::int64_t frame_index, const media::VideoFrameOutputOptions &options) {
         .frame_index = frame_index,
         .presentation_timestamp = frame_index,
         .image =
-            media::RgbImage{
+            core::RgbImage{
                 .width = width,
                 .height = height,
                 .row_stride = row_stride,

@@ -1,5 +1,6 @@
 #include <edit_atlas/formats/xlsx/xlsx_exporter.hpp>
 
+#include <edit_atlas/formats/xlsx/detail/xlsx_image_encoder.hpp>
 #include <edit_atlas/formats/xlsx/detail/xlsx_workbook_text.hpp>
 
 #include <edit_atlas/core/editorial_timeline.hpp>
@@ -15,6 +16,8 @@
 #include <cstdint>
 #include <cstdlib>
 #include <ctime>
+#include <expected>
+#include <optional>
 #include <span>
 #include <string>
 #include <string_view>
@@ -29,17 +32,27 @@ namespace {
 constexpr std::string_view kMediaType =
     "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
 constexpr std::time_t kCreationTime = 946'684'800;
+constexpr std::uint32_t kInitialFrameColumnWidth =
+    static_cast<std::uint32_t>(kInitialFrameMaximumWidth) + 4U;
+constexpr std::uint32_t kInitialFrameRowHeight =
+    static_cast<std::uint32_t>(kInitialFrameMaximumHeight) + 4U;
 
 using detail::WorkbookText;
 using detail::WorkbookTextKey;
 
 struct WriteStatus final {
     lxw_error error = LXW_NO_ERROR;
+    bool image_error = false;
 
     void Record(lxw_error candidate) noexcept {
         if (error == LXW_NO_ERROR && candidate != LXW_NO_ERROR) {
             error = candidate;
         }
+    }
+
+    void RecordImage(lxw_error candidate) noexcept {
+        image_error = image_error || candidate != LXW_NO_ERROR;
+        Record(candidate);
     }
 };
 
@@ -91,6 +104,57 @@ template <typename Integer>
     const auto result =
         std::to_chars(buffer.data(), buffer.data() + buffer.size(), value);
     return std::string{buffer.data(), result.ptr};
+}
+
+[[nodiscard]] bool
+HasInitialFrame(std::span<const core::TimelineEventField> projection) noexcept {
+    return std::ranges::contains(projection,
+                                 core::TimelineEventField::kInitialFrame);
+}
+
+[[nodiscard]]
+std::expected<std::vector<std::vector<std::byte>>, core::Diagnostic>
+PrepareInitialFrameImages(const core::ExportRequest &request) {
+    if (!HasInitialFrame(request.event_projection)) {
+        return std::vector<std::vector<std::byte>>{};
+    }
+
+    std::vector<std::optional<std::vector<std::byte>>> indexed_images(
+        request.document.events.size());
+    for (const auto &event_image : request.event_images) {
+        if (event_image.event_index >= indexed_images.size() ||
+            event_image.image == nullptr ||
+            indexed_images[event_image.event_index].has_value()) {
+            return std::unexpected(ErrorDiagnostic(
+                diagnostic_code::kImageWriteFailed,
+                "Initial-frame images must identify one unique exported "
+                "event."));
+        }
+        auto encoded = detail::EncodeRgbImageAsPng(*event_image.image,
+                                                   kInitialFrameMaximumWidth,
+                                                   kInitialFrameMaximumHeight);
+        if (!encoded.has_value()) {
+            return std::unexpected(ErrorDiagnostic(
+                diagnostic_code::kImageWriteFailed,
+                "Could not prepare the initial frame for event " +
+                    IntegerText(event_image.event_index + 1) + ": " +
+                    encoded.error()));
+        }
+        indexed_images[event_image.event_index] = std::move(*encoded);
+    }
+
+    std::vector<std::vector<std::byte>> images;
+    images.reserve(indexed_images.size());
+    for (auto &image : indexed_images) {
+        if (!image.has_value()) {
+            return std::unexpected(ErrorDiagnostic(
+                diagnostic_code::kImageWriteFailed,
+                "Every exported event requires an initial-frame image when "
+                "the Initial Frame field is selected."));
+        }
+        images.push_back(std::move(*image));
+    }
+    return images;
 }
 
 [[nodiscard]] std::string DoubleText(double value) {
@@ -236,6 +300,26 @@ void WriteBoolean(WriteStatus &status, lxw_worksheet *worksheet, lxw_row_t row,
         worksheet_write_boolean(worksheet, row, column, value ? 1 : 0, format));
 }
 
+void WriteInitialFrame(WriteStatus &status, lxw_worksheet *worksheet,
+                       lxw_row_t row, lxw_col_t column,
+                       const std::vector<std::byte> &image,
+                       const core::EditEvent &event) {
+    auto description = std::string{"Initial frame for event "};
+    description += event.identifier;
+    lxw_image_options options{};
+    options.x_offset = 2;
+    options.y_offset = 2;
+    options.x_scale = 1.0;
+    options.y_scale = 1.0;
+    options.object_position =
+        static_cast<std::uint8_t>(LXW_OBJECT_MOVE_AND_SIZE);
+    options.description = description.c_str();
+    status.RecordImage(worksheet_insert_image_buffer_opt(
+        worksheet, row, column,
+        reinterpret_cast<const unsigned char *>(image.data()), image.size(),
+        &options));
+}
+
 void WriteMetadataValue(WriteStatus &status, lxw_worksheet *worksheet,
                         lxw_row_t row, lxw_col_t column,
                         const core::MetadataValue &value) {
@@ -270,12 +354,18 @@ void ConfigureEventsSheet(WriteStatus &status, lxw_worksheet *worksheet,
     for (std::size_t index = 0; index < projection.size(); ++index) {
         const auto field = projection[index];
         const auto column = static_cast<lxw_col_t>(index);
+        if (field == core::TimelineEventField::kInitialFrame) {
+            status.Record(worksheet_set_column_pixels(
+                worksheet, column, column, kInitialFrameColumnWidth, nullptr));
+            continue;
+        }
         const auto wide = field == core::TimelineEventField::kClipName ||
                           field == core::TimelineEventField::kSourceFile ||
                           field == core::TimelineEventField::kComments;
         const auto width = [&] {
             switch (field) {
             case core::TimelineEventField::kEventIdentifier:
+            case core::TimelineEventField::kInitialFrame:
             case core::TimelineEventField::kReel:
             case core::TimelineEventField::kSourceLine:
                 return 12.0;
@@ -320,6 +410,8 @@ void WriteEventField(WriteStatus &status, lxw_worksheet *worksheet,
     switch (field) {
     case core::TimelineEventField::kEventIdentifier:
         WriteString(status, worksheet, row, column, event.identifier);
+        return;
+    case core::TimelineEventField::kInitialFrame:
         return;
     case core::TimelineEventField::kReel:
         WriteString(status, worksheet, row, column, event.reel);
@@ -398,6 +490,7 @@ void WriteEventField(WriteStatus &status, lxw_worksheet *worksheet,
 void WriteEventsSheet(WriteStatus &status, lxw_worksheet *worksheet,
                       const core::TimelineDocument &document,
                       std::span<const core::TimelineEventField> projection,
+                      std::span<const std::vector<std::byte>> initial_frames,
                       const WorkbookText &text, lxw_format *header_format,
                       lxw_format *wrapped_format) {
     for (std::size_t column = 0; column < projection.size(); ++column) {
@@ -410,7 +503,17 @@ void WriteEventsSheet(WriteStatus &status, lxw_worksheet *worksheet,
     for (std::size_t index = 0; index < document.events.size(); ++index) {
         const auto &event = document.events[index];
         const auto row = static_cast<lxw_row_t>(index + 1);
+        if (!initial_frames.empty()) {
+            status.Record(worksheet_set_row_pixels(
+                worksheet, row, kInitialFrameRowHeight, nullptr));
+        }
         for (std::size_t column = 0; column < projection.size(); ++column) {
+            if (projection[column] == core::TimelineEventField::kInitialFrame) {
+                WriteInitialFrame(status, worksheet, row,
+                                  static_cast<lxw_col_t>(column),
+                                  initial_frames[index], event);
+                continue;
+            }
             WriteEventField(status, worksheet, row,
                             static_cast<lxw_col_t>(column), projection[column],
                             event, text, wrapped_format);
@@ -523,6 +626,13 @@ XlsxExporter::Export(const core::ExportRequest &request) const {
                 "field.")},
         };
     }
+    auto initial_frames = PrepareInitialFrameImages(request);
+    if (!initial_frames.has_value()) {
+        return core::ExportResult{
+            .artifact = std::nullopt,
+            .diagnostics = {std::move(initial_frames.error())},
+        };
+    }
     const auto &text = detail::WorkbookTextFor(LanguageOption(request.options));
     const char *output_buffer = nullptr;
     std::size_t output_size = 0;
@@ -598,7 +708,7 @@ XlsxExporter::Export(const core::ExportRequest &request) const {
     format_set_align(wrapped_format, LXW_ALIGN_VERTICAL_TOP);
 
     WriteEventsSheet(status, events, request.document, request.event_projection,
-                     text, header_format, wrapped_format);
+                     *initial_frames, text, header_format, wrapped_format);
     if (timeline != nullptr) {
         WriteTimelineSheet(status, timeline, request.document, text,
                            header_format);
@@ -615,8 +725,11 @@ XlsxExporter::Export(const core::ExportRequest &request) const {
         return core::ExportResult{
             .artifact = std::nullopt,
             .diagnostics = {ErrorDiagnostic(
-                diagnostic_code::kWorkbookWriteFailed,
-                ErrorMessage("Could not write the Excel workbook",
+                status.image_error ? diagnostic_code::kImageWriteFailed
+                                   : diagnostic_code::kWorkbookWriteFailed,
+                ErrorMessage(status.image_error
+                                 ? "Could not write an initial-frame image"
+                                 : "Could not write the Excel workbook",
                              status.error))},
         };
     }

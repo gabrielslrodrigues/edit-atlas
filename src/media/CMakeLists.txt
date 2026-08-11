@@ -25,7 +25,11 @@ target_include_directories(
         ${FFMPEG_INCLUDE_DIRS}
 )
 
-target_link_libraries(edit_atlas_media PRIVATE ${FFMPEG_LIBRARIES})
+target_link_libraries(
+    edit_atlas_media
+    PUBLIC EditAtlas::Core
+    PRIVATE ${FFMPEG_LIBRARIES}
+)
 target_compile_features(edit_atlas_media PUBLIC cxx_std_23)
 edit_atlas_set_project_warnings(edit_atlas_media)
 

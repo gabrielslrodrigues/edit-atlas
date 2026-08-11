@@ -13,6 +13,8 @@ formats, media decoding, and privacy-limited diagnostic support.
   extension points.
 - `edit_atlas::core::TimelineEventField` provides stable event-column
   identifiers and the default report projection.
+- `edit_atlas::core::RgbImage` provides presentation-neutral RGB24 ownership
+  for event images passed through export requests.
 - `edit_atlas::services::TimelineDocumentImportService` and
   `edit_atlas::services::TimelineDocumentExportService` provide filesystem workflows
   that do not depend on a frontend.

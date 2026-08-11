@@ -521,6 +521,7 @@ TEST(TimelineFilterTest, ExportsOnlyTheFilteredSelection) {
                 core::DefaultTimelineEventProjection().end(),
             },
         .options = {},
+        .event_images = {},
         .replace_existing = false,
     });
 

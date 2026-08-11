@@ -1,6 +1,8 @@
 #ifndef EDIT_ATLAS_MEDIA_VIDEO_DECODER_HPP_
 #define EDIT_ATLAS_MEDIA_VIDEO_DECODER_HPP_
 
+#include <edit_atlas/core/rgb_image.hpp>
+
 #include <cstddef>
 #include <cstdint>
 #include <expected>
@@ -126,18 +128,6 @@ struct VideoFrameOutputOptions final {
     std::optional<VideoFrameSizeLimit> size_limit;
 };
 
-/// An owned packed RGB24 image.
-struct RgbImage final {
-    /// The frame width in pixels.
-    std::int32_t width;
-    /// The frame height in pixels.
-    std::int32_t height;
-    /// The number of bytes from one RGB row to the next.
-    std::size_t row_stride;
-    /// Top-to-bottom packed RGB24 pixels.
-    std::vector<std::byte> pixels;
-};
-
 /// An RGB24 frame decoded from the selected video stream.
 struct DecodedVideoFrame final {
     /// Zero-based frame index relative to the beginning of the video stream.
@@ -145,7 +135,7 @@ struct DecodedVideoFrame final {
     /// The presentation timestamp in the selected stream's time base.
     std::optional<std::int64_t> presentation_timestamp;
     /// Owned RGB24 output at the requested size.
-    RgbImage image;
+    core::RgbImage image;
     /// Whether the decoder identifies this frame as a key frame.
     bool key_frame;
 };

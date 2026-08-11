@@ -2,9 +2,11 @@
 #define EDIT_ATLAS_CORE_FORMAT_HPP_
 
 #include <edit_atlas/core/editorial_timeline.hpp>
+#include <edit_atlas/core/rgb_image.hpp>
 #include <edit_atlas/core/timeline_projection.hpp>
 
 #include <cstddef>
+#include <memory>
 #include <optional>
 #include <span>
 #include <string>
@@ -74,6 +76,14 @@ struct ImportResult final {
     std::vector<Diagnostic> diagnostics;
 };
 
+/// Associates an immutable RGB image with one event in an export document.
+struct TimelineEventImage final {
+    /// Zero-based event position in the exported timeline document.
+    std::size_t event_index;
+    /// Shared image ownership retained for the duration of export.
+    std::shared_ptr<const RgbImage> image;
+};
+
 /// A document and format-specific options passed to an exporter.
 struct ExportRequest final {
     /// The document to export; the caller retains ownership.
@@ -88,6 +98,9 @@ struct ExportRequest final {
 
     /// Format-specific options expressed as stable metadata entries.
     std::vector<MetadataEntry> options;
+
+    /// Optional images associated with event positions in `document`.
+    std::vector<TimelineEventImage> event_images{};
 };
 
 /// Bytes produced by an exporter and their suggested file information.
