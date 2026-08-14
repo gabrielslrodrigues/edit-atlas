@@ -19,6 +19,7 @@ target_sources(
         timeline_document_view_model.cpp
         timeline_document_workflow.cpp
         timeline_event_model.cpp
+        timeline_template_view_model.cpp
         translation.cpp
         include/edit_atlas/presentation/application_state.hpp
         include/edit_atlas/presentation/desktop_integration.hpp
@@ -28,6 +29,7 @@ target_sources(
         include/edit_atlas/presentation/timeline_document_view_model.hpp
         include/edit_atlas/presentation/timeline_document_workflow.hpp
         include/edit_atlas/presentation/timeline_event_model.hpp
+        include/edit_atlas/presentation/timeline_template_view_model.hpp
         include/edit_atlas/presentation/translation.hpp
 )
 

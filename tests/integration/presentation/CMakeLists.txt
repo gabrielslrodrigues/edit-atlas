@@ -8,6 +8,7 @@ target_sources(
         test_main.cpp
         timeline_document_view_model_test.cpp
         timeline_document_workflow_test.cpp
+        timeline_template_view_model_test.cpp
 )
 
 target_compile_definitions(

@@ -114,7 +114,10 @@ state, and signals without depending on Qt Widgets or Qt Quick.
 its filter selection and export projection, explicit import and export states,
 and the asynchronous results consumed by a frontend. Its associated table
 model exposes selected events without transferring document ownership to a
-view.
+view. `edit_atlas::presentation::TimelineTemplateViewModel` owns the reusable
+template catalog, active selection, editable filter and projection state,
+modification detection, and persistence command results without owning any
+dialogs or translated feedback.
 
 Concrete frontends own dialogs, confirmations, navigation, and view-specific
 interaction. Both desktop implementations consume the same presentation APIs
