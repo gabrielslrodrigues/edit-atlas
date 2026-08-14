@@ -16,6 +16,7 @@ target_sources(
         diagnostic_support.cpp
         diagnostic_text.cpp
         support_bundle_workflow.cpp
+        timeline_document_view_model.cpp
         timeline_document_workflow.cpp
         timeline_event_model.cpp
         translation.cpp
@@ -24,6 +25,7 @@ target_sources(
         include/edit_atlas/presentation/diagnostic_support.hpp
         include/edit_atlas/presentation/diagnostic_text.hpp
         include/edit_atlas/presentation/support_bundle_workflow.hpp
+        include/edit_atlas/presentation/timeline_document_view_model.hpp
         include/edit_atlas/presentation/timeline_document_workflow.hpp
         include/edit_atlas/presentation/timeline_event_model.hpp
         include/edit_atlas/presentation/translation.hpp

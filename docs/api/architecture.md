@@ -100,11 +100,21 @@ state.
 
 ## Presentation layer
 
-The `edit_atlas::presentation` namespace owns frontend-neutral Qt state and
-asynchronous workflows. It adapts application services, diagnostic support,
+The graphical frontends follow Model-View-ViewModel. Core types and application
+services form the Model, `edit_atlas::presentation` owns frontend-neutral Qt
+ViewModels and their supporting infrastructure, and Qt Widgets or Qt Quick
+implements the View. The CLI continues to call application services directly.
+
+The presentation layer adapts application services, diagnostic support,
 persistent application paths, language selection, bundled translations,
-localized diagnostic text, and timeline data to Qt Core models and signals
-without depending on Qt Widgets or Qt Quick.
+localized diagnostic text, and timeline data to Qt Core item models, commands,
+state, and signals without depending on Qt Widgets or Qt Quick.
+
+`edit_atlas::presentation::TimelineDocumentViewModel` owns one imported document,
+its filter selection and export projection, explicit import and export states,
+and the asynchronous results consumed by a frontend. Its associated table
+model exposes selected events without transferring document ownership to a
+view.
 
 Concrete frontends own dialogs, confirmations, navigation, and view-specific
 interaction. Both desktop implementations consume the same presentation APIs

@@ -6,6 +6,7 @@ target_sources(
     edit_atlas_presentation_integration_tests
     PRIVATE
         test_main.cpp
+        timeline_document_view_model_test.cpp
         timeline_document_workflow_test.cpp
 )
 
