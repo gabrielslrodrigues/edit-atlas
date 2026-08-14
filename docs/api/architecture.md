@@ -117,7 +117,9 @@ model exposes selected events without transferring document ownership to a
 view. `edit_atlas::presentation::TimelineTemplateViewModel` owns the reusable
 template catalog, active selection, editable filter and projection state,
 modification detection, and persistence command results without owning any
-dialogs or translated feedback.
+dialogs or translated feedback. The support-bundle ViewModel similarly exposes
+asynchronous diagnostic-export state and structured results while leaving the
+privacy disclosure, destination selection, and result dialogs to each View.
 
 Concrete frontends own dialogs, confirmations, navigation, and view-specific
 interaction. Both desktop implementations consume the same presentation APIs

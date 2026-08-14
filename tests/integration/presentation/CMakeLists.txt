@@ -5,6 +5,7 @@ add_executable(edit_atlas_presentation_integration_tests)
 target_sources(
     edit_atlas_presentation_integration_tests
     PRIVATE
+        support_bundle_view_model_test.cpp
         test_main.cpp
         timeline_document_view_model_test.cpp
         timeline_document_workflow_test.cpp
