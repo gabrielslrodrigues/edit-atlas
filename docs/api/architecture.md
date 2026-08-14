@@ -5,7 +5,7 @@ The public API follows one inward dependency direction:
 ```text
 frontend -> presentation -> application services -> core
          |              |----> diagnostic support -> local storage
-         |              |----> Qt Core and Concurrent
+         |              |----> Qt Core, Concurrent, and Gui
          |----> concrete Qt frontend toolkit
 application services -> built-in formats -> core
                      |-> media decoding backend -> FFmpeg
@@ -31,8 +31,8 @@ future formats.
 The `edit_atlas::services` namespace adapts local filesystem operations to the
 in-memory pipeline. Services return presentation-neutral receipts or failures,
 leaving scheduling, overwrite confirmation, localization, and user feedback to
-the caller. The desktop frontend and CLI therefore share the same
-workflows. Timeline filter queries and event selections also live here so a
+the caller. The desktop frontend and CLI therefore share the same service
+behavior. Timeline filter queries and event selections also live here so a
 frontend can present and export the same result set without modifying its
 imported document. Free-text conditions support literal or RE2 matching with
 optional case and Unicode whole-word constraints. Categorical, timecode, and
@@ -41,8 +41,9 @@ structured validation failures.
 
 Ordered event projections use `edit_atlas::core::TimelineEventField`. Stable
 identifiers are independent from translated labels, and the default projection
-reproduces the complete event report. `TimelineDocumentExportService` rejects empty or
-duplicate projections before invoking an exporter or touching its destination.
+reproduces the complete event report. `TimelineDocumentExportService` rejects
+empty or duplicate projections before invoking an exporter or touching its
+destination.
 Named `edit_atlas::services::TimelineTemplate` values combine these filter and
 projection types. `edit_atlas::services::TimelineTemplateService` owns their
 catalog and persistence-neutral CRUD behavior. Its private store writes
@@ -122,13 +123,13 @@ asynchronous diagnostic-export state and structured results while leaving the
 privacy disclosure, destination selection, and result dialogs to each View.
 
 Concrete frontends own dialogs, confirmations, navigation, and view-specific
-interaction. Both desktop implementations consume the same presentation APIs
+interaction. Desktop implementations consume the same presentation APIs
 instead of scheduling services or interpreting results independently.
 
 ## Frontend boundary
 
 Qt Widgets and Qt Quick classes are adapters rather than public application
-services. The
-`edit_atlas::cli` namespace provides the corresponding terminal adapter and
-stable process outcomes. Callers should integrate reusable workflows through
-the standard C++ domain, format, service, and support interfaces.
+services. The `edit_atlas::cli` namespace provides the corresponding terminal
+adapter and stable process outcomes. Graphical frontends should consume the
+shared presentation APIs; non-Qt callers should integrate through the standard
+C++ domain, format, service, and support interfaces.
