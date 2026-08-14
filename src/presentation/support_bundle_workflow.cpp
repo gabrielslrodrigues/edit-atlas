@@ -1,4 +1,4 @@
-#include <edit_atlas/app/support_bundle_workflow.hpp>
+#include <edit_atlas/presentation/support_bundle_workflow.hpp>
 
 #include <edit_atlas/support/support_bundle.hpp>
 
@@ -8,7 +8,7 @@
 
 #include <utility>
 
-namespace edit_atlas::app {
+namespace edit_atlas::presentation {
 
 SupportBundleWorkflow::SupportBundleWorkflow(QObject *parent)
     : QObject{parent} {
@@ -38,4 +38,4 @@ bool SupportBundleWorkflow::IsBusy(void) const noexcept {
     return watcher_.isRunning();
 }
 
-} // namespace edit_atlas::app
+} // namespace edit_atlas::presentation

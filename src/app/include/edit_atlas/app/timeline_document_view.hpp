@@ -3,6 +3,8 @@
 
 #include <edit_atlas/core/editorial_timeline.hpp>
 
+#include <edit_atlas/presentation/timeline_event_model.hpp>
+
 #include <edit_atlas/services/timeline_document_import_service.hpp>
 #include <edit_atlas/services/timeline_filter.hpp>
 #include <edit_atlas/services/timeline_template.hpp>
@@ -26,7 +28,6 @@ class QTreeWidget;
 
 namespace edit_atlas::app {
 
-class TimelineEventModel;
 class TimelineFilterWidget;
 
 /// Presents empty, loading, timeline, and import-failure document states.
@@ -101,7 +102,7 @@ class TimelineDocumentView final : public QWidget {
     TimelineFilterWidget *timeline_filter_ = nullptr;
     QLabel *filter_result_label_ = nullptr;
     QTableView *event_table_ = nullptr;
-    TimelineEventModel *event_model_ = nullptr;
+    presentation::TimelineEventModel *event_model_ = nullptr;
     QSortFilterProxyModel *event_proxy_model_ = nullptr;
     QWidget *failure_page_ = nullptr;
     QLabel *failure_title_label_ = nullptr;

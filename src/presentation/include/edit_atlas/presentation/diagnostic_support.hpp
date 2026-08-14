@@ -1,5 +1,5 @@
-#ifndef EDIT_ATLAS_APP_DIAGNOSTIC_SUPPORT_HPP_
-#define EDIT_ATLAS_APP_DIAGNOSTIC_SUPPORT_HPP_
+#ifndef EDIT_ATLAS_PRESENTATION_DIAGNOSTIC_SUPPORT_HPP_
+#define EDIT_ATLAS_PRESENTATION_DIAGNOSTIC_SUPPORT_HPP_
 
 #include <edit_atlas/core/format_registry.hpp>
 
@@ -7,7 +7,7 @@
 
 #include <filesystem>
 
-namespace edit_atlas::app {
+namespace edit_atlas::presentation {
 
 /// Returns the platform-appropriate private application log directory.
 [[nodiscard]] std::filesystem::path ConfiguredLogDirectory(void);
@@ -20,6 +20,6 @@ CreateDiagnosticEnvironment(const core::FormatRegistry &registry);
 void LogDiagnosticEnvironment(
     const support::DiagnosticEnvironment &environment);
 
-} // namespace edit_atlas::app
+} // namespace edit_atlas::presentation
 
-#endif // EDIT_ATLAS_APP_DIAGNOSTIC_SUPPORT_HPP_
+#endif // EDIT_ATLAS_PRESENTATION_DIAGNOSTIC_SUPPORT_HPP_

@@ -1,7 +1,7 @@
 #include <edit_atlas/app/application_menu_bar.hpp>
-#include <edit_atlas/app/application_state.hpp>
-#include <edit_atlas/app/diagnostic_support.hpp>
 #include <edit_atlas/app/translation.hpp>
+#include <edit_atlas/presentation/application_state.hpp>
+#include <edit_atlas/presentation/diagnostic_support.hpp>
 
 #include <edit_atlas/core/timeline_projection.hpp>
 
@@ -24,7 +24,7 @@ namespace edit_atlas::app {
 namespace {
 
 [[nodiscard]] std::filesystem::path TestStateRoot(void) {
-    const auto value = qgetenv(kTestStateRootEnvironment);
+    const auto value = qgetenv(presentation::kTestStateRootEnvironment);
     const auto text = QString::fromUtf8(value);
     const auto utf8 = text.toUtf8();
     return std::filesystem::path{
@@ -60,9 +60,9 @@ TEST(ApplicationStateTest, RoutesEveryPersistentStoreBelowTheOverride) {
     const auto root = TestStateRoot();
     ASSERT_FALSE(root.empty());
 
-    EXPECT_EQ(ConfiguredApplicationDataDirectory(), root);
-    EXPECT_EQ(ConfiguredTemplateDirectory(), root / "templates");
-    EXPECT_EQ(ConfiguredLogDirectory(), root / "logs");
+    EXPECT_EQ(presentation::ConfiguredApplicationDataDirectory(), root);
+    EXPECT_EQ(presentation::ConfiguredTemplateDirectory(), root / "templates");
+    EXPECT_EQ(presentation::ConfiguredLogDirectory(), root / "logs");
 
     QSettings settings;
     settings.clear();
@@ -72,9 +72,8 @@ TEST(ApplicationStateTest, RoutesEveryPersistentStoreBelowTheOverride) {
     EXPECT_EQ(ConfiguredApplicationLanguage(), ApplicationLanguage::kEnglish);
     EXPECT_EQ(settings.format(), QSettings::IniFormat);
     EXPECT_EQ(settings.status(), QSettings::NoError);
-    EXPECT_TRUE(
-        IsBelowDirectory(FilesystemPath(settings.fileName()),
-                         root / "settings"));
+    EXPECT_TRUE(IsBelowDirectory(FilesystemPath(settings.fileName()),
+                                 root / "settings"));
 }
 
 TEST(ApplicationStateTest, IsolatesRecentFilesAndTimelineTemplates) {
@@ -93,7 +92,8 @@ TEST(ApplicationStateTest, IsolatesRecentFilesAndTimelineTemplates) {
     EXPECT_EQ(settings.value(QStringLiteral("files/recent")).toStringList(),
               QStringList{QStringLiteral("/isolated/example.edl")});
 
-    services::TimelineTemplateService templates{ConfiguredTemplateDirectory()};
+    services::TimelineTemplateService templates{
+        presentation::ConfiguredTemplateDirectory()};
     ASSERT_TRUE(templates.Load().has_value());
     const auto projection = core::DefaultTimelineEventProjection();
     const auto created = templates.Create(
@@ -101,8 +101,9 @@ TEST(ApplicationStateTest, IsolatesRecentFilesAndTimelineTemplates) {
         std::vector<core::TimelineEventField>{projection.begin(),
                                               projection.end()});
     ASSERT_TRUE(created.has_value());
-    EXPECT_TRUE(std::filesystem::exists(ConfiguredTemplateDirectory() /
-                                        (created->identifier + ".json")));
+    EXPECT_TRUE(
+        std::filesystem::exists(presentation::ConfiguredTemplateDirectory() /
+                                (created->identifier + ".json")));
 }
 
 } // namespace

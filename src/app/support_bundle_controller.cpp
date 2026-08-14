@@ -2,8 +2,8 @@
 
 #include "accessibility.hpp"
 
-#include <edit_atlas/app/desktop_integration.hpp>
-#include <edit_atlas/app/support_bundle_workflow.hpp>
+#include <edit_atlas/presentation/desktop_integration.hpp>
+#include <edit_atlas/presentation/support_bundle_workflow.hpp>
 
 #include <edit_atlas/support/support_bundle.hpp>
 
@@ -50,8 +50,8 @@ SupportBundleController::SupportBundleController(
     : QObject{&window}, log_directory_{std::move(log_directory)},
       diagnostic_environment_{std::move(diagnostic_environment)},
       window_{window} {
-    workflow_ = new SupportBundleWorkflow{this};
-    connect(workflow_, &SupportBundleWorkflow::Finished, this,
+    workflow_ = new presentation::SupportBundleWorkflow{this};
+    connect(workflow_, &presentation::SupportBundleWorkflow::Finished, this,
             &SupportBundleController::HandleFinished);
 }
 
@@ -197,7 +197,7 @@ void SupportBundleController::HandleFinished(void) {
 
     message.exec();
     if (message.clickedButton() == reveal_button &&
-        !desktop_integration::RevealFile(path)) {
+        !presentation::desktop_integration::RevealFile(path)) {
         QMessageBox warning{
             QMessageBox::Warning,
             tr("Could Not Reveal File"),

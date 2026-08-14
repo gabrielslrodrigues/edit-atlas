@@ -1,5 +1,5 @@
-#ifndef EDIT_ATLAS_APP_TIMELINE_EVENT_MODEL_HPP_
-#define EDIT_ATLAS_APP_TIMELINE_EVENT_MODEL_HPP_
+#ifndef EDIT_ATLAS_PRESENTATION_TIMELINE_EVENT_MODEL_HPP_
+#define EDIT_ATLAS_PRESENTATION_TIMELINE_EVENT_MODEL_HPP_
 
 #include <edit_atlas/core/editorial_timeline.hpp>
 
@@ -13,7 +13,7 @@
 #include <cstddef>
 #include <vector>
 
-namespace edit_atlas::app {
+namespace edit_atlas::presentation {
 
 /// Presents timeline events lazily for sorting and filtering in the desktop UI.
 class TimelineEventModel final : public QAbstractTableModel {
@@ -51,6 +51,6 @@ class TimelineEventModel final : public QAbstractTableModel {
     std::vector<std::size_t> event_indices_;
 };
 
-} // namespace edit_atlas::app
+} // namespace edit_atlas::presentation
 
-#endif // EDIT_ATLAS_APP_TIMELINE_EVENT_MODEL_HPP_
+#endif // EDIT_ATLAS_PRESENTATION_TIMELINE_EVENT_MODEL_HPP_

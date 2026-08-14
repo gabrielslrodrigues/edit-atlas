@@ -1,4 +1,4 @@
-#include <edit_atlas/app/timeline_event_model.hpp>
+#include <edit_atlas/presentation/timeline_event_model.hpp>
 
 #include <edit_atlas/core/editorial_timeline.hpp>
 #include <edit_atlas/core/timecode.hpp>
@@ -20,7 +20,7 @@
 #include <utility>
 #include <variant>
 
-namespace edit_atlas::app {
+namespace edit_atlas::presentation {
 namespace {
 
 enum Column {
@@ -234,4 +234,4 @@ void TimelineEventModel::SetEventSelection(
     endResetModel();
 }
 
-} // namespace edit_atlas::app
+} // namespace edit_atlas::presentation

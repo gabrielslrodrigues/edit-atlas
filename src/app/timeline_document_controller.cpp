@@ -3,11 +3,11 @@
 #include "accessibility.hpp"
 
 #include <edit_atlas/app/application_menu_bar.hpp>
-#include <edit_atlas/app/desktop_integration.hpp>
-#include <edit_atlas/app/diagnostic_text.hpp>
 #include <edit_atlas/app/spreadsheet_export_options_dialog.hpp>
 #include <edit_atlas/app/timeline_document_view.hpp>
-#include <edit_atlas/app/timeline_document_workflow.hpp>
+#include <edit_atlas/presentation/desktop_integration.hpp>
+#include <edit_atlas/presentation/diagnostic_text.hpp>
+#include <edit_atlas/presentation/timeline_document_workflow.hpp>
 
 #include "timeline_template_controller.hpp"
 
@@ -99,26 +99,28 @@ TimelineDocumentController::TimelineDocumentController(
     TimelineDocumentView &view, ApplicationLanguage language, QWidget &window)
     : QObject{&window}, registry_{registry}, menu_bar_{menu_bar}, view_{view},
       language_{language}, window_{window} {
-    workflow_ = new TimelineDocumentWorkflow{registry_, this};
+    workflow_ = new presentation::TimelineDocumentWorkflow{registry_, this};
     template_controller_ = new TimelineTemplateController{view_, window_, this};
-    connect(workflow_, &TimelineDocumentWorkflow::ImportFinished, this,
-            &TimelineDocumentController::HandleImportFinished);
-    connect(workflow_, &TimelineDocumentWorkflow::RenderedVideoExportFinished,
-            this,
-            &TimelineDocumentController::HandleRenderedVideoExportFinished);
-    connect(workflow_,
-            &TimelineDocumentWorkflow::FrameExtractionProgressChanged, this,
-            [this](qulonglong completed, qulonglong total) {
-                if (export_progress_ == nullptr) {
-                    return;
-                }
-                export_progress_->setRange(0, static_cast<int>(total));
-                export_progress_->setValue(static_cast<int>(completed));
-                export_progress_->setLabelText(
-                    tr("Extracting initial frames: %1 of %2")
-                        .arg(completed)
-                        .arg(total));
-            });
+    connect(workflow_, &presentation::TimelineDocumentWorkflow::ImportFinished,
+            this, &TimelineDocumentController::HandleImportFinished);
+    connect(
+        workflow_,
+        &presentation::TimelineDocumentWorkflow::RenderedVideoExportFinished,
+        this, &TimelineDocumentController::HandleRenderedVideoExportFinished);
+    connect(
+        workflow_,
+        &presentation::TimelineDocumentWorkflow::FrameExtractionProgressChanged,
+        this, [this](qulonglong completed, qulonglong total) {
+            if (export_progress_ == nullptr) {
+                return;
+            }
+            export_progress_->setRange(0, static_cast<int>(total));
+            export_progress_->setValue(static_cast<int>(completed));
+            export_progress_->setLabelText(
+                tr("Extracting initial frames: %1 of %2")
+                    .arg(completed)
+                    .arg(total));
+        });
     connect(&menu_bar_, &ApplicationMenuBar::OpenRequested, this,
             [this](void) { OpenTimeline(); });
     connect(&menu_bar_, &ApplicationMenuBar::OpenPathRequested, this,
@@ -295,8 +297,9 @@ void TimelineDocumentController::ExportSpreadsheet(void) {
             cancel != nullptr) {
             SetAutomationIdentifier(*cancel, u"cancelFrameExtractionButton");
         }
-        connect(export_progress_, &QProgressDialog::canceled, workflow_,
-                &TimelineDocumentWorkflow::CancelRenderedVideoExport);
+        connect(
+            export_progress_, &QProgressDialog::canceled, workflow_,
+            &presentation::TimelineDocumentWorkflow::CancelRenderedVideoExport);
         export_progress_->show();
     }
     workflow_->ExportWithRenderedVideo(
@@ -440,8 +443,8 @@ void TimelineDocumentController::HandleRenderedVideoExportFinished(void) {
         informative_text.emplace_back(
             tr("The workbook was created, but the exporter reported "
                "warnings."));
-        message.setDetailedText(
-            diagnostic_text::Summary(result->document_export.diagnostics));
+        message.setDetailedText(presentation::diagnostic_text::Summary(
+            result->document_export.diagnostics));
     }
     if (!informative_text.empty()) {
         message.setInformativeText(informative_text.join(u'\n'));
@@ -457,7 +460,7 @@ void TimelineDocumentController::HandleRenderedVideoExportFinished(void) {
 
     message.exec();
     if (message.clickedButton() == reveal_button &&
-        !desktop_integration::RevealFile(path)) {
+        !presentation::desktop_integration::RevealFile(path)) {
         QMessageBox warning{
             QMessageBox::Warning,
             tr("Could Not Reveal File"),
@@ -575,7 +578,8 @@ void TimelineDocumentController::ShowExportFailure(
         &window_,
     };
     if (!failure.diagnostics.empty()) {
-        message.setDetailedText(diagnostic_text::Summary(failure.diagnostics));
+        message.setDetailedText(
+            presentation::diagnostic_text::Summary(failure.diagnostics));
     }
     auto *close = message.addButton(tr("Close"), QMessageBox::RejectRole);
 
@@ -626,7 +630,8 @@ void TimelineDocumentController::ShowRenderedVideoExportFailure(
         &window_,
     };
     if (!failure.diagnostics.empty()) {
-        message.setDetailedText(diagnostic_text::Summary(failure.diagnostics));
+        message.setDetailedText(
+            presentation::diagnostic_text::Summary(failure.diagnostics));
     }
     auto *close = message.addButton(tr("Close"), QMessageBox::RejectRole);
     SetAutomationIdentifier(message, u"renderedVideoExportFailureDialog");

@@ -2,8 +2,8 @@
 
 #include "accessibility.hpp"
 
-#include <edit_atlas/app/application_state.hpp>
 #include <edit_atlas/app/timeline_document_view.hpp>
+#include <edit_atlas/presentation/application_state.hpp>
 
 #include "event_projection_dialog.hpp"
 
@@ -72,7 +72,7 @@ void ShowWarning(QWidget &window, const QString &title, const QString &text,
 TimelineTemplateController::TimelineTemplateController(
     TimelineDocumentView &view, QWidget &window, QObject *parent)
     : QObject{parent}, view_{view}, window_{window},
-      service_{ConfiguredTemplateDirectory()},
+      service_{presentation::ConfiguredTemplateDirectory()},
       event_projection_{DefaultEventProjection()} {
     connect(&view_, &TimelineDocumentView::TemplateSelected, this,
             &TimelineTemplateController::ApplyTemplate);

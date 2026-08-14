@@ -6,6 +6,8 @@
 #include <edit_atlas/core/editorial_timeline.hpp>
 #include <edit_atlas/core/format_registry.hpp>
 
+#include <edit_atlas/presentation/timeline_document_workflow.hpp>
+
 #include <edit_atlas/services/timeline_document_export_service.hpp>
 #include <edit_atlas/services/timeline_filter.hpp>
 #include <edit_atlas/services/timeline_rendered_video_export_service.hpp>
@@ -23,7 +25,6 @@ namespace edit_atlas::app {
 
 class ApplicationMenuBar;
 class TimelineDocumentView;
-class TimelineDocumentWorkflow;
 class TimelineTemplateController;
 
 /// Coordinates desktop document import and export interactions.
@@ -73,7 +74,7 @@ class TimelineDocumentController final : public QObject {
     TimelineDocumentView &view_;
     ApplicationLanguage language_;
     QWidget &window_;
-    TimelineDocumentWorkflow *workflow_ = nullptr;
+    presentation::TimelineDocumentWorkflow *workflow_ = nullptr;
     TimelineTemplateController *template_controller_ = nullptr;
     QProgressDialog *export_progress_ = nullptr;
     bool interactions_enabled_ = true;

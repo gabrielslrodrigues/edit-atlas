@@ -78,7 +78,16 @@ include(EditAtlasWarnings)
 include(EditAtlasFfmpegLinkage)
 include(EditAtlasQtLinkage)
 
-find_package(Qt6 REQUIRED COMPONENTS Concurrent LinguistTools Widgets)
+find_package(
+    Qt6
+    REQUIRED
+    COMPONENTS
+        Concurrent
+        Core
+        Gui
+        LinguistTools
+        Widgets
+)
 find_package(FFMPEG REQUIRED)
 find_package(spdlog CONFIG REQUIRED)
 
@@ -151,6 +160,7 @@ add_subdirectory(src/formats/cmx3600)
 add_subdirectory(src/formats/xlsx)
 add_subdirectory(src/services)
 add_subdirectory(src/support)
+add_subdirectory(src/presentation)
 add_subdirectory(src/app)
 add_subdirectory(src/cli)
 

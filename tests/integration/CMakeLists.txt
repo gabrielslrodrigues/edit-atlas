@@ -1,4 +1,5 @@
 add_subdirectory(app)
 add_subdirectory(cli)
 add_subdirectory(media)
+add_subdirectory(presentation)
 add_subdirectory(services)

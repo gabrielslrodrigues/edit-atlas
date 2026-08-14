@@ -3,10 +3,12 @@
 The public API follows one inward dependency direction:
 
 ```text
-frontend -> application services -> core
-                              |----> built-in formats -> core
-                              |----> media decoding backend -> FFmpeg
-frontend -> diagnostic support -> local storage
+frontend -> presentation -> application services -> core
+         |              |----> diagnostic support -> local storage
+         |              |----> Qt Core and Concurrent
+         |----> concrete Qt frontend toolkit
+application services -> built-in formats -> core
+                     |-> media decoding backend -> FFmpeg
 ```
 
 ## Core model and pipeline
@@ -96,9 +98,21 @@ privacy-limited support bundles. Callers provide explicit paths and diagnostic
 metadata; support code does not inspect user documents or arbitrary environment
 state.
 
+## Presentation layer
+
+The `edit_atlas::presentation` namespace owns frontend-neutral Qt state and
+asynchronous workflows. It adapts application services, diagnostic support,
+persistent application paths, localized diagnostic text, and timeline data to
+Qt Core models and signals without depending on Qt Widgets or Qt Quick.
+
+Concrete frontends own dialogs, confirmations, navigation, and view-specific
+interaction. Both desktop implementations consume the same presentation APIs
+instead of scheduling services or interpreting results independently.
+
 ## Frontend boundary
 
-Qt desktop classes are adapters rather than public application services. The
+Qt Widgets and Qt Quick classes are adapters rather than public application
+services. The
 `edit_atlas::cli` namespace provides the corresponding terminal adapter and
 stable process outcomes. Callers should integrate reusable workflows through
 the standard C++ domain, format, service, and support interfaces.

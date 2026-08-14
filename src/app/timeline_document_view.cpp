@@ -2,8 +2,8 @@
 
 #include "accessibility.hpp"
 
-#include <edit_atlas/app/diagnostic_text.hpp>
-#include <edit_atlas/app/timeline_event_model.hpp>
+#include <edit_atlas/presentation/diagnostic_text.hpp>
+#include <edit_atlas/presentation/timeline_event_model.hpp>
 
 #include "timeline_filter_widget.hpp"
 
@@ -278,7 +278,7 @@ void TimelineDocumentView::BuildUi(void) {
     filter_result_label_ = new QLabel{results_header};
     results_header_layout->addWidget(filter_result_label_);
     timeline_layout->addWidget(results_header);
-    event_model_ = new TimelineEventModel{this};
+    event_model_ = new presentation::TimelineEventModel{this};
     event_proxy_model_ = new QSortFilterProxyModel{this};
     event_proxy_model_->setSourceModel(event_model_);
     event_table_ = new QTableView{timeline_page_};
@@ -374,7 +374,8 @@ void TimelineDocumentView::PopulateDiagnostics(
                 : QString{};
         auto *item = new QTreeWidgetItem{
             diagnostics_tree_,
-            {severity, line, diagnostic_text::Message(diagnostic)},
+            {severity, line,
+             presentation::diagnostic_text::Message(diagnostic)},
         };
         item->setToolTip(2, Utf8(diagnostic.code));
     }

@@ -1,6 +1,8 @@
 #ifndef EDIT_ATLAS_APP_SUPPORT_BUNDLE_CONTROLLER_HPP_
 #define EDIT_ATLAS_APP_SUPPORT_BUNDLE_CONTROLLER_HPP_
 
+#include <edit_atlas/presentation/support_bundle_workflow.hpp>
+
 #include <edit_atlas/support/support_bundle.hpp>
 
 #include <QObject>
@@ -11,8 +13,6 @@
 class QWidget;
 
 namespace edit_atlas::app {
-
-class SupportBundleWorkflow;
 
 /// Coordinates privacy disclosure and diagnostic support-bundle export.
 class SupportBundleController final : public QObject {
@@ -47,7 +47,7 @@ class SupportBundleController final : public QObject {
     std::filesystem::path log_directory_;
     support::DiagnosticEnvironment diagnostic_environment_;
     QWidget &window_;
-    SupportBundleWorkflow *workflow_ = nullptr;
+    presentation::SupportBundleWorkflow *workflow_ = nullptr;
     bool interactions_enabled_ = true;
 };
 
