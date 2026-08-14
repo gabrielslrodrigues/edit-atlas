@@ -30,7 +30,7 @@ namespace edit_atlas::app {
 
 MainWindow::MainWindow(const core::FormatRegistry &registry,
                        QTranslator &translator,
-                       ApplicationLanguage initial_language,
+                       presentation::ApplicationLanguage initial_language,
                        std::filesystem::path log_directory,
                        support::DiagnosticEnvironment diagnostic_environment,
                        QWidget *parent)
@@ -114,22 +114,22 @@ void MainWindow::dropEvent(QDropEvent *event) {
     timeline_document_controller_->OpenTimeline(local_file->toLocalFile());
 }
 
-void MainWindow::ChangeLanguage(ApplicationLanguage language) {
+void MainWindow::ChangeLanguage(presentation::ApplicationLanguage language) {
     if (language == language_) {
         return;
     }
 
     const auto previous_language = language_;
     language_ = language;
-    if (!SetApplicationLanguage(translator_, language_)) {
+    if (!presentation::SetApplicationLanguage(translator_, language_)) {
         language_ = previous_language;
-        static_cast<void>(
-            SetApplicationLanguage(translator_, previous_language));
+        static_cast<void>(presentation::SetApplicationLanguage(
+            translator_, previous_language));
         RetranslateUi();
         return;
     }
 
-    SaveApplicationLanguage(language_);
+    presentation::SaveApplicationLanguage(language_);
     RetranslateUi();
 }
 

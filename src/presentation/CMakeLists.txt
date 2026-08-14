@@ -18,6 +18,7 @@ target_sources(
         support_bundle_workflow.cpp
         timeline_document_workflow.cpp
         timeline_event_model.cpp
+        translation.cpp
         include/edit_atlas/presentation/application_state.hpp
         include/edit_atlas/presentation/desktop_integration.hpp
         include/edit_atlas/presentation/diagnostic_support.hpp
@@ -25,6 +26,7 @@ target_sources(
         include/edit_atlas/presentation/support_bundle_workflow.hpp
         include/edit_atlas/presentation/timeline_document_workflow.hpp
         include/edit_atlas/presentation/timeline_event_model.hpp
+        include/edit_atlas/presentation/translation.hpp
 )
 
 target_include_directories(

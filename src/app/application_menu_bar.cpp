@@ -20,8 +20,8 @@ constexpr qsizetype kMaximumRecentFiles = 10;
 
 } // namespace
 
-ApplicationMenuBar::ApplicationMenuBar(ApplicationLanguage initial_language,
-                                       QWidget *parent)
+ApplicationMenuBar::ApplicationMenuBar(
+    presentation::ApplicationLanguage initial_language, QWidget *parent)
     : QMenuBar{parent} {
     BuildUi(initial_language);
     RetranslateUi();
@@ -79,13 +79,16 @@ void ApplicationMenuBar::SetExportAvailable(bool available) {
     UpdateActions();
 }
 
-void ApplicationMenuBar::SetLanguage(ApplicationLanguage language) {
+void ApplicationMenuBar::SetLanguage(
+    presentation::ApplicationLanguage language) {
     brazilian_portuguese_action_->setChecked(
-        language == ApplicationLanguage::kBrazilianPortuguese);
-    english_action_->setChecked(language == ApplicationLanguage::kEnglish);
+        language == presentation::ApplicationLanguage::kBrazilianPortuguese);
+    english_action_->setChecked(language ==
+                                presentation::ApplicationLanguage::kEnglish);
 }
 
-void ApplicationMenuBar::BuildUi(ApplicationLanguage initial_language) {
+void ApplicationMenuBar::BuildUi(
+    presentation::ApplicationLanguage initial_language) {
     file_menu_ = addMenu(QString{});
 
     open_action_ = file_menu_->addAction(QString{});
@@ -133,13 +136,15 @@ void ApplicationMenuBar::BuildUi(ApplicationLanguage initial_language) {
     english_action_->setCheckable(true);
     language_group->addAction(brazilian_portuguese_action_);
     language_group->addAction(english_action_);
-    brazilian_portuguese_action_->setData(
-        static_cast<int>(ApplicationLanguage::kBrazilianPortuguese));
-    english_action_->setData(static_cast<int>(ApplicationLanguage::kEnglish));
+    brazilian_portuguese_action_->setData(static_cast<int>(
+        presentation::ApplicationLanguage::kBrazilianPortuguese));
+    english_action_->setData(
+        static_cast<int>(presentation::ApplicationLanguage::kEnglish));
     connect(language_group, &QActionGroup::triggered, this,
             [this](const QAction *action) {
-                const auto language = static_cast<ApplicationLanguage>(
-                    action->data().toInt());
+                const auto language =
+                    static_cast<presentation::ApplicationLanguage>(
+                        action->data().toInt());
                 emit LanguageSelected(language);
             });
 
@@ -160,8 +165,7 @@ void ApplicationMenuBar::BuildUi(ApplicationLanguage initial_language) {
                             u"exportDiagnosticLogsAction");
     SetAutomationIdentifier(*about_action_, u"aboutAction");
     SetAutomationIdentifier(*language_menu_, u"languageMenuPopup");
-    SetAutomationIdentifier(*language_menu_->menuAction(),
-                            u"languageSelector");
+    SetAutomationIdentifier(*language_menu_->menuAction(), u"languageSelector");
     SetAutomationIdentifier(*brazilian_portuguese_action_,
                             u"brazilianPortugueseLanguageAction");
     SetAutomationIdentifier(*english_action_, u"englishLanguageAction");

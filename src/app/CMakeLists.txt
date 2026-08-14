@@ -30,13 +30,11 @@ target_sources(
         include/edit_atlas/app/main_window.hpp
         include/edit_atlas/app/spreadsheet_export_options_dialog.hpp
         include/edit_atlas/app/support_bundle_controller.hpp
-        include/edit_atlas/app/translation.hpp
         main_window.cpp
         spreadsheet_export_options_dialog.cpp
         support_bundle_controller.cpp
         timeline_filter_widget.cpp
         timeline_filter_widget.hpp
-        translation.cpp
 )
 
 target_include_directories(
@@ -149,13 +147,6 @@ target_compile_features(edit_atlas PRIVATE cxx_std_23)
 edit_atlas_set_project_warnings(edit_atlas)
 
 edit_atlas_deploy_windows_qt_platform_plugin(edit_atlas)
-
-qt_add_translations(
-    TARGETS edit_atlas_app
-    SOURCE_TARGETS edit_atlas_app edit_atlas_presentation
-    TS_FILES translations/edit_atlas_pt_BR.ts
-    RESOURCE_PREFIX "/i18n"
-)
 
 set(edit_atlas_runtime_dependency_arguments)
 if(WIN32)

@@ -1,7 +1,7 @@
 #include <edit_atlas/app/application_menu_bar.hpp>
-#include <edit_atlas/app/translation.hpp>
 #include <edit_atlas/presentation/application_state.hpp>
 #include <edit_atlas/presentation/diagnostic_support.hpp>
+#include <edit_atlas/presentation/translation.hpp>
 
 #include <edit_atlas/core/timeline_projection.hpp>
 
@@ -66,10 +66,12 @@ TEST(ApplicationStateTest, RoutesEveryPersistentStoreBelowTheOverride) {
 
     QSettings settings;
     settings.clear();
-    SaveApplicationLanguage(ApplicationLanguage::kEnglish);
+    presentation::SaveApplicationLanguage(
+        presentation::ApplicationLanguage::kEnglish);
     settings.sync();
 
-    EXPECT_EQ(ConfiguredApplicationLanguage(), ApplicationLanguage::kEnglish);
+    EXPECT_EQ(presentation::ConfiguredApplicationLanguage(),
+              presentation::ApplicationLanguage::kEnglish);
     EXPECT_EQ(settings.format(), QSettings::IniFormat);
     EXPECT_EQ(settings.status(), QSettings::NoError);
     EXPECT_TRUE(IsBelowDirectory(FilesystemPath(settings.fileName()),
@@ -79,7 +81,7 @@ TEST(ApplicationStateTest, RoutesEveryPersistentStoreBelowTheOverride) {
 TEST(ApplicationStateTest, IsolatesRecentFilesAndTimelineTemplates) {
     QSettings settings;
     settings.clear();
-    ApplicationMenuBar menu{ApplicationLanguage::kEnglish};
+    ApplicationMenuBar menu{presentation::ApplicationLanguage::kEnglish};
     auto *remember =
         menu.findChild<QAction *>(QStringLiteral("rememberRecentFilesAction"));
     ASSERT_NE(remember, nullptr);

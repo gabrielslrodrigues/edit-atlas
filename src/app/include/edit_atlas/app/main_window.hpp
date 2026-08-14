@@ -1,9 +1,9 @@
 #ifndef EDIT_ATLAS_APP_MAIN_WINDOW_HPP_
 #define EDIT_ATLAS_APP_MAIN_WINDOW_HPP_
 
-#include <edit_atlas/app/translation.hpp>
-
 #include <edit_atlas/core/format_registry.hpp>
+
+#include <edit_atlas/presentation/translation.hpp>
 
 #include <edit_atlas/support/support_bundle.hpp>
 
@@ -31,7 +31,7 @@ class MainWindow final : public QMainWindow {
   public:
     explicit MainWindow(const core::FormatRegistry &registry,
                         QTranslator &translator,
-                        ApplicationLanguage initial_language,
+                        presentation::ApplicationLanguage initial_language,
                         std::filesystem::path log_directory,
                         support::DiagnosticEnvironment diagnostic_environment,
                         QWidget *parent = nullptr);
@@ -47,13 +47,13 @@ class MainWindow final : public QMainWindow {
     void dragEnterEvent(QDragEnterEvent *event) override;
     void dropEvent(QDropEvent *event) override;
 
-    void ChangeLanguage(ApplicationLanguage language);
+    void ChangeLanguage(presentation::ApplicationLanguage language);
     void RetranslateUi(void);
     void SetBusy(bool busy);
     void ShowAboutDialog(void);
 
     QTranslator &translator_;
-    ApplicationLanguage language_;
+    presentation::ApplicationLanguage language_;
     ApplicationMenuBar *application_menu_bar_ = nullptr;
     TimelineDocumentView *timeline_document_view_ = nullptr;
     TimelineDocumentController *timeline_document_controller_ = nullptr;

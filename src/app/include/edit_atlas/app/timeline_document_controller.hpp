@@ -1,12 +1,11 @@
 #ifndef EDIT_ATLAS_APP_TIMELINE_DOCUMENT_CONTROLLER_HPP_
 #define EDIT_ATLAS_APP_TIMELINE_DOCUMENT_CONTROLLER_HPP_
 
-#include <edit_atlas/app/translation.hpp>
-
 #include <edit_atlas/core/editorial_timeline.hpp>
 #include <edit_atlas/core/format_registry.hpp>
 
 #include <edit_atlas/presentation/timeline_document_workflow.hpp>
+#include <edit_atlas/presentation/translation.hpp>
 
 #include <edit_atlas/services/timeline_document_export_service.hpp>
 #include <edit_atlas/services/timeline_filter.hpp>
@@ -35,7 +34,8 @@ class TimelineDocumentController final : public QObject {
     TimelineDocumentController(const core::FormatRegistry &registry,
                                ApplicationMenuBar &menu_bar,
                                TimelineDocumentView &view,
-                               ApplicationLanguage language, QWidget &window);
+                               presentation::ApplicationLanguage language,
+                               QWidget &window);
     ~TimelineDocumentController(void) override = default;
 
     TimelineDocumentController(const TimelineDocumentController &) = delete;
@@ -50,7 +50,7 @@ class TimelineDocumentController final : public QObject {
     void OpenTimeline(void);
     void OpenTimeline(const QString &path);
     void SetInteractionsEnabled(bool enabled);
-    void SetLanguage(ApplicationLanguage language);
+    void SetLanguage(presentation::ApplicationLanguage language);
 
   signals:
     void BusyChanged(bool busy);
@@ -72,7 +72,7 @@ class TimelineDocumentController final : public QObject {
     const core::FormatRegistry &registry_;
     ApplicationMenuBar &menu_bar_;
     TimelineDocumentView &view_;
-    ApplicationLanguage language_;
+    presentation::ApplicationLanguage language_;
     QWidget &window_;
     presentation::TimelineDocumentWorkflow *workflow_ = nullptr;
     TimelineTemplateController *template_controller_ = nullptr;

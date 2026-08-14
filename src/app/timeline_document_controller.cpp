@@ -96,7 +96,8 @@ HasDiagnosticCode(const std::vector<core::Diagnostic> &diagnostics,
 
 TimelineDocumentController::TimelineDocumentController(
     const core::FormatRegistry &registry, ApplicationMenuBar &menu_bar,
-    TimelineDocumentView &view, ApplicationLanguage language, QWidget &window)
+    TimelineDocumentView &view, presentation::ApplicationLanguage language,
+    QWidget &window)
     : QObject{&window}, registry_{registry}, menu_bar_{menu_bar}, view_{view},
       language_{language}, window_{window} {
     workflow_ = new presentation::TimelineDocumentWorkflow{registry_, this};
@@ -358,7 +359,8 @@ void TimelineDocumentController::SetInteractionsEnabled(bool enabled) {
     interactions_enabled_ = enabled;
 }
 
-void TimelineDocumentController::SetLanguage(ApplicationLanguage language) {
+void TimelineDocumentController::SetLanguage(
+    presentation::ApplicationLanguage language) {
     language_ = language;
     ApplyFilter();
     if (workflow_->IsExporting()) {

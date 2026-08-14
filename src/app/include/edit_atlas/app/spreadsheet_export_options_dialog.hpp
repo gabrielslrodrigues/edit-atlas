@@ -1,10 +1,10 @@
 #ifndef EDIT_ATLAS_APP_SPREADSHEET_EXPORT_OPTIONS_DIALOG_HPP_
 #define EDIT_ATLAS_APP_SPREADSHEET_EXPORT_OPTIONS_DIALOG_HPP_
 
-#include <edit_atlas/app/translation.hpp>
-
 #include <edit_atlas/core/editorial_timeline.hpp>
 #include <edit_atlas/core/timeline_projection.hpp>
+
+#include <edit_atlas/presentation/translation.hpp>
 
 #include <QDialog>
 #include <QString>
@@ -30,7 +30,7 @@ class SpreadsheetExportOptionsDialog final : public QDialog {
 
   public:
     explicit SpreadsheetExportOptionsDialog(
-        ApplicationLanguage application_language,
+        presentation::ApplicationLanguage application_language,
         std::span<const core::TimelineEventField> projection,
         QWidget *parent = nullptr);
     ~SpreadsheetExportOptionsDialog(void) override = default;

@@ -102,8 +102,9 @@ state.
 
 The `edit_atlas::presentation` namespace owns frontend-neutral Qt state and
 asynchronous workflows. It adapts application services, diagnostic support,
-persistent application paths, localized diagnostic text, and timeline data to
-Qt Core models and signals without depending on Qt Widgets or Qt Quick.
+persistent application paths, language selection, bundled translations,
+localized diagnostic text, and timeline data to Qt Core models and signals
+without depending on Qt Widgets or Qt Quick.
 
 Concrete frontends own dialogs, confirmations, navigation, and view-specific
 interaction. Both desktop implementations consume the same presentation APIs

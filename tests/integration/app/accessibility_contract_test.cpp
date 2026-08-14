@@ -2,7 +2,7 @@
 #include <edit_atlas/app/main_window.hpp>
 #include <edit_atlas/app/spreadsheet_export_options_dialog.hpp>
 #include <edit_atlas/app/timeline_document_view.hpp>
-#include <edit_atlas/app/translation.hpp>
+#include <edit_atlas/presentation/translation.hpp>
 
 #include "event_projection_dialog.hpp"
 
@@ -185,7 +185,8 @@ TEST(AccessibilityContractTest,
     auto registry = services::CreateBuiltInFormatRegistry();
     ASSERT_TRUE(registry.has_value());
     QTranslator translator;
-    MainWindow window{*registry, translator, ApplicationLanguage::kEnglish,
+    MainWindow window{*registry, translator,
+                      presentation::ApplicationLanguage::kEnglish,
                       std::filesystem::path{}, DiagnosticEnvironment()};
 
     constexpr std::array required_identifiers{
@@ -278,8 +279,8 @@ TEST(AccessibilityContractTest,
 
 TEST(AccessibilityContractTest, CoversSpreadsheetOptionsAndProjectionControls) {
     const auto projection = core::DefaultTimelineEventProjection();
-    SpreadsheetExportOptionsDialog dialog{ApplicationLanguage::kEnglish,
-                                          projection};
+    SpreadsheetExportOptionsDialog dialog{
+        presentation::ApplicationLanguage::kEnglish, projection};
     constexpr std::array required_identifiers{
         "spreadsheetOptionsDialog",
         "workbookLanguageSelector",
@@ -508,10 +509,10 @@ TEST(AccessibilityContractTest, PersistsLanguageWithoutChangingIdentifiers) {
     auto registry = services::CreateBuiltInFormatRegistry();
     ASSERT_TRUE(registry.has_value());
     QTranslator translator;
-    ASSERT_TRUE(SetApplicationLanguage(
-        translator, ApplicationLanguage::kBrazilianPortuguese));
+    ASSERT_TRUE(presentation::SetApplicationLanguage(
+        translator, presentation::ApplicationLanguage::kBrazilianPortuguese));
     MainWindow window{*registry, translator,
-                      ApplicationLanguage::kBrazilianPortuguese,
+                      presentation::ApplicationLanguage::kBrazilianPortuguese,
                       std::filesystem::path{}, DiagnosticEnvironment()};
     auto *selector =
         window.findChild<QAction *>(QStringLiteral("languageSelector"));
@@ -526,7 +527,8 @@ TEST(AccessibilityContractTest, PersistsLanguageWithoutChangingIdentifiers) {
     const auto identifiers = AccessibleIdentifiers(window);
     english->trigger();
 
-    EXPECT_EQ(ConfiguredApplicationLanguage(), ApplicationLanguage::kEnglish);
+    EXPECT_EQ(presentation::ConfiguredApplicationLanguage(),
+              presentation::ApplicationLanguage::kEnglish);
     EXPECT_EQ(selector->property("accessibleIdentifier").toString(),
               QStringLiteral("languageSelector"));
     EXPECT_TRUE(english->isChecked());
@@ -539,7 +541,8 @@ TEST(AccessibilityContractTest, AcceptsOnlyLocalFilesForDragAndDrop) {
     auto registry = services::CreateBuiltInFormatRegistry();
     ASSERT_TRUE(registry.has_value());
     QTranslator translator;
-    MainWindow window{*registry, translator, ApplicationLanguage::kEnglish,
+    MainWindow window{*registry, translator,
+                      presentation::ApplicationLanguage::kEnglish,
                       std::filesystem::path{}, DiagnosticEnvironment()};
 
     QMimeData remote_data;

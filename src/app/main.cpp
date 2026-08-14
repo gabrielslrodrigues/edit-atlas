@@ -2,9 +2,9 @@
 
 #include <edit_atlas/app/application_style.hpp>
 #include <edit_atlas/app/main_window.hpp>
-#include <edit_atlas/app/translation.hpp>
 #include <edit_atlas/presentation/application_state.hpp>
 #include <edit_atlas/presentation/diagnostic_support.hpp>
+#include <edit_atlas/presentation/translation.hpp>
 
 #include <edit_atlas/core/version.hpp>
 
@@ -62,12 +62,13 @@ int main(int argc, char *argv[]) {
                 video_backend.version);
 
     QTranslator translator;
-    auto language = edit_atlas::app::ConfiguredApplicationLanguage();
-    if (!edit_atlas::app::SetApplicationLanguage(translator, language)) {
+    auto language = edit_atlas::presentation::ConfiguredApplicationLanguage();
+    if (!edit_atlas::presentation::SetApplicationLanguage(translator,
+                                                          language)) {
         SPDLOG_WARN("Could not load the configured translation; using English");
-        language = edit_atlas::app::ApplicationLanguage::kEnglish;
-        static_cast<void>(
-            edit_atlas::app::SetApplicationLanguage(translator, language));
+        language = edit_atlas::presentation::ApplicationLanguage::kEnglish;
+        static_cast<void>(edit_atlas::presentation::SetApplicationLanguage(
+            translator, language));
     }
 
     auto registry_result = edit_atlas::services::CreateBuiltInFormatRegistry();

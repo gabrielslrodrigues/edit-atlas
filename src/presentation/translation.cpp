@@ -1,4 +1,4 @@
-#include <edit_atlas/app/translation.hpp>
+#include <edit_atlas/presentation/translation.hpp>
 
 #include <QCoreApplication>
 #include <QResource>
@@ -8,10 +8,10 @@
 #include <QVariant>
 
 static void InitializeTranslationResources(void) {
-    Q_INIT_RESOURCE(edit_atlas_app_translations);
+    Q_INIT_RESOURCE(edit_atlas_presentation_translations);
 }
 
-namespace edit_atlas::app {
+namespace edit_atlas::presentation {
 
 ApplicationLanguage ConfiguredApplicationLanguage(void) {
     const QSettings settings;
@@ -51,4 +51,4 @@ bool SetApplicationLanguage(QTranslator &translator,
     return QCoreApplication::installTranslator(&translator);
 }
 
-} // namespace edit_atlas::app
+} // namespace edit_atlas::presentation

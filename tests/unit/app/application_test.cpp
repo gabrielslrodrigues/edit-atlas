@@ -2,8 +2,8 @@
 #include <edit_atlas/app/application_style.hpp>
 #include <edit_atlas/app/spreadsheet_export_options_dialog.hpp>
 #include <edit_atlas/app/timeline_document_view.hpp>
-#include <edit_atlas/app/translation.hpp>
 #include <edit_atlas/presentation/diagnostic_text.hpp>
+#include <edit_atlas/presentation/translation.hpp>
 
 #include <edit_atlas/core/editorial_timeline.hpp>
 
@@ -26,8 +26,8 @@ namespace {
 TEST(ApplicationTest, LoadsBrazilianPortugueseTranslations) {
     QTranslator translator;
 
-    ASSERT_TRUE(SetApplicationLanguage(
-        translator, ApplicationLanguage::kBrazilianPortuguese));
+    ASSERT_TRUE(presentation::SetApplicationLanguage(
+        translator, presentation::ApplicationLanguage::kBrazilianPortuguese));
     EXPECT_EQ(ApplicationMenuBar::tr("&File"), QStringLiteral("&Arquivo"));
     EXPECT_EQ(ApplicationMenuBar::tr("&Export Spreadsheet"),
               QStringLiteral("&Exportar planilha"));
