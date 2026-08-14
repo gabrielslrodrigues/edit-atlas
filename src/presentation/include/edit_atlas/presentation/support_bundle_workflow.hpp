@@ -1,12 +1,12 @@
-#ifndef EDIT_ATLAS_APP_SUPPORT_BUNDLE_WORKFLOW_HPP_
-#define EDIT_ATLAS_APP_SUPPORT_BUNDLE_WORKFLOW_HPP_
+#ifndef EDIT_ATLAS_PRESENTATION_SUPPORT_BUNDLE_WORKFLOW_HPP_
+#define EDIT_ATLAS_PRESENTATION_SUPPORT_BUNDLE_WORKFLOW_HPP_
 
 #include <edit_atlas/support/support_bundle.hpp>
 
 #include <QFutureWatcher>
 #include <QObject>
 
-namespace edit_atlas::app {
+namespace edit_atlas::presentation {
 
 /// Owns Qt asynchronous execution for diagnostic support-bundle creation.
 class SupportBundleWorkflow final : public QObject {
@@ -32,6 +32,6 @@ class SupportBundleWorkflow final : public QObject {
     QFutureWatcher<support::CreateSupportBundleResult> watcher_;
 };
 
-} // namespace edit_atlas::app
+} // namespace edit_atlas::presentation
 
-#endif // EDIT_ATLAS_APP_SUPPORT_BUNDLE_WORKFLOW_HPP_
+#endif // EDIT_ATLAS_PRESENTATION_SUPPORT_BUNDLE_WORKFLOW_HPP_

@@ -199,8 +199,9 @@ On Windows PowerShell:
 ```
 
 English is the source language. Brazilian Portuguese translations are compiled
-from `src/app/translations/edit_atlas_pt_BR.ts` and embedded in the executable.
-The interface defaults to Brazilian Portuguese on first launch. The
+from `src/presentation/translations/edit_atlas_pt_BR.ts` and embedded through
+the shared presentation layer. The interface defaults to Brazilian Portuguese
+on first launch. The
 **Language** menu switches between Brazilian Portuguese and English and
 remembers the choice for subsequent launches.
 

@@ -14,14 +14,9 @@ target_sources(
         accessibility.cpp
         accessibility.hpp
         application_style.cpp
-        application_state.cpp
         application_menu_bar.cpp
-        desktop_integration.cpp
-        diagnostic_support.cpp
-        diagnostic_text.cpp
         timeline_document_controller.cpp
         timeline_document_view.cpp
-        timeline_document_workflow.cpp
         timeline_template_controller.cpp
         timeline_template_controller.hpp
         event_projection_dialog.cpp
@@ -29,28 +24,17 @@ target_sources(
         event_projection_widget.cpp
         event_projection_widget.hpp
         include/edit_atlas/app/application_style.hpp
-        include/edit_atlas/app/application_state.hpp
         include/edit_atlas/app/application_menu_bar.hpp
-        include/edit_atlas/app/desktop_integration.hpp
-        include/edit_atlas/app/diagnostic_support.hpp
-        include/edit_atlas/app/diagnostic_text.hpp
         include/edit_atlas/app/timeline_document_controller.hpp
         include/edit_atlas/app/timeline_document_view.hpp
-        include/edit_atlas/app/timeline_document_workflow.hpp
         include/edit_atlas/app/main_window.hpp
         include/edit_atlas/app/spreadsheet_export_options_dialog.hpp
         include/edit_atlas/app/support_bundle_controller.hpp
-        include/edit_atlas/app/support_bundle_workflow.hpp
-        include/edit_atlas/app/timeline_event_model.hpp
-        include/edit_atlas/app/translation.hpp
         main_window.cpp
         spreadsheet_export_options_dialog.cpp
         support_bundle_controller.cpp
-        support_bundle_workflow.cpp
         timeline_filter_widget.cpp
         timeline_filter_widget.hpp
-        timeline_event_model.cpp
-        translation.cpp
 )
 
 target_include_directories(
@@ -64,6 +48,7 @@ target_link_libraries(
     PUBLIC
         EditAtlas::Services
         EditAtlas::Support
+        EditAtlas::Presentation
         Qt6::Widgets
     PRIVATE
         Qt6::Concurrent
@@ -162,13 +147,6 @@ target_compile_features(edit_atlas PRIVATE cxx_std_23)
 edit_atlas_set_project_warnings(edit_atlas)
 
 edit_atlas_deploy_windows_qt_platform_plugin(edit_atlas)
-
-qt_add_translations(
-    TARGETS edit_atlas_app
-    SOURCE_TARGETS edit_atlas_app
-    TS_FILES translations/edit_atlas_pt_BR.ts
-    RESOURCE_PREFIX "/i18n"
-)
 
 set(edit_atlas_runtime_dependency_arguments)
 if(WIN32)

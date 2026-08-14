@@ -1,5 +1,3 @@
-find_package(minizip CONFIG REQUIRED)
-
 add_executable(edit_atlas_app_integration_tests)
 
 target_sources(
@@ -8,7 +6,6 @@ target_sources(
         accessibility_contract_test.cpp
         application_state_test.cpp
         test_main.cpp
-        timeline_document_workflow_test.cpp
 )
 
 target_compile_definitions(
@@ -27,7 +24,6 @@ target_link_libraries(
     PRIVATE
         EditAtlas::App
         GTest::gtest
-        $<IF:$<TARGET_EXISTS:MINIZIP::minizip>,MINIZIP::minizip,MINIZIP::minizipstatic>
         Qt6::Test
 )
 

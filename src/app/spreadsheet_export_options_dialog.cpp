@@ -26,11 +26,11 @@ namespace edit_atlas::app {
 namespace {
 
 [[nodiscard]] formats::xlsx::WorkbookLanguage
-WorkbookLanguageFor(ApplicationLanguage language) noexcept {
+WorkbookLanguageFor(presentation::ApplicationLanguage language) noexcept {
     switch (language) {
-    case ApplicationLanguage::kEnglish:
+    case presentation::ApplicationLanguage::kEnglish:
         return formats::xlsx::WorkbookLanguage::kEnglish;
-    case ApplicationLanguage::kBrazilianPortuguese:
+    case presentation::ApplicationLanguage::kBrazilianPortuguese:
         return formats::xlsx::WorkbookLanguage::kBrazilianPortuguese;
     }
     return formats::xlsx::WorkbookLanguage::kEnglish;
@@ -39,7 +39,7 @@ WorkbookLanguageFor(ApplicationLanguage language) noexcept {
 } // namespace
 
 SpreadsheetExportOptionsDialog::SpreadsheetExportOptionsDialog(
-    ApplicationLanguage application_language,
+    presentation::ApplicationLanguage application_language,
     std::span<const core::TimelineEventField> projection, QWidget *parent)
     : QDialog{parent} {
     setWindowTitle(tr("Spreadsheet Options"));

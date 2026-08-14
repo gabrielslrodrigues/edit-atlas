@@ -1,9 +1,9 @@
-#ifndef EDIT_ATLAS_APP_TRANSLATION_HPP_
-#define EDIT_ATLAS_APP_TRANSLATION_HPP_
+#ifndef EDIT_ATLAS_PRESENTATION_TRANSLATION_HPP_
+#define EDIT_ATLAS_PRESENTATION_TRANSLATION_HPP_
 
 class QTranslator;
 
-namespace edit_atlas::app {
+namespace edit_atlas::presentation {
 
 /// A user-selectable language supported by the application interface.
 enum class ApplicationLanguage {
@@ -21,6 +21,6 @@ void SaveApplicationLanguage(ApplicationLanguage language);
 [[nodiscard]] bool SetApplicationLanguage(QTranslator &translator,
                                           ApplicationLanguage language);
 
-} // namespace edit_atlas::app
+} // namespace edit_atlas::presentation
 
-#endif // EDIT_ATLAS_APP_TRANSLATION_HPP_
+#endif // EDIT_ATLAS_PRESENTATION_TRANSLATION_HPP_

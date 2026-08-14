@@ -65,7 +65,7 @@
     </message>
 </context>
 <context>
-    <name>edit_atlas::app::DiagnosticText</name>
+    <name>edit_atlas::presentation::DiagnosticText</name>
     <message>
         <source>The input was decoded as Windows-1252.</source>
         <translation>A entrada foi decodificada como Windows-1252.</translation>
@@ -1197,7 +1197,7 @@ Inspecione linhas do tempo editoriais e exporte relatórios estruturados.</trans
     </message>
 </context>
 <context>
-    <name>edit_atlas::app::TimelineEventModel</name>
+    <name>edit_atlas::presentation::TimelineEventModel</name>
     <message>
         <source>Event</source>
         <translation>Evento</translation>

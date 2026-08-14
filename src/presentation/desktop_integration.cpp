@@ -1,4 +1,4 @@
-#include <edit_atlas/app/desktop_integration.hpp>
+#include <edit_atlas/presentation/desktop_integration.hpp>
 
 #include <QDesktopServices>
 #include <QDir>
@@ -7,7 +7,7 @@
 #include <QString>
 #include <QUrl>
 
-namespace edit_atlas::app::desktop_integration {
+namespace edit_atlas::presentation::desktop_integration {
 
 bool RevealFile(const QString &path) {
 #if defined(Q_OS_WIN)
@@ -23,4 +23,4 @@ bool RevealFile(const QString &path) {
 #endif
 }
 
-} // namespace edit_atlas::app::desktop_integration
+} // namespace edit_atlas::presentation::desktop_integration

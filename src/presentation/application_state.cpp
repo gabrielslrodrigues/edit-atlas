@@ -1,4 +1,4 @@
-#include <edit_atlas/app/application_state.hpp>
+#include <edit_atlas/presentation/application_state.hpp>
 
 #include <QByteArray>
 #include <QSettings>
@@ -10,7 +10,7 @@
 #include <filesystem>
 #include <optional>
 
-namespace edit_atlas::app {
+namespace edit_atlas::presentation {
 namespace {
 
 [[nodiscard]] std::filesystem::path FilesystemPath(const QString &path) {
@@ -59,4 +59,4 @@ std::filesystem::path ConfiguredTemplateDirectory(void) {
     return ConfiguredApplicationDataDirectory() / "templates";
 }
 
-} // namespace edit_atlas::app
+} // namespace edit_atlas::presentation

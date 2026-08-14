@@ -1,7 +1,7 @@
 #ifndef EDIT_ATLAS_APP_APPLICATION_MENU_BAR_HPP_
 #define EDIT_ATLAS_APP_APPLICATION_MENU_BAR_HPP_
 
-#include <edit_atlas/app/translation.hpp>
+#include <edit_atlas/presentation/translation.hpp>
 
 #include <QMenuBar>
 #include <QString>
@@ -17,8 +17,9 @@ class ApplicationMenuBar final : public QMenuBar {
     Q_OBJECT
 
   public:
-    explicit ApplicationMenuBar(ApplicationLanguage initial_language,
-                                QWidget *parent = nullptr);
+    explicit ApplicationMenuBar(
+        presentation::ApplicationLanguage initial_language,
+        QWidget *parent = nullptr);
     ~ApplicationMenuBar(void) override = default;
 
     ApplicationMenuBar(const ApplicationMenuBar &) = delete;
@@ -31,19 +32,19 @@ class ApplicationMenuBar final : public QMenuBar {
     void SetBusy(bool busy);
     void SetDocumentAvailable(bool available);
     void SetExportAvailable(bool available);
-    void SetLanguage(ApplicationLanguage language);
+    void SetLanguage(presentation::ApplicationLanguage language);
 
   signals:
     void AboutRequested(void);
     void ExitRequested(void);
     void ExportDiagnosticLogsRequested(void);
     void ExportSpreadsheetRequested(void);
-    void LanguageSelected(ApplicationLanguage language);
+    void LanguageSelected(presentation::ApplicationLanguage language);
     void OpenPathRequested(const QString &path);
     void OpenRequested(void);
 
   private:
-    void BuildUi(ApplicationLanguage initial_language);
+    void BuildUi(presentation::ApplicationLanguage initial_language);
     void SetRememberRecentFiles(bool enabled);
     void UpdateActions(void);
     void UpdateRecentFilesMenu(void);

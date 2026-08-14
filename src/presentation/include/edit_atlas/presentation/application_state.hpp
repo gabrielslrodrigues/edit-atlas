@@ -1,9 +1,9 @@
-#ifndef EDIT_ATLAS_APP_APPLICATION_STATE_HPP_
-#define EDIT_ATLAS_APP_APPLICATION_STATE_HPP_
+#ifndef EDIT_ATLAS_PRESENTATION_APPLICATION_STATE_HPP_
+#define EDIT_ATLAS_PRESENTATION_APPLICATION_STATE_HPP_
 
 #include <filesystem>
 
-namespace edit_atlas::app {
+namespace edit_atlas::presentation {
 
 /// Environment variable used by tests to isolate all persistent state.
 inline constexpr auto kTestStateRootEnvironment = "EDIT_ATLAS_TEST_STATE_ROOT";
@@ -24,6 +24,6 @@ void ConfigureApplicationState(void);
 /// Returns the directory containing persisted timeline templates.
 [[nodiscard]] std::filesystem::path ConfiguredTemplateDirectory(void);
 
-} // namespace edit_atlas::app
+} // namespace edit_atlas::presentation
 
-#endif // EDIT_ATLAS_APP_APPLICATION_STATE_HPP_
+#endif // EDIT_ATLAS_PRESENTATION_APPLICATION_STATE_HPP_

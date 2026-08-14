@@ -1,6 +1,6 @@
-#include <edit_atlas/app/diagnostic_support.hpp>
+#include <edit_atlas/presentation/diagnostic_support.hpp>
 
-#include <edit_atlas/app/application_state.hpp>
+#include <edit_atlas/presentation/application_state.hpp>
 
 #include <edit_atlas/core/format.hpp>
 #include <edit_atlas/core/format_registry.hpp>
@@ -21,7 +21,7 @@
 #include <utility>
 #include <vector>
 
-namespace edit_atlas::app {
+namespace edit_atlas::presentation {
 namespace {
 
 [[nodiscard]] std::vector<std::string>
@@ -80,4 +80,4 @@ void LogDiagnosticEnvironment(
                 Join(environment.exporter_formats));
 }
 
-} // namespace edit_atlas::app
+} // namespace edit_atlas::presentation

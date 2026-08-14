@@ -1,5 +1,5 @@
-#ifndef EDIT_ATLAS_APP_TIMELINE_DOCUMENT_WORKFLOW_HPP_
-#define EDIT_ATLAS_APP_TIMELINE_DOCUMENT_WORKFLOW_HPP_
+#ifndef EDIT_ATLAS_PRESENTATION_TIMELINE_DOCUMENT_WORKFLOW_HPP_
+#define EDIT_ATLAS_PRESENTATION_TIMELINE_DOCUMENT_WORKFLOW_HPP_
 
 #include <edit_atlas/core/format_registry.hpp>
 
@@ -13,7 +13,7 @@
 
 #include <stop_token>
 
-namespace edit_atlas::app {
+namespace edit_atlas::presentation {
 
 /// Owns Qt asynchronous execution for the UI-independent document services.
 class TimelineDocumentWorkflow final : public QObject {
@@ -67,6 +67,6 @@ class TimelineDocumentWorkflow final : public QObject {
     std::stop_source rendered_video_export_stop_source_;
 };
 
-} // namespace edit_atlas::app
+} // namespace edit_atlas::presentation
 
-#endif // EDIT_ATLAS_APP_TIMELINE_DOCUMENT_WORKFLOW_HPP_
+#endif // EDIT_ATLAS_PRESENTATION_TIMELINE_DOCUMENT_WORKFLOW_HPP_

@@ -1,4 +1,4 @@
-#include <edit_atlas/app/timeline_document_workflow.hpp>
+#include <edit_atlas/presentation/timeline_document_workflow.hpp>
 
 #include <edit_atlas/core/editorial_timeline.hpp>
 #include <edit_atlas/core/format.hpp>
@@ -37,7 +37,7 @@
 #include <utility>
 #include <vector>
 
-namespace edit_atlas::app {
+namespace edit_atlas::presentation {
 namespace {
 
 [[nodiscard]] std::filesystem::path FilesystemPath(const QString &path) {
@@ -414,4 +414,4 @@ TEST(TimelineDocumentWorkflowTest, RecoversAfterAnImportFailure) {
 }
 
 } // namespace
-} // namespace edit_atlas::app
+} // namespace edit_atlas::presentation

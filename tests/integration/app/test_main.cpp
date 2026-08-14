@@ -1,4 +1,4 @@
-#include <edit_atlas/app/application_state.hpp>
+#include <edit_atlas/presentation/application_state.hpp>
 
 #include "accessibility.hpp"
 
@@ -33,9 +33,9 @@ int main(int argc, char *argv[]) {
     if (!state_root.isValid()) {
         return 1;
     }
-    qputenv(edit_atlas::app::kTestStateRootEnvironment,
+    qputenv(edit_atlas::presentation::kTestStateRootEnvironment,
             state_root.path().toUtf8());
-    edit_atlas::app::ConfigureApplicationState();
+    edit_atlas::presentation::ConfigureApplicationState();
     edit_atlas::app::InstallApplicationAccessibility();
 
     ::testing::InitGoogleTest(&argc, argv);

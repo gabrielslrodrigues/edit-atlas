@@ -1,10 +1,10 @@
 #include "accessibility.hpp"
 
-#include <edit_atlas/app/application_state.hpp>
 #include <edit_atlas/app/application_style.hpp>
-#include <edit_atlas/app/diagnostic_support.hpp>
 #include <edit_atlas/app/main_window.hpp>
-#include <edit_atlas/app/translation.hpp>
+#include <edit_atlas/presentation/application_state.hpp>
+#include <edit_atlas/presentation/diagnostic_support.hpp>
+#include <edit_atlas/presentation/translation.hpp>
 
 #include <edit_atlas/core/version.hpp>
 
@@ -35,12 +35,13 @@ int main(int argc, char *argv[]) {
     QCoreApplication::setApplicationVersion(
         QString::fromStdString(std::string{edit_atlas::core::Version()}));
     QCoreApplication::setOrganizationName(QStringLiteral("Edit Atlas"));
-    edit_atlas::app::ConfigureApplicationState();
+    edit_atlas::presentation::ConfigureApplicationState();
     QGuiApplication::setDesktopFileName(QStringLiteral("edit-atlas"));
     QApplication::setWindowIcon(
         QIcon{QStringLiteral(":/icons/edit_atlas.png")});
 
-    const auto log_directory = edit_atlas::app::ConfiguredLogDirectory();
+    const auto log_directory =
+        edit_atlas::presentation::ConfiguredLogDirectory();
     const auto logging_result =
         edit_atlas::support::InitializeApplicationLogging(
             edit_atlas::support::LoggingOptions{
@@ -61,12 +62,13 @@ int main(int argc, char *argv[]) {
                 video_backend.version);
 
     QTranslator translator;
-    auto language = edit_atlas::app::ConfiguredApplicationLanguage();
-    if (!edit_atlas::app::SetApplicationLanguage(translator, language)) {
+    auto language = edit_atlas::presentation::ConfiguredApplicationLanguage();
+    if (!edit_atlas::presentation::SetApplicationLanguage(translator,
+                                                          language)) {
         SPDLOG_WARN("Could not load the configured translation; using English");
-        language = edit_atlas::app::ApplicationLanguage::kEnglish;
-        static_cast<void>(
-            edit_atlas::app::SetApplicationLanguage(translator, language));
+        language = edit_atlas::presentation::ApplicationLanguage::kEnglish;
+        static_cast<void>(edit_atlas::presentation::SetApplicationLanguage(
+            translator, language));
     }
 
     auto registry_result = edit_atlas::services::CreateBuiltInFormatRegistry();
@@ -77,8 +79,8 @@ int main(int argc, char *argv[]) {
     }
     auto registry = std::move(*registry_result);
     const auto diagnostic_environment =
-        edit_atlas::app::CreateDiagnosticEnvironment(registry);
-    edit_atlas::app::LogDiagnosticEnvironment(diagnostic_environment);
+        edit_atlas::presentation::CreateDiagnosticEnvironment(registry);
+    edit_atlas::presentation::LogDiagnosticEnvironment(diagnostic_environment);
 
     edit_atlas::app::MainWindow window{
         registry, translator, language, log_directory, diagnostic_environment,

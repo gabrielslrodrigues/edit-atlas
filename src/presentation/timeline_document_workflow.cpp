@@ -1,4 +1,4 @@
-#include <edit_atlas/app/timeline_document_workflow.hpp>
+#include <edit_atlas/presentation/timeline_document_workflow.hpp>
 
 #include <edit_atlas/core/format_registry.hpp>
 
@@ -16,7 +16,7 @@
 
 #include <utility>
 
-namespace edit_atlas::app {
+namespace edit_atlas::presentation {
 
 TimelineDocumentWorkflow::TimelineDocumentWorkflow(
     const core::FormatRegistry &registry, QObject *parent)
@@ -126,4 +126,4 @@ bool TimelineDocumentWorkflow::IsExporting(void) const noexcept {
            rendered_video_export_watcher_.isRunning();
 }
 
-} // namespace edit_atlas::app
+} // namespace edit_atlas::presentation
