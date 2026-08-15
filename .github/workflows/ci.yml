@@ -172,6 +172,7 @@ jobs:
         include:
           - name: Linux x64
             os: ubuntu-24.04
+            source_dir: .
             triplet: x64-linux
             debug_preset: debug-x64-linux
             release_preset: release-x64-linux
@@ -180,6 +181,7 @@ jobs:
             staged_executable_suffix: bin/edit-atlas
           - name: macOS ARM64
             os: macos-15
+            source_dir: .
             triplet: arm64-osx
             debug_preset: debug-arm64-osx
             release_preset: release-arm64-osx
@@ -187,6 +189,7 @@ jobs:
             staged_executable_suffix: edit-atlas.app/Contents/MacOS/edit-atlas
           - name: macOS x64
             os: macos-15-intel
+            source_dir: .
             triplet: x64-osx
             debug_preset: debug-x64-osx
             release_preset: release-x64-osx
@@ -194,6 +197,7 @@ jobs:
             staged_executable_suffix: edit-atlas.app/Contents/MacOS/edit-atlas
           - name: Windows x64
             os: windows-2022
+            source_dir: V:/
             triplet: x64-windows
             debug_preset: debug-x64-windows
             release_preset: release-x64-windows
@@ -214,6 +218,11 @@ jobs:
         uses: actions/checkout@v7.0.1
         with:
           submodules: recursive
+
+      - name: Shorten Windows workspace path
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: subst V: "${{ github.workspace }}"
 
       - name: Free Linux runner disk space
         if: runner.os == 'Linux'
@@ -290,7 +299,9 @@ jobs:
 
       - name: Configure Debug
         id: configure
-        run: cmake --preset ${{ matrix.debug_preset }}
+        run: >-
+          cmake -S "${{ matrix.source_dir }}"
+          --preset ${{ matrix.debug_preset }}
 
       - name: Report vcpkg binary package activity
         if: always()
@@ -327,7 +338,9 @@ jobs:
         run: cmake -E remove_directory "build/${{ matrix.debug_preset }}"
 
       - name: Configure Release
-        run: cmake --preset ${{ matrix.release_preset }}
+        run: >-
+          cmake -S "${{ matrix.source_dir }}"
+          --preset ${{ matrix.release_preset }}
 
       - name: Clean vcpkg temporary directories
         run: |
