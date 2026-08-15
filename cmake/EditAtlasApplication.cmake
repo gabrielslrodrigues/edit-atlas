@@ -62,6 +62,7 @@ function(edit_atlas_define_default_application target)
                 MACOSX_BUNDLE_BUNDLE_VERSION "${PROJECT_VERSION}"
                 MACOSX_BUNDLE_SHORT_VERSION_STRING "${PROJECT_VERSION}"
                 MACOSX_BUNDLE_ICON_FILE "edit_atlas.icns"
+                INSTALL_RPATH "@loader_path/../Frameworks"
         )
     elseif(LINUX)
         set_target_properties(
