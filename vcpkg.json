@@ -60,6 +60,7 @@
       ],
       "platform": "windows"
     },
+    "qtdeclarative",
     {
       "name": "qttools",
       "default-features": false

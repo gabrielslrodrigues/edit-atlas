@@ -86,6 +86,9 @@ find_package(
         Core
         Gui
         LinguistTools
+        Qml
+        Quick
+        QuickControls2
         Widgets
 )
 find_package(FFMPEG REQUIRED)

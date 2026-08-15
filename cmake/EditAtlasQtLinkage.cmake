@@ -7,6 +7,9 @@ function(edit_atlas_require_dynamic_qt)
             Qt6::Concurrent
             Qt6::Core
             Qt6::Gui
+            Qt6::Qml
+            Qt6::Quick
+            Qt6::QuickControls2
             Qt6::Widgets
     )
         get_target_property(

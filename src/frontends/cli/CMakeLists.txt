@@ -34,36 +34,9 @@ target_compile_features(edit_atlas_cli_frontend PUBLIC cxx_std_23)
 edit_atlas_set_project_warnings(edit_atlas_cli_frontend)
 
 add_executable(edit_atlas_cli main.cpp)
+add_executable(EditAtlas::CliApplication ALIAS edit_atlas_cli)
 set_target_properties(edit_atlas_cli PROPERTIES OUTPUT_NAME "edit-atlas-cli")
 
 target_link_libraries(edit_atlas_cli PRIVATE EditAtlas::CliFrontend)
 target_compile_features(edit_atlas_cli PRIVATE cxx_std_23)
 edit_atlas_set_project_warnings(edit_atlas_cli)
-
-if(APPLE)
-    set_target_properties(
-        edit_atlas_cli
-        PROPERTIES
-            INSTALL_RPATH "@loader_path/../Frameworks"
-    )
-    set(edit_atlas_cli_install_directory
-        "edit-atlas.app/Contents/MacOS"
-    )
-elseif(LINUX)
-    set_target_properties(
-        edit_atlas_cli
-        PROPERTIES
-            INSTALL_RPATH
-                "$ORIGIN/../${edit_atlas_runtime_install_libdir}"
-    )
-    set(edit_atlas_cli_install_directory "${CMAKE_INSTALL_BINDIR}")
-else()
-    set(edit_atlas_cli_install_directory "${CMAKE_INSTALL_BINDIR}")
-endif()
-
-install(
-    TARGETS edit_atlas_cli
-    RUNTIME
-        DESTINATION "${edit_atlas_cli_install_directory}"
-        COMPONENT Runtime
-)
