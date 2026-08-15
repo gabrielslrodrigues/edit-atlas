@@ -3,6 +3,8 @@
 
 #include <edit_atlas/core/timeline_projection.hpp>
 
+#include <edit_atlas/presentation/timeline_template_view_model.hpp>
+
 #include <edit_atlas/services/timeline_filter.hpp>
 #include <edit_atlas/services/timeline_template_service.hpp>
 
@@ -20,7 +22,7 @@ namespace edit_atlas::app {
 
 class TimelineDocumentView;
 
-/// Coordinates reusable timeline filter and export-projection templates.
+/// Adapts timeline-template ViewModel commands to Qt Widgets interactions.
 class TimelineTemplateController final : public QObject {
     Q_OBJECT
 
@@ -43,13 +45,12 @@ class TimelineTemplateController final : public QObject {
     /// Restores the active template, or fresh defaults when none is active.
     void RestoreForTimeline(void);
 
-    /// Replaces the current export projection and refreshes dirty state.
+    /// Replaces the current export projection and refreshes the View.
     void
     SetEventProjection(std::vector<core::TimelineEventField> event_projection);
 
     /// Synchronizes the current filter and whether it can be persisted.
-    void SetFilterState(const services::TimelineFilterQuery &filter,
-                        bool valid);
+    void SetFilterState(services::TimelineFilterQuery filter, bool valid);
 
   private:
     void ApplyTemplate(const QString &identifier);
@@ -63,17 +64,17 @@ class TimelineTemplateController final : public QObject {
     void RefreshTemplateState(void);
     void RenameTemplate(void);
     void SaveTemplate(void);
+    void ShowCommandFailure(
+        const QString &title,
+        const presentation::TimelineTemplateCommandFailure &failure);
+    void ShowInvalidFilter(const QString &title, const QString &description);
     void ShowServiceFailure(const QString &title,
                             const services::TimelineTemplateFailure &failure);
     void UpdateTemplate(void);
 
     TimelineDocumentView &view_;
     QWidget &window_;
-    services::TimelineTemplateService service_;
-    bool filter_valid_ = true;
-    services::TimelineFilterQuery filter_;
-    std::vector<core::TimelineEventField> event_projection_;
-    std::optional<std::string> active_identifier_;
+    presentation::TimelineTemplateViewModel view_model_;
 };
 
 } // namespace edit_atlas::app

@@ -1,14 +1,15 @@
 #include "timeline_template_controller.hpp"
 
 #include "accessibility.hpp"
-
-#include <edit_atlas/app/timeline_document_view.hpp>
-#include <edit_atlas/presentation/application_state.hpp>
-
 #include "event_projection_dialog.hpp"
 
-#include <edit_atlas/core/timeline_projection.hpp>
+#include <edit_atlas/app/timeline_document_view.hpp>
 
+#include <edit_atlas/presentation/application_state.hpp>
+#include <edit_atlas/presentation/timeline_template_view_model.hpp>
+
+#include <edit_atlas/services/timeline_filter.hpp>
+#include <edit_atlas/services/timeline_template.hpp>
 #include <edit_atlas/services/timeline_template_service.hpp>
 
 #include <QDialog>
@@ -27,7 +28,9 @@
 #include <optional>
 #include <span>
 #include <string>
+#include <string_view>
 #include <utility>
+#include <variant>
 #include <vector>
 
 namespace edit_atlas::app {
@@ -48,12 +51,6 @@ namespace {
                              static_cast<qsizetype>(utf8.size()));
 }
 
-[[nodiscard]] std::vector<core::TimelineEventField>
-DefaultEventProjection(void) {
-    const auto fields = core::DefaultTimelineEventProjection();
-    return {fields.begin(), fields.end()};
-}
-
 void ShowWarning(QWidget &window, const QString &title, const QString &text,
                  const QString &identifier) {
     QMessageBox message{QMessageBox::Warning, title, text,
@@ -63,7 +60,6 @@ void ShowWarning(QWidget &window, const QString &title, const QString &text,
 
     SetAutomationIdentifier(message, identifier);
     SetAutomationIdentifier(*close, u"closeDialogButton");
-
     message.exec();
 }
 
@@ -72,8 +68,7 @@ void ShowWarning(QWidget &window, const QString &title, const QString &text,
 TimelineTemplateController::TimelineTemplateController(
     TimelineDocumentView &view, QWidget &window, QObject *parent)
     : QObject{parent}, view_{view}, window_{window},
-      service_{presentation::ConfiguredTemplateDirectory()},
-      event_projection_{DefaultEventProjection()} {
+      view_model_{presentation::ConfiguredTemplateDirectory()} {
     connect(&view_, &TimelineDocumentView::TemplateSelected, this,
             &TimelineTemplateController::ApplyTemplate);
     connect(&view_, &TimelineDocumentView::SaveTemplateRequested, this,
@@ -93,31 +88,17 @@ TimelineTemplateController::TimelineTemplateController(
 
 void TimelineTemplateController::ApplyTemplate(const QString &identifier) {
     if (identifier.isEmpty()) {
-        active_identifier_.reset();
-        view_.SetFilterQuery(services::TimelineFilterQuery{});
-        RefreshTemplateState();
-        return;
+        view_model_.SelectNoTemplate();
+    } else {
+        static_cast<void>(view_model_.SelectTemplate(Utf8String(identifier)));
     }
-    const auto *value = service_.Find(Utf8String(identifier));
-    if (value == nullptr) {
-        active_identifier_.reset();
-        RefreshTemplateState();
-        return;
-    }
-    active_identifier_ = value->identifier;
-    event_projection_ = value->event_projection;
-    view_.SetFilterQuery(value->filter);
+    view_.SetFilterQuery(view_model_.FilterQuery());
     RefreshTemplateState();
 }
 
 void TimelineTemplateController::DeleteTemplate(void) {
-    if (!active_identifier_.has_value()) {
-        return;
-    }
-    const auto *value = service_.Find(*active_identifier_);
+    const auto *value = view_model_.ActiveTemplate();
     if (value == nullptr) {
-        active_identifier_.reset();
-        RefreshTemplateState();
         return;
     }
     QMessageBox confirmation{
@@ -140,23 +121,18 @@ void TimelineTemplateController::DeleteTemplate(void) {
     if (confirmation.clickedButton() != delete_button) {
         return;
     }
-    const auto result = service_.Remove(value->identifier);
+    const auto result = view_model_.RemoveActive();
     if (!result.has_value()) {
-        ShowServiceFailure(tr("Could Not Delete Template"), result.error());
+        ShowCommandFailure(tr("Could Not Delete Template"), result.error());
         return;
     }
-    active_identifier_.reset();
+    view_.SetFilterQuery(view_model_.FilterQuery());
     RefreshTemplateState();
 }
 
 void TimelineTemplateController::DuplicateTemplate(void) {
-    if (!active_identifier_.has_value()) {
-        return;
-    }
-    const auto *value = service_.Find(*active_identifier_);
+    const auto *value = view_model_.ActiveTemplate();
     if (value == nullptr) {
-        active_identifier_.reset();
-        RefreshTemplateState();
         return;
     }
     const auto name = PromptForTemplateName(
@@ -165,17 +141,16 @@ void TimelineTemplateController::DuplicateTemplate(void) {
     if (!name.has_value()) {
         return;
     }
-    const auto result = service_.Duplicate(value->identifier, *name);
+    const auto result = view_model_.DuplicateActive(*name);
     if (!result.has_value()) {
-        ShowServiceFailure(tr("Could Not Duplicate Template"), result.error());
+        ShowCommandFailure(tr("Could Not Duplicate Template"), result.error());
         return;
     }
-    active_identifier_ = result->identifier;
     RefreshTemplateState();
 }
 
 void TimelineTemplateController::EditExportColumns(void) {
-    EventProjectionDialog dialog{event_projection_, &window_};
+    EventProjectionDialog dialog{view_model_.EventProjection(), &window_};
     if (dialog.exec() == QDialog::Accepted) {
         SetEventProjection(dialog.Projection());
     }
@@ -183,11 +158,11 @@ void TimelineTemplateController::EditExportColumns(void) {
 
 std::span<const core::TimelineEventField>
 TimelineTemplateController::EventProjection(void) const noexcept {
-    return event_projection_;
+    return view_model_.EventProjection();
 }
 
 void TimelineTemplateController::LoadTemplates(void) {
-    const auto result = service_.Load();
+    const auto result = view_model_.Load();
     if (!result.has_value()) {
         ShowServiceFailure(tr("Could Not Load Templates"), result.error());
         RefreshTemplateState();
@@ -219,7 +194,6 @@ void TimelineTemplateController::LoadTemplates(void) {
 
     SetAutomationIdentifier(message, u"invalidTemplatesDialog");
     SetAutomationIdentifier(*close, u"closeDialogButton");
-
     message.exec();
 }
 
@@ -250,65 +224,44 @@ std::optional<std::string> TimelineTemplateController::PromptForTemplateName(
 }
 
 void TimelineTemplateController::RefreshTemplateState(void) {
-    bool modified = false;
-    if (active_identifier_.has_value()) {
-        const auto *value = service_.Find(*active_identifier_);
-        if (value == nullptr) {
-            active_identifier_.reset();
-        } else {
-            modified = value->filter != filter_ ||
-                       value->event_projection != event_projection_;
-        }
+    std::optional<std::string_view> active_identifier;
+    if (view_model_.ActiveIdentifier().has_value()) {
+        active_identifier = *view_model_.ActiveIdentifier();
     }
-    view_.SetTemplates(service_.Templates(), active_identifier_, modified);
+    view_.SetTemplates(view_model_.Templates(), active_identifier,
+                       view_model_.IsModified());
 }
 
 void TimelineTemplateController::RenameTemplate(void) {
-    if (!active_identifier_.has_value()) {
-        return;
-    }
-    const auto *value = service_.Find(*active_identifier_);
+    const auto *value = view_model_.ActiveTemplate();
     if (value == nullptr) {
-        active_identifier_.reset();
-        RefreshTemplateState();
         return;
     }
-    const auto identifier = value->identifier;
     const auto previous_name = value->name;
     const auto name = PromptForTemplateName(
         tr("Rename Template"), tr("Template name:"), Utf8(previous_name));
     if (!name.has_value() || *name == previous_name) {
         return;
     }
-    const auto result = service_.Rename(identifier, *name);
+    const auto result = view_model_.RenameActive(*name);
     if (!result.has_value()) {
-        ShowServiceFailure(tr("Could Not Rename Template"), result.error());
+        ShowCommandFailure(tr("Could Not Rename Template"), result.error());
         return;
     }
     RefreshTemplateState();
 }
 
 void TimelineTemplateController::RestoreForTimeline(void) {
-    if (active_identifier_.has_value()) {
-        const auto *value = service_.Find(*active_identifier_);
-        if (value != nullptr) {
-            event_projection_ = value->event_projection;
-            view_.SetFilterQuery(value->filter);
-            return;
-        }
-        active_identifier_.reset();
-    }
-    filter_ = view_.FilterQuery();
-    event_projection_ = DefaultEventProjection();
+    view_model_.RestoreForTimeline();
+    view_.SetFilterQuery(view_model_.FilterQuery());
     RefreshTemplateState();
 }
 
 void TimelineTemplateController::SaveTemplate(void) {
-    if (!filter_valid_) {
-        ShowWarning(
-            window_, tr("Could Not Save Template"),
-            tr("Fix the invalid filter condition before saving a template."),
-            QStringLiteral("invalidTemplateFilterDialog"));
+    if (!view_model_.IsFilterValid()) {
+        ShowInvalidFilter(
+            tr("Could Not Save Template"),
+            tr("Fix the invalid filter condition before saving a template."));
         return;
     }
     const auto name = PromptForTemplateName(
@@ -316,26 +269,60 @@ void TimelineTemplateController::SaveTemplate(void) {
     if (!name.has_value()) {
         return;
     }
-    const auto result = service_.Create(*name, filter_, event_projection_);
+    const auto result = view_model_.Create(*name);
     if (!result.has_value()) {
-        ShowServiceFailure(tr("Could Not Save Template"), result.error());
+        ShowCommandFailure(tr("Could Not Save Template"), result.error());
         return;
     }
-    active_identifier_ = result->identifier;
     RefreshTemplateState();
 }
 
 void TimelineTemplateController::SetEventProjection(
     std::vector<core::TimelineEventField> event_projection) {
-    event_projection_ = std::move(event_projection);
+    const auto result =
+        view_model_.SetEventProjection(std::move(event_projection));
+    if (!result.has_value()) {
+        ShowCommandFailure(tr("Could Not Change Export Columns"),
+                           result.error());
+        return;
+    }
     RefreshTemplateState();
 }
 
 void TimelineTemplateController::SetFilterState(
-    const services::TimelineFilterQuery &filter, bool valid) {
-    filter_ = filter;
-    filter_valid_ = valid;
+    services::TimelineFilterQuery filter, bool valid) {
+    view_model_.SetFilterState(std::move(filter), valid);
     RefreshTemplateState();
+}
+
+void TimelineTemplateController::ShowCommandFailure(
+    const QString &title,
+    const presentation::TimelineTemplateCommandFailure &failure) {
+    if (const auto *service_failure =
+            std::get_if<services::TimelineTemplateFailure>(&failure);
+        service_failure != nullptr) {
+        ShowServiceFailure(title, *service_failure);
+        return;
+    }
+
+    switch (std::get<presentation::TimelineTemplateCommandError>(failure)) {
+    case presentation::TimelineTemplateCommandError::kInvalidFilter:
+        SPDLOG_ERROR("Timeline template command was rejected because the "
+                     "filter is invalid");
+        return;
+    case presentation::TimelineTemplateCommandError::kInvalidProjection:
+        SPDLOG_ERROR("Timeline template command was rejected because the "
+                     "event projection is invalid");
+        return;
+    case presentation::TimelineTemplateCommandError::kNoActiveTemplate:
+        return;
+    }
+}
+
+void TimelineTemplateController::ShowInvalidFilter(const QString &title,
+                                                   const QString &description) {
+    ShowWarning(window_, title, description,
+                QStringLiteral("invalidTemplateFilterDialog"));
 }
 
 void TimelineTemplateController::ShowServiceFailure(
@@ -362,25 +349,20 @@ void TimelineTemplateController::ShowServiceFailure(
 
     SetAutomationIdentifier(message, u"templateFailureDialog");
     SetAutomationIdentifier(*close, u"closeDialogButton");
-
     message.exec();
 }
 
 void TimelineTemplateController::UpdateTemplate(void) {
-    if (!active_identifier_.has_value() || !filter_valid_) {
-        if (!filter_valid_) {
-            ShowWarning(
-                window_, tr("Could Not Update Template"),
-                tr("Fix the invalid filter condition before updating the "
-                   "template."),
-                QStringLiteral("invalidTemplateFilterDialog"));
-        }
+    if (!view_model_.IsFilterValid()) {
+        ShowInvalidFilter(
+            tr("Could Not Update Template"),
+            tr("Fix the invalid filter condition before updating the "
+               "template."));
         return;
     }
-    const auto result =
-        service_.Update(*active_identifier_, filter_, event_projection_);
+    const auto result = view_model_.UpdateActive();
     if (!result.has_value()) {
-        ShowServiceFailure(tr("Could Not Update Template"), result.error());
+        ShowCommandFailure(tr("Could Not Update Template"), result.error());
         return;
     }
     RefreshTemplateState();
