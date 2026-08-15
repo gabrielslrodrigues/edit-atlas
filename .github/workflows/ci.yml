@@ -308,6 +308,12 @@ jobs:
       - name: Build Debug
         run: cmake --build --preset ${{ matrix.debug_preset }}
 
+      - name: Lint Qt Quick QML
+        if: runner.os == 'Linux'
+        run: >-
+          cmake --build --preset ${{ matrix.debug_preset }}
+          --target all_qmllint
+
       - name: Verify Debug Qt linkage
         run: >-
           cmake

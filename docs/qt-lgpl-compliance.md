@@ -54,8 +54,9 @@ CMake configuration is the first enforcement layer:
 cmake --preset release-x64-linux
 ```
 
-Configuration fails if `Qt6::Core`, `Qt6::Gui`, `Qt6::Widgets`, or
-`Qt6::Concurrent` is not a shared library target. Release CI must additionally
+Configuration fails if `Qt6::Core`, `Qt6::Gui`, `Qt6::Widgets`,
+`Qt6::Concurrent`, `Qt6::Qml`, `Qt6::Quick`, or `Qt6::QuickControls2` is not a
+shared library target. Release CI must additionally
 inspect the final packaged binary:
 
 - Linux: `readelf -d` or `ldd` must report `libQt6Widgets.so`.

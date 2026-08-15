@@ -122,6 +122,16 @@ This keeps Widget construction and interaction policy out of shared
 presentation state, while keeping application services independent from both
 graphical toolkits.
 
+Concrete application targets identify their frontend explicitly:
+`EditAtlas::WidgetsApplication`, `EditAtlas::CliApplication`, and
+`EditAtlas::QuickApplication`. `EditAtlas::Application` aliases the current
+default desktop application selected by `edit_atlas_default_application`, which
+is the Widgets application. The selected target receives the product name,
+platform metadata, installation rules, and Qt deployment. Its output keeps the
+product name `edit-atlas`; the other outputs identify their concrete frontends.
+Shared product icons and desktop metadata live under `src/frontends/resources`;
+frontend-specific styling remains with its concrete frontend.
+
 The command-line frontend is exposed as `EditAtlas::CliFrontend` in the
 `edit_atlas::frontends::cli` namespace. It links `EditAtlas::Services` without
 Qt and adapts UTF-8 command arguments, local paths, stable process exit codes,

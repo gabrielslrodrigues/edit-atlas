@@ -198,6 +198,19 @@ On Windows PowerShell:
 .\build\debug-x64-windows\src\frontends\widgets\edit-atlas.exe
 ```
 
+The developer Qt Quick preview is built as `edit-atlas-quick` but is not
+included in installers. Run it from a Linux debug build with:
+
+```sh
+./build/debug-x64-linux/src/frontends/quick/edit-atlas-quick
+```
+
+Lint every compiled QML module through its generated CMake target:
+
+```sh
+cmake --build --preset debug-x64-linux --target all_qmllint
+```
+
 English is the source language. Brazilian Portuguese translations are compiled
 from `src/presentation/translations/edit_atlas_pt_BR.ts` and embedded through
 the shared presentation layer. The interface defaults to Brazilian Portuguese
