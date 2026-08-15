@@ -28,15 +28,21 @@ class SupportBundleViewModel final : public QObject {
     Q_OBJECT
 
   public:
+    /// Creates support-bundle state for the supplied logs and environment.
     SupportBundleViewModel(
         std::filesystem::path log_directory,
         support::DiagnosticEnvironment diagnostic_environment,
         QObject *parent = nullptr);
+    /// Destroys the ViewModel after any owned workflow has stopped.
     ~SupportBundleViewModel(void) override = default;
 
+    /// ViewModels are non-copyable QObject owners.
     SupportBundleViewModel(const SupportBundleViewModel &) = delete;
+    /// ViewModels are non-copy-assignable QObject owners.
     SupportBundleViewModel &operator=(const SupportBundleViewModel &) = delete;
+    /// ViewModels are non-movable QObject owners.
     SupportBundleViewModel(SupportBundleViewModel &&) = delete;
+    /// ViewModels are non-move-assignable QObject owners.
     SupportBundleViewModel &operator=(SupportBundleViewModel &&) = delete;
 
     /// Starts an asynchronous export to the frontend-selected destination.

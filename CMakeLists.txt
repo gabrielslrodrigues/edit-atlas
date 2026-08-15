@@ -165,7 +165,7 @@ add_subdirectory(src/frontends)
 
 qt_add_translations(
     TARGETS edit_atlas_presentation
-    SOURCE_TARGETS edit_atlas_widgets edit_atlas_presentation
+    SOURCE_TARGETS edit_atlas_widgets_frontend edit_atlas_presentation
     TS_FILES src/presentation/translations/edit_atlas_pt_BR.ts
     RESOURCE_PREFIX "/i18n"
 )

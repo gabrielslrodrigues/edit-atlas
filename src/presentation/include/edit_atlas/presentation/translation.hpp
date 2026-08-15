@@ -7,7 +7,9 @@ namespace edit_atlas::presentation {
 
 /// A user-selectable language supported by the application interface.
 enum class ApplicationLanguage {
+    /// English source strings.
     kEnglish,
+    /// Brazilian Portuguese bundled translation.
     kBrazilianPortuguese,
 };
 

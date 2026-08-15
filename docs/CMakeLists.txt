@@ -73,6 +73,7 @@ set(DOXYGEN_STRIP_FROM_INC_PATH
     "${PROJECT_SOURCE_DIR}/src/formats/cmx3600/include"
     "${PROJECT_SOURCE_DIR}/src/formats/xlsx/include"
     "${PROJECT_SOURCE_DIR}/src/media/include"
+    "${PROJECT_SOURCE_DIR}/src/presentation/include"
     "${PROJECT_SOURCE_DIR}/src/services/include"
     "${PROJECT_SOURCE_DIR}/src/support/include"
 )
@@ -86,6 +87,7 @@ doxygen_add_docs(
     "${PROJECT_SOURCE_DIR}/src/formats/cmx3600/include"
     "${PROJECT_SOURCE_DIR}/src/formats/xlsx/include"
     "${PROJECT_SOURCE_DIR}/src/media/include"
+    "${PROJECT_SOURCE_DIR}/src/presentation/include"
     "${PROJECT_SOURCE_DIR}/src/services/include"
     "${PROJECT_SOURCE_DIR}/src/support/include"
     WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"

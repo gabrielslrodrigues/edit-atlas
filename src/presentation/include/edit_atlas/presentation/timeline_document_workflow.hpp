@@ -20,17 +20,25 @@ class TimelineDocumentWorkflow final : public QObject {
     Q_OBJECT
 
   public:
+    /// Creates an idle workflow using the supplied format registry.
     explicit TimelineDocumentWorkflow(const core::FormatRegistry &registry,
                                       QObject *parent = nullptr);
+    /// Waits for owned asynchronous work before destruction.
     ~TimelineDocumentWorkflow(void) override;
 
+    /// Workflows are non-copyable QObject owners.
     TimelineDocumentWorkflow(const TimelineDocumentWorkflow &) = delete;
+    /// Workflows are non-copy-assignable QObject owners.
     TimelineDocumentWorkflow &
     operator=(const TimelineDocumentWorkflow &) = delete;
+    /// Workflows are non-movable QObject owners.
     TimelineDocumentWorkflow(TimelineDocumentWorkflow &&) = delete;
+    /// Workflows are non-move-assignable QObject owners.
     TimelineDocumentWorkflow &operator=(TimelineDocumentWorkflow &&) = delete;
 
+    /// Starts an ordinary document export on a worker thread.
     void Export(services::TimelineDocumentExportRequest request);
+    /// Returns the most recent completed ordinary export result.
     [[nodiscard]] services::TimelineDocumentExportResult
     ExportResult(void) const;
     /// Starts rendered-video preparation and export on a worker thread.
@@ -41,17 +49,23 @@ class TimelineDocumentWorkflow final : public QObject {
     RenderedVideoExportResult(void) const;
     /// Requests cooperative cancellation of initial-frame extraction.
     void CancelRenderedVideoExport(void);
+    /// Starts a document import on a worker thread.
     void Import(services::TimelineDocumentImportRequest request);
+    /// Returns the most recent completed import result.
     [[nodiscard]] services::TimelineDocumentImportResult
     ImportResult(void) const;
+    /// Returns whether an import or export is running.
     [[nodiscard]] bool IsBusy(void) const noexcept;
+    /// Returns whether an ordinary or rendered-video export is running.
     [[nodiscard]] bool IsExporting(void) const noexcept;
 
   signals:
+    /// Reports completion of an ordinary document export.
     void ExportFinished(void);
     /// Reports extracted and total event-frame counts.
     void FrameExtractionProgressChanged(qulonglong completed_events,
                                         qulonglong total_events);
+    /// Reports completion of a document import.
     void ImportFinished(void);
     /// Reports completion of rendered-video preparation and export.
     void RenderedVideoExportFinished(void);

@@ -96,12 +96,18 @@ shared by concrete graphical Views.
 ## Frontends
 
 Frontends adapt platform-specific values at the application-services boundary.
+Concrete implementations live under `src/frontends`, with matching unit and
+integration tests under each test suite's `frontends` directory. Their
+namespaces mirror that hierarchy.
+
 The Qt desktop frontends follow Model-View-ViewModel: core and services are the
 Model, `EditAtlas::Presentation` supplies the ViewModels, and Qt Widgets or Qt
 Quick implements the View. Concrete Views own dialogs, confirmations,
 navigation, translated feedback, and toolkit-specific interaction.
 
-The existing Qt Widgets frontend separates its shell and focused adapters:
+The existing Qt Widgets frontend is exposed as `EditAtlas::WidgetsFrontend` in
+the `edit_atlas::frontends::widgets` namespace. It separates its shell and
+focused adapters:
 
 - `MainWindow` composes the desktop UI and handles top-level navigation,
   language changes, and status presentation.
@@ -116,11 +122,12 @@ This keeps Widget construction and interaction policy out of shared
 presentation state, while keeping application services independent from both
 graphical toolkits.
 
-The command-line frontend links `EditAtlas::Services` without Qt. It adapts
-UTF-8 command arguments, local paths, stable process exit codes, and terminal
-diagnostics to the same synchronous document import and export services used
-by the desktop workflow. Format serialization remains owned by the registered
-format implementations rather than either frontend.
+The command-line frontend is exposed as `EditAtlas::CliFrontend` in the
+`edit_atlas::frontends::cli` namespace. It links `EditAtlas::Services` without
+Qt and adapts UTF-8 command arguments, local paths, stable process exit codes,
+and terminal diagnostics to the same synchronous document import and export
+services used by the desktop workflow. Format serialization remains owned by
+the registered format implementations rather than either frontend.
 
 Dependencies point inward: graphical frontends may depend on Presentation,
 which may depend on application services, support, and core. The CLI depends on

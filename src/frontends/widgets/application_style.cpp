@@ -17,7 +17,7 @@
 #include <Qt>
 
 static void InitializeApplicationStyleResources(void) {
-    Q_INIT_RESOURCE(edit_atlas_widgets_style);
+    Q_INIT_RESOURCE(edit_atlas_widgets_frontend_style);
 }
 
 namespace edit_atlas::frontends::widgets {

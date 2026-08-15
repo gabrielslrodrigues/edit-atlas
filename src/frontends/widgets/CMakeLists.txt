@@ -1,15 +1,15 @@
-add_library(edit_atlas_widgets STATIC)
-add_library(EditAtlas::Widgets ALIAS edit_atlas_widgets)
+add_library(edit_atlas_widgets_frontend STATIC)
+add_library(EditAtlas::WidgetsFrontend ALIAS edit_atlas_widgets_frontend)
 
 set_target_properties(
-    edit_atlas_widgets
+    edit_atlas_widgets_frontend
     PROPERTIES
         AUTOMOC ON
         POSITION_INDEPENDENT_CODE ON
 )
 
 target_sources(
-    edit_atlas_widgets
+    edit_atlas_widgets_frontend
     PRIVATE
         accessibility.cpp
         accessibility.hpp
@@ -38,13 +38,13 @@ target_sources(
 )
 
 target_include_directories(
-    edit_atlas_widgets
+    edit_atlas_widgets_frontend
     PUBLIC
         "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
 )
 
 target_link_libraries(
-    edit_atlas_widgets
+    edit_atlas_widgets_frontend
     PUBLIC
         EditAtlas::Services
         EditAtlas::Support
@@ -54,12 +54,12 @@ target_link_libraries(
         spdlog::spdlog
 )
 
-target_compile_features(edit_atlas_widgets PUBLIC cxx_std_23)
-edit_atlas_set_project_warnings(edit_atlas_widgets)
+target_compile_features(edit_atlas_widgets_frontend PUBLIC cxx_std_23)
+edit_atlas_set_project_warnings(edit_atlas_widgets_frontend)
 
 qt_add_resources(
-    edit_atlas_widgets
-    "edit_atlas_widgets_style"
+    edit_atlas_widgets_frontend
+    "edit_atlas_widgets_frontend_style"
     PREFIX
         "/"
     BASE
@@ -137,7 +137,7 @@ endif()
 target_link_libraries(
     edit_atlas
     PRIVATE
-        EditAtlas::Widgets
+        EditAtlas::WidgetsFrontend
         EditAtlas::Media
         spdlog::spdlog
 )

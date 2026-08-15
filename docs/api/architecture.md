@@ -129,7 +129,10 @@ instead of scheduling services or interpreting results independently.
 ## Frontend boundary
 
 Qt Widgets and Qt Quick classes are adapters rather than public application
-services. The `edit_atlas::frontends::cli` namespace provides the corresponding
-terminal adapter and stable process outcomes. Graphical frontends should
-consume the shared presentation APIs; non-Qt callers should integrate through
-the standard C++ domain, format, service, and support interfaces.
+services. Concrete implementations live under `src/frontends`, and their
+namespaces mirror that hierarchy. `EditAtlas::WidgetsFrontend` provides the
+`edit_atlas::frontends::widgets` desktop adapter. `EditAtlas::CliFrontend`
+provides the `edit_atlas::frontends::cli` terminal adapter and stable process
+outcomes. Graphical frontends should consume the shared presentation APIs;
+non-Qt callers should integrate through the standard C++ domain, format,
+service, and support interfaces.
