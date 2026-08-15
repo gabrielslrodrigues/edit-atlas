@@ -7,7 +7,7 @@
 #include <edit_atlas/app/timeline_document_view.hpp>
 #include <edit_atlas/presentation/desktop_integration.hpp>
 #include <edit_atlas/presentation/diagnostic_text.hpp>
-#include <edit_atlas/presentation/timeline_document_workflow.hpp>
+#include <edit_atlas/presentation/timeline_document_view_model.hpp>
 
 #include "timeline_template_controller.hpp"
 
@@ -19,7 +19,6 @@
 
 #include <edit_atlas/services/timeline_document_export_service.hpp>
 #include <edit_atlas/services/timeline_document_import_service.hpp>
-#include <edit_atlas/services/timeline_filter.hpp>
 #include <edit_atlas/services/timeline_frame_extraction_service.hpp>
 #include <edit_atlas/services/timeline_rendered_video_export_service.hpp>
 
@@ -38,8 +37,6 @@
 #include <QStringList>
 #include <QWidget>
 #include <Qt>
-
-#include <spdlog/spdlog.h>
 
 #include <algorithm>
 #include <array>
@@ -99,29 +96,32 @@ TimelineDocumentController::TimelineDocumentController(
     TimelineDocumentView &view, presentation::ApplicationLanguage language,
     QWidget &window)
     : QObject{&window}, registry_{registry}, menu_bar_{menu_bar}, view_{view},
-      language_{language}, window_{window} {
-    workflow_ = new presentation::TimelineDocumentWorkflow{registry_, this};
+      language_{language}, window_{window}, view_model_{registry_} {
     template_controller_ = new TimelineTemplateController{view_, window_, this};
-    connect(workflow_, &presentation::TimelineDocumentWorkflow::ImportFinished,
-            this, &TimelineDocumentController::HandleImportFinished);
-    connect(
-        workflow_,
-        &presentation::TimelineDocumentWorkflow::RenderedVideoExportFinished,
-        this, &TimelineDocumentController::HandleRenderedVideoExportFinished);
-    connect(
-        workflow_,
-        &presentation::TimelineDocumentWorkflow::FrameExtractionProgressChanged,
-        this, [this](qulonglong completed, qulonglong total) {
-            if (export_progress_ == nullptr) {
-                return;
-            }
-            export_progress_->setRange(0, static_cast<int>(total));
-            export_progress_->setValue(static_cast<int>(completed));
-            export_progress_->setLabelText(
-                tr("Extracting initial frames: %1 of %2")
-                    .arg(completed)
-                    .arg(total));
-        });
+    view_.SetEventModel(view_model_.EventModel());
+    connect(&view_model_,
+            &presentation::TimelineDocumentViewModel::DocumentStateChanged,
+            this, &TimelineDocumentController::HandleDocumentStateChanged);
+    connect(&view_model_,
+            &presentation::TimelineDocumentViewModel::ExportFinished, this,
+            &TimelineDocumentController::HandleExportFinished);
+    connect(&view_model_,
+            &presentation::TimelineDocumentViewModel::FilterChanged, this,
+            &TimelineDocumentController::HandleFilterChanged);
+    connect(&view_model_,
+            &presentation::TimelineDocumentViewModel::
+                FrameExtractionProgressChanged,
+            this, [this](qulonglong completed, qulonglong total) {
+                if (export_progress_ == nullptr) {
+                    return;
+                }
+                export_progress_->setRange(0, static_cast<int>(total));
+                export_progress_->setValue(static_cast<int>(completed));
+                export_progress_->setLabelText(
+                    tr("Extracting initial frames: %1 of %2")
+                        .arg(completed)
+                        .arg(total));
+            });
     connect(&menu_bar_, &ApplicationMenuBar::OpenRequested, this,
             [this](void) { OpenTimeline(); });
     connect(&menu_bar_, &ApplicationMenuBar::OpenPathRequested, this,
@@ -137,40 +137,11 @@ TimelineDocumentController::TimelineDocumentController(
 }
 
 void TimelineDocumentController::ApplyFilter(void) {
-    filter_query_ = view_.FilterQuery();
-    if (!timeline_.has_value()) {
-        event_selection_.clear();
-        filter_valid_ = true;
-        view_.SetFilterError({});
-        menu_bar_.SetExportAvailable(true);
-        template_controller_->SetFilterState(filter_query_, true);
-        return;
-    }
-    auto result = services::FilterTimelineEvents(*timeline_, filter_query_);
-    if (!result.has_value()) {
-        event_selection_.clear();
-        filter_valid_ = false;
-        view_.SetEventSelection(event_selection_);
-        view_.SetFilterError(
-            tr("Condition %1 has an invalid regular expression: %2")
-                .arg(
-                    static_cast<qulonglong>(result.error().condition_index + 1))
-                .arg(Utf8(result.error().message)));
-        menu_bar_.SetExportAvailable(false);
-        template_controller_->SetFilterState(filter_query_, false);
-        return;
-    }
-    event_selection_ = std::move(*result);
-    filter_valid_ = true;
-    view_.SetFilterError({});
-    view_.SetEventSelection(event_selection_);
-    menu_bar_.SetExportAvailable(true);
-    template_controller_->SetFilterState(filter_query_, true);
+    view_model_.SetFilterQuery(view_.FilterQuery());
 }
 
 void TimelineDocumentController::ExportSpreadsheet(void) {
-    if (!interactions_enabled_ || !timeline_.has_value() || !filter_valid_ ||
-        IsBusy()) {
+    if (!interactions_enabled_ || !view_model_.CanExport()) {
         return;
     }
 
@@ -201,8 +172,15 @@ void TimelineDocumentController::ExportSpreadsheet(void) {
     auto options = options_dialog.Options();
     const auto video_path = options_dialog.VideoPath();
     template_controller_->SetEventProjection(options_dialog.EventProjection());
+    const auto projection_result =
+        view_model_.SetEventProjection(std::vector<core::TimelineEventField>{
+            template_controller_->EventProjection().begin(),
+            template_controller_->EventProjection().end()});
+    if (!projection_result.has_value()) {
+        return;
+    }
 
-    const QFileInfo source{current_path_};
+    const QFileInfo source{PathText(view_model_.SourcePath())};
     auto suggested_name = source.completeBaseName();
     if (suggested_name.isEmpty()) {
         suggested_name = tr("timeline");
@@ -267,21 +245,16 @@ void TimelineDocumentController::ExportSpreadsheet(void) {
     writable_settings.setValue(QStringLiteral("export/lastDirectory"),
                                QFileInfo{destination}.absolutePath());
 
-    services::TimelineDocumentExportRequest request{
+    presentation::TimelineExportRequest request{
         .path = FilesystemPath(destination),
         .format_identifier = exporters.front()->descriptor().identifier,
-        .timeline =
-            services::SelectTimelineEvents(*timeline_, event_selection_),
-        .event_projection =
-            std::vector<core::TimelineEventField>{
-                template_controller_->EventProjection().begin(),
-                template_controller_->EventProjection().end()},
         .options = std::move(options),
-        .event_images = {},
+        .video_path = video_path.isEmpty()
+                          ? std::optional<std::filesystem::path>{}
+                          : std::optional<std::filesystem::path>{FilesystemPath(
+                                video_path)},
         .replace_existing = replace_existing,
     };
-    SPDLOG_INFO("Spreadsheet export started with {} of {} event(s)",
-                event_selection_.size(), timeline_->events.size());
     emit BusyChanged(true);
     emit StatusMessageChanged(
         tr("Exporting %1…").arg(QFileInfo{destination}.fileName()));
@@ -298,25 +271,24 @@ void TimelineDocumentController::ExportSpreadsheet(void) {
             cancel != nullptr) {
             SetAutomationIdentifier(*cancel, u"cancelFrameExtractionButton");
         }
-        connect(
-            export_progress_, &QProgressDialog::canceled, workflow_,
-            &presentation::TimelineDocumentWorkflow::CancelRenderedVideoExport);
+        connect(export_progress_, &QProgressDialog::canceled, this,
+                [this](void) { view_model_.CancelExport(); });
         export_progress_->show();
     }
-    workflow_->ExportWithRenderedVideo(
-        services::TimelineRenderedVideoExportRequest{
-            .document_export = std::move(request),
-            .reference_timeline = *timeline_,
-            .video_path =
-                video_path.isEmpty()
-                    ? std::optional<std::filesystem::path>{}
-                    : std::optional<std::filesystem::path>{FilesystemPath(
-                          video_path)},
-        });
+    const auto export_result = view_model_.Export(std::move(request));
+    if (!export_result.has_value()) {
+        emit BusyChanged(false);
+        emit StatusMessageCleared();
+        if (export_progress_ != nullptr) {
+            export_progress_->close();
+            export_progress_->deleteLater();
+            export_progress_ = nullptr;
+        }
+    }
 }
 
 bool TimelineDocumentController::IsBusy(void) const noexcept {
-    return workflow_->IsBusy();
+    return view_model_.IsBusy();
 }
 
 void TimelineDocumentController::OpenTimeline(void) {
@@ -362,8 +334,9 @@ void TimelineDocumentController::SetInteractionsEnabled(bool enabled) {
 void TimelineDocumentController::SetLanguage(
     presentation::ApplicationLanguage language) {
     language_ = language;
-    ApplyFilter();
-    if (workflow_->IsExporting()) {
+    HandleFilterChanged();
+    if (view_model_.ExportState() ==
+        presentation::TimelineExportState::kExporting) {
         emit StatusMessageChanged(tr("Exporting spreadsheet…"));
     }
 }
@@ -371,17 +344,11 @@ void TimelineDocumentController::SetLanguage(
 void TimelineDocumentController::ClearTimeline(void) {
     menu_bar_.SetDocumentAvailable(false);
     menu_bar_.SetExportAvailable(true);
-    timeline_.reset();
-    event_selection_.clear();
-    filter_valid_ = true;
-    current_path_.clear();
-    requested_frame_rate_.reset();
     view_.Clear();
-    filter_query_ = view_.FilterQuery();
     template_controller_->RestoreForTimeline();
 }
 
-void TimelineDocumentController::HandleRenderedVideoExportFinished(void) {
+void TimelineDocumentController::HandleExportFinished(void) {
     emit BusyChanged(false);
     emit StatusMessageCleared();
     if (export_progress_ != nullptr) {
@@ -390,63 +357,60 @@ void TimelineDocumentController::HandleRenderedVideoExportFinished(void) {
         export_progress_ = nullptr;
     }
 
-    auto result = workflow_->RenderedVideoExportResult();
-    if (!result.has_value()) {
-        SPDLOG_ERROR("Rendered-video spreadsheet export failed at stage {} "
-                     "with {} "
-                     "diagnostic(s)",
-                     static_cast<int>(result.error().kind),
-                     result.error().diagnostics.size());
+    const auto *result = view_model_.ExportResult();
+    if (result == nullptr) {
+        return;
+    }
+    if (!result->has_value()) {
         if (!HasDiagnosticCode(
-                result.error().diagnostics,
+                result->error().diagnostics,
                 services::timeline_frame_extraction_diagnostic_code::
                     kCancelled)) {
-            ShowRenderedVideoExportFailure(result.error());
+            ShowRenderedVideoExportFailure(result->error());
         }
         return;
     }
-    SPDLOG_INFO("Spreadsheet export completed with {} diagnostic(s)",
-                result->document_export.diagnostics.size());
 
-    const auto path = PathText(result->document_export.path);
+    const auto &receipt = result->value();
+    const auto path = PathText(receipt.document_export.path);
     QMessageBox message{&window_};
-    message.setWindowTitle(result->document_export.diagnostics.empty()
+    message.setWindowTitle(receipt.document_export.diagnostics.empty()
                                ? tr("Spreadsheet Exported")
                                : tr("Spreadsheet Exported with Warnings"));
-    message.setIcon(result->document_export.diagnostics.empty()
+    message.setIcon(receipt.document_export.diagnostics.empty()
                         ? QMessageBox::Information
                         : QMessageBox::Warning);
     message.setText(tr("The spreadsheet was saved to:\n%1").arg(path));
     QStringList informative_text;
-    if (result->video_information.has_value() &&
-        result->video_mapping.has_value()) {
+    if (receipt.video_information.has_value() &&
+        receipt.video_mapping.has_value()) {
         informative_text.emplace_back(
             tr("Embedded initial-frame images from %1 (%2, %3×%4, %5/%6 "
                "fps, starting at %7); decoded %8 unique frame(s).")
-                .arg(QFileInfo{PathText(result->video_information->path)}
+                .arg(QFileInfo{PathText(receipt.video_information->path)}
                          .fileName())
-                .arg(Utf8(result->video_information->container_long_name))
-                .arg(result->video_information
-                         ->streams[result->video_information
+                .arg(Utf8(receipt.video_information->container_long_name))
+                .arg(receipt.video_information
+                         ->streams[receipt.video_information
                                        ->selected_video_stream]
                          .width)
-                .arg(result->video_information
-                         ->streams[result->video_information
+                .arg(receipt.video_information
+                         ->streams[receipt.video_information
                                        ->selected_video_stream]
                          .height)
-                .arg(result->video_mapping->video_start_timecode.rate()
+                .arg(receipt.video_mapping->video_start_timecode.rate()
                          .numerator())
-                .arg(result->video_mapping->video_start_timecode.rate()
+                .arg(receipt.video_mapping->video_start_timecode.rate()
                          .denominator())
-                .arg(TimecodeText(result->video_mapping->video_start_timecode))
-                .arg(static_cast<qulonglong>(result->unique_frame_count)));
+                .arg(TimecodeText(receipt.video_mapping->video_start_timecode))
+                .arg(static_cast<qulonglong>(receipt.unique_frame_count)));
     }
-    if (!result->document_export.diagnostics.empty()) {
+    if (!receipt.document_export.diagnostics.empty()) {
         informative_text.emplace_back(
             tr("The workbook was created, but the exporter reported "
                "warnings."));
         message.setDetailedText(presentation::diagnostic_text::Summary(
-            result->document_export.diagnostics));
+            receipt.document_export.diagnostics));
     }
     if (!informative_text.empty()) {
         message.setInformativeText(informative_text.join(u'\n'));
@@ -480,16 +444,21 @@ void TimelineDocumentController::HandleRenderedVideoExportFinished(void) {
     }
 }
 
-void TimelineDocumentController::HandleImportFinished(void) {
+void TimelineDocumentController::HandleDocumentStateChanged(void) {
+    if (view_model_.DocumentState() ==
+        presentation::TimelineDocumentState::kImporting) {
+        return;
+    }
     emit BusyChanged(false);
-    auto result = workflow_->ImportResult();
 
-    if (!result.has_value() &&
-        result.error().kind ==
+    if (view_model_.DocumentState() ==
+            presentation::TimelineDocumentState::kImportFailed &&
+        view_model_.ImportFailure() != nullptr &&
+        view_model_.ImportFailure()->kind ==
             services::TimelineDocumentImportFailureKind::kImportFailed &&
         !requested_frame_rate_.has_value() &&
         HasDiagnosticCode(
-            result.error().diagnostics,
+            view_model_.ImportFailure()->diagnostics,
             formats::cmx3600::diagnostic_code::kMissingFrameRate)) {
         const QStringList frame_rate_labels{
             tr("23.976 fps"), tr("24 fps"), tr("25 fps"),    tr("29.97 fps"),
@@ -518,32 +487,45 @@ void TimelineDocumentController::HandleImportFinished(void) {
             const auto index = frame_rate_labels.indexOf(selected);
             if (index >= 0) {
                 StartImport(
-                    PathText(result.error().path),
+                    PathText(view_model_.ImportFailure()->path),
                     std::string{kFrameRates[static_cast<std::size_t>(index)]});
                 return;
             }
         }
     }
 
-    if (!result.has_value()) {
-        SPDLOG_ERROR("Timeline import failed at stage {} with {} diagnostic(s)",
-                     static_cast<int>(result.error().kind),
-                     result.error().diagnostics.size());
-        current_path_ = PathText(result.error().path);
-        view_.ShowImportFailure(result.error());
+    if (view_model_.DocumentState() ==
+            presentation::TimelineDocumentState::kImportFailed &&
+        view_model_.ImportFailure() != nullptr) {
+        view_.ShowImportFailure(*view_model_.ImportFailure());
         return;
     }
+    if (view_model_.DocumentState() ==
+            presentation::TimelineDocumentState::kReady &&
+        view_model_.Document() != nullptr) {
+        const auto path = PathText(view_model_.SourcePath());
+        view_.ShowTimeline(*view_model_.Document(), QFileInfo{path}.fileName(),
+                           view_model_.ImportDiagnostics());
+        HandleFilterChanged();
+        menu_bar_.SetDocumentAvailable(true);
+        menu_bar_.RememberRecentFile(path);
+    }
+}
 
-    timeline_ = std::move(result->timeline);
-    auto diagnostics = std::move(result->diagnostics);
-    view_.ShowTimeline(*timeline_, QFileInfo{current_path_}.fileName(),
-                       diagnostics);
-    ApplyFilter();
-    menu_bar_.SetDocumentAvailable(true);
-    SPDLOG_INFO("Timeline import completed with {} event(s) and {} "
-                "diagnostic(s)",
-                timeline_->events.size(), diagnostics.size());
-    menu_bar_.RememberRecentFile(PathText(result->path));
+void TimelineDocumentController::HandleFilterChanged(void) {
+    const auto *error = view_model_.FilterError();
+    if (error == nullptr) {
+        view_.SetFilterError({});
+    } else {
+        view_.SetFilterError(
+            tr("Condition %1 has an invalid regular expression: %2")
+                .arg(static_cast<qulonglong>(error->condition_index + 1))
+                .arg(Utf8(error->message)));
+    }
+    view_.SetVisibleEventCount(view_model_.EventSelection().size());
+    menu_bar_.SetExportAvailable(error == nullptr);
+    template_controller_->SetFilterState(view_model_.FilterQuery(),
+                                         error == nullptr);
 }
 
 void TimelineDocumentController::ShowExportFailure(
@@ -643,12 +625,6 @@ void TimelineDocumentController::ShowRenderedVideoExportFailure(
 
 void TimelineDocumentController::StartImport(
     const QString &path, std::optional<std::string> frame_rate) {
-    ClearTimeline();
-    current_path_ = path;
-    requested_frame_rate_ = frame_rate;
-    emit BusyChanged(true);
-    view_.ShowLoading(QFileInfo{path}.fileName());
-
     services::TimelineDocumentImportRequest request{
         .path = FilesystemPath(path),
         .format_identifier = {},
@@ -660,8 +636,14 @@ void TimelineDocumentController::StartImport(
             .value = *frame_rate,
         });
     }
-    SPDLOG_INFO("Timeline import started");
-    workflow_->Import(std::move(request));
+    const auto result = view_model_.Import(std::move(request));
+    if (!result.has_value()) {
+        return;
+    }
+    requested_frame_rate_ = std::move(frame_rate);
+    ClearTimeline();
+    emit BusyChanged(true);
+    view_.ShowLoading(QFileInfo{path}.fileName());
 }
 
 } // namespace edit_atlas::app

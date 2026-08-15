@@ -47,15 +47,16 @@ class TimelineDocumentView final : public QWidget {
     [[nodiscard]] services::TimelineFilterQuery FilterQuery(void) const;
     void RetranslateUi(void);
     void SetBusy(bool busy);
-    void SetEventSelection(std::span<const std::size_t> event_indices);
+    void SetEventModel(presentation::TimelineEventModel &event_model);
     void SetFilterError(QString error);
     void SetFilterQuery(const services::TimelineFilterQuery &query);
     void SetTemplates(std::span<const services::TimelineTemplate> templates,
                       std::optional<std::string_view> active_identifier,
                       bool modified);
+    void SetVisibleEventCount(std::size_t event_count);
     void ShowTimeline(const core::TimelineDocument &document,
                       QString fallback_title,
-                      const std::vector<core::Diagnostic> &diagnostics);
+                      std::span<const core::Diagnostic> diagnostics);
     void
     ShowImportFailure(const services::TimelineDocumentImportFailure &failure);
     void ShowLoading(QString file_name);
@@ -102,7 +103,6 @@ class TimelineDocumentView final : public QWidget {
     TimelineFilterWidget *timeline_filter_ = nullptr;
     QLabel *filter_result_label_ = nullptr;
     QTableView *event_table_ = nullptr;
-    presentation::TimelineEventModel *event_model_ = nullptr;
     QSortFilterProxyModel *event_proxy_model_ = nullptr;
     QWidget *failure_page_ = nullptr;
     QLabel *failure_title_label_ = nullptr;

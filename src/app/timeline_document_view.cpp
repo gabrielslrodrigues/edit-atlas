@@ -59,7 +59,6 @@ void TimelineDocumentView::Clear(void) {
     loading_file_name_.clear();
     import_failure_.reset();
     diagnostics_.clear();
-    event_model_->SetDocument(nullptr);
     const QSignalBlocker filter_blocker{timeline_filter_};
     timeline_filter_->Clear();
     filter_valid_ = true;
@@ -74,6 +73,11 @@ void TimelineDocumentView::SetFilterError(QString error) {
     filter_valid_ = error.isEmpty();
     timeline_filter_->SetError(std::move(error));
     UpdateControls();
+}
+
+void TimelineDocumentView::SetEventModel(
+    presentation::TimelineEventModel &event_model) {
+    event_proxy_model_->setSourceModel(&event_model);
 }
 
 void TimelineDocumentView::SetFilterQuery(
@@ -121,16 +125,12 @@ void TimelineDocumentView::RetranslateUi(void) {
     }
 }
 
-void TimelineDocumentView::SetEventSelection(
-    std::span<const std::size_t> event_indices) {
-    event_model_->SetEventSelection(
-        std::vector<std::size_t>{event_indices.begin(), event_indices.end()});
+void TimelineDocumentView::SetVisibleEventCount(std::size_t event_count) {
     const auto total =
         timeline_ == nullptr ? std::size_t{0} : timeline_->events.size();
-    filter_result_label_->setText(
-        tr("Showing %1 of %2 events")
-            .arg(static_cast<qulonglong>(event_indices.size()))
-            .arg(static_cast<qulonglong>(total)));
+    filter_result_label_->setText(tr("Showing %1 of %2 events")
+                                      .arg(static_cast<qulonglong>(event_count))
+                                      .arg(static_cast<qulonglong>(total)));
 }
 
 void TimelineDocumentView::SetBusy(bool busy) {
@@ -140,12 +140,12 @@ void TimelineDocumentView::SetBusy(bool busy) {
 
 void TimelineDocumentView::ShowTimeline(
     const core::TimelineDocument &document, QString fallback_title,
-    const std::vector<core::Diagnostic> &diagnostics) {
+    std::span<const core::Diagnostic> diagnostics) {
     timeline_ = &document;
     fallback_title_ = std::move(fallback_title);
     loading_file_name_.clear();
     import_failure_.reset();
-    diagnostics_ = diagnostics;
+    diagnostics_ = {diagnostics.begin(), diagnostics.end()};
     RenderTimeline();
     PopulateDiagnostics(diagnostics_);
     document_stack_->setCurrentWidget(timeline_page_);
@@ -159,7 +159,6 @@ void TimelineDocumentView::ShowImportFailure(
     loading_file_name_.clear();
     import_failure_ = failure;
     diagnostics_ = failure.diagnostics;
-    event_model_->SetDocument(nullptr);
     RenderImportFailure();
     PopulateDiagnostics(diagnostics_);
     document_stack_->setCurrentWidget(failure_page_);
@@ -278,9 +277,7 @@ void TimelineDocumentView::BuildUi(void) {
     filter_result_label_ = new QLabel{results_header};
     results_header_layout->addWidget(filter_result_label_);
     timeline_layout->addWidget(results_header);
-    event_model_ = new presentation::TimelineEventModel{this};
     event_proxy_model_ = new QSortFilterProxyModel{this};
-    event_proxy_model_->setSourceModel(event_model_);
     event_table_ = new QTableView{timeline_page_};
     event_table_->setModel(event_proxy_model_);
     event_table_->setAlternatingRowColors(true);
@@ -404,7 +401,6 @@ void TimelineDocumentView::RenderTimeline(void) {
                      ? tr("drop-frame")
                      : tr("non-drop-frame")));
 
-    event_model_->SetDocument(timeline_);
     filter_result_label_->setText(
         tr("Showing %1 of %2 events")
             .arg(static_cast<qulonglong>(timeline_->events.size()))

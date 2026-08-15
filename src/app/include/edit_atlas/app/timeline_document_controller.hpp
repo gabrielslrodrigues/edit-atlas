@@ -1,14 +1,12 @@
 #ifndef EDIT_ATLAS_APP_TIMELINE_DOCUMENT_CONTROLLER_HPP_
 #define EDIT_ATLAS_APP_TIMELINE_DOCUMENT_CONTROLLER_HPP_
 
-#include <edit_atlas/core/editorial_timeline.hpp>
 #include <edit_atlas/core/format_registry.hpp>
 
-#include <edit_atlas/presentation/timeline_document_workflow.hpp>
+#include <edit_atlas/presentation/timeline_document_view_model.hpp>
 #include <edit_atlas/presentation/translation.hpp>
 
 #include <edit_atlas/services/timeline_document_export_service.hpp>
-#include <edit_atlas/services/timeline_filter.hpp>
 #include <edit_atlas/services/timeline_rendered_video_export_service.hpp>
 
 #include <QObject>
@@ -26,7 +24,7 @@ class ApplicationMenuBar;
 class TimelineDocumentView;
 class TimelineTemplateController;
 
-/// Coordinates desktop document import and export interactions.
+/// Adapts timeline-document ViewModel commands to Qt Widgets interactions.
 class TimelineDocumentController final : public QObject {
     Q_OBJECT
 
@@ -60,8 +58,9 @@ class TimelineDocumentController final : public QObject {
   private:
     void ApplyFilter(void);
     void ClearTimeline(void);
-    void HandleImportFinished(void);
-    void HandleRenderedVideoExportFinished(void);
+    void HandleDocumentStateChanged(void);
+    void HandleExportFinished(void);
+    void HandleFilterChanged(void);
     void
     ShowExportFailure(const services::TimelineDocumentExportFailure &failure);
     void ShowRenderedVideoExportFailure(
@@ -74,15 +73,10 @@ class TimelineDocumentController final : public QObject {
     TimelineDocumentView &view_;
     presentation::ApplicationLanguage language_;
     QWidget &window_;
-    presentation::TimelineDocumentWorkflow *workflow_ = nullptr;
+    presentation::TimelineDocumentViewModel view_model_;
     TimelineTemplateController *template_controller_ = nullptr;
     QProgressDialog *export_progress_ = nullptr;
     bool interactions_enabled_ = true;
-    bool filter_valid_ = true;
-    std::optional<core::TimelineDocument> timeline_;
-    services::TimelineFilterQuery filter_query_;
-    services::TimelineEventSelection event_selection_;
-    QString current_path_;
     std::optional<std::string> requested_frame_rate_;
 };
 

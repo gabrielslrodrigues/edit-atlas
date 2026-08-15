@@ -51,7 +51,6 @@ target_link_libraries(
         EditAtlas::Presentation
         Qt6::Widgets
     PRIVATE
-        Qt6::Concurrent
         spdlog::spdlog
 )
 

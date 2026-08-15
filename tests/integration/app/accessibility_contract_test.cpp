@@ -2,6 +2,7 @@
 #include <edit_atlas/app/main_window.hpp>
 #include <edit_atlas/app/spreadsheet_export_options_dialog.hpp>
 #include <edit_atlas/app/timeline_document_view.hpp>
+#include <edit_atlas/presentation/timeline_event_model.hpp>
 #include <edit_atlas/presentation/translation.hpp>
 
 #include "event_projection_dialog.hpp"
@@ -426,6 +427,9 @@ TEST(AccessibilityContractTest,
      KeepsDynamicFilterRowsUniqueAndUsesTypedEditors) {
     TimelineDocumentView view;
     const auto document = Document();
+    presentation::TimelineEventModel event_model;
+    event_model.SetDocument(&document);
+    view.SetEventModel(event_model);
     view.ShowTimeline(document, QStringLiteral("timeline.edl"), {});
     view.resize(700, 360);
     view.show();
