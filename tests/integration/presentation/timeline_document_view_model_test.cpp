@@ -119,6 +119,7 @@ TEST(TimelineDocumentViewModelTest, ImportsFiltersAndClearsTimelineState) {
     EXPECT_EQ(view_model.DocumentState(), TimelineDocumentState::kEmpty);
     EXPECT_EQ(view_model.Document(), nullptr);
     EXPECT_TRUE(view_model.SourcePath().empty());
+    EXPECT_TRUE(view_model.FilterQuery().conditions.empty());
 }
 
 TEST(TimelineDocumentViewModelTest, ExportsTheFilteredProjectedTimeline) {

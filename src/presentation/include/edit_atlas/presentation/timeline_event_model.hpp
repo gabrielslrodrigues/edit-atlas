@@ -20,20 +20,30 @@ class TimelineEventModel final : public QAbstractTableModel {
     Q_OBJECT
 
   public:
+    /// Creates an empty model with an optional QObject parent.
     explicit TimelineEventModel(QObject *parent = nullptr);
+    /// Destroys the non-owning model.
     ~TimelineEventModel(void) override = default;
 
+    /// Timeline event models are non-copyable QObject owners.
     TimelineEventModel(const TimelineEventModel &) = delete;
+    /// Timeline event models are non-copy-assignable QObject owners.
     TimelineEventModel &operator=(const TimelineEventModel &) = delete;
+    /// Timeline event models are non-movable QObject owners.
     TimelineEventModel(TimelineEventModel &&) = delete;
+    /// Timeline event models are non-move-assignable QObject owners.
     TimelineEventModel &operator=(TimelineEventModel &&) = delete;
 
+    /// Returns the number of selected events for a root model index.
     [[nodiscard]] int
     rowCount(const QModelIndex &parent = QModelIndex{}) const override;
+    /// Returns the fixed number of event fields exposed by the model.
     [[nodiscard]] int
     columnCount(const QModelIndex &parent = QModelIndex{}) const override;
+    /// Returns localized display or sorting data for one event field.
     [[nodiscard]] QVariant data(const QModelIndex &index,
                                 int role = Qt::DisplayRole) const override;
+    /// Returns localized horizontal field labels and vertical row labels.
     [[nodiscard]] QVariant
     headerData(int section, Qt::Orientation orientation,
                int role = Qt::DisplayRole) const override;

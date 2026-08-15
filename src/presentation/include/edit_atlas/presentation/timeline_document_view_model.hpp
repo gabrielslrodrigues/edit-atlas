@@ -80,14 +80,20 @@ class TimelineDocumentViewModel final : public QObject {
     Q_OBJECT
 
   public:
+    /// Creates empty presentation state using the supplied format registry.
     explicit TimelineDocumentViewModel(const core::FormatRegistry &registry,
                                        QObject *parent = nullptr);
+    /// Destroys the ViewModel after its owned workflow has stopped.
     ~TimelineDocumentViewModel(void) override = default;
 
+    /// ViewModels are non-copyable QObject owners.
     TimelineDocumentViewModel(const TimelineDocumentViewModel &) = delete;
+    /// ViewModels are non-copy-assignable QObject owners.
     TimelineDocumentViewModel &
     operator=(const TimelineDocumentViewModel &) = delete;
+    /// ViewModels are non-movable QObject owners.
     TimelineDocumentViewModel(TimelineDocumentViewModel &&) = delete;
+    /// ViewModels are non-move-assignable QObject owners.
     TimelineDocumentViewModel &operator=(TimelineDocumentViewModel &&) = delete;
 
     /// Starts an asynchronous import after clearing the previous document.

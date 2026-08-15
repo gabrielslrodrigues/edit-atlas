@@ -142,11 +142,11 @@ automation.
 
 ## Executable locations
 
-The build-tree executable is located at `src/cli/edit-atlas-cli` below the
-selected preset directory, with `.exe` appended on Windows. Installed Linux
-packages place it in `/usr/bin`. The Windows MSI places it beside
-`edit-atlas.exe`. The macOS package places it inside
-`/Applications/edit-atlas.app/Contents/MacOS` so it remains part of the
+The build-tree executable is located at
+`src/frontends/cli/edit-atlas-cli` below the selected preset directory, with
+`.exe` appended on Windows. Installed Linux packages place it in `/usr/bin`.
+The Windows MSI places it beside `edit-atlas.exe`. The macOS package places it
+inside `/Applications/edit-atlas.app/Contents/MacOS` so it remains part of the
 application bundle.
 
 ## Privacy and encoding

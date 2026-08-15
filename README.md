@@ -183,19 +183,19 @@ staged bundles into the universal installer.
 After building, run the application directly on Linux:
 
 ```sh
-./build/debug-x64-linux/src/app/edit-atlas
+./build/debug-x64-linux/src/frontends/widgets/edit-atlas
 ```
 
 On macOS, open the application bundle:
 
 ```sh
-open build/debug-arm64-osx/src/app/edit-atlas.app
+open build/debug-arm64-osx/src/frontends/widgets/edit-atlas.app
 ```
 
 On Windows PowerShell:
 
 ```powershell
-.\build\debug-x64-windows\src\app\edit-atlas.exe
+.\build\debug-x64-windows\src\frontends\widgets\edit-atlas.exe
 ```
 
 English is the source language. Brazilian Portuguese translations are compiled
@@ -254,7 +254,7 @@ XLSX reports through the same application services as the desktop frontend. A
 non-drop-frame EDL needs an explicit frame rate:
 
 ```sh
-./build/debug-x64-linux/src/cli/edit-atlas-cli \
+./build/debug-x64-linux/src/frontends/cli/edit-atlas-cli \
   convert --fps 24 timeline.edl report.xlsx
 ```
 

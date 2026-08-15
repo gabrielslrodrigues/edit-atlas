@@ -15,6 +15,8 @@
 #include <QObject>
 #include <QtGlobal>
 
+#include <spdlog/spdlog.h>
+
 #include <expected>
 #include <filesystem>
 #include <optional>
@@ -52,6 +54,7 @@ TimelineDocumentCommandResult TimelineDocumentViewModel::Import(
     ResetDocument();
     source_path_ = request.path;
     SetDocumentState(TimelineDocumentState::kImporting);
+    SPDLOG_INFO("Timeline import started");
     workflow_.Import(std::move(request));
     return {};
 }
@@ -118,6 +121,8 @@ TimelineDocumentViewModel::Export(TimelineExportRequest request) {
     extracted_frame_count_ = 0;
     total_frame_count_ = 0;
     SetExportState(TimelineExportState::kExporting);
+    SPDLOG_INFO("Spreadsheet export started with {} of {} event(s)",
+                event_selection_.size(), document_->events.size());
     workflow_.ExportWithRenderedVideo(
         services::TimelineRenderedVideoExportRequest{
             .document_export = std::move(document_export),
@@ -239,6 +244,9 @@ void TimelineDocumentViewModel::ApplyFilter(void) {
 void TimelineDocumentViewModel::HandleImportFinished(void) {
     auto result = workflow_.ImportResult();
     if (!result.has_value()) {
+        SPDLOG_ERROR("Timeline import failed at stage {} with {} diagnostic(s)",
+                     static_cast<int>(result.error().kind),
+                     result.error().diagnostics.size());
         source_path_ = result.error().path;
         import_failure_ = std::move(result.error());
         SetDocumentState(TimelineDocumentState::kImportFailed);
@@ -246,6 +254,9 @@ void TimelineDocumentViewModel::HandleImportFinished(void) {
         return;
     }
 
+    SPDLOG_INFO("Timeline import completed with {} event(s) and {} "
+                "diagnostic(s)",
+                result->timeline.events.size(), result->diagnostics.size());
     source_path_ = std::move(result->path);
     document_ = std::move(result->timeline);
     import_diagnostics_ = std::move(result->diagnostics);
@@ -257,6 +268,15 @@ void TimelineDocumentViewModel::HandleImportFinished(void) {
 
 void TimelineDocumentViewModel::HandleExportFinished(void) {
     export_result_ = workflow_.RenderedVideoExportResult();
+    if (!export_result_->has_value()) {
+        SPDLOG_ERROR("Rendered-video spreadsheet export failed at stage {} "
+                     "with {} diagnostic(s)",
+                     static_cast<int>(export_result_->error().kind),
+                     export_result_->error().diagnostics.size());
+    } else {
+        SPDLOG_INFO("Spreadsheet export completed with {} diagnostic(s)",
+                    export_result_->value().document_export.diagnostics.size());
+    }
     SetExportState(TimelineExportState::kIdle);
     emit ExportFinished();
 }
@@ -266,6 +286,7 @@ void TimelineDocumentViewModel::ResetDocument(void) {
     document_.reset();
     import_diagnostics_.clear();
     import_failure_.reset();
+    filter_query_ = {};
     event_selection_.clear();
     filter_error_.reset();
     export_result_.reset();

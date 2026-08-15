@@ -176,21 +176,21 @@ jobs:
             debug_preset: debug-x64-linux
             release_preset: release-x64-linux
             package_preset: package-release-x64-linux
-            executable_suffix: src/app/edit-atlas
+            executable_suffix: src/frontends/widgets/edit-atlas
             staged_executable_suffix: bin/edit-atlas
           - name: macOS ARM64
             os: macos-15
             triplet: arm64-osx
             debug_preset: debug-arm64-osx
             release_preset: release-arm64-osx
-            executable_suffix: src/app/edit-atlas.app/Contents/MacOS/edit-atlas
+            executable_suffix: src/frontends/widgets/edit-atlas.app/Contents/MacOS/edit-atlas
             staged_executable_suffix: edit-atlas.app/Contents/MacOS/edit-atlas
           - name: macOS x64
             os: macos-15-intel
             triplet: x64-osx
             debug_preset: debug-x64-osx
             release_preset: release-x64-osx
-            executable_suffix: src/app/edit-atlas.app/Contents/MacOS/edit-atlas
+            executable_suffix: src/frontends/widgets/edit-atlas.app/Contents/MacOS/edit-atlas
             staged_executable_suffix: edit-atlas.app/Contents/MacOS/edit-atlas
           - name: Windows x64
             os: windows-2022
@@ -198,7 +198,7 @@ jobs:
             debug_preset: debug-x64-windows
             release_preset: release-x64-windows
             package_preset: package-release-x64-windows
-            executable_suffix: src/app/edit-atlas.exe
+            executable_suffix: src/frontends/widgets/edit-atlas.exe
             staged_executable_suffix: bin/edit-atlas.exe
 
     env:
