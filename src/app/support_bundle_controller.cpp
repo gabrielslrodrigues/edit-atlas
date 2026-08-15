@@ -3,7 +3,7 @@
 #include "accessibility.hpp"
 
 #include <edit_atlas/presentation/desktop_integration.hpp>
-#include <edit_atlas/presentation/support_bundle_workflow.hpp>
+#include <edit_atlas/presentation/support_bundle_view_model.hpp>
 
 #include <edit_atlas/support/support_bundle.hpp>
 
@@ -14,8 +14,6 @@
 #include <QPushButton>
 #include <QString>
 #include <QWidget>
-
-#include <spdlog/spdlog.h>
 
 #include <cstddef>
 #include <filesystem>
@@ -47,12 +45,12 @@ namespace {
 SupportBundleController::SupportBundleController(
     std::filesystem::path log_directory,
     support::DiagnosticEnvironment diagnostic_environment, QWidget &window)
-    : QObject{&window}, log_directory_{std::move(log_directory)},
-      diagnostic_environment_{std::move(diagnostic_environment)},
-      window_{window} {
-    workflow_ = new presentation::SupportBundleWorkflow{this};
-    connect(workflow_, &presentation::SupportBundleWorkflow::Finished, this,
-            &SupportBundleController::HandleFinished);
+    : QObject{&window}, window_{window},
+      view_model_{std::move(log_directory), std::move(diagnostic_environment)} {
+    connect(&view_model_, &presentation::SupportBundleViewModel::BusyChanged,
+            this, &SupportBundleController::HandleBusyChanged);
+    connect(&view_model_, &presentation::SupportBundleViewModel::ExportFinished,
+            this, &SupportBundleController::HandleFinished);
 }
 
 void SupportBundleController::ExportDiagnosticLogs(void) {
@@ -133,21 +131,12 @@ void SupportBundleController::ExportDiagnosticLogs(void) {
         }
     }
 
-    SPDLOG_INFO("Diagnostic support bundle export started");
-    spdlog::default_logger()->flush();
-    support::SupportBundleRequest request{
-        .path = FilesystemPath(destination),
-        .log_directory = log_directory_,
-        .environment = diagnostic_environment_,
-        .replace_existing = replace_existing,
-    };
-    emit BusyChanged(true);
-    emit StatusMessageChanged(tr("Creating diagnostic support bundle…"));
-    workflow_->Create(std::move(request));
+    static_cast<void>(
+        view_model_.Export(FilesystemPath(destination), replace_existing));
 }
 
 bool SupportBundleController::IsBusy(void) const noexcept {
-    return workflow_->IsBusy();
+    return view_model_.IsBusy();
 }
 
 void SupportBundleController::RetranslateUi(void) {
@@ -160,22 +149,28 @@ void SupportBundleController::SetInteractionsEnabled(bool enabled) {
     interactions_enabled_ = enabled;
 }
 
-void SupportBundleController::HandleFinished(void) {
-    emit BusyChanged(false);
-    emit StatusMessageCleared();
+void SupportBundleController::HandleBusyChanged(void) {
+    const bool busy = view_model_.IsBusy();
+    emit BusyChanged(busy);
+    if (busy) {
+        emit StatusMessageChanged(tr("Creating diagnostic support bundle…"));
+    } else {
+        emit StatusMessageCleared();
+    }
+}
 
-    auto result = workflow_->Result();
-    if (!result.has_value()) {
-        SPDLOG_ERROR("Diagnostic support bundle export failed at stage {}: {}",
-                     static_cast<int>(result.error().kind),
-                     result.error().detail);
-        ShowFailure(result.error());
+void SupportBundleController::HandleFinished(void) {
+    const auto *result = view_model_.Result();
+    if (result == nullptr) {
+        return;
+    }
+    if (!result->has_value()) {
+        ShowFailure(result->error());
         return;
     }
 
-    SPDLOG_INFO("Diagnostic support bundle exported with {} log file(s)",
-                result->log_file_count);
-    const auto path = PathText(result->path);
+    const auto &receipt = result->value();
+    const auto path = PathText(receipt.path);
     QMessageBox message{
         QMessageBox::Information,
         tr("Diagnostic Logs Exported"),
@@ -185,7 +180,7 @@ void SupportBundleController::HandleFinished(void) {
     };
     message.setInformativeText(
         tr("Recent application log files included: %1")
-            .arg(static_cast<qulonglong>(result->log_file_count)));
+            .arg(static_cast<qulonglong>(receipt.log_file_count)));
     auto *reveal_button =
         message.addButton(tr("Reveal File"), QMessageBox::ActionRole);
     auto *close_button =

@@ -1,7 +1,7 @@
 #ifndef EDIT_ATLAS_APP_SUPPORT_BUNDLE_CONTROLLER_HPP_
 #define EDIT_ATLAS_APP_SUPPORT_BUNDLE_CONTROLLER_HPP_
 
-#include <edit_atlas/presentation/support_bundle_workflow.hpp>
+#include <edit_atlas/presentation/support_bundle_view_model.hpp>
 
 #include <edit_atlas/support/support_bundle.hpp>
 
@@ -14,7 +14,7 @@ class QWidget;
 
 namespace edit_atlas::app {
 
-/// Coordinates privacy disclosure and diagnostic support-bundle export.
+/// Adapts support-bundle ViewModel commands to Qt Widgets interactions.
 class SupportBundleController final : public QObject {
     Q_OBJECT
 
@@ -41,13 +41,12 @@ class SupportBundleController final : public QObject {
     void StatusMessageCleared(void);
 
   private:
+    void HandleBusyChanged(void);
     void HandleFinished(void);
     void ShowFailure(const support::SupportBundleFailure &failure);
 
-    std::filesystem::path log_directory_;
-    support::DiagnosticEnvironment diagnostic_environment_;
     QWidget &window_;
-    presentation::SupportBundleWorkflow *workflow_ = nullptr;
+    presentation::SupportBundleViewModel view_model_;
     bool interactions_enabled_ = true;
 };
 
