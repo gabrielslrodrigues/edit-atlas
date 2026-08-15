@@ -199,7 +199,8 @@ On Windows PowerShell:
 ```
 
 The developer Qt Quick preview is built as `edit-atlas-quick` but is not
-included in installers. Run it from a Linux debug build with:
+included in installers. It includes the compiled `EditAtlasStyle` design-system
+module and a light/dark control preview. Run it from a Linux debug build with:
 
 ```sh
 ./build/debug-x64-linux/src/frontends/quick/edit-atlas-quick

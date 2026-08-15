@@ -3,6 +3,8 @@ qt_policy(SET QTP0004 NEW)
 
 set(QT_QML_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/qml")
 
+add_subdirectory(style)
+
 add_library(edit_atlas_quick_frontend STATIC)
 add_library(EditAtlas::QuickFrontend ALIAS edit_atlas_quick_frontend)
 
@@ -31,6 +33,7 @@ target_link_libraries(
     edit_atlas_quick_frontend
     PRIVATE
         EditAtlas::Presentation
+        EditAtlas::QuickStyle
         Qt6::Qml
         Qt6::Quick
         Qt6::QuickControls2
@@ -47,6 +50,7 @@ target_link_libraries(
     edit_atlas_quick
     PRIVATE
         edit_atlas_quick_frontendplugin
+        edit_atlas_quick_styleplugin
         Qt6::Gui
         Qt6::Qml
         Qt6::QuickControls2

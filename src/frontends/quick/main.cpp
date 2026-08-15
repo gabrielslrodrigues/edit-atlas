@@ -9,7 +9,8 @@
 #include <cstdlib>
 
 int main(int argc, char *argv[]) {
-    QQuickStyle::setStyle(QStringLiteral("Basic"));
+    QQuickStyle::setFallbackStyle(QStringLiteral("Basic"));
+    QQuickStyle::setStyle(QStringLiteral("EditAtlasStyle"));
 
     QGuiApplication application{argc, argv};
     QCoreApplication::setApplicationName(QStringLiteral("Edit Atlas Quick"));

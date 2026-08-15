@@ -132,6 +132,13 @@ product name `edit-atlas`; the other outputs identify their concrete frontends.
 Shared product icons and desktop metadata live under `src/frontends/resources`;
 frontend-specific styling remains with its concrete frontend.
 
+The developer Qt Quick frontend compiles its application QML into
+`EditAtlas::QuickFrontend`. `EditAtlas::QuickStyle` provides the separate
+`EditAtlasStyle` QML module: shared design tokens, light and dark theme colors,
+surfaces, icons, and template-based Qt Quick Controls. The custom style uses
+Basic as its fallback, so controls can be introduced incrementally without
+depending on platform-native styles.
+
 The command-line frontend is exposed as `EditAtlas::CliFrontend` in the
 `edit_atlas::frontends::cli` namespace. It links `EditAtlas::Services` without
 Qt and adapts UTF-8 command arguments, local paths, stable process exit codes,
