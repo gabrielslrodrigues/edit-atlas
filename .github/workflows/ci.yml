@@ -222,7 +222,8 @@ jobs:
       - name: Shorten Windows workspace path
         if: runner.os == 'Windows'
         shell: pwsh
-        run: subst V: "${{ github.workspace }}"
+        run: |
+          subst V: "${{ github.workspace }}"
 
       - name: Free Linux runner disk space
         if: runner.os == 'Linux'
