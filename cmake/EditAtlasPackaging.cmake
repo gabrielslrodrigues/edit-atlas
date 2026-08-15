@@ -47,7 +47,7 @@ if(WIN32)
         "01BB5D14-C875-4EC5-9F30-1E31C2791DC7"
     )
     set(CPACK_WIX_PRODUCT_ICON
-        "${PROJECT_SOURCE_DIR}/src/app/resources/icons/edit_atlas.ico"
+        "${PROJECT_SOURCE_DIR}/src/frontends/widgets/resources/icons/edit_atlas.ico"
     )
     set(CPACK_WIX_UI_REF "WixUI_InstallDir")
     set(CPACK_WIX_PROGRAM_MENU_FOLDER "Edit Atlas")

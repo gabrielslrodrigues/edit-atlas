@@ -2,7 +2,7 @@
 <!DOCTYPE TS>
 <TS version="2.1" language="pt_BR" sourcelanguage="en">
 <context>
-    <name>edit_atlas::app::ApplicationMenuBar</name>
+    <name>edit_atlas::frontends::widgets::ApplicationMenuBar</name>
     <message>
         <source>&amp;File</source>
         <translation>&amp;Arquivo</translation>
@@ -196,7 +196,7 @@
     </message>
 </context>
 <context>
-    <name>edit_atlas::app::TimelineDocumentController</name>
+    <name>edit_atlas::frontends::widgets::TimelineDocumentController</name>
     <message>
         <source>Condition %1 has an invalid regular expression: %2</source>
         <translation>A condição %1 contém uma expressão regular inválida: %2</translation>
@@ -385,7 +385,7 @@
     </message>
 </context>
 <context>
-    <name>edit_atlas::app::TimelineTemplateController</name>
+    <name>edit_atlas::frontends::widgets::TimelineTemplateController</name>
     <message>
         <source>Delete Template?</source>
         <translation>Excluir modelo?</translation>
@@ -510,7 +510,7 @@ Erro do sistema: %1</translation>
     </message>
 </context>
 <context>
-    <name>edit_atlas::app::TimelineDocumentView</name>
+    <name>edit_atlas::frontends::widgets::TimelineDocumentView</name>
     <message>
         <source>Edit Atlas</source>
         <translation>Edit Atlas</translation>
@@ -625,7 +625,7 @@ Erro do sistema: %1</translation>
     </message>
 </context>
 <context>
-    <name>edit_atlas::app::MainWindow</name>
+    <name>edit_atlas::frontends::widgets::MainWindow</name>
     <message>
         <source>Edit Atlas</source>
         <translation>Edit Atlas</translation>
@@ -644,7 +644,7 @@ Inspecione linhas do tempo editoriais e exporte relatórios estruturados.</trans
     </message>
 </context>
 <context>
-    <name>edit_atlas::app::SpreadsheetExportOptionsDialog</name>
+    <name>edit_atlas::frontends::widgets::SpreadsheetExportOptionsDialog</name>
     <message>
         <source>Spreadsheet Options</source>
         <translation>Opções da planilha</translation>
@@ -803,7 +803,7 @@ Inspecione linhas do tempo editoriais e exporte relatórios estruturados.</trans
     </message>
 </context>
 <context>
-    <name>edit_atlas::app::EventProjectionDialog</name>
+    <name>edit_atlas::frontends::widgets::EventProjectionDialog</name>
     <message>
         <source>Export Columns</source>
         <translation>Colunas de exportação</translation>
@@ -818,7 +818,7 @@ Inspecione linhas do tempo editoriais e exporte relatórios estruturados.</trans
     </message>
 </context>
 <context>
-    <name>edit_atlas::app::EventProjectionWidget</name>
+    <name>edit_atlas::frontends::widgets::EventProjectionWidget</name>
     <message>
         <source>Event columns</source>
         <translation>Colunas de eventos</translation>
@@ -913,7 +913,7 @@ Inspecione linhas do tempo editoriais e exporte relatórios estruturados.</trans
     </message>
 </context>
 <context>
-    <name>edit_atlas::app::SupportBundleController</name>
+    <name>edit_atlas::frontends::widgets::SupportBundleController</name>
     <message>
         <source>Export Diagnostic Logs</source>
         <translation>Exportar logs de diagnóstico</translation>
@@ -1010,7 +1010,7 @@ Inspecione linhas do tempo editoriais e exporte relatórios estruturados.</trans
     </message>
 </context>
 <context>
-    <name>edit_atlas::app::TimelineFilterWidget</name>
+    <name>edit_atlas::frontends::widgets::TimelineFilterWidget</name>
     <message>
         <source>Match</source>
         <translation>Corresponder</translation>
