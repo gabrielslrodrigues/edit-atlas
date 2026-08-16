@@ -236,9 +236,12 @@ Dialog {
         parent: Overlay.overlay
         standardButtons: Dialog.Close
         title: qsTr("Could Not Open Link")
+        width: Math.min(560,
+                        parent.width - Atlas.DesignTokens.spacingExtraLarge)
 
         Label {
             text: root.externalFailureText
+            width: externalFailureDialog.availableWidth
             wrapMode: Text.WordWrap
         }
     }

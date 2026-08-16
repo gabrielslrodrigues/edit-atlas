@@ -272,10 +272,12 @@ Dialog {
         parent: Overlay.overlay
         standardButtons: Dialog.Close
         title: qsTr("Could Not Export Diagnostic Logs")
+        width: Math.min(560,
+                        parent.width - Atlas.DesignTokens.spacingExtraLarge)
 
         Label {
-            Layout.maximumWidth: 560
             text: root.workflow.errorText
+            width: failureDialog.availableWidth
             wrapMode: Text.WordWrap
         }
 
@@ -290,9 +292,12 @@ Dialog {
         parent: Overlay.overlay
         standardButtons: Dialog.Close
         title: qsTr("Could Not Reveal File")
+        width: Math.min(560,
+                        parent.width - Atlas.DesignTokens.spacingExtraLarge)
 
         Label {
             text: qsTr("The support bundle was saved, but its location could not be opened.")
+            width: revealFailureDialog.availableWidth
             wrapMode: Text.WordWrap
         }
     }
