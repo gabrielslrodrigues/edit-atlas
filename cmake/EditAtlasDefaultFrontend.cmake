@@ -150,6 +150,7 @@ function(edit_atlas_define_default_frontend frontend)
         )
         set(edit_atlas_linux_qml_deployment)
         set(edit_atlas_linux_additional_modules)
+        set(edit_atlas_linux_qml_dependency_deployment)
         if(edit_atlas_requires_qml_deployment)
             set(
                 edit_atlas_runtime_install_qmldir
@@ -172,6 +173,22 @@ function(edit_atlas_define_default_frontend frontend)
                 edit_atlas_linux_additional_modules
                 "ADDITIONAL_MODULES \${edit_atlas_qml_plugins}"
             )
+            set(
+                edit_atlas_linux_qml_dependency_deployment
+                "include(
+                    \"${PROJECT_SOURCE_DIR}/cmake/DeployLinuxQmlPluginDependencies.cmake\"
+                )
+                edit_atlas_deploy_linux_qml_plugin_dependencies(
+                    QML_DIRECTORY
+                        \"${edit_atlas_runtime_install_qmldir}\"
+                    QML_SOURCE_DIRECTORY
+                        \"${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/Qt6/qml\"
+                    LIBRARY_DIRECTORY
+                        \"${edit_atlas_runtime_install_libdir}\"
+                    LIBRARY_SOURCE_DIRECTORY
+                        \"${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/lib\"
+                )"
+            )
         endif()
         qt_generate_deploy_script(
             TARGET "${target}"
@@ -193,7 +210,8 @@ function(edit_atlas_define_default_frontend frontend)
                     LIB_DIR \"${edit_atlas_runtime_install_libdir}\"
                     PLUGINS_DIR \"${edit_atlas_runtime_install_pluginsdir}\"
                     INCLUDE_PLUGINS qwayland qxcb
-                )"
+                )
+                ${edit_atlas_linux_qml_dependency_deployment}"
         )
     elseif(APPLE)
         set(
