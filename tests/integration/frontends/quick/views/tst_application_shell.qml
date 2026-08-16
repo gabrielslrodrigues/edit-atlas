@@ -188,14 +188,21 @@ TestCase {
         const filter = findObject("timelineFilter")
         verify(filter !== null)
         filter.expanded = true
-        tryVerify(() => findChild(filter, "filterCondition0") !== null)
+        const list = findChild(filter, "filterConditionsScrollArea")
+        verify(list !== null)
+        tryVerify(() => findChild(list.contentItem,
+                                  "filterCondition0") !== null)
 
         configuration.AddFilterCondition()
-        tryVerify(() => findChild(filter, "filterCondition1") !== null)
-        verify(findChild(filter, "filterCondition0Field") !== null)
-        verify(findChild(filter, "filterCondition1Field") !== null)
+        tryVerify(() => findChild(list.contentItem,
+                                  "filterCondition1") !== null)
+        verify(findChild(list.contentItem,
+                         "filterCondition0Field") !== null)
+        verify(findChild(list.contentItem,
+                         "filterCondition1Field") !== null)
 
         configuration.ClearFilter()
-        tryVerify(() => findChild(filter, "filterCondition1") === null)
+        tryVerify(() => findChild(list.contentItem,
+                                  "filterCondition1") === null)
     }
 }
