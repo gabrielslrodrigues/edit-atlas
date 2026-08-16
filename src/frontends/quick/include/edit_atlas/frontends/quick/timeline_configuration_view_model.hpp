@@ -34,22 +34,25 @@ class TimelineConfigurationViewModel final : public QObject {
                    TemplateStateChanged)
     Q_PROPERTY(QString activeTemplateName READ ActiveTemplateName NOTIFY
                    TemplateStateChanged)
-    Q_PROPERTY(QString templateOperationErrorText READ
-                   TemplateOperationErrorText NOTIFY
-                       TemplateOperationErrorChanged)
+    Q_PROPERTY(
+        QString templateOperationErrorText READ TemplateOperationErrorText
+            NOTIFY TemplateOperationErrorChanged)
     Q_PROPERTY(bool filterValid READ IsFilterValid NOTIFY FilterStateChanged)
-    Q_PROPERTY(QString filterErrorText READ FilterErrorText NOTIFY
-                   FilterStateChanged)
+    Q_PROPERTY(
+        QString filterErrorText READ FilterErrorText NOTIFY FilterStateChanged)
     Q_PROPERTY(bool eventProjectionValid READ IsEventProjectionValid NOTIFY
                    EventProjectionStateChanged)
+    Q_PROPERTY(
+        int eventProjectionSelectedCount READ EventProjectionSelectedCount
+            NOTIFY EventProjectionStateChanged)
     Q_PROPERTY(int filterCombination READ FilterCombination WRITE
                    SetFilterCombination NOTIFY FilterStateChanged)
     Q_PROPERTY(QStringList filterCombinationNames READ FilterCombinationNames
                    NOTIFY DisplayTextChanged)
     Q_PROPERTY(QStringList filterFieldNames READ FilterFieldNames NOTIFY
                    DisplayTextChanged)
-    Q_PROPERTY(QStringList filterTrackKindNames READ FilterTrackKindNames
-                   NOTIFY DisplayTextChanged)
+    Q_PROPERTY(QStringList filterTrackKindNames READ FilterTrackKindNames NOTIFY
+                   DisplayTextChanged)
     Q_PROPERTY(QStringList filterEditTypeNames READ FilterEditTypeNames NOTIFY
                    DisplayTextChanged)
     Q_PROPERTY(int textFilterEditor READ TextFilterEditor CONSTANT)
@@ -70,8 +73,7 @@ class TimelineConfigurationViewModel final : public QObject {
         delete;
     TimelineConfigurationViewModel &
     operator=(const TimelineConfigurationViewModel &) = delete;
-    TimelineConfigurationViewModel(TimelineConfigurationViewModel &&) =
-        delete;
+    TimelineConfigurationViewModel(TimelineConfigurationViewModel &&) = delete;
     TimelineConfigurationViewModel &
     operator=(TimelineConfigurationViewModel &&) = delete;
 
@@ -97,6 +99,8 @@ class TimelineConfigurationViewModel final : public QObject {
     [[nodiscard]] QString FilterErrorText(void) const;
     /// Returns whether at least one export event column is selected.
     [[nodiscard]] bool IsEventProjectionValid(void) const noexcept;
+    /// Returns the number of selected export event columns.
+    [[nodiscard]] int EventProjectionSelectedCount(void) const noexcept;
     /// Returns how non-empty filter conditions are combined.
     [[nodiscard]] int FilterCombination(void) const noexcept;
     /// Selects how non-empty filter conditions are combined.

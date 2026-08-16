@@ -9,6 +9,7 @@ ApplicationWindow {
 
     required property ApplicationShell applicationShell
     property bool frameRatePromptPending: false
+    property url pendingSpreadsheetDestinationUrl: ""
     property url pendingTimelineUrl: ""
 
     function presentPendingFrameRateDialog() {
@@ -36,6 +37,16 @@ ApplicationWindow {
         pendingTimelineUrl = ""
         frameRatePromptPending = false
         applicationShell.OpenUrl(selectedUrl)
+    }
+
+    function startPendingSpreadsheetExport() {
+        if (spreadsheetSaveDialog.visible
+                || pendingSpreadsheetDestinationUrl.toString().length === 0) {
+            return
+        }
+        const selectedUrl = pendingSpreadsheetDestinationUrl
+        pendingSpreadsheetDestinationUrl = ""
+        spreadsheetExportDialog.startExport(selectedUrl)
     }
 
     height: 700
@@ -134,6 +145,14 @@ ApplicationWindow {
                 onTriggered: {
                     applicationShell.rememberRecentFiles = checked
                 }
+            }
+
+            MenuSeparator {}
+
+            Action {
+                enabled: applicationShell.spreadsheetExport.available
+                text: qsTr("&Export Spreadsheet…")
+                onTriggered: spreadsheetExportDialog.openForExport()
             }
 
             MenuSeparator {}
@@ -351,6 +370,14 @@ ApplicationWindow {
                                   .arg(applicationShell.visibleEventCount)
                                   .arg(applicationShell.eventCount)
                     }
+
+                    Button {
+                        Accessible.description: qsTr("Export the currently shown timeline events as an Excel workbook")
+                        enabled: applicationShell.spreadsheetExport.available
+                        highlighted: true
+                        text: qsTr("Export Spreadsheet")
+                        onClicked: spreadsheetExportDialog.openForExport()
+                    }
                 }
 
                 TimelineConfigurationPanel {
@@ -444,6 +471,8 @@ ApplicationWindow {
                      ? "*" : applicationShell.importFilePatterns.join(" ")),
             qsTr("All files (*)")
         ]
+        parentWindow: window
+        popupType: Popup.Item
         title: qsTr("Open Timeline")
         onAccepted: {
             window.pendingTimelineUrl = selectedFile
@@ -453,6 +482,44 @@ ApplicationWindow {
             if (!visible) {
                 Qt.callLater(() => window.startPendingTimelineImport())
                 Qt.callLater(() => window.presentPendingFrameRateDialog())
+            }
+        }
+    }
+
+    FileDialog {
+        id: renderedVideoDialog
+
+        fileMode: FileDialog.OpenFile
+        nameFilters: [
+            qsTr("Supported video files (*.mov *.mp4 *.mxf)"),
+            qsTr("All files (*)")
+        ]
+        parentWindow: window
+        popupType: Popup.Item
+        title: qsTr("Select Rendered Video")
+        onAccepted: spreadsheetExportDialog.selectRenderedVideo(selectedFile)
+    }
+
+    FileDialog {
+        id: spreadsheetSaveDialog
+
+        acceptLabel: qsTr("Export")
+        defaultSuffix: "xlsx"
+        fileMode: FileDialog.SaveFile
+        nameFilters: [
+            qsTr("Excel workbook (*.xlsx)"),
+            qsTr("All files (*)")
+        ]
+        parentWindow: window
+        popupType: Popup.Item
+        title: qsTr("Export Spreadsheet")
+        onAccepted: {
+            window.pendingSpreadsheetDestinationUrl = selectedFile
+            Qt.callLater(() => window.startPendingSpreadsheetExport())
+        }
+        onVisibleChanged: {
+            if (!visible) {
+                Qt.callLater(() => window.startPendingSpreadsheetExport())
             }
         }
     }
@@ -511,6 +578,22 @@ ApplicationWindow {
         Label {
             text: qsTr("Wait for the current operation to finish before closing Edit Atlas.")
             wrapMode: Text.WordWrap
+        }
+    }
+
+    SpreadsheetExportDialog {
+        id: spreadsheetExportDialog
+
+        applicationLanguageCode: applicationShell.languageCode
+        configuration: applicationShell.timelineConfiguration
+        workflow: applicationShell.spreadsheetExport
+        onDestinationRequested: suggestedDestination => {
+            spreadsheetSaveDialog.selectedFile = suggestedDestination
+            Qt.callLater(() => spreadsheetSaveDialog.open())
+        }
+        onVideoSelectionRequested: suggestedFolder => {
+            renderedVideoDialog.currentFolder = suggestedFolder
+            Qt.callLater(() => renderedVideoDialog.open())
         }
     }
 

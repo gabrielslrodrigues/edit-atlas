@@ -82,6 +82,7 @@ TEST_F(ApplicationShellViewModelTest,
     EXPECT_EQ(shell.EventModel()->rowCount(), 0);
     EXPECT_EQ(shell.DiagnosticsModel()->rowCount(), 0);
     EXPECT_NE(shell.TimelineConfiguration(), nullptr);
+    EXPECT_NE(shell.SpreadsheetExport(), nullptr);
     EXPECT_EQ(shell.DiagnosticCount(), 0);
     EXPECT_EQ(shell.EventSortColumn(), -1);
     EXPECT_TRUE(shell.SourceFileName().isEmpty());
@@ -179,15 +180,15 @@ TEST_F(ApplicationShellViewModelTest,
     shell.ToggleEventSort(0);
     EXPECT_EQ(shell.EventSortColumn(), 0);
     EXPECT_TRUE(shell.EventSortAscending());
-    EXPECT_EQ(shell.EventModel()->data(shell.EventModel()->index(0, 0))
-                  .toString(),
-              QStringLiteral("001"));
+    EXPECT_EQ(
+        shell.EventModel()->data(shell.EventModel()->index(0, 0)).toString(),
+        QStringLiteral("001"));
 
     shell.ToggleEventSort(0);
     EXPECT_FALSE(shell.EventSortAscending());
-    EXPECT_EQ(shell.EventModel()->data(shell.EventModel()->index(0, 0))
-                  .toString(),
-              QStringLiteral("004"));
+    EXPECT_EQ(
+        shell.EventModel()->data(shell.EventModel()->index(0, 0)).toString(),
+        QStringLiteral("004"));
 }
 
 TEST_F(ApplicationShellViewModelTest, IgnoresUnsupportedOpenRequests) {
