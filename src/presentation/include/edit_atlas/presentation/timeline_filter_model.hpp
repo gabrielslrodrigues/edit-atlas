@@ -67,13 +67,18 @@ enum class TimelineFilterEditor {
 class TimelineFilterModel final : public QAbstractListModel {
     Q_OBJECT
 
+    /// Whether every condition or any condition must match.
     Q_PROPERTY(int combination READ Combination WRITE SetCombination NOTIFY
                    QueryChanged)
+    /// Localized names for the available condition-combination modes.
     Q_PROPERTY(QStringList combinationNames READ CombinationNames NOTIFY
                    DisplayTextChanged)
+    /// Localized names for the available filter fields.
     Q_PROPERTY(QStringList fieldNames READ FieldNames NOTIFY DisplayTextChanged)
+    /// Localized names for the available track kinds.
     Q_PROPERTY(QStringList trackKindNames READ TrackKindNames NOTIFY
                    DisplayTextChanged)
+    /// Localized names for the available edit types.
     Q_PROPERTY(QStringList editTypeNames READ EditTypeNames NOTIFY
                    DisplayTextChanged)
 

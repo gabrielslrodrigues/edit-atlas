@@ -20,7 +20,9 @@ namespace edit_atlas::presentation {
 class TimelineEventProjectionModel final : public QAbstractListModel {
     Q_OBJECT
 
+    /// Number of event fields included in the export projection.
     Q_PROPERTY(int selectedCount READ SelectedCount NOTIFY ProjectionChanged)
+    /// Whether the export projection contains at least one event field.
     Q_PROPERTY(bool valid READ IsValid NOTIFY ProjectionChanged)
 
   public:
