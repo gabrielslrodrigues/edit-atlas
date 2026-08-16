@@ -77,6 +77,7 @@ Dialog {
     height: Math.min(implicitHeight,
                      parent.height - Atlas.DesignTokens.spacingExtraLarge)
     modal: true
+    objectName: "spreadsheetOptionsDialog"
     parent: Overlay.overlay
     title: qsTr("Spreadsheet Options")
     width: Math.min(560, parent.width - Atlas.DesignTokens.spacingExtraLarge)
@@ -107,12 +108,14 @@ Dialog {
                 qsTr("English"),
                 qsTr("Português (Brasil)")
             ]
+            objectName: "workbookLanguageSelector"
         }
 
         CheckBox {
             id: includeTimeline
 
             checked: true
+            objectName: "includeTimelineSheetCheckBox"
             text: qsTr("Include timeline summary")
         }
 
@@ -120,6 +123,7 @@ Dialog {
             id: includeDiagnostics
 
             checked: true
+            objectName: "includeDiagnosticsSheetCheckBox"
             text: qsTr("Include diagnostics")
         }
 
@@ -127,6 +131,8 @@ Dialog {
             Layout.fillWidth: true
             implicitHeight: videoLayout.implicitHeight
                             + Atlas.DesignTokens.spacingMedium * 2
+            Accessible.id: objectName
+            objectName: "renderedVideoGroup"
             visible: root.workflow.renderedVideoRequired
 
             ColumnLayout {
@@ -155,17 +161,20 @@ Dialog {
 
                     Label {
                         Layout.fillWidth: true
+                        Accessible.id: objectName
                         Accessible.name: qsTr("Rendered video path")
                         color: root.renderedVideoUrl.toString().length === 0
                                ? Atlas.Theme.textSecondary
                                : Atlas.Theme.textPrimary
                         elide: Text.ElideMiddle
+                        objectName: "renderedVideoPathField"
                         text: root.renderedVideoUrl.toString().length === 0
                               ? qsTr("Select the matching rendered video")
                               : root.renderedVideoUrl.toString()
                     }
 
                     Button {
+                        objectName: "browseRenderedVideoButton"
                         text: qsTr("Browse…")
                         onClicked: root.videoSelectionRequested(
                                        root.workflow.suggestedVideoFolderUrl)
@@ -186,6 +195,7 @@ Dialog {
             }
 
             Button {
+                objectName: "editSpreadsheetColumnsButton"
                 text: qsTr("Export Columns")
                 onClicked: eventProjectionDialog.open()
             }
@@ -209,6 +219,7 @@ Dialog {
 
         Button {
             DialogButtonBox.buttonRole: DialogButtonBox.RejectRole
+            objectName: "cancelSpreadsheetExportButton"
             text: qsTr("Cancel")
         }
 
@@ -218,6 +229,7 @@ Dialog {
                      && (!root.workflow.renderedVideoRequired
                          || root.renderedVideoUrl.toString().length > 0)
             highlighted: true
+            objectName: "continueSpreadsheetExportButton"
             text: qsTr("Continue")
             onClicked: root.requestDestination()
         }
@@ -234,6 +246,7 @@ Dialog {
         id: eventProjectionDialog
 
         configuration: root.configuration
+        objectName: "spreadsheetEventProjectionDialog"
     }
 
     Dialog {
@@ -242,6 +255,7 @@ Dialog {
         anchors.centerIn: parent
         closePolicy: Popup.NoAutoClose
         modal: true
+        objectName: "spreadsheetExportProgressDialog"
         parent: Overlay.overlay
         title: qsTr("Export Spreadsheet")
 
@@ -274,6 +288,7 @@ Dialog {
 
             Button {
                 Layout.alignment: Qt.AlignRight
+                objectName: "cancelFrameExtractionButton"
                 text: qsTr("Cancel")
                 visible: root.workflow.renderedVideoRequired
                 onClicked: root.workflow.Cancel()
@@ -291,6 +306,7 @@ Dialog {
 
         anchors.centerIn: parent
         modal: true
+        objectName: "spreadsheetExportResultDialog"
         parent: Overlay.overlay
         title: root.workflow.hasWarnings
                ? qsTr("Spreadsheet Exported with Warnings")
@@ -328,6 +344,7 @@ Dialog {
 
             Button {
                 DialogButtonBox.buttonRole: DialogButtonBox.ActionRole
+                objectName: "revealSpreadsheetButton"
                 text: qsTr("Reveal File")
                 onClicked: {
                     if (!root.workflow.RevealResult()) {
@@ -340,6 +357,7 @@ Dialog {
 
             Button {
                 DialogButtonBox.buttonRole: DialogButtonBox.RejectRole
+                objectName: "closeDialogButton"
                 text: qsTr("Close")
             }
         }
@@ -352,9 +370,16 @@ Dialog {
 
         anchors.centerIn: parent
         modal: true
+        objectName: root.workflow.renderedVideoRequired
+                    ? "renderedVideoExportFailureDialog"
+                    : "spreadsheetExportFailureDialog"
         parent: Overlay.overlay
         standardButtons: Dialog.Close
         title: qsTr("Could Not Export Spreadsheet")
+
+        Component.onCompleted: {
+            standardButton(Dialog.Close).objectName = "closeDialogButton"
+        }
 
         Label {
             Layout.maximumWidth: 560
@@ -370,9 +395,14 @@ Dialog {
 
         anchors.centerIn: parent
         modal: true
+        objectName: "revealSpreadsheetFailureDialog"
         parent: Overlay.overlay
         standardButtons: Dialog.Close
         title: qsTr("Could Not Reveal File")
+
+        Component.onCompleted: {
+            standardButton(Dialog.Close).objectName = "closeDialogButton"
+        }
 
         Label {
             text: qsTr("The spreadsheet was saved, but its location could not be opened.")

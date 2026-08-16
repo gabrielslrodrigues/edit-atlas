@@ -22,10 +22,15 @@ Dialog {
     anchors.centerIn: parent
     height: Math.min(680, parent.height - Atlas.DesignTokens.spacingExtraLarge)
     modal: true
+    objectName: "aboutDialog"
     parent: Overlay.overlay
     standardButtons: Dialog.Close
     title: qsTr("About Edit Atlas")
     width: Math.min(660, parent.width - Atlas.DesignTokens.spacingExtraLarge)
+
+    Component.onCompleted: {
+        standardButton(Dialog.Close).objectName = "closeDialogButton"
+    }
 
     ScrollView {
         anchors.fill: parent
@@ -147,6 +152,7 @@ Dialog {
             }
 
             Button {
+                objectName: "openLogFolderButton"
                 text: qsTr("Open Log Folder")
                 onClicked: root.openExternal(
                                () => root.information.OpenLogDirectory(),
@@ -187,6 +193,7 @@ Dialog {
                 Layout.fillWidth: true
 
                 Button {
+                    objectName: "projectWebsiteButton"
                     text: qsTr("Project Website")
                     onClicked: root.openExternal(
                                    () => root.information.OpenProjectWebsite(),
@@ -194,6 +201,7 @@ Dialog {
                 }
 
                 Button {
+                    objectName: "qtLicensingButton"
                     text: qsTr("Qt Licensing")
                     onClicked: root.openExternal(
                                    () => root.information.OpenQtLicensingInformation(),
@@ -201,6 +209,7 @@ Dialog {
                 }
 
                 Button {
+                    objectName: "ffmpegLegalInformationButton"
                     text: qsTr("FFmpeg Legal Information")
                     onClicked: root.openExternal(
                                    () => root.information.OpenFfmpegLegalInformation(),
@@ -209,6 +218,7 @@ Dialog {
             }
 
             Button {
+                objectName: "toggleFfmpegBuildDetailsButton"
                 text: root.showVideoBuildDetails
                       ? qsTr("Hide FFmpeg Build Details")
                       : qsTr("Show FFmpeg Build Details")
@@ -233,6 +243,7 @@ Dialog {
 
         anchors.centerIn: parent
         modal: true
+        objectName: "externalLinkFailureDialog"
         parent: Overlay.overlay
         standardButtons: Dialog.Close
         title: qsTr("Could Not Open Link")

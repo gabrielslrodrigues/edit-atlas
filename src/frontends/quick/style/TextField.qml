@@ -4,6 +4,8 @@ import QtQuick.Templates as T
 T.TextField {
     id: control
 
+    Accessible.id: objectName
+    Accessible.role: Accessible.EditableText
     bottomPadding: DesignTokens.spacingSmall
     color: enabled ? Theme.textPrimary : Theme.disabled
     font.pointSize: DesignTokens.bodyPointSize

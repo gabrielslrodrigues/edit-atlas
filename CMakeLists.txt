@@ -178,7 +178,7 @@ qt_add_translations(
 
 if(BUILD_TESTING)
     find_package(GTest CONFIG REQUIRED)
-    find_package(Qt6 REQUIRED COMPONENTS Test)
+    find_package(Qt6 REQUIRED COMPONENTS QuickTest Test)
     add_subdirectory(tests)
 endif()
 

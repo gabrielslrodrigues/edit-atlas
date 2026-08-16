@@ -62,6 +62,7 @@ Dialog {
     height: Math.min(implicitHeight,
                      parent.height - Atlas.DesignTokens.spacingExtraLarge)
     modal: true
+    objectName: "supportBundleDisclosureDialog"
     parent: Overlay.overlay
     title: qsTr("Export Diagnostic Logs")
     width: Math.min(560, parent.width - Atlas.DesignTokens.spacingExtraLarge)
@@ -119,12 +120,14 @@ Dialog {
 
         Button {
             DialogButtonBox.buttonRole: DialogButtonBox.RejectRole
+            objectName: "cancelSupportBundleButton"
             text: qsTr("Cancel")
         }
 
         Button {
             DialogButtonBox.buttonRole: DialogButtonBox.AcceptRole
             highlighted: true
+            objectName: "continueSupportBundleButton"
             text: qsTr("Continue")
             onClicked: root.requestDestination()
         }
@@ -143,6 +146,7 @@ Dialog {
 
         anchors.centerIn: parent
         modal: true
+        objectName: "replaceSupportBundleDialog"
         parent: Overlay.overlay
         title: qsTr("Replace Existing File?")
 
@@ -160,12 +164,14 @@ Dialog {
 
             Button {
                 DialogButtonBox.buttonRole: DialogButtonBox.RejectRole
+                objectName: "cancelReplaceSupportBundleButton"
                 text: qsTr("Cancel")
             }
 
             Button {
                 DialogButtonBox.buttonRole: DialogButtonBox.AcceptRole
                 highlighted: true
+                objectName: "replaceSupportBundleButton"
                 text: qsTr("Replace")
                 onClicked: {
                     root.replacementPending = true
@@ -192,6 +198,7 @@ Dialog {
         anchors.centerIn: parent
         closePolicy: Popup.NoAutoClose
         modal: true
+        objectName: "supportBundleProgressDialog"
         parent: Overlay.overlay
         title: qsTr("Export Diagnostic Logs")
 
@@ -220,6 +227,7 @@ Dialog {
 
         anchors.centerIn: parent
         modal: true
+        objectName: "supportBundleResultDialog"
         parent: Overlay.overlay
         title: qsTr("Diagnostic Logs Exported")
 
@@ -245,6 +253,7 @@ Dialog {
 
             Button {
                 DialogButtonBox.buttonRole: DialogButtonBox.ActionRole
+                objectName: "revealSupportBundleButton"
                 text: qsTr("Reveal File")
                 onClicked: {
                     if (!root.workflow.RevealResult()) {
@@ -257,6 +266,7 @@ Dialog {
 
             Button {
                 DialogButtonBox.buttonRole: DialogButtonBox.RejectRole
+                objectName: "closeDialogButton"
                 text: qsTr("Close")
             }
         }
@@ -269,11 +279,16 @@ Dialog {
 
         anchors.centerIn: parent
         modal: true
+        objectName: "supportBundleFailureDialog"
         parent: Overlay.overlay
         standardButtons: Dialog.Close
         title: qsTr("Could Not Export Diagnostic Logs")
         width: Math.min(560,
                         parent.width - Atlas.DesignTokens.spacingExtraLarge)
+
+        Component.onCompleted: {
+            standardButton(Dialog.Close).objectName = "closeDialogButton"
+        }
 
         Label {
             text: root.workflow.errorText
@@ -289,15 +304,20 @@ Dialog {
 
         anchors.centerIn: parent
         modal: true
+        objectName: "revealSupportBundleFailureDialog"
         parent: Overlay.overlay
         standardButtons: Dialog.Close
         title: qsTr("Could Not Reveal File")
         width: Math.min(560,
                         parent.width - Atlas.DesignTokens.spacingExtraLarge)
 
+        Component.onCompleted: {
+            standardButton(Dialog.Close).objectName = "closeDialogButton"
+        }
+
         Label {
             text: qsTr("The support bundle was saved, but its location could not be opened.")
-            width: revealFailureDialog.availableWidth
+            width: Math.min(520, implicitWidth)
             wrapMode: Text.WordWrap
         }
     }

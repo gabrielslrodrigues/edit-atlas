@@ -4,6 +4,9 @@ import QtQuick.Templates as T
 T.Button {
     id: control
 
+    Accessible.id: objectName
+    Accessible.name: text
+    Accessible.role: Accessible.Button
     bottomPadding: DesignTokens.spacingSmall
     font.pointSize: DesignTokens.bodyPointSize
     leftPadding: DesignTokens.spacingLarge

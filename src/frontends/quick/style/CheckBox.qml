@@ -4,6 +4,9 @@ import QtQuick.Templates as T
 T.CheckBox {
     id: control
 
+    Accessible.id: objectName
+    Accessible.name: text
+    Accessible.role: Accessible.CheckBox
     spacing: DesignTokens.spacingSmall
 
     implicitHeight: Math.max(DesignTokens.controlHeight,

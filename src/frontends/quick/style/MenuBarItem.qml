@@ -5,6 +5,9 @@ import QtQuick.Templates as T
 T.MenuBarItem {
     id: control
 
+    Accessible.id: objectName
+    Accessible.name: text
+    Accessible.role: Accessible.MenuItem
     bottomPadding: DesignTokens.spacingSmall
     leftPadding: DesignTokens.spacingMedium
     rightPadding: DesignTokens.spacingMedium
@@ -14,6 +17,7 @@ T.MenuBarItem {
                              contentItem.implicitHeight + topPadding
                              + bottomPadding)
     implicitWidth: contentItem.implicitWidth + leftPadding + rightPadding
+    objectName: menu !== null ? menu.objectName : ""
 
     contentItem: MnemonicLabel {
         color: control.enabled ? Theme.textPrimary : Theme.disabled

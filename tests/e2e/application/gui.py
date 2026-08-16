@@ -34,7 +34,13 @@ class EditAtlasApplication:
         self._session.capture_artifacts(stem)
 
     def switch_language(self, language: str) -> None:
-        self._session.select_option("languageSelector", language)
+        actions = {
+            "English": "englishLanguageAction",
+            "Português (Brasil)": "brazilianPortugueseLanguageAction",
+        }
+        self._session.activate_menu_action(
+            "languageSelector", actions[language]
+        )
 
     def set_recent_files_enabled(self, enabled: bool) -> None:
         self._open_menu("fileMenu")
@@ -101,12 +107,18 @@ class EditAtlasApplication:
         self._template_action("editExportColumnsAction")
         self._session.element("eventProjectionDialog")
         self.set_export_columns(checked, order)
-        self._session.activate("saveProjectionButton")
+        if self._session.has_element("closeProjectionButton"):
+            self._session.activate("closeProjectionButton")
+        else:
+            self._session.activate("saveProjectionButton")
         self._session.wait_absent("eventProjectionDialog")
 
     def update_template(self) -> None:
-        self._session.activate("templatePrimaryButton")
-        self._session.wait_name_contains("templatePrimaryButton", "Save as")
+        if self._session.has_element("updateTemplateButton"):
+            self._session.activate("updateTemplateButton")
+        else:
+            self._session.activate("templatePrimaryButton")
+            self._session.wait_name_contains("templatePrimaryButton", "Save as")
 
     def select_template(self, name: str) -> None:
         self._session.select_option("templateSelector", name)
@@ -131,9 +143,13 @@ class EditAtlasApplication:
         # shrink the list's visible area.
         for target_index, name in enumerate(order):
             while available.index(name) > target_index:
-                self._session.select_list_item("eventColumnsList", name)
-                self._session.activate("moveColumnUpButton")
                 position = available.index(name)
+                quick_move_button = f"eventColumn{position}MoveUpButton"
+                if self._session.has_element(quick_move_button):
+                    self._session.activate(quick_move_button)
+                else:
+                    self._session.select_list_item("eventColumnsList", name)
+                    self._session.activate("moveColumnUpButton")
                 available[position - 1], available[position] = (
                     available[position],
                     available[position - 1],
@@ -215,6 +231,14 @@ class EditAtlasApplication:
         self._session.activate("closeDialogButton")
         self._session.wait_absent("supportBundleResultDialog")
 
+    def about_information(self) -> list[str]:
+        self._session.activate_menu_action("helpMenu", "aboutAction")
+        self._session.element("aboutDialog")
+        information = self._session.visible_text("aboutDialog")
+        self._session.activate("closeDialogButton")
+        self._session.wait_absent("aboutDialog")
+        return information
+
     def _complete_template_name(self, name: str) -> None:
         self._session.element("templateNameDialog")
         self._session.set_text("templateNameEditor", name)
@@ -223,7 +247,12 @@ class EditAtlasApplication:
         self._session.wait_selected_option("templateSelector", name)
 
     def _template_action(self, identifier: str) -> None:
-        self._session.activate_menu_action("templateActionsButton", identifier)
+        if self._session.has_element(identifier):
+            self._session.activate(identifier)
+        else:
+            self._session.activate_menu_action(
+                "templateActionsButton", identifier
+            )
 
     def _open_menu(self, identifier: str) -> None:
         self._session.activate(identifier)

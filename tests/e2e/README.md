@@ -20,6 +20,12 @@ under `build/`.
 
 Only `conftest.py` and files under `tests/` may import pytest.
 
+The semantic GUI façade supports both graphical frontends through their shared
+nonlocalized accessibility contract. Where Widgets and Qt Quick necessarily
+present a control differently, such as shared projection movement buttons
+versus per-row actions, the façade resolves the available identifier before
+performing the same user operation. Test scenarios remain frontend-neutral.
+
 ## Running packaged tests
 
 The entry points use uv and the committed lockfile to create a pinned Python
