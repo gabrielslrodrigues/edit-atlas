@@ -16,6 +16,12 @@ set_target_properties(
 )
 
 set_source_files_properties(
+    qml/AboutDialog.qml
+    PROPERTIES
+        QT_RESOURCE_ALIAS AboutDialog.qml
+)
+
+set_source_files_properties(
     qml/Main.qml
     PROPERTIES
         QT_RESOURCE_ALIAS Main.qml
@@ -25,6 +31,12 @@ set_source_files_properties(
     qml/SpreadsheetExportDialog.qml
     PROPERTIES
         QT_RESOURCE_ALIAS SpreadsheetExportDialog.qml
+)
+
+set_source_files_properties(
+    qml/SupportBundleDialog.qml
+    PROPERTIES
+        QT_RESOURCE_ALIAS SupportBundleDialog.qml
 )
 
 set_source_files_properties(
@@ -62,17 +74,23 @@ qt_add_qml_module(
     URI EditAtlas.Frontends.Quick
     VERSION 1.0
     SOURCES
+        application_information_view_model.cpp
         application_shell_view_model.cpp
         spreadsheet_export_view_model.cpp
+        support_bundle_view_model.cpp
         timeline_configuration_view_model.cpp
+        include/edit_atlas/frontends/quick/application_information_view_model.hpp
         include/edit_atlas/frontends/quick/application_shell_view_model.hpp
         include/edit_atlas/frontends/quick/spreadsheet_export_view_model.hpp
+        include/edit_atlas/frontends/quick/support_bundle_view_model.hpp
         include/edit_atlas/frontends/quick/timeline_configuration_view_model.hpp
     QML_FILES
+        qml/AboutDialog.qml
         qml/DiagnosticsPanel.qml
         qml/EventProjectionDialog.qml
         qml/Main.qml
         qml/SpreadsheetExportDialog.qml
+        qml/SupportBundleDialog.qml
         qml/TimelineConfigurationPanel.qml
         qml/TimelineFilterCondition.qml
         qml/TimelineTable.qml
@@ -93,6 +111,7 @@ target_link_libraries(
         Qt6::Qml
     PRIVATE
         EditAtlas::Cmx3600
+        EditAtlas::Media
         EditAtlas::QuickStyle
         EditAtlas::Xlsx
         Qt6::Quick

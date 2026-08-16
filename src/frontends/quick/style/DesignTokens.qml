@@ -17,6 +17,7 @@ QtObject {
     readonly property int controlHeight: 40
     readonly property int iconSmall: 16
     readonly property int iconMedium: 20
+    readonly property int applicationIconSize: 128
     readonly property int minimumButtonWidth: 112
     readonly property int radiusMedium: 8
     readonly property int radiusLarge: 12

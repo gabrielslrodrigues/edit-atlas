@@ -23,4 +23,19 @@ bool RevealFile(const QString &path) {
 #endif
 }
 
+bool OpenDirectory(const QString &path) {
+    const QDir directory{path};
+    return directory.exists() && QDesktopServices::openUrl(QUrl::fromLocalFile(
+                                     directory.absolutePath()));
+}
+
+bool OpenExternalUrl(const QUrl &url) {
+    const auto scheme = url.scheme();
+    if (!url.isValid() || (scheme != QStringLiteral("http") &&
+                           scheme != QStringLiteral("https"))) {
+        return false;
+    }
+    return QDesktopServices::openUrl(url);
+}
+
 } // namespace edit_atlas::presentation::desktop_integration
