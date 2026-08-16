@@ -196,6 +196,40 @@ function(edit_atlas_require_deployed_file description)
     endif()
 endfunction()
 
+function(edit_atlas_require_qml_import qml_import)
+    file(
+        GLOB_RECURSE edit_atlas_deployed_qmldir_files
+        LIST_DIRECTORIES FALSE
+        "${EDIT_ATLAS_DEPLOYMENT_ROOT}/*"
+    )
+    set(edit_atlas_qml_import_found FALSE)
+    foreach(
+        edit_atlas_deployed_qmldir_file
+        IN LISTS edit_atlas_deployed_qmldir_files
+    )
+        cmake_path(
+            CONVERT "${edit_atlas_deployed_qmldir_file}"
+            TO_CMAKE_PATH_LIST edit_atlas_deployed_qmldir_path
+            NORMALIZE
+        )
+        if(
+            edit_atlas_deployed_qmldir_path MATCHES
+                "/qml/${qml_import}/qmldir$"
+        )
+            set(edit_atlas_qml_import_found TRUE)
+            break()
+        endif()
+    endforeach()
+
+    if(NOT edit_atlas_qml_import_found)
+        message(
+            FATAL_ERROR
+            "The staged application is missing the ${qml_import} QML import "
+            "under ${EDIT_ATLAS_DEPLOYMENT_ROOT}."
+        )
+    endif()
+endfunction()
+
 function(edit_atlas_require_qt_library library)
     if(WIN32)
         edit_atlas_require_deployed_file(
@@ -239,10 +273,7 @@ if(edit_atlas_detected_frontend STREQUAL "quick")
             QtQuick/Dialogs
             QtQuick/Layouts
     )
-        edit_atlas_require_deployed_file(
-            "the ${edit_atlas_qml_import} QML import"
-            "*qml/${edit_atlas_qml_import}/qmldir"
-        )
+        edit_atlas_require_qml_import("${edit_atlas_qml_import}")
     endforeach()
 
     foreach(
@@ -513,7 +544,11 @@ if(WIN32)
     file(
         GLOB_RECURSE edit_atlas_windows_qml_modules
         LIST_DIRECTORIES FALSE
-        "${EDIT_ATLAS_DEPLOYMENT_ROOT}/*qml*/*.dll"
+        "${EDIT_ATLAS_DEPLOYMENT_ROOT}/*.dll"
+    )
+    list(
+        FILTER edit_atlas_windows_qml_modules
+        INCLUDE REGEX "[/\\\\]qml[/\\\\]"
     )
     set(edit_atlas_windows_module_arguments)
     if(edit_atlas_windows_qml_modules)

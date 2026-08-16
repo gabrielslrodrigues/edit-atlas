@@ -79,7 +79,15 @@ int main(int argc, char *argv[]) {
     QQuickStyle::setFallbackStyle(QStringLiteral("Fusion"));
     QQuickStyle::setStyle(QStringLiteral("EditAtlasStyle"));
     if (qEnvironmentVariableIsEmpty("QT_QPA_PLATFORM")) {
+#if defined(Q_OS_MACOS)
+        qputenv("QT_QPA_PLATFORM", QByteArrayLiteral("minimal"));
+#elif defined(Q_OS_WIN)
+        qputenv("QT_QPA_PLATFORM", QByteArrayLiteral("windows"));
+#elif defined(Q_OS_LINUX)
         qputenv("QT_QPA_PLATFORM", QByteArrayLiteral("offscreen"));
+#else
+#error "Unsupported Qt Quick integration-test platform"
+#endif
     }
     QTEST_SET_MAIN_SOURCE_PATH
     edit_atlas::frontends::quick::QuickTestSetup setup;

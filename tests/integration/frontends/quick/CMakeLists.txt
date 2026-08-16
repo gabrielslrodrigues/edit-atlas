@@ -98,5 +98,7 @@ add_test(
 )
 set_tests_properties(
     edit_atlas_quick_qml_tests
-    PROPERTIES LABELS integration
+    PROPERTIES
+        LABELS integration
+        TIMEOUT 30
 )
