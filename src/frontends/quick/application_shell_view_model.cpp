@@ -1,4 +1,5 @@
 #include <edit_atlas/frontends/quick/application_shell_view_model.hpp>
+#include <edit_atlas/frontends/quick/spreadsheet_export_view_model.hpp>
 
 #include <edit_atlas/presentation/application_state.hpp>
 #include <edit_atlas/presentation/diagnostic_text.hpp>
@@ -64,14 +65,20 @@ ApplicationShellViewModel::ApplicationShellViewModel(
     : QObject{parent}, registry_{registry}, translator_{translator},
       language_{initial_language}, document_view_model_{registry_},
       timeline_configuration_{document_view_model_,
-                              presentation::ConfiguredTemplateDirectory()} {
+                              presentation::ConfiguredTemplateDirectory()},
+      spreadsheet_export_{registry_, document_view_model_} {
     event_proxy_model_.setSourceModel(&document_view_model_.EventModel());
-    event_proxy_model_.setSortRole(
-        presentation::TimelineEventModel::kSortRole);
+    event_proxy_model_.setSortRole(presentation::TimelineEventModel::kSortRole);
     event_proxy_model_.setDynamicSortFilter(true);
     connect(&document_view_model_,
             &presentation::TimelineDocumentViewModel::DocumentStateChanged,
             this, &ApplicationShellViewModel::HandleDocumentStateChanged);
+    connect(&document_view_model_,
+            &presentation::TimelineDocumentViewModel::ExportStateChanged, this,
+            [this](void) {
+                emit BusyChanged();
+                emit StatusTextChanged();
+            });
     connect(&event_proxy_model_, &QAbstractItemModel::modelReset, this,
             [this] { emit DocumentPresentationChanged(); });
     connect(&document_view_model_.DiagnosticsModel(),
@@ -132,12 +139,11 @@ QString ApplicationShellViewModel::TimelineSummaryText(void) const {
         return {};
     }
     const auto &rate = document->frame_rate;
-    const auto rate_text =
-        rate.denominator() == 1
-            ? QString::number(rate.numerator())
-            : QStringLiteral("%1/%2")
-                  .arg(rate.numerator())
-                  .arg(rate.denominator());
+    const auto rate_text = rate.denominator() == 1
+                               ? QString::number(rate.numerator())
+                               : QStringLiteral("%1/%2")
+                                     .arg(rate.numerator())
+                                     .arg(rate.denominator());
     return tr("%1 events · %2 fps · %3")
         .arg(static_cast<qulonglong>(document->events.size()))
         .arg(rate_text)
@@ -150,14 +156,18 @@ QAbstractItemModel *ApplicationShellViewModel::EventModel(void) noexcept {
     return &event_proxy_model_;
 }
 
-QAbstractItemModel *
-ApplicationShellViewModel::DiagnosticsModel(void) noexcept {
+QAbstractItemModel *ApplicationShellViewModel::DiagnosticsModel(void) noexcept {
     return &document_view_model_.DiagnosticsModel();
 }
 
 TimelineConfigurationViewModel *
 ApplicationShellViewModel::TimelineConfiguration(void) noexcept {
     return &timeline_configuration_;
+}
+
+SpreadsheetExportViewModel *
+ApplicationShellViewModel::SpreadsheetExport(void) noexcept {
+    return &spreadsheet_export_;
 }
 
 int ApplicationShellViewModel::DiagnosticCount(void) const noexcept {
@@ -173,6 +183,10 @@ bool ApplicationShellViewModel::EventSortAscending(void) const noexcept {
 }
 
 QString ApplicationShellViewModel::StatusText(void) const {
+    if (document_view_model_.ExportState() ==
+        presentation::TimelineExportState::kExporting) {
+        return tr("Exporting spreadsheet…");
+    }
     switch (CurrentDocumentState()) {
     case DocumentState::kEmpty:
         return tr("Ready");

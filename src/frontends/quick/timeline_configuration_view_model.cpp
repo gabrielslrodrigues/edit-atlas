@@ -32,8 +32,7 @@ namespace {
 }
 
 [[nodiscard]] QString Utf8Text(const std::string &text) {
-    return QString::fromUtf8(text.data(),
-                             static_cast<qsizetype>(text.size()));
+    return QString::fromUtf8(text.data(), static_cast<qsizetype>(text.size()));
 }
 
 } // namespace
@@ -66,14 +65,13 @@ TimelineConfigurationViewModel::TimelineConfigurationViewModel(
             &TimelineConfigurationViewModel::HandleTemplateStateChanged);
     connect(&template_view_model_,
             &presentation::TimelineTemplateViewModel::ActiveTemplateChanged,
-            this,
-            &TimelineConfigurationViewModel::HandleTemplateStateChanged);
+            this, &TimelineConfigurationViewModel::HandleTemplateStateChanged);
     connect(&template_view_model_,
             &presentation::TimelineTemplateViewModel::ModifiedChanged, this,
             &TimelineConfigurationViewModel::HandleTemplateStateChanged);
     connect(&template_view_model_,
-            &presentation::TimelineTemplateViewModel::FilterStateChanged,
-            this, &TimelineConfigurationViewModel::SynchronizeTemplateState);
+            &presentation::TimelineTemplateViewModel::FilterStateChanged, this,
+            &TimelineConfigurationViewModel::SynchronizeTemplateState);
     connect(&template_view_model_,
             &presentation::TimelineTemplateViewModel::EventProjectionChanged,
             this, &TimelineConfigurationViewModel::SynchronizeTemplateState);
@@ -81,8 +79,7 @@ TimelineConfigurationViewModel::TimelineConfigurationViewModel(
     SynchronizeTemplateState();
 }
 
-QAbstractItemModel *
-TimelineConfigurationViewModel::FilterModel(void) noexcept {
+QAbstractItemModel *TimelineConfigurationViewModel::FilterModel(void) noexcept {
     return &filter_model_;
 }
 
@@ -111,7 +108,7 @@ bool TimelineConfigurationViewModel::IsTemplateModified(void) const noexcept {
     const auto projection = event_projection_model_.Projection();
     return template_view_model_.IsModified() ||
            !std::ranges::equal(projection,
-                              template_view_model_.EventProjection());
+                               template_view_model_.EventProjection());
 }
 
 QString TimelineConfigurationViewModel::ActiveTemplateName(void) const {
@@ -123,8 +120,7 @@ QString TimelineConfigurationViewModel::ActiveTemplateName(void) const {
                : QString{};
 }
 
-QString
-TimelineConfigurationViewModel::TemplateOperationErrorText(void) const {
+QString TimelineConfigurationViewModel::TemplateOperationErrorText(void) const {
     return template_operation_error_text_;
 }
 
@@ -141,9 +137,14 @@ QString TimelineConfigurationViewModel::FilterErrorText(void) const {
                      .arg(Utf8Text(error->message));
 }
 
-bool TimelineConfigurationViewModel::IsEventProjectionValid(void) const
-    noexcept {
+bool TimelineConfigurationViewModel::IsEventProjectionValid(
+    void) const noexcept {
     return event_projection_model_.IsValid();
+}
+
+int TimelineConfigurationViewModel::EventProjectionSelectedCount(
+    void) const noexcept {
+    return event_projection_model_.SelectedCount();
 }
 
 int TimelineConfigurationViewModel::FilterCombination(void) const noexcept {
@@ -154,8 +155,7 @@ void TimelineConfigurationViewModel::SetFilterCombination(int combination) {
     filter_model_.SetCombination(combination);
 }
 
-QStringList
-TimelineConfigurationViewModel::FilterCombinationNames(void) const {
+QStringList TimelineConfigurationViewModel::FilterCombinationNames(void) const {
     return filter_model_.CombinationNames();
 }
 
@@ -175,23 +175,19 @@ int TimelineConfigurationViewModel::TextFilterEditor(void) const noexcept {
     return static_cast<int>(presentation::TimelineFilterEditor::kText);
 }
 
-int TimelineConfigurationViewModel::TrackKindFilterEditor(void) const
-    noexcept {
+int TimelineConfigurationViewModel::TrackKindFilterEditor(void) const noexcept {
     return static_cast<int>(presentation::TimelineFilterEditor::kTrackKind);
 }
 
-int TimelineConfigurationViewModel::EditTypeFilterEditor(void) const
-    noexcept {
+int TimelineConfigurationViewModel::EditTypeFilterEditor(void) const noexcept {
     return static_cast<int>(presentation::TimelineFilterEditor::kEditType);
 }
 
-int TimelineConfigurationViewModel::TimecodeFilterEditor(void) const
-    noexcept {
+int TimelineConfigurationViewModel::TimecodeFilterEditor(void) const noexcept {
     return static_cast<int>(presentation::TimelineFilterEditor::kTimecode);
 }
 
-int TimelineConfigurationViewModel::DurationFilterEditor(void) const
-    noexcept {
+int TimelineConfigurationViewModel::DurationFilterEditor(void) const noexcept {
     return static_cast<int>(presentation::TimelineFilterEditor::kDuration);
 }
 
@@ -259,8 +255,7 @@ bool TimelineConfigurationViewModel::UpdateActiveTemplate(void) {
     return HandleTemplateCommandResult(template_view_model_.UpdateActive());
 }
 
-bool TimelineConfigurationViewModel::RenameActiveTemplate(
-    const QString &name) {
+bool TimelineConfigurationViewModel::RenameActiveTemplate(const QString &name) {
     return HandleTemplateCommandResult(
         template_view_model_.RenameActive(Utf8String(name.trimmed())));
 }
@@ -283,8 +278,8 @@ void TimelineConfigurationViewModel::ClearTemplateOperationError(void) {
     emit TemplateOperationErrorChanged();
 }
 
-void TimelineConfigurationViewModel::SetEventProjectionSelected(
-    int row, bool selected) {
+void TimelineConfigurationViewModel::SetEventProjectionSelected(int row,
+                                                                bool selected) {
     event_projection_model_.SetSelected(row, selected);
 }
 
@@ -296,8 +291,8 @@ void TimelineConfigurationViewModel::MoveEventProjectionDown(int row) {
     event_projection_model_.MoveDown(row);
 }
 
-void TimelineConfigurationViewModel::MoveEventProjection(
-    int source_row, int destination_row) {
+void TimelineConfigurationViewModel::MoveEventProjection(int source_row,
+                                                         int destination_row) {
     event_projection_model_.Move(source_row, destination_row);
 }
 

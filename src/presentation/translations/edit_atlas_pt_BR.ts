@@ -1406,6 +1406,53 @@ Inspecione linhas do tempo editoriais e exporte relatórios estruturados.</trans
         <source>non-drop-frame</source>
         <translation>non-drop-frame</translation>
     </message>
+    <message>
+        <source>Exporting spreadsheet…</source>
+        <translation>Exportando planilha…</translation>
+    </message>
+</context>
+<context>
+    <name>edit_atlas::frontends::quick::SpreadsheetExportViewModel</name>
+    <message>
+        <source>timeline</source>
+        <translation>linha-do-tempo</translation>
+    </message>
+    <message>
+        <source>No registered exporter can create an Excel workbook.</source>
+        <translation>Nenhum exportador registrado pode criar uma pasta de trabalho do Excel.</translation>
+    </message>
+    <message>
+        <source>The current timeline cannot be exported.</source>
+        <translation>A linha do tempo atual não pode ser exportada.</translation>
+    </message>
+    <message>
+        <source>Select a local destination for the workbook.</source>
+        <translation>Selecione um destino local para a pasta de trabalho.</translation>
+    </message>
+    <message>
+        <source>Select a supported workbook language.</source>
+        <translation>Selecione um idioma compatível para a pasta de trabalho.</translation>
+    </message>
+    <message>
+        <source>Select a matching rendered video for the Initial Frame column.</source>
+        <translation>Selecione um vídeo renderizado correspondente para a coluna Quadro inicial.</translation>
+    </message>
+    <message>
+        <source>The workbook destination could not be read.</source>
+        <translation>Não foi possível ler o destino da pasta de trabalho.</translation>
+    </message>
+    <message>
+        <source>The spreadsheet export could not be started.</source>
+        <translation>Não foi possível iniciar a exportação da planilha.</translation>
+    </message>
+    <message>
+        <source>The spreadsheet could not be exported.</source>
+        <translation>Não foi possível exportar a planilha.</translation>
+    </message>
+    <message>
+        <source>Embedded initial-frame images from %1 (%2, %3×%4, %5/%6 fps, starting at %7); decoded %8 unique frame(s).</source>
+        <translation>Imagens de quadro inicial incorporadas de %1 (%2, %3×%4, %5/%6 fps, começando em %7); %8 quadro(s) único(s) decodificado(s).</translation>
+    </message>
 </context>
 <context>
     <name>edit_atlas::frontends::quick::TimelineConfigurationViewModel</name>
@@ -1616,6 +1663,127 @@ Inspecione linhas do tempo editoriais e exporte relatórios estruturados.</trans
     </message>
 </context>
 <context>
+    <name>SpreadsheetExportDialog</name>
+    <message>
+        <source>Spreadsheet Options</source>
+        <translation>Opções da planilha</translation>
+    </message>
+    <message>
+        <source>Choose the information to include in the workbook.</source>
+        <translation>Escolha as informações a incluir na pasta de trabalho.</translation>
+    </message>
+    <message>
+        <source>Workbook language</source>
+        <translation>Idioma da pasta de trabalho</translation>
+    </message>
+    <message>
+        <source>Same as application</source>
+        <translation>Mesmo idioma do aplicativo</translation>
+    </message>
+    <message>
+        <source>English</source>
+        <translation>Inglês</translation>
+    </message>
+    <message>
+        <source>Português (Brasil)</source>
+        <translation>Português (Brasil)</translation>
+    </message>
+    <message>
+        <source>Include timeline summary</source>
+        <translation>Incluir resumo da linha do tempo</translation>
+    </message>
+    <message>
+        <source>Include diagnostics</source>
+        <translation>Incluir diagnósticos</translation>
+    </message>
+    <message>
+        <source>Rendered video</source>
+        <translation>Vídeo renderizado</translation>
+    </message>
+    <message>
+        <source>Initial-frame images require a constant-frame-rate MOV, MP4, or MXF render with embedded starting timecode, frame rate, and duration matching the imported EDL.</source>
+        <translation>As imagens de quadro inicial exigem um render MOV, MP4 ou MXF com taxa de quadros constante, timecode inicial incorporado, taxa de quadros e duração correspondentes à EDL importada.</translation>
+    </message>
+    <message>
+        <source>Rendered video path</source>
+        <translation>Caminho do vídeo renderizado</translation>
+    </message>
+    <message>
+        <source>Select the matching rendered video</source>
+        <translation>Selecione o vídeo renderizado correspondente</translation>
+    </message>
+    <message>
+        <source>Browse…</source>
+        <translation>Procurar…</translation>
+    </message>
+    <message>
+        <source>%1 event columns selected</source>
+        <translation>%1 colunas de evento selecionadas</translation>
+    </message>
+    <message>
+        <source>Export Columns</source>
+        <translation>Colunas de exportação</translation>
+    </message>
+    <message>
+        <source>Select at least one event column.</source>
+        <translation>Selecione pelo menos uma coluna de evento.</translation>
+    </message>
+    <message>
+        <source>Cancel</source>
+        <translation>Cancelar</translation>
+    </message>
+    <message>
+        <source>Continue</source>
+        <translation>Continuar</translation>
+    </message>
+    <message>
+        <source>Preparing spreadsheet…</source>
+        <translation>Preparando planilha…</translation>
+    </message>
+    <message>
+        <source>Spreadsheet export progress</source>
+        <translation>Progresso da exportação da planilha</translation>
+    </message>
+    <message>
+        <source>Extracting initial frames: %1 of %2</source>
+        <translation>Extraindo quadros iniciais: %1 de %2</translation>
+    </message>
+    <message>
+        <source>Spreadsheet Exported with Warnings</source>
+        <translation>Planilha exportada com avisos</translation>
+    </message>
+    <message>
+        <source>Spreadsheet Exported</source>
+        <translation>Planilha exportada</translation>
+    </message>
+    <message>
+        <source>The spreadsheet was saved to:
+%1</source>
+        <translation>A planilha foi salva em:
+%1</translation>
+    </message>
+    <message>
+        <source>Reveal File</source>
+        <translation>Revelar arquivo</translation>
+    </message>
+    <message>
+        <source>Close</source>
+        <translation>Fechar</translation>
+    </message>
+    <message>
+        <source>Could Not Export Spreadsheet</source>
+        <translation>Não foi possível exportar a planilha</translation>
+    </message>
+    <message>
+        <source>Could Not Reveal File</source>
+        <translation>Não foi possível revelar o arquivo</translation>
+    </message>
+    <message>
+        <source>The spreadsheet was saved, but its location could not be opened.</source>
+        <translation>A planilha foi salva, mas não foi possível abrir sua localização.</translation>
+    </message>
+</context>
+<context>
     <name>Main</name>
     <message>
         <source>Edit Atlas</source>
@@ -1632,6 +1800,10 @@ Inspecione linhas do tempo editoriais e exporte relatórios estruturados.</trans
     <message>
         <source>&amp;Open Timeline…</source>
         <translation>&amp;Abrir linha do tempo…</translation>
+    </message>
+    <message>
+        <source>&amp;Export Spreadsheet…</source>
+        <translation>&amp;Exportar planilha…</translation>
     </message>
     <message>
         <source>Open &amp;Recent</source>
@@ -1702,6 +1874,14 @@ Inspecione linhas do tempo editoriais e exporte relatórios estruturados.</trans
         <translation>Linha do tempo pronta</translation>
     </message>
     <message>
+        <source>Export the currently shown timeline events as an Excel workbook</source>
+        <translation>Exportar os eventos da linha do tempo exibidos como uma pasta de trabalho do Excel</translation>
+    </message>
+    <message>
+        <source>Export Spreadsheet</source>
+        <translation>Exportar planilha</translation>
+    </message>
+    <message>
         <source>Showing %1 of %2 events</source>
         <translation>Exibindo %1 de %2 eventos</translation>
     </message>
@@ -1728,6 +1908,22 @@ Inspecione linhas do tempo editoriais e exporte relatórios estruturados.</trans
     <message>
         <source>All files (*)</source>
         <translation>Todos os arquivos (*)</translation>
+    </message>
+    <message>
+        <source>Supported video files (*.mov *.mp4 *.mxf)</source>
+        <translation>Arquivos de vídeo compatíveis (*.mov *.mp4 *.mxf)</translation>
+    </message>
+    <message>
+        <source>Select Rendered Video</source>
+        <translation>Selecionar vídeo renderizado</translation>
+    </message>
+    <message>
+        <source>Export</source>
+        <translation>Exportar</translation>
+    </message>
+    <message>
+        <source>Excel workbook (*.xlsx)</source>
+        <translation>Pasta de trabalho do Excel (*.xlsx)</translation>
     </message>
     <message>
         <source>Select Frame Rate</source>

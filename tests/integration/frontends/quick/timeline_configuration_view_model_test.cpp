@@ -74,14 +74,16 @@ TEST_F(TimelineConfigurationViewModelTest,
     EXPECT_TRUE(configuration.IsFilterValid());
     EXPECT_TRUE(configuration.FilterErrorText().isEmpty());
     EXPECT_TRUE(configuration.IsEventProjectionValid());
+    EXPECT_EQ(configuration.EventProjectionSelectedCount(),
+              static_cast<int>(core::kTimelineEventFieldCount - 1));
     EXPECT_NE(configuration.TextFilterEditor(),
               configuration.TrackKindFilterEditor());
     EXPECT_NE(configuration.TrackKindFilterEditor(),
               configuration.EditTypeFilterEditor());
     EXPECT_EQ(configuration.FilterCombinationNames().size(), 2);
-    EXPECT_EQ(configuration.FilterFieldNames().size(),
-              static_cast<qsizetype>(
-                  presentation::TimelineFilterField::kCount));
+    EXPECT_EQ(
+        configuration.FilterFieldNames().size(),
+        static_cast<qsizetype>(presentation::TimelineFilterField::kCount));
 }
 
 TEST_F(TimelineConfigurationViewModelTest,
@@ -96,8 +98,7 @@ TEST_F(TimelineConfigurationViewModelTest,
         .options =
             {
                 core::MetadataEntry{
-                    .key = std::string{
-                        formats::cmx3600::kFrameRateOption},
+                    .key = std::string{formats::cmx3600::kFrameRateOption},
                     .value = std::string{"24"},
                 },
             },
@@ -135,12 +136,13 @@ TEST_F(TimelineConfigurationViewModelTest,
 
     configuration.SetEventProjectionSelected(0, false);
     EXPECT_TRUE(configuration.IsEventProjectionValid());
+    EXPECT_EQ(configuration.EventProjectionSelectedCount(),
+              static_cast<int>(core::kTimelineEventFieldCount - 2));
     EXPECT_TRUE(configuration.IsTemplateModified());
     EXPECT_TRUE(configuration.UpdateActiveTemplate());
     EXPECT_FALSE(configuration.IsTemplateModified());
 
-    const auto restored_filter_index =
-        configuration.FilterModel()->index(0, 0);
+    const auto restored_filter_index = configuration.FilterModel()->index(0, 0);
     ASSERT_TRUE(configuration.FilterModel()->setData(
         restored_filter_index, QStringLiteral("*"),
         presentation::TimelineFilterModel::kTextRole));
