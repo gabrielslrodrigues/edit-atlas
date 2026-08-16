@@ -1492,6 +1492,13 @@ Inspecione linhas do tempo editoriais e exporte relatórios estruturados.</trans
     </message>
 </context>
 <context>
+    <name>edit_atlas::frontends::quick::TimelineConfigurationViewModel</name>
+    <message>
+        <source>Condition %1 has an invalid regular expression: %2</source>
+        <translation>A condição %1 contém uma expressão regular inválida: %2</translation>
+    </message>
+</context>
+<context>
     <name>Main</name>
     <message>
         <source>Edit Atlas</source>

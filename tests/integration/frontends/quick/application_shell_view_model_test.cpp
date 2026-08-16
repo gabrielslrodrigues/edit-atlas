@@ -58,6 +58,8 @@ class ApplicationShellViewModelTest : public ::testing::Test {
         QSettings settings;
         settings.clear();
         settings.sync();
+        static_cast<void>(std::filesystem::remove_all(
+            presentation::ConfiguredTemplateDirectory()));
     }
 };
 
@@ -79,6 +81,7 @@ TEST_F(ApplicationShellViewModelTest,
     EXPECT_TRUE(shell.TimelineSummaryText().isEmpty());
     EXPECT_EQ(shell.EventModel()->rowCount(), 0);
     EXPECT_EQ(shell.DiagnosticsModel()->rowCount(), 0);
+    EXPECT_NE(shell.TimelineConfiguration(), nullptr);
     EXPECT_EQ(shell.DiagnosticCount(), 0);
     EXPECT_EQ(shell.EventSortColumn(), -1);
     EXPECT_TRUE(shell.SourceFileName().isEmpty());

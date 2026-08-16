@@ -39,7 +39,9 @@ qt_add_qml_module(
     VERSION 1.0
     SOURCES
         application_shell_view_model.cpp
+        timeline_configuration_view_model.cpp
         include/edit_atlas/frontends/quick/application_shell_view_model.hpp
+        include/edit_atlas/frontends/quick/timeline_configuration_view_model.hpp
     QML_FILES
         qml/DiagnosticsPanel.qml
         qml/Main.qml
