@@ -5,8 +5,10 @@ target_sources(
     PRIVATE
         diagnostic_model_test.cpp
         test_main.cpp
+        timeline_event_projection_model_test.cpp
         timeline_event_model_test.cpp
         timeline_filter_model_test.cpp
+        timeline_template_model_test.cpp
 )
 
 target_link_libraries(

@@ -41,7 +41,15 @@ ServiceFailure(services::TimelineTemplateFailure failure) {
 TimelineTemplateViewModel::TimelineTemplateViewModel(
     std::filesystem::path directory, QObject *parent)
     : QObject{parent}, service_{std::move(directory)},
-      event_projection_{DefaultEventProjection()} {}
+      event_projection_{DefaultEventProjection()} {
+    connect(this, &TimelineTemplateViewModel::TemplatesChanged, this,
+            &TimelineTemplateViewModel::RefreshTemplateModel);
+    connect(this, &TimelineTemplateViewModel::ActiveTemplateChanged, this,
+            &TimelineTemplateViewModel::RefreshTemplateModel);
+    connect(this, &TimelineTemplateViewModel::ModifiedChanged, this,
+            &TimelineTemplateViewModel::RefreshTemplateModel);
+    RefreshTemplateModel();
+}
 
 services::TimelineTemplateLoadResult TimelineTemplateViewModel::Load(void) {
     auto result = service_.Load();
@@ -220,6 +228,15 @@ TimelineTemplateViewModel::Templates(void) const noexcept {
     return service_.Templates();
 }
 
+TimelineTemplateModel &TimelineTemplateViewModel::TemplateModel(void) noexcept {
+    return template_model_;
+}
+
+const TimelineTemplateModel &
+TimelineTemplateViewModel::TemplateModel(void) const noexcept {
+    return template_model_;
+}
+
 const std::optional<std::string> &
 TimelineTemplateViewModel::ActiveIdentifier(void) const noexcept {
     return active_identifier_;
@@ -247,6 +264,10 @@ TimelineTemplateViewModel::EventProjection(void) const noexcept {
 
 bool TimelineTemplateViewModel::IsModified(void) const noexcept {
     return modified_;
+}
+
+void TimelineTemplateViewModel::Retranslate(void) {
+    template_model_.Retranslate();
 }
 
 TimelineTemplateCommandResult
@@ -297,6 +318,15 @@ void TimelineTemplateViewModel::RefreshModified(void) {
     }
     modified_ = modified;
     emit ModifiedChanged();
+}
+
+void TimelineTemplateViewModel::RefreshTemplateModel(void) {
+    const auto active_identifier =
+        active_identifier_.has_value()
+            ? std::optional<std::string_view>{*active_identifier_}
+            : std::nullopt;
+    template_model_.SetTemplates(service_.Templates(), active_identifier,
+                                 modified_);
 }
 
 void TimelineTemplateViewModel::SetActiveIdentifier(

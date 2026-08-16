@@ -1197,6 +1197,81 @@ Inspecione linhas do tempo editoriais e exporte relatórios estruturados.</trans
     </message>
 </context>
 <context>
+    <name>edit_atlas::presentation::TimelineEventProjectionModel</name>
+    <message>
+        <source>Event</source>
+        <translation>Evento</translation>
+    </message>
+    <message>
+        <source>Initial frame</source>
+        <translation>Quadro inicial</translation>
+    </message>
+    <message>
+        <source>Reel</source>
+        <translation>Rolo</translation>
+    </message>
+    <message>
+        <source>Track type</source>
+        <translation>Tipo de faixa</translation>
+    </message>
+    <message>
+        <source>Track</source>
+        <translation>Faixa</translation>
+    </message>
+    <message>
+        <source>Edit type</source>
+        <translation>Tipo de edição</translation>
+    </message>
+    <message>
+        <source>Transition</source>
+        <translation>Transição</translation>
+    </message>
+    <message>
+        <source>Transition frames</source>
+        <translation>Quadros da transição</translation>
+    </message>
+    <message>
+        <source>Source in</source>
+        <translation>Entrada da fonte</translation>
+    </message>
+    <message>
+        <source>Source out</source>
+        <translation>Saída da fonte</translation>
+    </message>
+    <message>
+        <source>Record in</source>
+        <translation>Entrada da gravação</translation>
+    </message>
+    <message>
+        <source>Record out</source>
+        <translation>Saída da gravação</translation>
+    </message>
+    <message>
+        <source>Duration</source>
+        <translation>Duração</translation>
+    </message>
+    <message>
+        <source>Duration frames</source>
+        <translation>Duração em quadros</translation>
+    </message>
+    <message>
+        <source>Clip name</source>
+        <translation>Nome do clipe</translation>
+    </message>
+    <message>
+        <source>Source file</source>
+        <translation>Arquivo de origem</translation>
+    </message>
+    <message>
+        <source>Comments</source>
+        <translation>Comentários</translation>
+    </message>
+    <message>
+        <source>Source line</source>
+        <translation>Linha de origem</translation>
+    </message>
+</context>
+<context>
     <name>edit_atlas::presentation::TimelineFilterModel</name>
     <message>
         <source>All conditions</source>
@@ -1285,6 +1360,13 @@ Inspecione linhas do tempo editoriais e exporte relatórios estruturados.</trans
     <message>
         <source>Key</source>
         <translation>Chave</translation>
+    </message>
+</context>
+<context>
+    <name>edit_atlas::presentation::TimelineTemplateModel</name>
+    <message>
+        <source>No template</source>
+        <translation>Nenhum modelo</translation>
     </message>
 </context>
 <context>

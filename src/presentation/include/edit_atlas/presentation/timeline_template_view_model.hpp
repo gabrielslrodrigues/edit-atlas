@@ -3,6 +3,8 @@
 
 #include <edit_atlas/core/timeline_projection.hpp>
 
+#include <edit_atlas/presentation/timeline_template_model.hpp>
+
 #include <edit_atlas/services/timeline_filter.hpp>
 #include <edit_atlas/services/timeline_template.hpp>
 #include <edit_atlas/services/timeline_template_service.hpp>
@@ -90,6 +92,11 @@ class TimelineTemplateViewModel final : public QObject {
     /// Returns the loaded templates in deterministic display-name order.
     [[nodiscard]] std::span<const services::TimelineTemplate>
     Templates(void) const noexcept;
+    /// Returns the Qt item model presenting the template choices.
+    [[nodiscard]] TimelineTemplateModel &TemplateModel(void) noexcept;
+    /// Returns the Qt item model presenting the template choices.
+    [[nodiscard]] const TimelineTemplateModel &TemplateModel(void) const
+        noexcept;
     /// Returns the active template identifier, or no value when none is active.
     [[nodiscard]] const std::optional<std::string> &
     ActiveIdentifier(void) const noexcept;
@@ -106,6 +113,8 @@ class TimelineTemplateViewModel final : public QObject {
     EventProjection(void) const noexcept;
     /// Returns whether current state differs from the active template.
     [[nodiscard]] bool IsModified(void) const noexcept;
+    /// Notifies item-model consumers that localized display text changed.
+    void Retranslate(void);
 
   signals:
     /// Reports that the loaded template catalog changed.
@@ -124,10 +133,12 @@ class TimelineTemplateViewModel final : public QObject {
     ValidateWritableState(void) const;
     [[nodiscard]] TimelineTemplateCommandResult RequireActive(void) const;
     void ApplyTemplate(const services::TimelineTemplate &value);
+    void RefreshTemplateModel(void);
     void RefreshModified(void);
     void SetActiveIdentifier(std::optional<std::string> identifier);
 
     services::TimelineTemplateService service_;
+    TimelineTemplateModel template_model_;
     services::TimelineFilterQuery filter_;
     std::vector<core::TimelineEventField> event_projection_;
     std::optional<std::string> active_identifier_;
