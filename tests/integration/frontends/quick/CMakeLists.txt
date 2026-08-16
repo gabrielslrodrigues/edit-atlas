@@ -89,8 +89,10 @@ target_link_libraries(
 
 target_compile_features(edit_atlas_quick_qml_tests PRIVATE cxx_std_23)
 edit_atlas_set_project_warnings(edit_atlas_quick_qml_tests)
-edit_atlas_normalize_macos_qt_dependencies(edit_atlas_quick_qml_tests)
-edit_atlas_deploy_windows_qt_platform_plugin(edit_atlas_quick_qml_tests)
+edit_atlas_deploy_windows_qt_platform_plugin(
+    edit_atlas_quick_qml_tests
+    Qt6::QMinimalIntegrationPlugin
+)
 
 add_test(
     NAME edit_atlas_quick_qml_tests

@@ -458,7 +458,11 @@ elseif(LINUX)
         file(
             GLOB_RECURSE edit_atlas_linux_qml_plugins
             LIST_DIRECTORIES FALSE
-            "${EDIT_ATLAS_DEPLOYMENT_ROOT}/*qml*/*.so"
+            "${EDIT_ATLAS_DEPLOYMENT_ROOT}/*.so"
+        )
+        list(
+            FILTER edit_atlas_linux_qml_plugins
+            INCLUDE REGEX "/qml/"
         )
         if(NOT edit_atlas_linux_qml_plugins)
             message(
