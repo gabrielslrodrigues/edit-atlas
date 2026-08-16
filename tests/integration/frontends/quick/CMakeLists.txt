@@ -118,11 +118,19 @@ if(NOT APPLE)
             "${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/debug/Qt6/qml,"
             "${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/Qt6/qml>"
         )
+        string(
+            CONCAT edit_atlas_quick_runtime_path
+            "$<IF:$<CONFIG:Debug>,"
+            "${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/debug/bin,"
+            "${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/bin>"
+        )
         set_tests_properties(
             edit_atlas_quick_qml_tests
             PROPERTIES
                 ENVIRONMENT
                     "QML2_IMPORT_PATH=${edit_atlas_quick_qml_import_path}"
+                ENVIRONMENT_MODIFICATION
+                    "PATH=path_list_prepend:${edit_atlas_quick_runtime_path}"
         )
     endif()
 endif()

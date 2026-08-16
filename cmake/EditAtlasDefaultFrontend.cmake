@@ -150,7 +150,6 @@ function(edit_atlas_define_default_frontend frontend)
         )
         set(edit_atlas_linux_qml_deployment)
         set(edit_atlas_linux_additional_modules)
-        set(edit_atlas_linux_qml_dependency_deployment)
         if(edit_atlas_requires_qml_deployment)
             set(
                 edit_atlas_runtime_install_qmldir
@@ -162,7 +161,9 @@ function(edit_atlas_define_default_frontend frontend)
                     QT_DEPLOY_QML_DIR
                     \"${edit_atlas_runtime_install_qmldir}\"
                 )
-                qt_deploy_qml_imports(
+                # Qt 6.11's versionless wrapper loses PLUGINS_FOUND across
+                # its additional function scope in deployment-script mode.
+                qt6_deploy_qml_imports(
                     TARGET ${target}
                     PLUGINS_FOUND edit_atlas_qml_plugins
                 )"
@@ -170,19 +171,6 @@ function(edit_atlas_define_default_frontend frontend)
             set(
                 edit_atlas_linux_additional_modules
                 "ADDITIONAL_MODULES \${edit_atlas_qml_plugins}"
-            )
-            set(
-                edit_atlas_linux_qml_dependency_deployment
-                "include(
-                    \"${PROJECT_SOURCE_DIR}/cmake/DeployLinuxQmlPluginDependencies.cmake\"
-                )
-                edit_atlas_deploy_linux_qml_plugin_dependencies(
-                    PLUGINS \${edit_atlas_qml_plugins}
-                    LIBRARY_DIRECTORY
-                        \"${edit_atlas_runtime_install_libdir}\"
-                    SOURCE_DIRECTORY
-                        \"${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/lib\"
-                )"
             )
         endif()
         qt_generate_deploy_script(
@@ -205,8 +193,7 @@ function(edit_atlas_define_default_frontend frontend)
                     LIB_DIR \"${edit_atlas_runtime_install_libdir}\"
                     PLUGINS_DIR \"${edit_atlas_runtime_install_pluginsdir}\"
                     INCLUDE_PLUGINS qwayland qxcb
-                )
-                ${edit_atlas_linux_qml_dependency_deployment}"
+                )"
         )
     elseif(APPLE)
         set(
