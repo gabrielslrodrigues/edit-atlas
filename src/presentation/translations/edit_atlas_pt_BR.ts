@@ -483,6 +483,10 @@
         <translation>Não foi possível armazenar o modelo neste computador.</translation>
     </message>
     <message>
+        <source>Enter a template name.</source>
+        <translation>Digite um nome para o modelo.</translation>
+    </message>
+    <message>
         <source>A template with that name already exists.</source>
         <translation>Já existe um modelo com esse nome.</translation>
     </message>
@@ -1197,6 +1201,179 @@ Inspecione linhas do tempo editoriais e exporte relatórios estruturados.</trans
     </message>
 </context>
 <context>
+    <name>edit_atlas::presentation::TimelineEventProjectionModel</name>
+    <message>
+        <source>Event</source>
+        <translation>Evento</translation>
+    </message>
+    <message>
+        <source>Initial frame</source>
+        <translation>Quadro inicial</translation>
+    </message>
+    <message>
+        <source>Reel</source>
+        <translation>Rolo</translation>
+    </message>
+    <message>
+        <source>Track type</source>
+        <translation>Tipo de faixa</translation>
+    </message>
+    <message>
+        <source>Track</source>
+        <translation>Faixa</translation>
+    </message>
+    <message>
+        <source>Edit type</source>
+        <translation>Tipo de edição</translation>
+    </message>
+    <message>
+        <source>Transition</source>
+        <translation>Transição</translation>
+    </message>
+    <message>
+        <source>Transition frames</source>
+        <translation>Quadros da transição</translation>
+    </message>
+    <message>
+        <source>Source in</source>
+        <translation>Entrada da fonte</translation>
+    </message>
+    <message>
+        <source>Source out</source>
+        <translation>Saída da fonte</translation>
+    </message>
+    <message>
+        <source>Record in</source>
+        <translation>Entrada da gravação</translation>
+    </message>
+    <message>
+        <source>Record out</source>
+        <translation>Saída da gravação</translation>
+    </message>
+    <message>
+        <source>Duration</source>
+        <translation>Duração</translation>
+    </message>
+    <message>
+        <source>Duration frames</source>
+        <translation>Duração em quadros</translation>
+    </message>
+    <message>
+        <source>Clip name</source>
+        <translation>Nome do clipe</translation>
+    </message>
+    <message>
+        <source>Source file</source>
+        <translation>Arquivo de origem</translation>
+    </message>
+    <message>
+        <source>Comments</source>
+        <translation>Comentários</translation>
+    </message>
+    <message>
+        <source>Source line</source>
+        <translation>Linha de origem</translation>
+    </message>
+</context>
+<context>
+    <name>edit_atlas::presentation::TimelineFilterModel</name>
+    <message>
+        <source>All conditions</source>
+        <translation>Todas as condições</translation>
+    </message>
+    <message>
+        <source>Any condition</source>
+        <translation>Qualquer condição</translation>
+    </message>
+    <message>
+        <source>Event</source>
+        <translation>Evento</translation>
+    </message>
+    <message>
+        <source>Reel</source>
+        <translation>Rolo</translation>
+    </message>
+    <message>
+        <source>Track type</source>
+        <translation>Tipo de faixa</translation>
+    </message>
+    <message>
+        <source>Track ID</source>
+        <translation>ID da faixa</translation>
+    </message>
+    <message>
+        <source>Edit type</source>
+        <translation>Tipo de edição</translation>
+    </message>
+    <message>
+        <source>Clip</source>
+        <translation>Clipe</translation>
+    </message>
+    <message>
+        <source>Source In</source>
+        <translation>Entrada da fonte</translation>
+    </message>
+    <message>
+        <source>Source Out</source>
+        <translation>Saída da fonte</translation>
+    </message>
+    <message>
+        <source>Record In</source>
+        <translation>Entrada da gravação</translation>
+    </message>
+    <message>
+        <source>Record Out</source>
+        <translation>Saída da gravação</translation>
+    </message>
+    <message>
+        <source>Duration frames</source>
+        <translation>Duração em quadros</translation>
+    </message>
+    <message>
+        <source>Comments</source>
+        <translation>Comentários</translation>
+    </message>
+    <message>
+        <source>Video</source>
+        <translation>Vídeo</translation>
+    </message>
+    <message>
+        <source>Audio</source>
+        <translation>Áudio</translation>
+    </message>
+    <message>
+        <source>Data</source>
+        <translation>Dados</translation>
+    </message>
+    <message>
+        <source>Other</source>
+        <translation>Outro</translation>
+    </message>
+    <message>
+        <source>Cut</source>
+        <translation>Corte</translation>
+    </message>
+    <message>
+        <source>Dissolve</source>
+        <translation>Dissolução</translation>
+    </message>
+    <message>
+        <source>Wipe</source>
+        <translation>Transição wipe</translation>
+    </message>
+    <message>
+        <source>Key</source>
+        <translation>Chave</translation>
+    </message>
+</context>
+<context>
+    <name>edit_atlas::presentation::TimelineTemplateModel</name>
+    <message>
+        <source>No template</source>
+        <translation>Nenhum modelo</translation>
+    </message>
+</context>
+<context>
     <name>edit_atlas::presentation::TimelineEventModel</name>
     <message>
         <source>Event</source>
@@ -1316,6 +1493,214 @@ Inspecione linhas do tempo editoriais e exporte relatórios estruturados.</trans
     <message>
         <source>non-drop-frame</source>
         <translation>non-drop-frame</translation>
+    </message>
+</context>
+<context>
+    <name>edit_atlas::frontends::quick::TimelineConfigurationViewModel</name>
+    <message>
+        <source>Condition %1 has an invalid regular expression: %2</source>
+        <translation>A condição %1 contém uma expressão regular inválida: %2</translation>
+    </message>
+    <message>
+        <source>Select at least one event column before saving a template.</source>
+        <translation>Selecione pelo menos uma coluna de evento antes de salvar um modelo.</translation>
+    </message>
+    <message>
+        <source>Select at least one event column before updating the template.</source>
+        <translation>Selecione pelo menos uma coluna de evento antes de atualizar o modelo.</translation>
+    </message>
+    <message>
+        <source>A template with that name already exists.</source>
+        <translation>Já existe um modelo com esse nome.</translation>
+    </message>
+    <message>
+        <source>The template could not be stored on this computer.</source>
+        <translation>O modelo não pôde ser armazenado neste computador.</translation>
+    </message>
+    <message>
+        <source>Fix the invalid filter before saving the template.</source>
+        <translation>Corrija o filtro inválido antes de salvar o modelo.</translation>
+    </message>
+    <message>
+        <source>Select a saved template before using this action.</source>
+        <translation>Selecione um modelo salvo antes de usar esta ação.</translation>
+    </message>
+</context>
+<context>
+    <name>EventProjectionDialog</name>
+    <message>
+        <source>Export Columns</source>
+        <translation>Colunas de exportação</translation>
+    </message>
+    <message>
+        <source>Choose the event columns to export and arrange their order.</source>
+        <translation>Escolha as colunas de evento a exportar e organize sua ordem.</translation>
+    </message>
+    <message>
+        <source>Export event columns</source>
+        <translation>Colunas de evento para exportação</translation>
+    </message>
+    <message>
+        <source>Move %1 up</source>
+        <translation>Mover %1 para cima</translation>
+    </message>
+    <message>
+        <source>Move %1 down</source>
+        <translation>Mover %1 para baixo</translation>
+    </message>
+    <message>
+        <source>Drag %1 to reorder</source>
+        <translation>Arrastar %1 para reordenar</translation>
+    </message>
+    <message>
+        <source>Select at least one event column.</source>
+        <translation>Selecione pelo menos uma coluna de evento.</translation>
+    </message>
+</context>
+<context>
+    <name>TimelineFilterCondition</name>
+    <message>
+        <source>Filter field</source>
+        <translation>Campo do filtro</translation>
+    </message>
+    <message>
+        <source>Filter value</source>
+        <translation>Valor do filtro</translation>
+    </message>
+    <message>
+        <source>HH:MM:SS:FF</source>
+        <translation>HH:MM:SS:FF</translation>
+    </message>
+    <message>
+        <source>Frames</source>
+        <translation>Quadros</translation>
+    </message>
+    <message>
+        <source>Text to match</source>
+        <translation>Texto a buscar</translation>
+    </message>
+    <message>
+        <source>Remove filter condition %1</source>
+        <translation>Remover a condição de filtro %1</translation>
+    </message>
+    <message>
+        <source>Remove</source>
+        <translation>Remover</translation>
+    </message>
+    <message>
+        <source>Match case</source>
+        <translation>Diferenciar maiúsculas e minúsculas</translation>
+    </message>
+    <message>
+        <source>Whole word</source>
+        <translation>Palavra inteira</translation>
+    </message>
+    <message>
+        <source>Regular expression</source>
+        <translation>Expressão regular</translation>
+    </message>
+</context>
+<context>
+    <name>TimelineConfigurationPanel</name>
+    <message>
+        <source>Timeline configuration</source>
+        <translation>Configuração da linha do tempo</translation>
+    </message>
+    <message>
+        <source>Saved template</source>
+        <translation>Modelo salvo</translation>
+    </message>
+    <message>
+        <source>Modified</source>
+        <translation>Modificado</translation>
+    </message>
+    <message>
+        <source>Save New</source>
+        <translation>Salvar novo</translation>
+    </message>
+    <message>
+        <source>Update</source>
+        <translation>Atualizar</translation>
+    </message>
+    <message>
+        <source>Template Actions</source>
+        <translation>Ações do modelo</translation>
+    </message>
+    <message>
+        <source>Rename</source>
+        <translation>Renomear</translation>
+    </message>
+    <message>
+        <source>Duplicate</source>
+        <translation>Duplicar</translation>
+    </message>
+    <message>
+        <source>Delete</source>
+        <translation>Excluir</translation>
+    </message>
+    <message>
+        <source>Export Columns</source>
+        <translation>Colunas de exportação</translation>
+    </message>
+    <message>
+        <source>Hide Filters</source>
+        <translation>Ocultar filtros</translation>
+    </message>
+    <message>
+        <source>Show Filters</source>
+        <translation>Mostrar filtros</translation>
+    </message>
+    <message>
+        <source>Match</source>
+        <translation>Correspondência</translation>
+    </message>
+    <message>
+        <source>Filter combination</source>
+        <translation>Combinação de filtros</translation>
+    </message>
+    <message>
+        <source>Clear</source>
+        <translation>Limpar</translation>
+    </message>
+    <message>
+        <source>Add Condition</source>
+        <translation>Adicionar condição</translation>
+    </message>
+    <message>
+        <source>Timeline filters</source>
+        <translation>Filtros da linha do tempo</translation>
+    </message>
+    <message>
+        <source>Save Template</source>
+        <translation>Salvar modelo</translation>
+    </message>
+    <message>
+        <source>Rename Template</source>
+        <translation>Renomear modelo</translation>
+    </message>
+    <message>
+        <source>Duplicate Template</source>
+        <translation>Duplicar modelo</translation>
+    </message>
+    <message>
+        <source>%1 copy</source>
+        <translation>Cópia de %1</translation>
+    </message>
+    <message>
+        <source>Template name</source>
+        <translation>Nome do modelo</translation>
+    </message>
+    <message>
+        <source>Delete Template?</source>
+        <translation>Excluir modelo?</translation>
+    </message>
+    <message>
+        <source>Delete the template “%1”? This cannot be undone.</source>
+        <translation>Excluir o modelo “%1”? Esta ação não pode ser desfeita.</translation>
+    </message>
+    <message>
+        <source>Could Not Change Template</source>
+        <translation>Não foi possível alterar o modelo</translation>
     </message>
 </context>
 <context>

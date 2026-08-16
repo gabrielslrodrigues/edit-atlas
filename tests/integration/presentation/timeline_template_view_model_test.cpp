@@ -7,6 +7,7 @@
 #include <edit_atlas/services/timeline_template.hpp>
 
 #include <QSignalSpy>
+#include <QString>
 
 #include <gtest/gtest.h>
 
@@ -87,9 +88,19 @@ TEST(TimelineTemplateViewModelTest, CreatesUpdatesAndRestoresTemplateState) {
     ASSERT_NE(view_model.ActiveTemplate(), nullptr);
     EXPECT_EQ(view_model.ActiveTemplate()->name, "Audio review");
     EXPECT_FALSE(view_model.IsModified());
+    ASSERT_EQ(view_model.TemplateModel().rowCount(), 2);
+    EXPECT_EQ(view_model.TemplateModel().ActiveRow(), 1);
+    EXPECT_EQ(view_model.TemplateModel()
+                  .data(view_model.TemplateModel().index(1, 0))
+                  .toString(),
+              QStringLiteral("Audio review"));
 
     view_model.SetFilterState({}, true);
     EXPECT_TRUE(view_model.IsModified());
+    EXPECT_TRUE(view_model.TemplateModel()
+                    .data(view_model.TemplateModel().index(1, 0),
+                          TimelineTemplateModel::kModifiedRole)
+                    .toBool());
     ASSERT_TRUE(view_model.UpdateActive().has_value());
     EXPECT_FALSE(view_model.IsModified());
     EXPECT_GE(modified.count(), 2);

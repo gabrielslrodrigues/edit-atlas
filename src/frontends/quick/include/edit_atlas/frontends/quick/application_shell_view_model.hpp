@@ -3,6 +3,8 @@
 
 #include <edit_atlas/core/format_registry.hpp>
 
+#include <edit_atlas/frontends/quick/timeline_configuration_view_model.hpp>
+
 #include <edit_atlas/presentation/timeline_document_view_model.hpp>
 #include <edit_atlas/presentation/translation.hpp>
 
@@ -45,6 +47,8 @@ class ApplicationShellViewModel final : public QObject {
     Q_PROPERTY(QAbstractItemModel *eventModel READ EventModel CONSTANT)
     Q_PROPERTY(
         QAbstractItemModel *diagnosticsModel READ DiagnosticsModel CONSTANT)
+    Q_PROPERTY(TimelineConfigurationViewModel *timelineConfiguration READ
+                   TimelineConfiguration CONSTANT)
     Q_PROPERTY(int diagnosticCount READ DiagnosticCount NOTIFY
                    DocumentPresentationChanged)
     Q_PROPERTY(int eventSortColumn READ EventSortColumn NOTIFY EventSortChanged)
@@ -109,6 +113,9 @@ class ApplicationShellViewModel final : public QObject {
     [[nodiscard]] QAbstractItemModel *EventModel(void) noexcept;
     /// Returns the diagnostic item model exposed to QML.
     [[nodiscard]] QAbstractItemModel *DiagnosticsModel(void) noexcept;
+    /// Returns editable filtering, template, and projection configuration.
+    [[nodiscard]] TimelineConfigurationViewModel *
+    TimelineConfiguration(void) noexcept;
     /// Returns the number of import diagnostics currently presented.
     [[nodiscard]] int DiagnosticCount(void) const noexcept;
     /// Returns the event column currently used for sorting.
@@ -174,6 +181,7 @@ class ApplicationShellViewModel final : public QObject {
     QTranslator &translator_;
     presentation::ApplicationLanguage language_;
     presentation::TimelineDocumentViewModel document_view_model_;
+    TimelineConfigurationViewModel timeline_configuration_;
     QSortFilterProxyModel event_proxy_model_;
     std::optional<std::string> requested_frame_rate_;
 };

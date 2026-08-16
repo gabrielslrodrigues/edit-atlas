@@ -5,6 +5,7 @@ target_sources(
     PRIVATE
         application_shell_view_model_test.cpp
         test_main.cpp
+        timeline_configuration_view_model_test.cpp
 )
 
 target_compile_definitions(
@@ -16,6 +17,7 @@ target_compile_definitions(
 target_link_libraries(
     edit_atlas_quick_frontend_integration_tests
     PRIVATE
+        EditAtlas::Cmx3600
         EditAtlas::QuickFrontend
         GTest::gtest
         Qt6::Test

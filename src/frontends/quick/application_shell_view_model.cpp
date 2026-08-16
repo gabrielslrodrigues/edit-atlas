@@ -62,7 +62,9 @@ ApplicationShellViewModel::ApplicationShellViewModel(
     const core::FormatRegistry &registry, QTranslator &translator,
     presentation::ApplicationLanguage initial_language, QObject *parent)
     : QObject{parent}, registry_{registry}, translator_{translator},
-      language_{initial_language}, document_view_model_{registry_} {
+      language_{initial_language}, document_view_model_{registry_},
+      timeline_configuration_{document_view_model_,
+                              presentation::ConfiguredTemplateDirectory()} {
     event_proxy_model_.setSourceModel(&document_view_model_.EventModel());
     event_proxy_model_.setSortRole(
         presentation::TimelineEventModel::kSortRole);
@@ -153,6 +155,11 @@ ApplicationShellViewModel::DiagnosticsModel(void) noexcept {
     return &document_view_model_.DiagnosticsModel();
 }
 
+TimelineConfigurationViewModel *
+ApplicationShellViewModel::TimelineConfiguration(void) noexcept {
+    return &timeline_configuration_;
+}
+
 int ApplicationShellViewModel::DiagnosticCount(void) const noexcept {
     return document_view_model_.DiagnosticsModel().rowCount();
 }
@@ -241,6 +248,7 @@ void ApplicationShellViewModel::SetLanguageCode(const QString &code) {
     language_ = language;
     presentation::SaveApplicationLanguage(language_);
     document_view_model_.Retranslate();
+    timeline_configuration_.Retranslate();
     emit LanguageChanged();
     emit StatusTextChanged();
     emit DocumentPresentationChanged();
@@ -334,6 +342,7 @@ void ApplicationShellViewModel::StartImport(
         return;
     }
     requested_frame_rate_ = std::move(frame_rate);
+    timeline_configuration_.RestoreForTimeline();
 }
 
 } // namespace edit_atlas::frontends::quick
