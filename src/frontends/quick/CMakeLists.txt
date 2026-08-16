@@ -28,6 +28,24 @@ set_source_files_properties(
 )
 
 set_source_files_properties(
+    qml/EventProjectionDialog.qml
+    PROPERTIES
+        QT_RESOURCE_ALIAS EventProjectionDialog.qml
+)
+
+set_source_files_properties(
+    qml/TimelineConfigurationPanel.qml
+    PROPERTIES
+        QT_RESOURCE_ALIAS TimelineConfigurationPanel.qml
+)
+
+set_source_files_properties(
+    qml/TimelineFilterCondition.qml
+    PROPERTIES
+        QT_RESOURCE_ALIAS TimelineFilterCondition.qml
+)
+
+set_source_files_properties(
     qml/TimelineTable.qml
     PROPERTIES
         QT_RESOURCE_ALIAS TimelineTable.qml
@@ -44,7 +62,10 @@ qt_add_qml_module(
         include/edit_atlas/frontends/quick/timeline_configuration_view_model.hpp
     QML_FILES
         qml/DiagnosticsPanel.qml
+        qml/EventProjectionDialog.qml
         qml/Main.qml
+        qml/TimelineConfigurationPanel.qml
+        qml/TimelineFilterCondition.qml
         qml/TimelineTable.qml
 )
 

@@ -67,6 +67,8 @@ class TimelineEventProjectionModel final : public QAbstractListModel {
     Q_INVOKABLE void MoveUp(int row);
     /// Moves one field row downward when possible.
     Q_INVOKABLE void MoveDown(int row);
+    /// Moves one field row directly to another position when possible.
+    Q_INVOKABLE void Move(int source_row, int destination_row);
 
     /// Replaces field ordering and selection from an ordered projection.
     [[nodiscard]] bool
@@ -90,7 +92,7 @@ class TimelineEventProjectionModel final : public QAbstractListModel {
         bool selected;
     };
 
-    void Move(int row, int offset);
+    void MoveByOffset(int row, int offset);
 
     std::vector<FieldRow> rows_;
 };

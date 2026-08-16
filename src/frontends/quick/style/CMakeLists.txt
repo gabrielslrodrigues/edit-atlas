@@ -21,6 +21,7 @@ qt_add_qml_module(
     VERSION 1.0
     QML_FILES
         Button.qml
+        CheckBox.qml
         ComboBox.qml
         DesignTokens.qml
         Dialog.qml
@@ -34,6 +35,7 @@ qt_add_qml_module(
         Surface.qml
         TextField.qml
         Theme.qml
+        ToolButton.qml
 )
 
 target_link_libraries(

@@ -74,6 +74,10 @@ TEST_F(TimelineConfigurationViewModelTest,
     EXPECT_TRUE(configuration.IsFilterValid());
     EXPECT_TRUE(configuration.FilterErrorText().isEmpty());
     EXPECT_TRUE(configuration.IsEventProjectionValid());
+    EXPECT_NE(configuration.TextFilterEditor(),
+              configuration.TrackKindFilterEditor());
+    EXPECT_NE(configuration.TrackKindFilterEditor(),
+              configuration.EditTypeFilterEditor());
     EXPECT_EQ(configuration.FilterCombinationNames().size(), 2);
     EXPECT_EQ(configuration.FilterFieldNames().size(),
               static_cast<qsizetype>(
@@ -113,8 +117,14 @@ TEST_F(TimelineConfigurationViewModelTest,
     ASSERT_TRUE(configuration.CreateTemplate(QStringLiteral("First event")));
     EXPECT_EQ(configuration.TemplateModel()->rowCount(), 2);
     EXPECT_EQ(configuration.ActiveTemplateRow(), 1);
+    EXPECT_EQ(configuration.ActiveTemplateName(),
+              QStringLiteral("First event"));
     EXPECT_TRUE(configuration.HasActiveTemplate());
     EXPECT_FALSE(configuration.IsTemplateModified());
+    EXPECT_FALSE(configuration.CreateTemplate(QStringLiteral("First event")));
+    EXPECT_FALSE(configuration.TemplateOperationErrorText().isEmpty());
+    configuration.ClearTemplateOperationError();
+    EXPECT_TRUE(configuration.TemplateOperationErrorText().isEmpty());
 
     configuration.ClearFilter();
     EXPECT_EQ(document.EventSelection().size(), 4U);

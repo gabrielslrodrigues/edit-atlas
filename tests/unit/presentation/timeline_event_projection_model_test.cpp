@@ -50,6 +50,13 @@ TEST(TimelineEventProjectionModelTest, EditsAndReordersTheProjection) {
     ASSERT_TRUE(model.SetProjection(projection));
 
     model.MoveDown(0);
+    model.Move(1, 3);
+    EXPECT_EQ(model
+                  .data(model.index(3, 0),
+                        TimelineEventProjectionModel::kFieldRole)
+                  .toInt(),
+              static_cast<int>(core::TimelineEventField::kEventIdentifier));
+    model.Move(3, 1);
     model.SetSelected(1, false);
 
     ASSERT_EQ(model.SelectedCount(), 1);

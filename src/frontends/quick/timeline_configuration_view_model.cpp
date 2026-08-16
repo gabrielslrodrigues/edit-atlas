@@ -6,6 +6,8 @@
 #include <edit_atlas/presentation/timeline_template_model.hpp>
 #include <edit_atlas/presentation/timeline_template_view_model.hpp>
 
+#include <edit_atlas/services/timeline_template_service.hpp>
+
 #include <QAbstractItemModel>
 #include <QByteArray>
 #include <QModelIndex>
@@ -19,6 +21,7 @@
 #include <filesystem>
 #include <string>
 #include <utility>
+#include <variant>
 
 namespace edit_atlas::frontends::quick {
 namespace {
@@ -111,6 +114,20 @@ bool TimelineConfigurationViewModel::IsTemplateModified(void) const noexcept {
                               template_view_model_.EventProjection());
 }
 
+QString TimelineConfigurationViewModel::ActiveTemplateName(void) const {
+    const auto row = ActiveTemplateRow();
+    return HasActiveTemplate()
+               ? template_view_model_.TemplateModel()
+                     .data(template_view_model_.TemplateModel().index(row, 0))
+                     .toString()
+               : QString{};
+}
+
+QString
+TimelineConfigurationViewModel::TemplateOperationErrorText(void) const {
+    return template_operation_error_text_;
+}
+
 bool TimelineConfigurationViewModel::IsFilterValid(void) const noexcept {
     return template_view_model_.IsFilterValid();
 }
@@ -152,6 +169,30 @@ QStringList TimelineConfigurationViewModel::FilterTrackKindNames(void) const {
 
 QStringList TimelineConfigurationViewModel::FilterEditTypeNames(void) const {
     return filter_model_.EditTypeNames();
+}
+
+int TimelineConfigurationViewModel::TextFilterEditor(void) const noexcept {
+    return static_cast<int>(presentation::TimelineFilterEditor::kText);
+}
+
+int TimelineConfigurationViewModel::TrackKindFilterEditor(void) const
+    noexcept {
+    return static_cast<int>(presentation::TimelineFilterEditor::kTrackKind);
+}
+
+int TimelineConfigurationViewModel::EditTypeFilterEditor(void) const
+    noexcept {
+    return static_cast<int>(presentation::TimelineFilterEditor::kEditType);
+}
+
+int TimelineConfigurationViewModel::TimecodeFilterEditor(void) const
+    noexcept {
+    return static_cast<int>(presentation::TimelineFilterEditor::kTimecode);
+}
+
+int TimelineConfigurationViewModel::DurationFilterEditor(void) const
+    noexcept {
+    return static_cast<int>(presentation::TimelineFilterEditor::kDuration);
 }
 
 void TimelineConfigurationViewModel::RestoreForTimeline(void) {
@@ -198,32 +239,48 @@ void TimelineConfigurationViewModel::SelectTemplateRow(int row) {
 
 bool TimelineConfigurationViewModel::CreateTemplate(const QString &name) {
     if (!event_projection_model_.IsValid()) {
+        template_operation_error_text_ =
+            tr("Select at least one event column before saving a template.");
+        emit TemplateOperationErrorChanged();
         return false;
     }
-    return template_view_model_.Create(Utf8String(name.trimmed())).has_value();
+    return HandleTemplateCommandResult(
+        template_view_model_.Create(Utf8String(name.trimmed())));
 }
 
 bool TimelineConfigurationViewModel::UpdateActiveTemplate(void) {
     if (!event_projection_model_.IsValid()) {
+        template_operation_error_text_ =
+            tr("Select at least one event column before updating the "
+               "template.");
+        emit TemplateOperationErrorChanged();
         return false;
     }
-    return template_view_model_.UpdateActive().has_value();
+    return HandleTemplateCommandResult(template_view_model_.UpdateActive());
 }
 
 bool TimelineConfigurationViewModel::RenameActiveTemplate(
     const QString &name) {
-    return template_view_model_.RenameActive(Utf8String(name.trimmed()))
-        .has_value();
+    return HandleTemplateCommandResult(
+        template_view_model_.RenameActive(Utf8String(name.trimmed())));
 }
 
 bool TimelineConfigurationViewModel::DuplicateActiveTemplate(
     const QString &name) {
-    return template_view_model_.DuplicateActive(Utf8String(name.trimmed()))
-        .has_value();
+    return HandleTemplateCommandResult(
+        template_view_model_.DuplicateActive(Utf8String(name.trimmed())));
 }
 
 bool TimelineConfigurationViewModel::RemoveActiveTemplate(void) {
-    return template_view_model_.RemoveActive().has_value();
+    return HandleTemplateCommandResult(template_view_model_.RemoveActive());
+}
+
+void TimelineConfigurationViewModel::ClearTemplateOperationError(void) {
+    if (template_operation_error_text_.isEmpty()) {
+        return;
+    }
+    template_operation_error_text_.clear();
+    emit TemplateOperationErrorChanged();
 }
 
 void TimelineConfigurationViewModel::SetEventProjectionSelected(
@@ -237,6 +294,11 @@ void TimelineConfigurationViewModel::MoveEventProjectionUp(int row) {
 
 void TimelineConfigurationViewModel::MoveEventProjectionDown(int row) {
     event_projection_model_.MoveDown(row);
+}
+
+void TimelineConfigurationViewModel::MoveEventProjection(
+    int source_row, int destination_row) {
+    event_projection_model_.Move(source_row, destination_row);
 }
 
 void TimelineConfigurationViewModel::HandleFilterQueryChanged(void) {
@@ -287,6 +349,52 @@ void TimelineConfigurationViewModel::SynchronizeTemplateState(void) {
     emit FilterStateChanged();
     emit EventProjectionStateChanged();
     emit TemplateStateChanged();
+}
+
+bool TimelineConfigurationViewModel::HandleTemplateCommandResult(
+    presentation::TimelineTemplateCommandResult result) {
+    if (result.has_value()) {
+        ClearTemplateOperationError();
+        return true;
+    }
+    if (const auto *service_failure =
+            std::get_if<services::TimelineTemplateFailure>(&result.error());
+        service_failure != nullptr) {
+        switch (service_failure->kind) {
+        case services::TimelineTemplateFailureKind::kInvalidTemplate:
+            template_operation_error_text_ = tr("Enter a template name.");
+            break;
+        case services::TimelineTemplateFailureKind::kNameConflict:
+            template_operation_error_text_ =
+                tr("A template with that name already exists.");
+            break;
+        case services::TimelineTemplateFailureKind::kNotLoaded:
+        case services::TimelineTemplateFailureKind::kNotFound:
+        case services::TimelineTemplateFailureKind::kStorageFailed:
+            template_operation_error_text_ =
+                tr("The template could not be stored on this computer.");
+            break;
+        }
+    } else {
+        switch (std::get<presentation::TimelineTemplateCommandError>(
+            result.error())) {
+        case presentation::TimelineTemplateCommandError::kInvalidFilter:
+            template_operation_error_text_ =
+                tr("Fix the invalid filter before saving the template.");
+            break;
+        case presentation::TimelineTemplateCommandError::kInvalidProjection:
+            template_operation_error_text_ =
+                tr("Select at least one event column before saving the "
+                   "template.");
+            break;
+        case presentation::TimelineTemplateCommandError::kNoActiveTemplate:
+            template_operation_error_text_ =
+                tr("Select a saved template before using this action.");
+            break;
+        }
+    }
+    emit TemplateOperationErrorChanged();
+    return false;
 }
 
 } // namespace edit_atlas::frontends::quick

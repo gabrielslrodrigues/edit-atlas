@@ -324,6 +324,12 @@ ApplicationWindow {
                     }
                 }
 
+                TimelineConfigurationPanel {
+                    Layout.fillWidth: true
+                    availableHeight: window.height
+                    configuration: applicationShell.timelineConfiguration
+                }
+
                 TimelineTable {
                     Layout.fillHeight: true
                     Layout.fillWidth: true

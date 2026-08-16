@@ -165,9 +165,33 @@ void TimelineEventProjectionModel::SetSelected(int row, bool selected) {
     static_cast<void>(setData(index(row, 0), selected, kSelectedRole));
 }
 
-void TimelineEventProjectionModel::MoveUp(int row) { Move(row, -1); }
+void TimelineEventProjectionModel::MoveUp(int row) { MoveByOffset(row, -1); }
 
-void TimelineEventProjectionModel::MoveDown(int row) { Move(row, 1); }
+void TimelineEventProjectionModel::MoveDown(int row) { MoveByOffset(row, 1); }
+
+void TimelineEventProjectionModel::Move(int source_row, int destination_row) {
+    if (source_row < 0 || source_row >= rowCount() || destination_row < 0 ||
+        destination_row >= rowCount() || source_row == destination_row) {
+        return;
+    }
+    const auto source = static_cast<std::size_t>(source_row);
+    const auto destination = static_cast<std::size_t>(destination_row);
+    beginMoveRows({}, source_row, source_row, {},
+                  destination_row > source_row ? destination_row + 1
+                                               : destination_row);
+    if (destination < source) {
+        std::rotate(rows_.begin() + static_cast<std::ptrdiff_t>(destination),
+                    rows_.begin() + static_cast<std::ptrdiff_t>(source),
+                    rows_.begin() + static_cast<std::ptrdiff_t>(source + 1));
+    } else {
+        std::rotate(rows_.begin() + static_cast<std::ptrdiff_t>(source),
+                    rows_.begin() + static_cast<std::ptrdiff_t>(source + 1),
+                    rows_.begin() +
+                        static_cast<std::ptrdiff_t>(destination + 1));
+    }
+    endMoveRows();
+    emit ProjectionChanged();
+}
 
 bool TimelineEventProjectionModel::SetProjection(
     std::span<const core::TimelineEventField> projection) {
@@ -219,26 +243,9 @@ void TimelineEventProjectionModel::Retranslate(void) {
     }
 }
 
-void TimelineEventProjectionModel::Move(int row, int offset) {
+void TimelineEventProjectionModel::MoveByOffset(int row, int offset) {
     const auto target = row + offset;
-    if (row < 0 || row >= rowCount() || target < 0 || target >= rowCount()) {
-        return;
-    }
-    const auto source = static_cast<std::size_t>(row);
-    const auto destination = static_cast<std::size_t>(target);
-    beginMoveRows({}, row, row, {}, target > row ? target + 1 : target);
-    if (destination < source) {
-        std::rotate(rows_.begin() + static_cast<std::ptrdiff_t>(destination),
-                    rows_.begin() + static_cast<std::ptrdiff_t>(source),
-                    rows_.begin() + static_cast<std::ptrdiff_t>(source + 1));
-    } else {
-        std::rotate(rows_.begin() + static_cast<std::ptrdiff_t>(source),
-                    rows_.begin() + static_cast<std::ptrdiff_t>(source + 1),
-                    rows_.begin() +
-                        static_cast<std::ptrdiff_t>(destination + 1));
-    }
-    endMoveRows();
-    emit ProjectionChanged();
+    Move(row, target);
 }
 
 } // namespace edit_atlas::presentation
