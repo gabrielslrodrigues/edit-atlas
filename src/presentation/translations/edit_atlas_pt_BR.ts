@@ -1410,6 +1410,49 @@ Inspecione linhas do tempo editoriais e exporte relatórios estruturados.</trans
         <source>Exporting spreadsheet…</source>
         <translation>Exportando planilha…</translation>
     </message>
+    <message>
+        <source>Creating diagnostic support bundle…</source>
+        <translation>Criando pacote de suporte de diagnóstico…</translation>
+    </message>
+</context>
+<context>
+    <name>edit_atlas::frontends::quick::SupportBundleViewModel</name>
+    <message>
+        <source>Select a local destination for the support bundle.</source>
+        <translation>Selecione um destino local para o pacote de suporte.</translation>
+    </message>
+    <message>
+        <source>Select a file destination for the support bundle.</source>
+        <translation>Selecione um arquivo de destino para o pacote de suporte.</translation>
+    </message>
+    <message>
+        <source>The selected destination directory does not exist.</source>
+        <translation>O diretório de destino selecionado não existe.</translation>
+    </message>
+    <message>
+        <source>The support-bundle destination could not be read.</source>
+        <translation>Não foi possível ler o destino do pacote de suporte.</translation>
+    </message>
+    <message>
+        <source>The support-bundle export could not be started.</source>
+        <translation>Não foi possível iniciar a exportação do pacote de suporte.</translation>
+    </message>
+    <message>
+        <source>The destination file already exists and was not replaced.</source>
+        <translation>O arquivo de destino já existe e não foi substituído.</translation>
+    </message>
+    <message>
+        <source>The application logs could not be read.</source>
+        <translation>Não foi possível ler os logs do aplicativo.</translation>
+    </message>
+    <message>
+        <source>The diagnostic support bundle could not be created.</source>
+        <translation>Não foi possível criar o pacote de suporte de diagnóstico.</translation>
+    </message>
+    <message>
+        <source>The completed support bundle could not replace the destination file.</source>
+        <translation>O pacote de suporte concluído não pôde substituir o arquivo de destino.</translation>
+    </message>
 </context>
 <context>
     <name>edit_atlas::frontends::quick::SpreadsheetExportViewModel</name>
@@ -1834,6 +1877,18 @@ Inspecione linhas do tempo editoriais e exporte relatórios estruturados.</trans
         <translation>&amp;Idioma</translation>
     </message>
     <message>
+        <source>&amp;Help</source>
+        <translation>A&amp;juda</translation>
+    </message>
+    <message>
+        <source>Export Diagnostic &amp;Logs…</source>
+        <translation>Exportar &amp;logs de diagnóstico…</translation>
+    </message>
+    <message>
+        <source>&amp;About Edit Atlas</source>
+        <translation>&amp;Sobre o Edit Atlas</translation>
+    </message>
+    <message>
         <source>Editorial timeline workspace</source>
         <translation>Área de trabalho de linhas do tempo editoriais</translation>
     </message>
@@ -1926,6 +1981,14 @@ Inspecione linhas do tempo editoriais e exporte relatórios estruturados.</trans
         <translation>Pasta de trabalho do Excel (*.xlsx)</translation>
     </message>
     <message>
+        <source>ZIP archive (*.zip)</source>
+        <translation>Arquivo ZIP (*.zip)</translation>
+    </message>
+    <message>
+        <source>Export Diagnostic Logs</source>
+        <translation>Exportar logs de diagnóstico</translation>
+    </message>
+    <message>
         <source>Select Frame Rate</source>
         <translation>Selecionar taxa de quadros</translation>
     </message>
@@ -1976,6 +2039,214 @@ Inspecione linhas do tempo editoriais e exporte relatórios estruturados.</trans
     <message>
         <source>Wait for the current operation to finish before closing Edit Atlas.</source>
         <translation>Aguarde a conclusão da operação atual antes de fechar o Edit Atlas.</translation>
+    </message>
+</context>
+<context>
+    <name>SupportBundleDialog</name>
+    <message>
+        <source>Export Diagnostic Logs</source>
+        <translation>Exportar logs de diagnóstico</translation>
+    </message>
+    <message>
+        <source>Review what the support bundle contains</source>
+        <translation>Revise o conteúdo do pacote de suporte</translation>
+    </message>
+    <message>
+        <source>The support bundle will contain recent Edit Atlas application logs and a summary of the application version, operating system, architecture, Qt version, platform plugin, and registered formats.</source>
+        <translation>O pacote de suporte conterá logs recentes do aplicativo Edit Atlas e um resumo da versão do aplicativo, sistema operacional, arquitetura, versão do Qt, plugin de plataforma e formatos registrados.</translation>
+    </message>
+    <message>
+        <source>Not included automatically</source>
+        <translation>Não incluído automaticamente</translation>
+    </message>
+    <message>
+        <source>Timelines, spreadsheets, media, environment variables, and secrets.</source>
+        <translation>Linhas do tempo, planilhas, mídia, variáveis de ambiente e segredos.</translation>
+    </message>
+    <message>
+        <source>Cancel</source>
+        <translation>Cancelar</translation>
+    </message>
+    <message>
+        <source>Continue</source>
+        <translation>Continuar</translation>
+    </message>
+    <message>
+        <source>Replace Existing File?</source>
+        <translation>Substituir arquivo existente?</translation>
+    </message>
+    <message>
+        <source>The selected file already exists. Do you want to replace it?</source>
+        <translation>O arquivo selecionado já existe. Deseja substituí-lo?</translation>
+    </message>
+    <message>
+        <source>Replace</source>
+        <translation>Substituir</translation>
+    </message>
+    <message>
+        <source>Creating diagnostic support bundle</source>
+        <translation>Criando pacote de suporte de diagnóstico</translation>
+    </message>
+    <message>
+        <source>Creating diagnostic support bundle…</source>
+        <translation>Criando pacote de suporte de diagnóstico…</translation>
+    </message>
+    <message>
+        <source>Diagnostic Logs Exported</source>
+        <translation>Logs de diagnóstico exportados</translation>
+    </message>
+    <message>
+        <source>The support bundle was saved to:
+%1</source>
+        <translation>O pacote de suporte foi salvo em:
+%1</translation>
+    </message>
+    <message>
+        <source>Recent application log files included: %1</source>
+        <translation>Arquivos de log recentes do aplicativo incluídos: %1</translation>
+    </message>
+    <message>
+        <source>Reveal File</source>
+        <translation>Revelar arquivo</translation>
+    </message>
+    <message>
+        <source>Close</source>
+        <translation>Fechar</translation>
+    </message>
+    <message>
+        <source>Could Not Export Diagnostic Logs</source>
+        <translation>Não foi possível exportar os logs de diagnóstico</translation>
+    </message>
+    <message>
+        <source>Could Not Reveal File</source>
+        <translation>Não foi possível revelar o arquivo</translation>
+    </message>
+    <message>
+        <source>The support bundle was saved, but its location could not be opened.</source>
+        <translation>O pacote de suporte foi salvo, mas não foi possível abrir sua localização.</translation>
+    </message>
+</context>
+<context>
+    <name>AboutDialog</name>
+    <message>
+        <source>About Edit Atlas</source>
+        <translation>Sobre o Edit Atlas</translation>
+    </message>
+    <message>
+        <source>Edit Atlas %1</source>
+        <translation>Edit Atlas %1</translation>
+    </message>
+    <message>
+        <source>Edit Atlas application icon</source>
+        <translation>Ícone do aplicativo Edit Atlas</translation>
+    </message>
+    <message>
+        <source>Inspect editorial timelines and export structured reports.</source>
+        <translation>Inspecione linhas do tempo editoriais e exporte relatórios estruturados.</translation>
+    </message>
+    <message>
+        <source>Runtime</source>
+        <translation>Ambiente de execução</translation>
+    </message>
+    <message>
+        <source>Operating system</source>
+        <translation>Sistema operacional</translation>
+    </message>
+    <message>
+        <source>Architecture</source>
+        <translation>Arquitetura</translation>
+    </message>
+    <message>
+        <source>Qt</source>
+        <translation>Qt</translation>
+    </message>
+    <message>
+        <source>Platform plugin</source>
+        <translation>Plugin de plataforma</translation>
+    </message>
+    <message>
+        <source>Video backend</source>
+        <translation>Backend de vídeo</translation>
+    </message>
+    <message>
+        <source>Registered formats</source>
+        <translation>Formatos registrados</translation>
+    </message>
+    <message>
+        <source>Import: %1</source>
+        <translation>Importação: %1</translation>
+    </message>
+    <message>
+        <source>Export: %1</source>
+        <translation>Exportação: %1</translation>
+    </message>
+    <message>
+        <source>Diagnostics</source>
+        <translation>Diagnósticos</translation>
+    </message>
+    <message>
+        <source>Open Log Folder</source>
+        <translation>Abrir pasta de logs</translation>
+    </message>
+    <message>
+        <source>The application log directory could not be opened.</source>
+        <translation>Não foi possível abrir o diretório de logs do aplicativo.</translation>
+    </message>
+    <message>
+        <source>Licensing</source>
+        <translation>Licenciamento</translation>
+    </message>
+    <message>
+        <source>Edit Atlas is licensed under the Apache License 2.0.</source>
+        <translation>O Edit Atlas é licenciado sob a Licença Apache 2.0.</translation>
+    </message>
+    <message>
+        <source>Qt %1 is dynamically linked and used under the GNU Lesser General Public License version 3.</source>
+        <translation>O Qt %1 possui vinculação dinâmica e é usado sob a Licença Pública Geral Menor GNU versão 3.</translation>
+    </message>
+    <message>
+        <source>%1 reports its license as: %2</source>
+        <translation>%1 informa sua licença como: %2</translation>
+    </message>
+    <message>
+        <source>Project Website</source>
+        <translation>Site do projeto</translation>
+    </message>
+    <message>
+        <source>The project website could not be opened.</source>
+        <translation>Não foi possível abrir o site do projeto.</translation>
+    </message>
+    <message>
+        <source>Qt Licensing</source>
+        <translation>Licenciamento do Qt</translation>
+    </message>
+    <message>
+        <source>Qt licensing information could not be opened.</source>
+        <translation>Não foi possível abrir as informações de licenciamento do Qt.</translation>
+    </message>
+    <message>
+        <source>FFmpeg Legal Information</source>
+        <translation>Informações legais do FFmpeg</translation>
+    </message>
+    <message>
+        <source>FFmpeg legal information could not be opened.</source>
+        <translation>Não foi possível abrir as informações legais do FFmpeg.</translation>
+    </message>
+    <message>
+        <source>Hide FFmpeg Build Details</source>
+        <translation>Ocultar detalhes de compilação do FFmpeg</translation>
+    </message>
+    <message>
+        <source>Show FFmpeg Build Details</source>
+        <translation>Mostrar detalhes de compilação do FFmpeg</translation>
+    </message>
+    <message>
+        <source>FFmpeg build configuration</source>
+        <translation>Configuração de compilação do FFmpeg</translation>
+    </message>
+    <message>
+        <source>Could Not Open Link</source>
+        <translation>Não foi possível abrir o link</translation>
     </message>
 </context>
 <context>
