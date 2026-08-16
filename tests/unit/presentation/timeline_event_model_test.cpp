@@ -69,6 +69,12 @@ TEST(TimelineEventModelTest, PresentsTimelineDocumentRows) {
     EXPECT_EQ(model.data(model.index(0, 9)).toString(),
               QStringLiteral("00:00:01:00"));
     EXPECT_EQ(model.data(model.index(0, 10)).toLongLong(), 24);
+    EXPECT_EQ(model.data(model.index(0, 7), TimelineEventModel::kSortRole)
+                  .toLongLong(),
+              86'400);
+    EXPECT_EQ(model.data(model.index(0, 9), TimelineEventModel::kSortRole)
+                  .toLongLong(),
+              24);
 
     model.SetEventSelection({});
     EXPECT_EQ(model.rowCount(), 0);

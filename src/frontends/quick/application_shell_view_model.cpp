@@ -12,8 +12,10 @@
 
 #include <edit_atlas/services/timeline_document_import_service.hpp>
 
+#include <QAbstractItemModel>
 #include <QFileInfo>
 #include <QObject>
+#include <QSortFilterProxyModel>
 #include <QString>
 #include <QStringList>
 #include <QTranslator>
@@ -61,9 +63,18 @@ ApplicationShellViewModel::ApplicationShellViewModel(
     presentation::ApplicationLanguage initial_language, QObject *parent)
     : QObject{parent}, registry_{registry}, translator_{translator},
       language_{initial_language}, document_view_model_{registry_} {
+    event_proxy_model_.setSourceModel(&document_view_model_.EventModel());
+    event_proxy_model_.setSortRole(
+        presentation::TimelineEventModel::kSortRole);
+    event_proxy_model_.setDynamicSortFilter(true);
     connect(&document_view_model_,
             &presentation::TimelineDocumentViewModel::DocumentStateChanged,
             this, &ApplicationShellViewModel::HandleDocumentStateChanged);
+    connect(&event_proxy_model_, &QAbstractItemModel::modelReset, this,
+            [this] { emit DocumentPresentationChanged(); });
+    connect(&document_view_model_.DiagnosticsModel(),
+            &QAbstractItemModel::modelReset, this,
+            [this] { emit DocumentPresentationChanged(); });
 }
 
 ApplicationShellViewModel::DocumentState
@@ -81,6 +92,10 @@ ApplicationShellViewModel::CurrentDocumentState(void) const noexcept {
     return DocumentState::kEmpty;
 }
 
+bool ApplicationShellViewModel::IsEmpty(void) const noexcept {
+    return CurrentDocumentState() == DocumentState::kEmpty;
+}
+
 bool ApplicationShellViewModel::IsBusy(void) const noexcept {
     return document_view_model_.IsBusy();
 }
@@ -94,6 +109,60 @@ qulonglong ApplicationShellViewModel::EventCount(void) const noexcept {
     return document == nullptr
                ? 0
                : static_cast<qulonglong>(document->events.size());
+}
+
+qulonglong ApplicationShellViewModel::VisibleEventCount(void) const noexcept {
+    return static_cast<qulonglong>(event_proxy_model_.rowCount());
+}
+
+QString ApplicationShellViewModel::TimelineTitle(void) const {
+    const auto *document = document_view_model_.Document();
+    return document == nullptr || document->title.empty()
+               ? SourceFileName()
+               : QString::fromUtf8(
+                     document->title.data(),
+                     static_cast<qsizetype>(document->title.size()));
+}
+
+QString ApplicationShellViewModel::TimelineSummaryText(void) const {
+    const auto *document = document_view_model_.Document();
+    if (document == nullptr) {
+        return {};
+    }
+    const auto &rate = document->frame_rate;
+    const auto rate_text =
+        rate.denominator() == 1
+            ? QString::number(rate.numerator())
+            : QStringLiteral("%1/%2")
+                  .arg(rate.numerator())
+                  .arg(rate.denominator());
+    return tr("%1 events · %2 fps · %3")
+        .arg(static_cast<qulonglong>(document->events.size()))
+        .arg(rate_text)
+        .arg(document->timecode_mode == core::TimecodeMode::kDropFrame
+                 ? tr("drop-frame")
+                 : tr("non-drop-frame"));
+}
+
+QAbstractItemModel *ApplicationShellViewModel::EventModel(void) noexcept {
+    return &event_proxy_model_;
+}
+
+QAbstractItemModel *
+ApplicationShellViewModel::DiagnosticsModel(void) noexcept {
+    return &document_view_model_.DiagnosticsModel();
+}
+
+int ApplicationShellViewModel::DiagnosticCount(void) const noexcept {
+    return document_view_model_.DiagnosticsModel().rowCount();
+}
+
+int ApplicationShellViewModel::EventSortColumn(void) const noexcept {
+    return event_proxy_model_.sortColumn();
+}
+
+bool ApplicationShellViewModel::EventSortAscending(void) const noexcept {
+    return event_proxy_model_.sortOrder() == Qt::AscendingOrder;
 }
 
 QString ApplicationShellViewModel::StatusText(void) const {
@@ -171,6 +240,7 @@ void ApplicationShellViewModel::SetLanguageCode(const QString &code) {
     }
     language_ = language;
     presentation::SaveApplicationLanguage(language_);
+    document_view_model_.Retranslate();
     emit LanguageChanged();
     emit StatusTextChanged();
     emit DocumentPresentationChanged();
@@ -204,6 +274,19 @@ QString ApplicationShellViewModel::FileName(const QString &path) const {
 
 bool ApplicationShellViewModel::RequestClose(void) const noexcept {
     return !IsBusy();
+}
+
+void ApplicationShellViewModel::ToggleEventSort(int column) {
+    if (column < 0 || column >= event_proxy_model_.columnCount()) {
+        return;
+    }
+    const auto order =
+        event_proxy_model_.sortColumn() == column &&
+                event_proxy_model_.sortOrder() == Qt::AscendingOrder
+            ? Qt::DescendingOrder
+            : Qt::AscendingOrder;
+    event_proxy_model_.sort(column, order);
+    emit EventSortChanged();
 }
 
 void ApplicationShellViewModel::HandleDocumentStateChanged(void) {

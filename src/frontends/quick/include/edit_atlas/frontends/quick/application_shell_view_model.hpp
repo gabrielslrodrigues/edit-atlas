@@ -6,7 +6,9 @@
 #include <edit_atlas/presentation/timeline_document_view_model.hpp>
 #include <edit_atlas/presentation/translation.hpp>
 
+#include <QAbstractItemModel>
 #include <QObject>
+#include <QSortFilterProxyModel>
 #include <QString>
 #include <QStringList>
 #include <QUrl>
@@ -28,11 +30,26 @@ class ApplicationShellViewModel final : public QObject {
 
     Q_PROPERTY(DocumentState documentState READ CurrentDocumentState NOTIFY
                    DocumentStateChanged)
+    Q_PROPERTY(bool empty READ IsEmpty NOTIFY DocumentStateChanged)
     Q_PROPERTY(bool busy READ IsBusy NOTIFY BusyChanged)
     Q_PROPERTY(QString sourceFileName READ SourceFileName NOTIFY
                    DocumentPresentationChanged)
     Q_PROPERTY(qulonglong eventCount READ EventCount NOTIFY
                    DocumentPresentationChanged)
+    Q_PROPERTY(qulonglong visibleEventCount READ VisibleEventCount NOTIFY
+                   DocumentPresentationChanged)
+    Q_PROPERTY(QString timelineTitle READ TimelineTitle NOTIFY
+                   DocumentPresentationChanged)
+    Q_PROPERTY(QString timelineSummaryText READ TimelineSummaryText NOTIFY
+                   DocumentPresentationChanged)
+    Q_PROPERTY(QAbstractItemModel *eventModel READ EventModel CONSTANT)
+    Q_PROPERTY(
+        QAbstractItemModel *diagnosticsModel READ DiagnosticsModel CONSTANT)
+    Q_PROPERTY(int diagnosticCount READ DiagnosticCount NOTIFY
+                   DocumentPresentationChanged)
+    Q_PROPERTY(int eventSortColumn READ EventSortColumn NOTIFY EventSortChanged)
+    Q_PROPERTY(bool eventSortAscending READ EventSortAscending NOTIFY
+                   EventSortChanged)
     Q_PROPERTY(QString statusText READ StatusText NOTIFY StatusTextChanged)
     Q_PROPERTY(
         QString errorText READ ErrorText NOTIFY DocumentPresentationChanged)
@@ -74,12 +91,30 @@ class ApplicationShellViewModel final : public QObject {
 
     /// Returns the shell document state.
     [[nodiscard]] DocumentState CurrentDocumentState(void) const noexcept;
+    /// Returns whether no timeline import has been requested.
+    [[nodiscard]] bool IsEmpty(void) const noexcept;
     /// Returns whether a document operation prevents new interaction.
     [[nodiscard]] bool IsBusy(void) const noexcept;
     /// Returns the active source file name without its parent directory.
     [[nodiscard]] QString SourceFileName(void) const;
     /// Returns the number of imported timeline events.
     [[nodiscard]] qulonglong EventCount(void) const noexcept;
+    /// Returns the number of events currently presented by the item model.
+    [[nodiscard]] qulonglong VisibleEventCount(void) const noexcept;
+    /// Returns the imported timeline title or source file name.
+    [[nodiscard]] QString TimelineTitle(void) const;
+    /// Returns localized event-count, frame-rate, and timecode metadata.
+    [[nodiscard]] QString TimelineSummaryText(void) const;
+    /// Returns the sortable event item model exposed to QML.
+    [[nodiscard]] QAbstractItemModel *EventModel(void) noexcept;
+    /// Returns the diagnostic item model exposed to QML.
+    [[nodiscard]] QAbstractItemModel *DiagnosticsModel(void) noexcept;
+    /// Returns the number of import diagnostics currently presented.
+    [[nodiscard]] int DiagnosticCount(void) const noexcept;
+    /// Returns the event column currently used for sorting.
+    [[nodiscard]] int EventSortColumn(void) const noexcept;
+    /// Returns whether the active event ordering is ascending.
+    [[nodiscard]] bool EventSortAscending(void) const noexcept;
     /// Returns a localized status-bar message for the current state.
     [[nodiscard]] QString StatusText(void) const;
     /// Returns localized details for the latest import failure.
@@ -107,6 +142,8 @@ class ApplicationShellViewModel final : public QObject {
     Q_INVOKABLE QString FileName(const QString &path) const;
     /// Returns whether the window may close without interrupting work.
     Q_INVOKABLE bool RequestClose(void) const noexcept;
+    /// Sorts a new event column ascending or toggles the active direction.
+    Q_INVOKABLE void ToggleEventSort(int column);
 
   signals:
     /// Reports a change to the shell document state.
@@ -125,6 +162,8 @@ class ApplicationShellViewModel final : public QObject {
     void LanguageChanged(void);
     /// Requests an explicit frame rate for a non-drop-frame EDL.
     void frameRateRequired(void);
+    /// Reports a change to the event sorting column or direction.
+    void EventSortChanged(void);
 
   private:
     void HandleDocumentStateChanged(void);
@@ -135,6 +174,7 @@ class ApplicationShellViewModel final : public QObject {
     QTranslator &translator_;
     presentation::ApplicationLanguage language_;
     presentation::TimelineDocumentViewModel document_view_model_;
+    QSortFilterProxyModel event_proxy_model_;
     std::optional<std::string> requested_frame_rate_;
 };
 

@@ -1305,6 +1305,18 @@ Inspecione linhas do tempo editoriais e exporte relatórios estruturados.</trans
         <source>Could not open %1</source>
         <translation>Não foi possível abrir %1</translation>
     </message>
+    <message>
+        <source>%1 events · %2 fps · %3</source>
+        <translation>%1 eventos · %2 fps · %3</translation>
+    </message>
+    <message>
+        <source>drop-frame</source>
+        <translation>drop-frame</translation>
+    </message>
+    <message>
+        <source>non-drop-frame</source>
+        <translation>non-drop-frame</translation>
+    </message>
 </context>
 <context>
     <name>Main</name>
@@ -1392,16 +1404,9 @@ Inspecione linhas do tempo editoriais e exporte relatórios estruturados.</trans
         <source>Timeline ready</source>
         <translation>Linha do tempo pronta</translation>
     </message>
-    <message numerus="yes">
-        <source>%n event(s) imported</source>
-        <translation>
-            <numerusform>%n evento importado</numerusform>
-            <numerusform>%n eventos importados</numerusform>
-        </translation>
-    </message>
     <message>
-        <source>Timeline inspection will appear here.</source>
-        <translation>A inspeção da linha do tempo aparecerá aqui.</translation>
+        <source>Showing %1 of %2 events</source>
+        <translation>Exibindo %1 de %2 eventos</translation>
     </message>
     <message>
         <source>Timeline import failed</source>
@@ -1478,6 +1483,28 @@ Inspecione linhas do tempo editoriais e exporte relatórios estruturados.</trans
     <message>
         <source>Wait for the current operation to finish before closing Edit Atlas.</source>
         <translation>Aguarde a conclusão da operação atual antes de fechar o Edit Atlas.</translation>
+    </message>
+</context>
+<context>
+    <name>DiagnosticsPanel</name>
+    <message>
+        <source>Import diagnostics</source>
+        <translation>Diagnósticos de importação</translation>
+    </message>
+    <message>
+        <source>Diagnostics (%1)</source>
+        <translation>Diagnósticos (%1)</translation>
+    </message>
+</context>
+<context>
+    <name>TimelineTable</name>
+    <message>
+        <source>Timeline edit events</source>
+        <translation>Eventos de edição da linha do tempo</translation>
+    </message>
+    <message>
+        <source>Sort timeline events by %1</source>
+        <translation>Ordenar eventos da linha do tempo por %1</translation>
     </message>
 </context>
 </TS>

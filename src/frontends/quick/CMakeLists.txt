@@ -21,6 +21,18 @@ set_source_files_properties(
         QT_RESOURCE_ALIAS Main.qml
 )
 
+set_source_files_properties(
+    qml/DiagnosticsPanel.qml
+    PROPERTIES
+        QT_RESOURCE_ALIAS DiagnosticsPanel.qml
+)
+
+set_source_files_properties(
+    qml/TimelineTable.qml
+    PROPERTIES
+        QT_RESOURCE_ALIAS TimelineTable.qml
+)
+
 qt_add_qml_module(
     edit_atlas_quick_frontend
     URI EditAtlas.Frontends.Quick
@@ -29,7 +41,9 @@ qt_add_qml_module(
         application_shell_view_model.cpp
         include/edit_atlas/frontends/quick/application_shell_view_model.hpp
     QML_FILES
+        qml/DiagnosticsPanel.qml
         qml/Main.qml
+        qml/TimelineTable.qml
 )
 
 target_include_directories(

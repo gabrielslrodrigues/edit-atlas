@@ -13,6 +13,7 @@ target_sources(
     PRIVATE
         application_state.cpp
         desktop_integration.cpp
+        diagnostic_model.cpp
         diagnostic_support.cpp
         diagnostic_text.cpp
         support_bundle_view_model.cpp
@@ -24,6 +25,7 @@ target_sources(
         translation.cpp
         include/edit_atlas/presentation/application_state.hpp
         include/edit_atlas/presentation/desktop_integration.hpp
+        include/edit_atlas/presentation/diagnostic_model.hpp
         include/edit_atlas/presentation/diagnostic_support.hpp
         include/edit_atlas/presentation/diagnostic_text.hpp
         include/edit_atlas/presentation/support_bundle_view_model.hpp

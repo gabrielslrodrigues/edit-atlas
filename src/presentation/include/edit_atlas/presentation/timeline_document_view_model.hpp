@@ -5,6 +5,7 @@
 #include <edit_atlas/core/format_registry.hpp>
 #include <edit_atlas/core/timeline_projection.hpp>
 
+#include <edit_atlas/presentation/diagnostic_model.hpp>
 #include <edit_atlas/presentation/timeline_document_workflow.hpp>
 #include <edit_atlas/presentation/timeline_event_model.hpp>
 
@@ -106,6 +107,8 @@ class TimelineDocumentViewModel final : public QObject {
     /// Selects the ordered event fields used by subsequent exports.
     [[nodiscard]] TimelineDocumentCommandResult
     SetEventProjection(std::vector<core::TimelineEventField> projection);
+    /// Notifies item-model consumers that localized display text changed.
+    void Retranslate(void);
     /// Starts an asynchronous export of the active filtered selection.
     [[nodiscard]] TimelineDocumentCommandResult
     Export(TimelineExportRequest request);
@@ -146,6 +149,10 @@ class TimelineDocumentViewModel final : public QObject {
     [[nodiscard]] TimelineEventModel &EventModel(void) noexcept;
     /// Returns the Qt item model presenting the selected events.
     [[nodiscard]] const TimelineEventModel &EventModel(void) const noexcept;
+    /// Returns the mutable Qt item model presenting import diagnostics.
+    [[nodiscard]] DiagnosticModel &DiagnosticsModel(void) noexcept;
+    /// Returns the Qt item model presenting import diagnostics.
+    [[nodiscard]] const DiagnosticModel &DiagnosticsModel(void) const noexcept;
     /// Returns the most recent completed export result, or null before one.
     [[nodiscard]] const services::TimelineRenderedVideoExportResult *
     ExportResult(void) const noexcept;
@@ -181,6 +188,7 @@ class TimelineDocumentViewModel final : public QObject {
 
     TimelineDocumentWorkflow workflow_;
     TimelineEventModel event_model_;
+    DiagnosticModel diagnostics_model_;
     TimelineDocumentState document_state_ = TimelineDocumentState::kEmpty;
     TimelineExportState export_state_ = TimelineExportState::kIdle;
     std::filesystem::path source_path_;
