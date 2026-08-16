@@ -4,14 +4,20 @@
 #include <QSettings>
 #include <QStandardPaths>
 #include <QString>
+#include <QStringList>
+#include <QVariant>
 #include <QtGlobal>
 
 #include <cstddef>
 #include <filesystem>
 #include <optional>
+#include <string>
+#include <vector>
 
 namespace edit_atlas::presentation {
 namespace {
+
+constexpr qsizetype kMaximumRecentFiles = 10;
 
 [[nodiscard]] std::filesystem::path FilesystemPath(const QString &path) {
     const auto utf8 = path.toUtf8();
@@ -57,6 +63,53 @@ std::filesystem::path ConfiguredApplicationDataDirectory(void) {
 
 std::filesystem::path ConfiguredTemplateDirectory(void) {
     return ConfiguredApplicationDataDirectory() / "templates";
+}
+
+bool RememberRecentFilesEnabled(void) {
+    const QSettings settings;
+    return settings.value(QStringLiteral("files/rememberRecent"), false)
+        .toBool();
+}
+
+void SetRememberRecentFilesEnabled(bool enabled) {
+    QSettings settings;
+    settings.setValue(QStringLiteral("files/rememberRecent"), enabled);
+    if (!enabled) {
+        settings.remove(QStringLiteral("files/recent"));
+    }
+}
+
+std::vector<std::filesystem::path> ConfiguredRecentFiles(void) {
+    if (!RememberRecentFilesEnabled()) {
+        return {};
+    }
+
+    const QSettings settings;
+    const auto values =
+        settings.value(QStringLiteral("files/recent")).toStringList();
+    std::vector<std::filesystem::path> paths;
+    paths.reserve(static_cast<std::size_t>(values.size()));
+    for (const auto &value : values) {
+        paths.emplace_back(FilesystemPath(value));
+    }
+    return paths;
+}
+
+void RecordRecentFile(const std::filesystem::path &path) {
+    if (!RememberRecentFilesEnabled()) {
+        return;
+    }
+
+    QSettings settings;
+    auto recent_files =
+        settings.value(QStringLiteral("files/recent")).toStringList();
+    const auto path_text = PathText(path);
+    recent_files.removeAll(path_text);
+    recent_files.prepend(path_text);
+    while (recent_files.size() > kMaximumRecentFiles) {
+        recent_files.removeLast();
+    }
+    settings.setValue(QStringLiteral("files/recent"), recent_files);
 }
 
 } // namespace edit_atlas::presentation

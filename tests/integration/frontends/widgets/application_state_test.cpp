@@ -93,6 +93,8 @@ TEST(ApplicationStateTest, IsolatesRecentFilesAndTimelineTemplates) {
         settings.value(QStringLiteral("files/rememberRecent")).toBool());
     EXPECT_EQ(settings.value(QStringLiteral("files/recent")).toStringList(),
               QStringList{QStringLiteral("/isolated/example.edl")});
+    EXPECT_EQ(presentation::ConfiguredRecentFiles(),
+              std::vector<std::filesystem::path>{"/isolated/example.edl"});
 
     services::TimelineTemplateService templates{
         presentation::ConfiguredTemplateDirectory()};

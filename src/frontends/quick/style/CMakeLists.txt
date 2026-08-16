@@ -23,6 +23,11 @@ qt_add_qml_module(
         Button.qml
         DesignTokens.qml
         Icon.qml
+        Menu.qml
+        MenuBar.qml
+        MenuBarItem.qml
+        MenuItem.qml
+        MenuSeparator.qml
         Surface.qml
         TextField.qml
         Theme.qml
