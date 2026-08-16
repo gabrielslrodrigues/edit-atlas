@@ -6,6 +6,7 @@ target_sources(
         diagnostic_model_test.cpp
         test_main.cpp
         timeline_event_model_test.cpp
+        timeline_filter_model_test.cpp
 )
 
 target_link_libraries(
