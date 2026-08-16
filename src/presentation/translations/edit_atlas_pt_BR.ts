@@ -1020,14 +1020,6 @@ Inspecione linhas do tempo editoriais e exporte relatórios estruturados.</trans
         <translation>Corresponder</translation>
     </message>
     <message>
-        <source>All conditions</source>
-        <translation>Todas as condições</translation>
-    </message>
-    <message>
-        <source>Any condition</source>
-        <translation>Qualquer condição</translation>
-    </message>
-    <message>
         <source>Filter combination</source>
         <translation>Combinação de filtros</translation>
     </message>
@@ -1070,86 +1062,6 @@ Inspecione linhas do tempo editoriais e exporte relatórios estruturados.</trans
     <message>
         <source>Remove</source>
         <translation>Remover</translation>
-    </message>
-    <message>
-        <source>Event</source>
-        <translation>Evento</translation>
-    </message>
-    <message>
-        <source>Reel</source>
-        <translation>Rolo</translation>
-    </message>
-    <message>
-        <source>Track type</source>
-        <translation>Tipo de faixa</translation>
-    </message>
-    <message>
-        <source>Track ID</source>
-        <translation>ID da faixa</translation>
-    </message>
-    <message>
-        <source>Edit type</source>
-        <translation>Tipo de edição</translation>
-    </message>
-    <message>
-        <source>Clip</source>
-        <translation>Clipe</translation>
-    </message>
-    <message>
-        <source>Source In</source>
-        <translation>Entrada da fonte</translation>
-    </message>
-    <message>
-        <source>Source Out</source>
-        <translation>Saída da fonte</translation>
-    </message>
-    <message>
-        <source>Record In</source>
-        <translation>Entrada da gravação</translation>
-    </message>
-    <message>
-        <source>Record Out</source>
-        <translation>Saída da gravação</translation>
-    </message>
-    <message>
-        <source>Duration frames</source>
-        <translation>Duração em quadros</translation>
-    </message>
-    <message>
-        <source>Comments</source>
-        <translation>Comentários</translation>
-    </message>
-    <message>
-        <source>Cut</source>
-        <translation>Corte</translation>
-    </message>
-    <message>
-        <source>Dissolve</source>
-        <translation>Dissolução</translation>
-    </message>
-    <message>
-        <source>Wipe</source>
-        <translation>Transição wipe</translation>
-    </message>
-    <message>
-        <source>Key</source>
-        <translation>Chave</translation>
-    </message>
-    <message>
-        <source>Other</source>
-        <translation>Outro</translation>
-    </message>
-    <message>
-        <source>Video</source>
-        <translation>Vídeo</translation>
-    </message>
-    <message>
-        <source>Audio</source>
-        <translation>Áudio</translation>
-    </message>
-    <message>
-        <source>Data</source>
-        <translation>Dados</translation>
     </message>
     <message>
         <source>Exact duration in frames</source>

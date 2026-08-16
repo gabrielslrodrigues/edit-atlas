@@ -4,6 +4,7 @@
 
 #include <edit_atlas/presentation/diagnostic_text.hpp>
 #include <edit_atlas/presentation/timeline_event_model.hpp>
+#include <edit_atlas/presentation/timeline_filter_model.hpp>
 
 #include "timeline_filter_widget.hpp"
 
@@ -78,6 +79,11 @@ void TimelineDocumentView::SetFilterError(QString error) {
 void TimelineDocumentView::SetEventModel(
     presentation::TimelineEventModel &event_model) {
     event_proxy_model_->setSourceModel(&event_model);
+}
+
+void TimelineDocumentView::SetFilterModel(
+    presentation::TimelineFilterModel &filter_model) {
+    timeline_filter_->SetModel(filter_model);
 }
 
 void TimelineDocumentView::SetFilterQuery(

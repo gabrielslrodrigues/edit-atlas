@@ -97,6 +97,7 @@ TimelineDocumentController::TimelineDocumentController(
     QWidget &window)
     : QObject{&window}, registry_{registry}, menu_bar_{menu_bar}, view_{view},
       language_{language}, window_{window}, view_model_{registry_} {
+    view_.SetFilterModel(filter_model_);
     template_controller_ = new TimelineTemplateController{view_, window_, this};
     view_.SetEventModel(view_model_.EventModel());
     connect(&view_model_,
@@ -137,7 +138,7 @@ TimelineDocumentController::TimelineDocumentController(
 }
 
 void TimelineDocumentController::ApplyFilter(void) {
-    view_model_.SetFilterQuery(view_.FilterQuery());
+    view_model_.SetFilterQuery(filter_model_.Query());
 }
 
 void TimelineDocumentController::ExportSpreadsheet(void) {
@@ -334,6 +335,7 @@ void TimelineDocumentController::SetInteractionsEnabled(bool enabled) {
 void TimelineDocumentController::SetLanguage(
     presentation::ApplicationLanguage language) {
     language_ = language;
+    filter_model_.Retranslate();
     HandleFilterChanged();
     if (view_model_.ExportState() ==
         presentation::TimelineExportState::kExporting) {

@@ -1,10 +1,13 @@
 #ifndef EDIT_ATLAS_FRONTENDS_WIDGETS_TIMELINE_FILTER_WIDGET_HPP_
 #define EDIT_ATLAS_FRONTENDS_WIDGETS_TIMELINE_FILTER_WIDGET_HPP_
 
+#include <edit_atlas/presentation/timeline_filter_model.hpp>
+
 #include <edit_atlas/services/timeline_filter.hpp>
 #include <edit_atlas/services/timeline_template.hpp>
 
 #include <QString>
+#include <QVariant>
 #include <QWidget>
 
 #include <optional>
@@ -37,6 +40,8 @@ class TimelineFilterWidget final : public QWidget {
     TimelineFilterWidget(TimelineFilterWidget &&) = delete;
     TimelineFilterWidget &operator=(TimelineFilterWidget &&) = delete;
 
+    /// Attaches the shared editable filter presentation model.
+    void SetModel(presentation::TimelineFilterModel &model);
     /// Clears every condition and restores all-event matching.
     void Clear(void);
     /// Returns the current UI-independent query.
@@ -77,15 +82,19 @@ class TimelineFilterWidget final : public QWidget {
     };
 
     void AddCondition(bool focus);
-    void ApplyCondition(ConditionRow &row,
-                        const services::TimelineFilterCondition &condition);
+    void AddConditionRow(int model_row);
     void BuildUi(void);
+    void ClearConditionRows(void);
     void PopulateEditTypes(ConditionRow &row);
     void PopulateFields(ConditionRow &row);
     void PopulateTrackKinds(ConditionRow &row);
+    void RebuildConditionRows(void);
     void RemoveCondition(QWidget *row_widget);
+    void SetConditionData(QWidget *row_widget, const QVariant &value, int role);
+    void SynchronizeCombination(void);
+    void SynchronizeConditionRow(ConditionRow &row, int model_row);
     void UpdateAccessibleIdentifiers(void);
-    void UpdateConditionEditor(ConditionRow &row);
+    void UpdateConditionEditor(ConditionRow &row, int model_row);
     void UpdateRemoveButtons(void);
     void UpdateTemplateControls(void);
 
@@ -108,6 +117,7 @@ class TimelineFilterWidget final : public QWidget {
     QScrollArea *conditions_scroll_ = nullptr;
     QWidget *conditions_container_ = nullptr;
     QVBoxLayout *conditions_layout_ = nullptr;
+    presentation::TimelineFilterModel *model_ = nullptr;
     bool has_active_template_ = false;
     bool template_modified_ = false;
     std::vector<ConditionRow> rows_;

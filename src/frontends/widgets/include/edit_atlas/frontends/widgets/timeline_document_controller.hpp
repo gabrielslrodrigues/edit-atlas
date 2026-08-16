@@ -4,6 +4,7 @@
 #include <edit_atlas/core/format_registry.hpp>
 
 #include <edit_atlas/presentation/timeline_document_view_model.hpp>
+#include <edit_atlas/presentation/timeline_filter_model.hpp>
 #include <edit_atlas/presentation/translation.hpp>
 
 #include <edit_atlas/services/timeline_document_export_service.hpp>
@@ -74,6 +75,7 @@ class TimelineDocumentController final : public QObject {
     presentation::ApplicationLanguage language_;
     QWidget &window_;
     presentation::TimelineDocumentViewModel view_model_;
+    presentation::TimelineFilterModel filter_model_;
     TimelineTemplateController *template_controller_ = nullptr;
     QProgressDialog *export_progress_ = nullptr;
     bool interactions_enabled_ = true;
