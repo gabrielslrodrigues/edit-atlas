@@ -21,7 +21,7 @@ if(WIN32)
     )
     set(edit_atlas_qt_widgets_pattern "Qt6Widgets(d)?\\.dll")
     set(edit_atlas_qt_qml_pattern "Qt6Qml(d)?\\.dll")
-    set(edit_atlas_qt_quick_pattern "Qt6Quick(d)?\\.dll")
+    set(edit_atlas_qt_quick_controls_pattern "Qt6QuickControls2(d)?\\.dll")
 elseif(APPLE)
     find_program(
         edit_atlas_dependency_tool
@@ -38,8 +38,8 @@ elseif(APPLE)
         "(libQt6Qml[^ ]*\\.dylib|QtQml\\.framework)"
     )
     set(
-        edit_atlas_qt_quick_pattern
-        "(libQt6Quick[^ ]*\\.dylib|QtQuick\\.framework)"
+        edit_atlas_qt_quick_controls_pattern
+        "(libQt6QuickControls2[^ ]*\\.dylib|QtQuickControls2\\.framework)"
     )
 elseif(LINUX)
     find_program(
@@ -50,7 +50,7 @@ elseif(LINUX)
     set(edit_atlas_dependency_command "${edit_atlas_dependency_tool}" -d)
     set(edit_atlas_qt_widgets_pattern "libQt6Widgets\\.so")
     set(edit_atlas_qt_qml_pattern "libQt6Qml\\.so")
-    set(edit_atlas_qt_quick_pattern "libQt6Quick\\.so")
+    set(edit_atlas_qt_quick_controls_pattern "libQt6QuickControls2\\.so")
 else()
     message(FATAL_ERROR "Dynamic Qt verification is unsupported on this host.")
 endif()
@@ -76,7 +76,8 @@ if(edit_atlas_dependencies MATCHES "${edit_atlas_qt_widgets_pattern}")
     set(edit_atlas_detected_frontend "widgets")
 elseif(
     edit_atlas_dependencies MATCHES "${edit_atlas_qt_qml_pattern}"
-    AND edit_atlas_dependencies MATCHES "${edit_atlas_qt_quick_pattern}"
+    AND edit_atlas_dependencies MATCHES
+        "${edit_atlas_qt_quick_controls_pattern}"
 )
     set(edit_atlas_detected_frontend "quick")
 else()

@@ -191,7 +191,7 @@ jobs:
             quick_release_preset: release-quick-arm64-osx
             selected_frontend_executable_suffix: edit-atlas.app/Contents/MacOS/edit-atlas
             widgets_debug_executable_suffix: edit-atlas.app/Contents/MacOS/edit-atlas
-            quick_debug_executable_suffix: edit-atlas-quick.app/Contents/MacOS/edit-atlas-quick
+            quick_debug_executable_suffix: edit-atlas-quick
             staged_executable_suffix: edit-atlas.app/Contents/MacOS/edit-atlas
           - name: macOS x64
             os: macos-15-intel
@@ -202,7 +202,7 @@ jobs:
             quick_release_preset: release-quick-x64-osx
             selected_frontend_executable_suffix: edit-atlas.app/Contents/MacOS/edit-atlas
             widgets_debug_executable_suffix: edit-atlas.app/Contents/MacOS/edit-atlas
-            quick_debug_executable_suffix: edit-atlas-quick.app/Contents/MacOS/edit-atlas-quick
+            quick_debug_executable_suffix: edit-atlas-quick
             staged_executable_suffix: edit-atlas.app/Contents/MacOS/edit-atlas
           - name: Windows x64
             os: windows-2022
