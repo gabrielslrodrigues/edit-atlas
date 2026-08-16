@@ -1305,6 +1305,18 @@ Inspecione linhas do tempo editoriais e exporte relatórios estruturados.</trans
         <source>Could not open %1</source>
         <translation>Não foi possível abrir %1</translation>
     </message>
+    <message>
+        <source>%1 events · %2 fps · %3</source>
+        <translation>%1 eventos · %2 fps · %3</translation>
+    </message>
+    <message>
+        <source>drop-frame</source>
+        <translation>drop-frame</translation>
+    </message>
+    <message>
+        <source>non-drop-frame</source>
+        <translation>non-drop-frame</translation>
+    </message>
 </context>
 <context>
     <name>Main</name>

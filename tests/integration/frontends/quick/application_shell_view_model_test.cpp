@@ -7,6 +7,7 @@
 
 #include <edit_atlas/services/built_in_formats.hpp>
 
+#include <QAbstractItemModel>
 #include <QCoreApplication>
 #include <QElapsedTimer>
 #include <QEventLoop>
@@ -72,6 +73,13 @@ TEST_F(ApplicationShellViewModelTest,
     EXPECT_FALSE(shell.IsBusy());
     EXPECT_TRUE(shell.RequestClose());
     EXPECT_EQ(shell.EventCount(), 0U);
+    EXPECT_EQ(shell.VisibleEventCount(), 0U);
+    EXPECT_TRUE(shell.TimelineTitle().isEmpty());
+    EXPECT_TRUE(shell.TimelineSummaryText().isEmpty());
+    EXPECT_EQ(shell.EventModel()->rowCount(), 0);
+    EXPECT_EQ(shell.DiagnosticsModel()->rowCount(), 0);
+    EXPECT_EQ(shell.DiagnosticCount(), 0);
+    EXPECT_EQ(shell.EventSortColumn(), -1);
     EXPECT_TRUE(shell.SourceFileName().isEmpty());
     EXPECT_EQ(shell.StatusText(), QStringLiteral("Ready"));
     EXPECT_TRUE(shell.ErrorText().isEmpty());
@@ -143,6 +151,7 @@ TEST_F(ApplicationShellViewModelTest,
     EXPECT_TRUE(shell.RequestClose());
     EXPECT_EQ(frame_rate_required.count(), 1);
     EXPECT_FALSE(shell.ErrorText().isEmpty());
+    EXPECT_EQ(shell.DiagnosticsModel()->rowCount(), shell.DiagnosticCount());
 
     shell.RetryWithFrameRate(QStringLiteral("24"));
 
@@ -152,10 +161,28 @@ TEST_F(ApplicationShellViewModelTest,
     }));
     EXPECT_EQ(shell.SourceFileName(), QStringLiteral("mixed_tracks.edl"));
     EXPECT_EQ(shell.EventCount(), 4U);
+    EXPECT_EQ(shell.VisibleEventCount(), 4U);
+    EXPECT_EQ(shell.TimelineTitle(), QStringLiteral("SYNTHETIC MIXED TRACKS"));
+    EXPECT_EQ(shell.TimelineSummaryText(),
+              QStringLiteral("4 events · 24 fps · non-drop-frame"));
+    ASSERT_EQ(shell.EventModel()->rowCount(), 4);
     EXPECT_EQ(shell.StatusText(), QStringLiteral("Loaded mixed_tracks.edl"));
     EXPECT_EQ(shell.RecentFiles(), QStringList{PathText(fixture)});
     EXPECT_GE(document_state_changed.count(), 4);
     EXPECT_EQ(recent_files_changed.count(), 1);
+
+    shell.ToggleEventSort(0);
+    EXPECT_EQ(shell.EventSortColumn(), 0);
+    EXPECT_TRUE(shell.EventSortAscending());
+    EXPECT_EQ(shell.EventModel()->data(shell.EventModel()->index(0, 0))
+                  .toString(),
+              QStringLiteral("001"));
+
+    shell.ToggleEventSort(0);
+    EXPECT_FALSE(shell.EventSortAscending());
+    EXPECT_EQ(shell.EventModel()->data(shell.EventModel()->index(0, 0))
+                  .toString(),
+              QStringLiteral("004"));
 }
 
 TEST_F(ApplicationShellViewModelTest, IgnoresUnsupportedOpenRequests) {
