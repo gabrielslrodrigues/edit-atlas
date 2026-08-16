@@ -7,6 +7,8 @@ import QtQuick.Layouts
 ApplicationWindow {
     id: window
 
+    objectName: "mainWindow"
+
     required property ApplicationShell applicationShell
     property bool frameRatePromptPending: false
     property url pendingSpreadsheetDestinationUrl: ""
@@ -102,6 +104,24 @@ ApplicationWindow {
     palette.window: Atlas.Theme.window
     palette.windowText: Atlas.Theme.textPrimary
 
+    Binding {
+        property: "id"
+        target: window.contentItem.Accessible
+        value: window.objectName
+    }
+
+    Binding {
+        property: "name"
+        target: window.contentItem.Accessible
+        value: window.title
+    }
+
+    Binding {
+        property: "role"
+        target: window.contentItem.Accessible
+        value: Accessible.Application
+    }
+
     onClosing: close => {
         if (!applicationShell.RequestClose()) {
             close.accepted = false
@@ -111,14 +131,17 @@ ApplicationWindow {
 
     menuBar: MenuBar {
         Accessible.name: qsTr("Application menu")
+        objectName: "applicationMenuBar"
 
         Menu {
+            objectName: "fileMenu"
             title: qsTr("&File")
 
             Action {
                 id: openAction
 
                 enabled: !applicationShell.busy
+                objectName: "openDocumentAction"
                 shortcut: StandardKey.Open
                 text: qsTr("&Open Timeline…")
                 onTriggered: openDialog.open()
@@ -128,14 +151,17 @@ ApplicationWindow {
                 id: recentFilesMenu
 
                 enabled: !applicationShell.busy
+                objectName: "recentFilesMenu"
                 title: qsTr("Open &Recent")
 
                 Instantiator {
                     model: applicationShell.recentFiles
 
                     delegate: MenuItem {
+                        required property int index
                         required property string modelData
 
+                        objectName: "recentFileAction" + index
                         text: applicationShell.FileName(modelData)
                         ToolTip.text: modelData
                         ToolTip.visible: hovered
@@ -162,6 +188,7 @@ ApplicationWindow {
             MenuItem {
                 checkable: true
                 checked: applicationShell.rememberRecentFiles
+                objectName: "rememberRecentFilesAction"
                 text: qsTr("Remember Recent Files")
                 Accessible.description: qsTr("When enabled, Edit Atlas stores only the paths of opened files.")
                 onTriggered: {
@@ -173,6 +200,7 @@ ApplicationWindow {
 
             Action {
                 enabled: applicationShell.spreadsheetExport.available
+                objectName: "exportAction"
                 text: qsTr("&Export Spreadsheet…")
                 onTriggered: spreadsheetExportDialog.openForExport()
             }
@@ -180,6 +208,7 @@ ApplicationWindow {
             MenuSeparator {}
 
             Action {
+                objectName: "exitAction"
                 shortcut: StandardKey.Quit
                 text: qsTr("E&xit")
                 onTriggered: window.close()
@@ -187,11 +216,13 @@ ApplicationWindow {
         }
 
         Menu {
+            objectName: "languageSelector"
             title: qsTr("&Language")
 
             MenuItem {
                 checkable: true
                 checked: applicationShell.languageCode === "pt_BR"
+                objectName: "brazilianPortugueseLanguageAction"
                 text: "Português (Brasil)"
                 onTriggered: applicationShell.languageCode = "pt_BR"
             }
@@ -199,16 +230,19 @@ ApplicationWindow {
             MenuItem {
                 checkable: true
                 checked: applicationShell.languageCode === "en"
+                objectName: "englishLanguageAction"
                 text: "English"
                 onTriggered: applicationShell.languageCode = "en"
             }
         }
 
         Menu {
+            objectName: "helpMenu"
             title: qsTr("&Help")
 
             Action {
                 enabled: !applicationShell.busy
+                objectName: "exportDiagnosticLogsAction"
                 text: qsTr("Export Diagnostic &Logs…")
                 onTriggered: supportBundleDialog.openForExport()
             }
@@ -216,6 +250,7 @@ ApplicationWindow {
             MenuSeparator {}
 
             Action {
+                objectName: "aboutAction"
                 text: qsTr("&About Edit Atlas")
                 onTriggered: aboutDialog.open()
             }
@@ -261,6 +296,7 @@ ApplicationWindow {
                 Accessible.description: qsTr("Choose a local timeline file to inspect")
                 enabled: !applicationShell.busy
                 highlighted: true
+                objectName: "headerOpenButton"
                 text: qsTr("Open Timeline")
                 visible: !applicationShell.empty
                 onClicked: openDialog.open()
@@ -283,10 +319,12 @@ ApplicationWindow {
             anchors.rightMargin: Atlas.DesignTokens.spacingLarge
             color: Atlas.Theme.textSecondary
             elide: Text.ElideMiddle
+            objectName: "statusLabel"
             text: applicationShell.statusText
             verticalAlignment: Text.AlignVCenter
 
             Accessible.name: qsTr("Status")
+            Accessible.id: objectName
             Accessible.description: text
         }
     }
@@ -306,9 +344,13 @@ ApplicationWindow {
     }
 
     StackLayout {
+        id: documentStack
+
         anchors.fill: parent
         anchors.margins: Atlas.DesignTokens.spacingExtraLarge
         currentIndex: applicationShell.documentState
+        Accessible.id: objectName
+        objectName: "documentStack"
 
         Item {
             Accessible.name: qsTr("No timeline open")
@@ -346,6 +388,7 @@ ApplicationWindow {
                         Layout.alignment: Qt.AlignHCenter
                         Accessible.description: qsTr("Choose a local timeline file to inspect")
                         highlighted: true
+                        objectName: "emptyOpenButton"
                         text: qsTr("Open Timeline")
                         onClicked: openDialog.open()
                     }
@@ -368,6 +411,8 @@ ApplicationWindow {
                 Label {
                     color: Atlas.Theme.textPrimary
                     font.pointSize: Atlas.DesignTokens.headingPointSize
+                    Accessible.id: objectName
+                    objectName: "loadingLabel"
                     text: qsTr("Opening %1…").arg(applicationShell.sourceFileName)
                 }
             }
@@ -394,17 +439,23 @@ ApplicationWindow {
                             elide: Text.ElideMiddle
                             font.pointSize: Atlas.DesignTokens.titlePointSize
                             font.weight: Font.DemiBold
+                            Accessible.id: objectName
+                            objectName: "timelineTitleLabel"
                             text: applicationShell.timelineTitle
                         }
 
                         Label {
                             color: Atlas.Theme.textSecondary
+                            Accessible.id: objectName
+                            objectName: "timelineSummary"
                             text: applicationShell.timelineSummaryText
                         }
                     }
 
                     Label {
                         color: Atlas.Theme.textSecondary
+                        Accessible.id: objectName
+                        objectName: "filterResultLabel"
                         text: qsTr("Showing %1 of %2 events")
                                   .arg(applicationShell.visibleEventCount)
                                   .arg(applicationShell.eventCount)
@@ -414,6 +465,7 @@ ApplicationWindow {
                         Accessible.description: qsTr("Export the currently shown timeline events as an Excel workbook")
                         enabled: applicationShell.spreadsheetExport.available
                         highlighted: true
+                        objectName: "timelineExportButton"
                         text: qsTr("Export Spreadsheet")
                         onClicked: spreadsheetExportDialog.openForExport()
                     }
@@ -423,12 +475,14 @@ ApplicationWindow {
                     Layout.fillWidth: true
                     availableHeight: window.height
                     configuration: applicationShell.timelineConfiguration
+                    objectName: "timelineFilter"
                 }
 
                 TimelineTable {
                     Layout.fillHeight: true
                     Layout.fillWidth: true
                     applicationShell: window.applicationShell
+                    objectName: "eventTable"
                 }
 
                 DiagnosticsPanel {
@@ -437,6 +491,7 @@ ApplicationWindow {
                     Layout.minimumHeight: 160
                     diagnosticCount: applicationShell.diagnosticCount
                     diagnosticsModel: applicationShell.diagnosticsModel
+                    objectName: "timelineDiagnosticsTree"
                     visible: applicationShell.diagnosticCount > 0
                 }
             }
@@ -476,6 +531,8 @@ ApplicationWindow {
                         Label {
                             Layout.fillWidth: true
                             color: Atlas.Theme.textSecondary
+                            Accessible.id: objectName
+                            objectName: "failureDescriptionLabel"
                             text: applicationShell.errorText
                             wrapMode: Text.WordWrap
                         }
@@ -483,6 +540,7 @@ ApplicationWindow {
                         Button {
                             Accessible.description: qsTr("Choose a different local timeline file")
                             highlighted: true
+                            objectName: "failureOpenButton"
                             text: qsTr("Open Another Timeline")
                             onClicked: openDialog.open()
                         }
@@ -494,6 +552,7 @@ ApplicationWindow {
                     Layout.fillWidth: true
                     diagnosticCount: applicationShell.diagnosticCount
                     diagnosticsModel: applicationShell.diagnosticsModel
+                    objectName: "diagnosticsTree"
                     visible: applicationShell.diagnosticCount > 0
                 }
             }
@@ -504,6 +563,7 @@ ApplicationWindow {
         id: openDialog
 
         fileMode: FileDialog.OpenFile
+        objectName: "timelineOpenFileDialog"
         nameFilters: [
             qsTr("Supported timeline files (%1)")
                 .arg(applicationShell.importFilePatterns.length === 0
@@ -529,6 +589,7 @@ ApplicationWindow {
         id: renderedVideoDialog
 
         fileMode: FileDialog.OpenFile
+        objectName: "renderedVideoOpenFileDialog"
         nameFilters: [
             qsTr("Supported video files (*.mov *.mp4 *.mxf)"),
             qsTr("All files (*)")
@@ -549,6 +610,7 @@ ApplicationWindow {
             qsTr("Excel workbook (*.xlsx)"),
             qsTr("All files (*)")
         ]
+        objectName: "spreadsheetSaveFileDialog"
         parentWindow: window
         popupType: Popup.Item
         title: qsTr("Export Spreadsheet")
@@ -577,6 +639,7 @@ ApplicationWindow {
                 qsTr("All files (*)")
             ]
             options: FileDialog.DontConfirmOverwrite
+            objectName: "supportBundleSaveFileDialog"
             parentWindow: window
             popupType: Popup.Item
             title: qsTr("Export Diagnostic Logs")
@@ -598,6 +661,7 @@ ApplicationWindow {
         anchors.centerIn: parent
         closePolicy: Popup.NoAutoClose
         modal: true
+        objectName: "frameRateDialog"
         standardButtons: Dialog.Ok | Dialog.Cancel
         title: qsTr("Select Frame Rate")
 
@@ -626,7 +690,12 @@ ApplicationWindow {
                     qsTr("30 fps"), qsTr("50 fps"),
                     qsTr("59.94 fps"), qsTr("60 fps")
                 ]
+                objectName: "frameRateSelector"
             }
+        }
+        Component.onCompleted: {
+            standardButton(Dialog.Ok).objectName = "acceptFrameRateButton"
+            standardButton(Dialog.Cancel).objectName = "cancelFrameRateButton"
         }
         onAccepted: {
             applicationShell.RetryWithFrameRate(
@@ -639,6 +708,7 @@ ApplicationWindow {
 
         anchors.centerIn: parent
         modal: true
+        objectName: "operationInProgressDialog"
         standardButtons: Dialog.Ok
         title: qsTr("Operation in Progress")
 
@@ -653,6 +723,7 @@ ApplicationWindow {
 
         applicationLanguageCode: applicationShell.languageCode
         configuration: applicationShell.timelineConfiguration
+        objectName: "spreadsheetOptionsDialog"
         workflow: applicationShell.spreadsheetExport
         onDestinationRequested: suggestedDestination => {
             spreadsheetSaveDialog.selectedFile = suggestedDestination
@@ -667,6 +738,7 @@ ApplicationWindow {
     SupportBundleDialog {
         id: supportBundleDialog
 
+        objectName: "supportBundleDisclosureDialog"
         workflow: applicationShell.supportBundle
         onDestinationRequested: suggestedDestination => {
             const dialog = supportBundleSaveDialogComponent.createObject(
@@ -680,6 +752,7 @@ ApplicationWindow {
         id: aboutDialog
 
         information: applicationShell.applicationInformation
+        objectName: "aboutDialog"
     }
 
     Connections {

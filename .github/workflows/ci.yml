@@ -459,13 +459,14 @@ jobs:
           if-no-files-found: error
           retention-days: 3
 
-      - name: Upload configuration logs
+      - name: Upload build and test diagnostics
         if: failure()
         uses: actions/upload-artifact@v7
         with:
-          name: ${{ runner.os }}-${{ runner.arch }}-configuration-logs
+          name: ${{ runner.os }}-${{ runner.arch }}-build-test-diagnostics
           path: |
             build/*/CMakeFiles/CMakeConfigureLog.yaml
+            build/*/Testing/Temporary
             build/*/vcpkg-manifest-install.log
             vcpkg/buildtrees/**/*.log
           if-no-files-found: ignore

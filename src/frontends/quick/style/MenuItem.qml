@@ -5,6 +5,9 @@ import QtQuick.Templates as T
 T.MenuItem {
     id: control
 
+    Accessible.id: objectName
+    Accessible.name: text
+    Accessible.role: Accessible.MenuItem
     bottomPadding: DesignTokens.spacingSmall
     leftPadding: DesignTokens.spacingMedium
     rightPadding: DesignTokens.spacingMedium
@@ -16,6 +19,9 @@ T.MenuItem {
                              + bottomPadding)
     implicitWidth: Math.max(272, contentItem.implicitWidth + leftPadding
                             + rightPadding)
+    objectName: action !== null && action.objectName.length > 0
+                ? action.objectName
+                : subMenu !== null ? subMenu.objectName : ""
 
     contentItem: IconLabel {
         readonly property real arrowPadding: control.subMenu

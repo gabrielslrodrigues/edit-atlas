@@ -11,10 +11,15 @@ Dialog {
     anchors.centerIn: parent
     height: Math.min(620, parent.height - Atlas.DesignTokens.spacingExtraLarge)
     modal: true
+    objectName: "eventProjectionDialog"
     parent: Overlay.overlay
     standardButtons: Dialog.Close
     title: qsTr("Export Columns")
     width: Math.min(560, parent.width - Atlas.DesignTokens.spacingExtraLarge)
+
+    Component.onCompleted: {
+        standardButton(Dialog.Close).objectName = "closeProjectionButton"
+    }
 
     ColumnLayout {
         anchors.fill: parent
@@ -32,9 +37,11 @@ Dialog {
 
             Layout.fillHeight: true
             Layout.fillWidth: true
+            Accessible.id: objectName
             Accessible.name: qsTr("Export event columns")
             clip: true
             model: root.configuration.eventProjectionModel
+            objectName: "eventColumnsList"
             spacing: Atlas.DesignTokens.spacingExtraSmall
 
             delegate: Rectangle {
@@ -42,6 +49,16 @@ Dialog {
 
                 required property int index
                 required property var model
+
+                Accessible.checkable: true
+                Accessible.checked: projectionRow.model.selected
+                Accessible.id: objectName
+                Accessible.name: projectionRow.model.display
+                Accessible.role: Accessible.ListItem
+                Accessible.onToggleAction: {
+                    root.configuration.SetEventProjectionSelected(
+                        projectionRow.index, !projectionRow.model.selected)
+                }
 
                 function reorderAt(position) {
                     const contentPosition = projectionList.contentItem
@@ -63,6 +80,7 @@ Dialog {
                        ? Atlas.Theme.control : Atlas.Theme.surface
                 height: Atlas.DesignTokens.controlHeight
                 radius: Atlas.DesignTokens.radiusMedium
+                objectName: "eventColumn" + index
                 width: ListView.view.width
 
                 RowLayout {
@@ -105,6 +123,8 @@ Dialog {
                     CheckBox {
                         Layout.fillWidth: true
                         checked: projectionRow.model.selected
+                        objectName: "eventColumn" + projectionRow.index
+                                    + "CheckBox"
                         text: projectionRow.model.display
                         onToggled: root.configuration.SetEventProjectionSelected(
                                        projectionRow.index, checked)
@@ -117,6 +137,8 @@ Dialog {
                             Accessible.description: qsTr("Move %1 up")
                                                         .arg(projectionRow.model.display)
                             enabled: projectionRow.index > 0
+                            objectName: "eventColumn" + projectionRow.index
+                                        + "MoveUpButton"
                             text: "↑"
                             onClicked: root.configuration.MoveEventProjectionUp(
                                            projectionRow.index)
@@ -127,6 +149,8 @@ Dialog {
                                                         .arg(projectionRow.model.display)
                             enabled: projectionRow.index
                                      < projectionList.count - 1
+                            objectName: "eventColumn" + projectionRow.index
+                                        + "MoveDownButton"
                             text: "↓"
                             onClicked: root.configuration.MoveEventProjectionDown(
                                            projectionRow.index)

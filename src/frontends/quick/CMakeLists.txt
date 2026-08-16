@@ -16,55 +16,55 @@ set_target_properties(
 )
 
 set_source_files_properties(
-    qml/AboutDialog.qml
+    views/AboutDialog.qml
     PROPERTIES
         QT_RESOURCE_ALIAS AboutDialog.qml
 )
 
 set_source_files_properties(
-    qml/Main.qml
+    views/Main.qml
     PROPERTIES
         QT_RESOURCE_ALIAS Main.qml
 )
 
 set_source_files_properties(
-    qml/SpreadsheetExportDialog.qml
+    views/SpreadsheetExportDialog.qml
     PROPERTIES
         QT_RESOURCE_ALIAS SpreadsheetExportDialog.qml
 )
 
 set_source_files_properties(
-    qml/SupportBundleDialog.qml
+    views/SupportBundleDialog.qml
     PROPERTIES
         QT_RESOURCE_ALIAS SupportBundleDialog.qml
 )
 
 set_source_files_properties(
-    qml/DiagnosticsPanel.qml
+    views/DiagnosticsPanel.qml
     PROPERTIES
         QT_RESOURCE_ALIAS DiagnosticsPanel.qml
 )
 
 set_source_files_properties(
-    qml/EventProjectionDialog.qml
+    views/EventProjectionDialog.qml
     PROPERTIES
         QT_RESOURCE_ALIAS EventProjectionDialog.qml
 )
 
 set_source_files_properties(
-    qml/TimelineConfigurationPanel.qml
+    views/TimelineConfigurationPanel.qml
     PROPERTIES
         QT_RESOURCE_ALIAS TimelineConfigurationPanel.qml
 )
 
 set_source_files_properties(
-    qml/TimelineFilterCondition.qml
+    views/TimelineFilterCondition.qml
     PROPERTIES
         QT_RESOURCE_ALIAS TimelineFilterCondition.qml
 )
 
 set_source_files_properties(
-    qml/TimelineTable.qml
+    views/TimelineTable.qml
     PROPERTIES
         QT_RESOURCE_ALIAS TimelineTable.qml
 )
@@ -85,15 +85,15 @@ qt_add_qml_module(
         include/edit_atlas/frontends/quick/support_bundle_view_model.hpp
         include/edit_atlas/frontends/quick/timeline_configuration_view_model.hpp
     QML_FILES
-        qml/AboutDialog.qml
-        qml/DiagnosticsPanel.qml
-        qml/EventProjectionDialog.qml
-        qml/Main.qml
-        qml/SpreadsheetExportDialog.qml
-        qml/SupportBundleDialog.qml
-        qml/TimelineConfigurationPanel.qml
-        qml/TimelineFilterCondition.qml
-        qml/TimelineTable.qml
+        views/AboutDialog.qml
+        views/DiagnosticsPanel.qml
+        views/EventProjectionDialog.qml
+        views/Main.qml
+        views/SpreadsheetExportDialog.qml
+        views/SupportBundleDialog.qml
+        views/TimelineConfigurationPanel.qml
+        views/TimelineFilterCondition.qml
+        views/TimelineTable.qml
 )
 
 target_include_directories(

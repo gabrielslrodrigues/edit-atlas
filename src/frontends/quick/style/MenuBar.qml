@@ -4,6 +4,8 @@ import QtQuick.Templates as T
 T.MenuBar {
     id: control
 
+    Accessible.id: objectName
+    Accessible.role: Accessible.MenuBar
     bottomPadding: 1
     spacing: 0
 

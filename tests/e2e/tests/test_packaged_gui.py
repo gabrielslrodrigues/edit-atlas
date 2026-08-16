@@ -9,6 +9,17 @@ from inspectors.support_bundle import SupportBundle
 from inspectors.xlsx import XlsxWorkbook
 
 
+def test_about_dialog_exposes_application_information(
+    edit_atlas_application: EditAtlasApplication,
+) -> None:
+    app = edit_atlas_application
+    app.switch_language("English")
+    information = app.about_information()
+
+    for expected in ("Edit Atlas", "structured reports"):
+        assert any(expected in text for text in information)
+
+
 def test_startup_import_failure_recovery_and_preferences_persist(
     edit_atlas_application: EditAtlasApplication,
     fixture_directory: Path,

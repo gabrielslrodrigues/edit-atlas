@@ -6,6 +6,8 @@ import QtQuick.Templates as T
 T.ComboBox {
     id: control
 
+    Accessible.id: objectName
+    Accessible.role: Accessible.ComboBox
     bottomPadding: DesignTokens.spacingSmall
     leftPadding: DesignTokens.spacingMedium
     rightPadding: DesignTokens.spacingExtraLarge

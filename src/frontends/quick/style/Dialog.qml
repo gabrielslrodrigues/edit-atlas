@@ -7,6 +7,27 @@ T.Dialog {
     padding: DesignTokens.spacingMedium
     spacing: DesignTokens.spacingSmall
 
+    Binding {
+        property: "id"
+        target: control.contentItem !== null
+                ? control.contentItem.Accessible : null
+        value: control.objectName
+    }
+
+    Binding {
+        property: "name"
+        target: control.contentItem !== null
+                ? control.contentItem.Accessible : null
+        value: control.title
+    }
+
+    Binding {
+        property: "role"
+        target: control.contentItem !== null
+                ? control.contentItem.Accessible : null
+        value: Accessible.Dialog
+    }
+
     implicitHeight: Math.max(
                         implicitBackgroundHeight + topInset + bottomInset,
                         implicitContentHeight + topPadding + bottomPadding

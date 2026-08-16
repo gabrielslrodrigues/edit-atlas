@@ -7,8 +7,10 @@ text.
 
 Qt widgets and dialogs use `accessibleIdentifier`. `QAction` does not provide
 that property, so actions use the same value for `objectName` and a dynamic
-`accessibleIdentifier` property. Platform adapters may use the action name
-exposed by the Qt accessibility bridge.
+`accessibleIdentifier` property. Qt Quick views use the same `objectName` for
+in-process lookup and bind it to `Accessible.id`, which Qt's accessibility
+bridges expose as the native automation identifier. Platform adapters may use
+the action name exposed by the Qt accessibility bridge.
 
 Identifiers are unique within a simultaneously displayed window or dialog.
 Common modal controls such as `closeDialogButton` may be reused across dialogs
@@ -56,6 +58,14 @@ a row after operations that add, remove, clear, or apply filter conditions.
 | Spreadsheet option buttons | `continueSpreadsheetExportButton`, `cancelSpreadsheetExportButton` |
 | Initial-frame export progress | `spreadsheetExportProgressDialog`, `cancelFrameExtractionButton` |
 
+The Widgets projection editor exposes one selected row and shared
+`moveColumnUpButton` and `moveColumnDownButton` actions. Qt Quick exposes the
+equivalent controls on every projected row as
+`eventColumnNMoveUpButton`, `eventColumnNMoveDownButton`, and
+`eventColumnNCheckBox`. Its projection dialog applies changes immediately and
+uses `closeProjectionButton`. Semantic E2E operations accommodate both forms
+without selecting controls by translated text.
+
 ## Workflow dialogs
 
 File selection uses `timelineOpenFileDialog`, `spreadsheetSaveFileDialog`, and
@@ -92,4 +102,7 @@ The remaining workflow identifiers are:
 - `aboutDialog` with `closeDialogButton`.
 
 Integration tests enforce required coverage, uniqueness, dynamic-row
-renumbering, and stability across application translation changes.
+renumbering, and stability across application translation changes. Qt Quick
+Test additionally enforces QML bindings, accessible names and roles, keyboard
+focus, projected controls, and dialog cancellation against the real shared
+ViewModels.

@@ -17,6 +17,8 @@ Atlas.Surface {
 
     implicitHeight: configurationLayout.implicitHeight
                     + Atlas.DesignTokens.spacingMedium * 2
+    Accessible.id: objectName
+    objectName: "timelineFilter"
 
     ColumnLayout {
         id: configurationLayout
@@ -43,6 +45,7 @@ Atlas.Surface {
                 Accessible.name: qsTr("Saved template")
                 currentIndex: root.configuration.activeTemplateRow
                 model: root.configuration.templateModel
+                objectName: "templateSelector"
                 textRole: "display"
                 onActivated: index =>
                     root.configuration.SelectTemplateRow(index)
@@ -59,6 +62,7 @@ Atlas.Surface {
             }
 
             Button {
+                objectName: "toggleFiltersButton"
                 text: root.expanded ? qsTr("Hide Filters")
                                     : qsTr("Show Filters")
                 onClicked: root.expanded = !root.expanded
@@ -72,6 +76,7 @@ Atlas.Surface {
             Button {
                 enabled: root.configuration.filterValid
                          && root.configuration.eventProjectionValid
+                objectName: "templatePrimaryButton"
                 text: qsTr("Save New")
                 onClicked: templateNameDialog.openFor(0)
             }
@@ -81,6 +86,7 @@ Atlas.Surface {
                          && root.configuration.templateModified
                          && root.configuration.filterValid
                          && root.configuration.eventProjectionValid
+                objectName: "updateTemplateButton"
                 text: qsTr("Update")
                 onClicked: {
                     if (!root.configuration.UpdateActiveTemplate()) {
@@ -93,20 +99,24 @@ Atlas.Surface {
                 id: templateActionsButton
 
                 enabled: root.configuration.hasActiveTemplate
+                objectName: "templateActionsButton"
                 text: qsTr("Template Actions")
                 onClicked: templateActionsMenu.open()
 
                 Menu {
                     id: templateActionsMenu
 
+                    objectName: "templateActionsMenu"
                     y: templateActionsButton.height
 
                     MenuItem {
+                        objectName: "renameTemplateAction"
                         text: qsTr("Rename")
                         onTriggered: templateNameDialog.openFor(1)
                     }
 
                     MenuItem {
+                        objectName: "duplicateTemplateAction"
                         text: qsTr("Duplicate")
                         onTriggered: templateNameDialog.openFor(2)
                     }
@@ -114,6 +124,7 @@ Atlas.Surface {
                     MenuSeparator {}
 
                     MenuItem {
+                        objectName: "deleteTemplateAction"
                         text: qsTr("Delete")
                         onTriggered: deleteTemplateDialog.open()
                     }
@@ -125,6 +136,7 @@ Atlas.Surface {
             }
 
             Button {
+                objectName: "editExportColumnsAction"
                 text: qsTr("Export Columns")
                 onClicked: eventProjectionDialog.open()
             }
@@ -152,6 +164,7 @@ Atlas.Surface {
                 Accessible.name: qsTr("Filter combination")
                 currentIndex: root.configuration.filterCombination
                 model: root.configuration.filterCombinationNames
+                objectName: "filterCombination"
                 onActivated: index => root.configuration.filterCombination
                                       = index
             }
@@ -161,12 +174,14 @@ Atlas.Surface {
             }
 
             Button {
+                objectName: "clearFiltersButton"
                 text: qsTr("Clear")
                 onClicked: root.configuration.ClearFilter()
             }
 
             Button {
                 highlighted: true
+                objectName: "addFilterConditionButton"
                 text: qsTr("Add Condition")
                 onClicked: root.configuration.AddFilterCondition()
             }
@@ -180,9 +195,11 @@ Atlas.Surface {
                                            Atlas.DesignTokens.controlHeight)
             Layout.preferredHeight: Math.min(contentHeight,
                                              root.maximumFilterHeight)
+            Accessible.id: objectName
             Accessible.name: qsTr("Timeline filters")
             clip: true
             model: root.configuration.filterModel
+            objectName: "filterConditionsScrollArea"
             spacing: Atlas.DesignTokens.spacingSmall
             visible: root.expanded
 
@@ -202,7 +219,9 @@ Atlas.Surface {
 
         Label {
             Layout.fillWidth: true
+            Accessible.id: objectName
             color: Atlas.Theme.accent
+            objectName: "filterErrorLabel"
             text: root.configuration.filterErrorText
             visible: root.expanded && text.length > 0
             wrapMode: Text.WordWrap
@@ -213,6 +232,7 @@ Atlas.Surface {
         id: eventProjectionDialog
 
         configuration: root.configuration
+        objectName: "eventProjectionDialog"
     }
 
     Dialog {
@@ -241,6 +261,7 @@ Atlas.Surface {
 
         anchors.centerIn: parent
         modal: true
+        objectName: "templateNameDialog"
         parent: Overlay.overlay
         standardButtons: Dialog.Save | Dialog.Cancel
 
@@ -256,7 +277,13 @@ Atlas.Surface {
 
                 Accessible.name: qsTr("Template name")
                 Layout.preferredWidth: Atlas.DesignTokens.textFieldWidth
+                objectName: "templateNameEditor"
             }
+        }
+
+        Component.onCompleted: {
+            standardButton(Dialog.Save).objectName = "acceptTemplateNameButton"
+            standardButton(Dialog.Cancel).objectName = "cancelTemplateNameButton"
         }
 
         onAccepted: {
@@ -282,9 +309,15 @@ Atlas.Surface {
 
         anchors.centerIn: parent
         modal: true
+        objectName: "deleteTemplateDialog"
         parent: Overlay.overlay
         standardButtons: Dialog.Yes | Dialog.No
         title: qsTr("Delete Template?")
+
+        Component.onCompleted: {
+            standardButton(Dialog.Yes).objectName = "confirmDeleteTemplateButton"
+            standardButton(Dialog.No).objectName = "cancelDeleteTemplateButton"
+        }
 
         Label {
             text: qsTr("Delete the template “%1”? This cannot be undone.")
