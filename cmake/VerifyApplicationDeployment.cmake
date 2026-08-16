@@ -471,6 +471,23 @@ elseif(LINUX)
                 "plugins."
             )
         endif()
+        file(
+            GET_RUNTIME_DEPENDENCIES
+            MODULES ${edit_atlas_linux_qml_plugins}
+            DIRECTORIES "${edit_atlas_private_runtime_directory}"
+            RESOLVED_DEPENDENCIES_VAR
+                edit_atlas_linux_qml_runtime_dependencies
+            UNRESOLVED_DEPENDENCIES_VAR
+                edit_atlas_linux_qml_unresolved_dependencies
+        )
+        if(edit_atlas_linux_qml_unresolved_dependencies)
+            message(
+                FATAL_ERROR
+                "The staged QML plugins have unresolved runtime "
+                "dependencies: "
+                "${edit_atlas_linux_qml_unresolved_dependencies}"
+            )
+        endif()
         foreach(
             edit_atlas_linux_qml_plugin
             IN LISTS edit_atlas_linux_qml_plugins

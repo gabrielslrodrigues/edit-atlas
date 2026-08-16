@@ -95,13 +95,34 @@ edit_atlas_deploy_windows_qt_platform_plugin(
     Qt6::QMinimalIntegrationPlugin
 )
 
-add_test(
-    NAME edit_atlas_quick_qml_tests
-    COMMAND edit_atlas_quick_qml_tests
-)
-set_tests_properties(
-    edit_atlas_quick_qml_tests
-    PROPERTIES
-        LABELS integration
-        TIMEOUT 30
-)
+# vcpkg's macOS Qt packages mix ABI and fully versioned dylib install names.
+# Loading the Qt QML modules into this non-bundled test executable therefore
+# registers some Qt Quick modules twice. The QML view suite runs on Linux and
+# Windows, while the compiled Quick frontend and packaged app remain validated
+# on macOS.
+if(NOT APPLE)
+    add_test(
+        NAME edit_atlas_quick_qml_tests
+        COMMAND edit_atlas_quick_qml_tests
+    )
+    set_tests_properties(
+        edit_atlas_quick_qml_tests
+        PROPERTIES
+            LABELS integration
+            TIMEOUT 30
+    )
+    if(WIN32)
+        string(
+            CONCAT edit_atlas_quick_qml_import_path
+            "$<IF:$<CONFIG:Debug>,"
+            "${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/debug/Qt6/qml,"
+            "${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/Qt6/qml>"
+        )
+        set_tests_properties(
+            edit_atlas_quick_qml_tests
+            PROPERTIES
+                ENVIRONMENT
+                    "QML2_IMPORT_PATH=${edit_atlas_quick_qml_import_path}"
+        )
+    endif()
+endif()
