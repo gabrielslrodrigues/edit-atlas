@@ -36,6 +36,7 @@ edit_atlas_normalize_macos_qt_dependencies(
 )
 edit_atlas_deploy_windows_qt_platform_plugin(
     edit_atlas_quick_frontend_integration_tests
+    Qt6::QWindowsIntegrationPlugin
 )
 
 include(GoogleTest)

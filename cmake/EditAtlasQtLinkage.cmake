@@ -54,9 +54,6 @@ function(
         return()
     endif()
 
-    if(NOT platform_plugin)
-        set(platform_plugin Qt6::QWindowsIntegrationPlugin)
-    endif()
     string(
         CONCAT
         edit_atlas_qt_platform_plugin_destination
