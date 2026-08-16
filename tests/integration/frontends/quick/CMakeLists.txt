@@ -3,10 +3,8 @@ add_executable(edit_atlas_quick_frontend_integration_tests)
 target_sources(
     edit_atlas_quick_frontend_integration_tests
     PRIVATE
-        application_information_view_model_test.cpp
         application_shell_view_model_test.cpp
         spreadsheet_export_view_model_test.cpp
-        support_bundle_view_model_test.cpp
         test_main.cpp
         timeline_configuration_view_model_test.cpp
 )

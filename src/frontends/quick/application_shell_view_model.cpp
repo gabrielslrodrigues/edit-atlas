@@ -66,8 +66,7 @@ ApplicationShellViewModel::ApplicationShellViewModel(
       language_{initial_language}, document_view_model_{registry_},
       timeline_configuration_{document_view_model_,
                               presentation::ConfiguredTemplateDirectory()},
-      spreadsheet_export_{registry_, document_view_model_},
-      application_information_{registry_}, support_bundle_{registry_} {
+      spreadsheet_export_{registry_, document_view_model_} {
     event_proxy_model_.setSourceModel(&document_view_model_.EventModel());
     event_proxy_model_.setSortRole(presentation::TimelineEventModel::kSortRole);
     event_proxy_model_.setDynamicSortFilter(true);
@@ -76,11 +75,6 @@ ApplicationShellViewModel::ApplicationShellViewModel(
             this, &ApplicationShellViewModel::HandleDocumentStateChanged);
     connect(&document_view_model_,
             &presentation::TimelineDocumentViewModel::ExportStateChanged, this,
-            [this](void) {
-                emit BusyChanged();
-                emit StatusTextChanged();
-            });
-    connect(&support_bundle_, &SupportBundleViewModel::busyChanged, this,
             [this](void) {
                 emit BusyChanged();
                 emit StatusTextChanged();
@@ -112,7 +106,7 @@ bool ApplicationShellViewModel::IsEmpty(void) const noexcept {
 }
 
 bool ApplicationShellViewModel::IsBusy(void) const noexcept {
-    return document_view_model_.IsBusy() || support_bundle_.IsBusy();
+    return document_view_model_.IsBusy();
 }
 
 QString ApplicationShellViewModel::SourceFileName(void) const {
@@ -176,16 +170,6 @@ ApplicationShellViewModel::SpreadsheetExport(void) noexcept {
     return &spreadsheet_export_;
 }
 
-ApplicationInformationViewModel *
-ApplicationShellViewModel::ApplicationInformation(void) noexcept {
-    return &application_information_;
-}
-
-SupportBundleViewModel *
-ApplicationShellViewModel::SupportBundle(void) noexcept {
-    return &support_bundle_;
-}
-
 int ApplicationShellViewModel::DiagnosticCount(void) const noexcept {
     return document_view_model_.DiagnosticsModel().rowCount();
 }
@@ -199,9 +183,6 @@ bool ApplicationShellViewModel::EventSortAscending(void) const noexcept {
 }
 
 QString ApplicationShellViewModel::StatusText(void) const {
-    if (support_bundle_.IsBusy()) {
-        return tr("Creating diagnostic support bundle…");
-    }
     if (document_view_model_.ExportState() ==
         presentation::TimelineExportState::kExporting) {
         return tr("Exporting spreadsheet…");
