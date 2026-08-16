@@ -8,6 +8,35 @@ ApplicationWindow {
     id: window
 
     required property ApplicationShell applicationShell
+    property bool frameRatePromptPending: false
+    property url pendingTimelineUrl: ""
+
+    function presentPendingFrameRateDialog() {
+        if (!frameRatePromptPending || openDialog.visible
+                || frameRateDialog.visible) {
+            return
+        }
+        frameRatePromptPending = false
+        frameRateDialog.open()
+    }
+
+    function requestFrameRateDialog() {
+        if (frameRatePromptPending || frameRateDialog.visible) {
+            return
+        }
+        frameRatePromptPending = true
+        Qt.callLater(() => window.presentPendingFrameRateDialog())
+    }
+
+    function startPendingTimelineImport() {
+        if (openDialog.visible || pendingTimelineUrl.toString().length === 0) {
+            return
+        }
+        const selectedUrl = pendingTimelineUrl
+        pendingTimelineUrl = ""
+        frameRatePromptPending = false
+        applicationShell.OpenUrl(selectedUrl)
+    }
 
     height: 700
     minimumHeight: 500
@@ -416,7 +445,16 @@ ApplicationWindow {
             qsTr("All files (*)")
         ]
         title: qsTr("Open Timeline")
-        onAccepted: applicationShell.OpenUrl(selectedFile)
+        onAccepted: {
+            window.pendingTimelineUrl = selectedFile
+            Qt.callLater(() => window.startPendingTimelineImport())
+        }
+        onVisibleChanged: {
+            if (!visible) {
+                Qt.callLater(() => window.startPendingTimelineImport())
+                Qt.callLater(() => window.presentPendingFrameRateDialog())
+            }
+        }
     }
 
     Dialog {
@@ -480,7 +518,7 @@ ApplicationWindow {
         target: applicationShell
 
         function onFrameRateRequired() {
-            frameRateDialog.open()
+            window.requestFrameRateDialog()
         }
     }
 }
