@@ -135,6 +135,8 @@ namespaces mirror that hierarchy. `EditAtlas::WidgetsFrontend` provides the
 provides the developer Qt Quick adapter, while `EditAtlas::CliFrontend`
 provides the `edit_atlas::frontends::cli` terminal adapter and stable process
 outcomes. `EditAtlas::Application` identifies the current default desktop
-application without hiding the concrete frontend targets. Graphical frontends
-should consume the shared presentation APIs; non-Qt callers should integrate
-through the standard C++ domain, format, service, and support interfaces.
+frontend. Both implementations retain concrete frontend targets. Generic
+development builds include both, while frontend-specific builds exclude the
+non-selected implementation from the default build. Graphical frontends should
+consume the shared presentation APIs; non-Qt callers should integrate through
+the standard C++ domain, format, service, and support interfaces.

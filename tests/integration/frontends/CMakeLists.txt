@@ -1,3 +1,15 @@
 add_subdirectory(cli)
-add_subdirectory(quick)
-add_subdirectory(widgets)
+
+if(
+    EDIT_ATLAS_BUILD_FRONTENDS STREQUAL "all"
+    OR EDIT_ATLAS_BUILD_FRONTENDS STREQUAL "quick"
+)
+    add_subdirectory(quick)
+endif()
+
+if(
+    EDIT_ATLAS_BUILD_FRONTENDS STREQUAL "all"
+    OR EDIT_ATLAS_BUILD_FRONTENDS STREQUAL "widgets"
+)
+    add_subdirectory(widgets)
+endif()

@@ -198,13 +198,20 @@ On Windows PowerShell:
 .\build\debug-x64-windows\src\frontends\widgets\edit-atlas.exe
 ```
 
-The developer Qt Quick preview is built as `edit-atlas-quick` but is not
-included in installers. It includes the compiled `EditAtlasStyle` design-system
-module and a light/dark control preview. Run it from a Linux debug build with:
+Ordinary `debug-` and `release-` presets build both graphical frontends plus
+the independent CLI. The Qt Quick frontend includes the compiled
+`EditAtlasStyle` design-system module. Run it from a Linux debug build with:
 
 ```sh
 ./build/debug-x64-linux/src/frontends/quick/edit-atlas-quick
 ```
+
+Widgets remains the default installed frontend until the Qt Quick promotion
+work is complete. The `release-widgets-` and `release-quick-` preset families
+build only their named frontend for package validation.
+`EDIT_ATLAS_DEFAULT_FRONTEND` selects the primary application target and
+installed frontend, while `EDIT_ATLAS_BUILD_FRONTENDS` controls whether a
+build includes both graphical frontends or only one.
 
 Lint every compiled QML module through its generated CMake target:
 

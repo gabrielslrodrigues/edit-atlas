@@ -69,18 +69,24 @@ does not use the differently licensed current WiX command-line tool.
 
 ## Create packages
 
-The Linux workflow configures a release build, builds it, and runs the
-matching CPack generators:
+The explicit Qt Widgets and Qt Quick workflows configure a release build,
+build it, and run the matching CPack generators:
 
 ```sh
-cmake --workflow --preset create-package-x64-linux
+cmake --workflow --preset create-widgets-package-x64-linux
+cmake --workflow --preset create-quick-package-x64-linux
 ```
 
 On Windows PowerShell:
 
 ```powershell
-cmake --workflow --preset create-package-x64-windows
+cmake --workflow --preset create-widgets-package-x64-windows
+cmake --workflow --preset create-quick-package-x64-windows
 ```
+
+The generic `create-package-` workflows continue to follow the project's
+current default frontend. Widgets remains that default until the Qt Quick
+promotion is complete.
 
 The universal macOS package is assembled by CI from independently built and
 staged ARM64 and x64 application bundles. This avoids relying on a universal
@@ -92,9 +98,17 @@ Outputs are written below:
 
 ```text
 build/packages/
-├── x64-linux/
-├── universal-osx/
-└── x64-windows/
+├── default/
+│   ├── x64-linux/
+│   └── x64-windows/
+├── quick/
+│   ├── x64-linux/
+│   ├── universal-osx/
+│   └── x64-windows/
+└── widgets/
+    ├── x64-linux/
+    ├── universal-osx/
+    └── x64-windows/
 ```
 
 Linux produces a `.tar.gz` portable archive plus `.deb` and `.rpm` native
@@ -144,11 +158,12 @@ sudo dnf remove edit-atlas
 ## Package verification
 
 CI separates package production from package consumption. The
-`build-and-package` matrix builds, tests, and stages native macOS ARM64 and
-x64 bundles, while directly packaging Linux x64 and Windows x64. A dedicated
-job merges every matching pair of Mach-O files into a universal macOS bundle
-and creates its installer. Independent verification jobs then download the
-packages and treat them like end-user downloads:
+`build-and-package` matrix builds and tests the complete project, then stages
+and packages both the current Widgets frontend and the parallel Qt Quick
+frontend for native macOS ARM64 and x64, Linux x64, and Windows x64. A
+dedicated job merges each matching pair of Mach-O files into a universal
+macOS bundle and creates its installer. Independent verification jobs then
+download both frontend variants and treat them like end-user downloads:
 
 - extracts the portable archive and both Linux native packages, verifies their
   private runtime-library layout, executable RUNPATHs, deployed Qt libraries,
@@ -163,8 +178,9 @@ packages and treat them like end-user downloads:
   reliably pre-authorized for the macOS Accessibility API, while its complete
   PyObjC AX runner is retained for a trusted interactive runner;
 - silently installs the Windows package into an isolated directory, verifies
-  Qt and the Windows platform plugin, confirms the uninstall registry entry,
-  runs the uninstaller, and confirms the executable was removed.
+  Qt, the required QML imports for Qt Quick, and the Windows platform plugin,
+  confirms the uninstall registry entry, runs the uninstaller, and confirms
+  the executable was removed.
 
 ### Dependency cache lifecycle
 
@@ -190,16 +206,20 @@ The package checks are scripts rather than embedded workflow fragments, so the
 same checks can be run locally after creating the matching package:
 
 ```sh
-./scripts/ci/verify-linux-packages.sh ubuntu build/packages/x64-linux
-./scripts/ci/verify-linux-packages.sh fedora build/packages/x64-linux
-./scripts/ci/verify-macos-package.sh build/packages/universal-osx
+./scripts/ci/verify-linux-packages.sh ubuntu build/packages/widgets/x64-linux
+./scripts/ci/verify-linux-packages.sh fedora build/packages/widgets/x64-linux
+./scripts/ci/verify-macos-package.sh build/packages/widgets/universal-osx
+./scripts/ci/verify-linux-packages.sh ubuntu build/packages/quick/x64-linux
+./scripts/ci/verify-macos-package.sh build/packages/quick/universal-osx
 ```
 
 On Windows PowerShell:
 
 ```powershell
 .\scripts\ci\verify-windows-package.ps1 `
-  -PackageDirectory build\packages\x64-windows
+  -PackageDirectory build\packages\widgets\x64-windows
+.\scripts\ci\verify-windows-package.ps1 `
+  -PackageDirectory build\packages\quick\x64-windows
 ```
 
 Run each Linux command on the named distribution. The Linux scripts install
@@ -207,9 +227,9 @@ and remove the native package through the system package manager. The macOS
 script installs the application under `/Applications` for its launch check and
 then removes it. The Windows script performs a silent MSI installation and
 uninstallation. All three therefore require permission to install software.
-Failed Windows verification jobs upload the verbose Windows Installer logs as
-the `windows-installer-logs` workflow artifact. Other verifier output remains
-in the corresponding GitHub Actions step log.
+Failed Windows verification jobs upload variant-specific verbose Windows
+Installer log artifacts. Other verifier output remains in the corresponding
+GitHub Actions step log.
 
 The producer's Ubuntu and macOS host dependencies are also captured in
 `scripts/ci/install-ubuntu-dependencies.sh` and
@@ -239,13 +259,13 @@ After approval, the workflow builds and tests Linux x64, macOS ARM64 and x64,
 and Windows x64 from the tag. It then assembles the universal macOS package,
 validates every package on the supported verification systems, and uploads
 the five installers/archives to a draft GitHub Release. The workflow also
-downloads the exact Qt Base source archive selected by the pinned vcpkg port,
-verifies its SHA-512 digest, and packages it with the complete port and patch
-set, vcpkg commit, manifest, triplets, and relevant build configuration. It
-does the same for the exact FFmpeg source and vcpkg port and patch set used by
-the dynamically linked media backend. The draft contains both
-corresponding-source archives, `SHA256SUMS`, `LICENSE`, and
-`THIRD_PARTY_NOTICES.md`.
+downloads the exact source archives selected by the pinned vcpkg ports for Qt
+Base, Declarative, Language Server, Shader Tools, and SVG, verifies their
+SHA-512 digests, and packages them with the complete ports and patch sets,
+vcpkg commit, manifest, triplets, and relevant build configuration. It does
+the same for the exact FFmpeg source and vcpkg port and patch set used by the
+dynamically linked media backend. The draft contains both corresponding-source
+archives, `SHA256SUMS`, `LICENSE`, and `THIRD_PARTY_NOTICES.md`.
 
 Each binary package installs a version-specific `QT_SOURCE_OFFER.md` that links
 to the corresponding-source asset in its GitHub Release and explains how to
@@ -261,6 +281,11 @@ rerun the failed workflow after correcting an infrastructure problem; do not
 manually publish a draft whose required platform checks did not pass.
 Rerunning a workflow can resume an existing draft, but it refuses to modify a
 release that has already been published.
+
+The Qt corresponding-source archive includes the exact source archives,
+vcpkg ports, and patch sets for Qt Base, Declarative, Language Server, Shader
+Tools, and SVG. Together they cover the Qt module closure used to build and
+deploy the Qt Quick frontend.
 
 The current workflow does not require signing or Apple notarization secrets.
 When those credentials are introduced, keep them in the protected release
