@@ -1,22 +1,103 @@
+#include <edit_atlas/frontends/quick/application_shell_view_model.hpp>
+
+#include <edit_atlas/presentation/application_state.hpp>
+#include <edit_atlas/presentation/diagnostic_support.hpp>
+#include <edit_atlas/presentation/translation.hpp>
+
+#include <edit_atlas/core/version.hpp>
+
+#include <edit_atlas/media/video_decoder.hpp>
+
+#include <edit_atlas/services/built_in_formats.hpp>
+
+#include <edit_atlas/support/application_logging.hpp>
+
 #include <QCoreApplication>
 #include <QGuiApplication>
+#include <QIcon>
 #include <QObject>
 #include <QQmlApplicationEngine>
 #include <QQuickStyle>
 #include <QString>
+#include <QStyleHints>
+#include <QTranslator>
+#include <QVariant>
+#include <QVariantMap>
 #include <Qt>
 
+#include <spdlog/spdlog.h>
+
 #include <cstdlib>
+#include <string>
+#include <utility>
 
 int main(int argc, char *argv[]) {
-    QQuickStyle::setFallbackStyle(QStringLiteral("Basic"));
+    QQuickStyle::setFallbackStyle(QStringLiteral("Fusion"));
     QQuickStyle::setStyle(QStringLiteral("EditAtlasStyle"));
 
     QGuiApplication application{argc, argv};
-    QCoreApplication::setApplicationName(QStringLiteral("Edit Atlas Quick"));
+    application.styleHints()->setColorScheme(Qt::ColorScheme::Dark);
+    QCoreApplication::setApplicationName(QStringLiteral("Edit Atlas"));
+    QCoreApplication::setApplicationVersion(
+        QString::fromStdString(std::string{edit_atlas::core::Version()}));
     QCoreApplication::setOrganizationName(QStringLiteral("Edit Atlas"));
+    edit_atlas::presentation::ConfigureApplicationState();
+    QGuiApplication::setDesktopFileName(QStringLiteral("edit-atlas"));
+    QGuiApplication::setWindowIcon(
+        QIcon{QStringLiteral(":/icons/edit_atlas.png")});
+
+    const auto log_directory =
+        edit_atlas::presentation::ConfiguredLogDirectory();
+    const auto logging_result =
+        edit_atlas::support::InitializeApplicationLogging(
+            edit_atlas::support::LoggingOptions{
+                .directory = log_directory,
+                .maximum_file_size =
+                    edit_atlas::support::kDefaultMaximumLogFileSize,
+                .maximum_files = edit_atlas::support::kDefaultMaximumLogFiles,
+                .maximum_age = edit_atlas::support::kDefaultLogRetention,
+            });
+    if (!logging_result.has_value()) {
+        SPDLOG_WARN("Persistent logging is unavailable");
+    }
+
+    const auto version = std::string{edit_atlas::core::Version()};
+    SPDLOG_INFO("Starting Edit Atlas {} (Qt Quick frontend)", version);
+    const auto video_backend = edit_atlas::media::GetVideoBackendInformation();
+    SPDLOG_INFO("Video backend: {} {}", video_backend.name,
+                video_backend.version);
+
+    QTranslator translator;
+    auto language = edit_atlas::presentation::ConfiguredApplicationLanguage();
+    if (!edit_atlas::presentation::SetApplicationLanguage(translator,
+                                                          language)) {
+        SPDLOG_WARN("Could not load the configured translation; using English");
+        language = edit_atlas::presentation::ApplicationLanguage::kEnglish;
+        static_cast<void>(edit_atlas::presentation::SetApplicationLanguage(
+            translator, language));
+    }
+
+    auto registry_result = edit_atlas::services::CreateBuiltInFormatRegistry();
+    if (!registry_result.has_value()) {
+        SPDLOG_CRITICAL("Could not register built-in formats (error {})",
+                        static_cast<int>(registry_result.error()));
+        return EXIT_FAILURE;
+    }
+    auto registry = std::move(*registry_result);
+    const auto diagnostic_environment =
+        edit_atlas::presentation::CreateDiagnosticEnvironment(registry);
+    edit_atlas::presentation::LogDiagnosticEnvironment(diagnostic_environment);
+
+    edit_atlas::frontends::quick::ApplicationShellViewModel shell{
+        registry, translator, language};
 
     QQmlApplicationEngine engine;
+    engine.setInitialProperties(QVariantMap{
+        {QStringLiteral("applicationShell"), QVariant::fromValue(&shell)}});
+    QObject::connect(&shell,
+                     &edit_atlas::frontends::quick::ApplicationShellViewModel::
+                         LanguageChanged,
+                     &engine, [&engine](void) { engine.retranslate(); });
     QObject::connect(
         &engine, &QQmlApplicationEngine::objectCreationFailed, &application,
         [] { QCoreApplication::exit(EXIT_FAILURE); }, Qt::QueuedConnection);

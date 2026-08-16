@@ -2,21 +2,35 @@
 
 #include "accessibility.hpp"
 
+#include <edit_atlas/presentation/application_state.hpp>
+
 #include <QAction>
 #include <QActionGroup>
 #include <QFileInfo>
 #include <QKeySequence>
 #include <QMenu>
-#include <QSettings>
 #include <QString>
-#include <QStringList>
-#include <QVariant>
 #include <QWidget>
+
+#include <cstddef>
+#include <filesystem>
+#include <string>
 
 namespace edit_atlas::frontends::widgets {
 namespace {
 
-constexpr qsizetype kMaximumRecentFiles = 10;
+[[nodiscard]] std::filesystem::path FilesystemPath(const QString &path) {
+    const auto utf8 = path.toUtf8();
+    return std::filesystem::path{
+        std::u8string{reinterpret_cast<const char8_t *>(utf8.constData()),
+                      static_cast<std::size_t>(utf8.size())}};
+}
+
+[[nodiscard]] QString PathText(const std::filesystem::path &path) {
+    const auto utf8 = path.generic_u8string();
+    return QString::fromUtf8(reinterpret_cast<const char *>(utf8.data()),
+                             static_cast<qsizetype>(utf8.size()));
+}
 
 } // namespace
 
@@ -28,19 +42,7 @@ ApplicationMenuBar::ApplicationMenuBar(
 }
 
 void ApplicationMenuBar::RememberRecentFile(const QString &path) {
-    if (!remember_recent_action_->isChecked()) {
-        return;
-    }
-
-    QSettings settings;
-    auto recent_files =
-        settings.value(QStringLiteral("files/recent")).toStringList();
-    recent_files.removeAll(path);
-    recent_files.prepend(path);
-    while (recent_files.size() > kMaximumRecentFiles) {
-        recent_files.removeLast();
-    }
-    settings.setValue(QStringLiteral("files/recent"), recent_files);
+    presentation::RecordRecentFile(FilesystemPath(path));
     UpdateRecentFilesMenu();
 }
 
@@ -100,9 +102,8 @@ void ApplicationMenuBar::BuildUi(
 
     remember_recent_action_ = file_menu_->addAction(QString{});
     remember_recent_action_->setCheckable(true);
-    const QSettings settings;
     remember_recent_action_->setChecked(
-        settings.value(QStringLiteral("files/rememberRecent"), false).toBool());
+        presentation::RememberRecentFilesEnabled());
     connect(remember_recent_action_, &QAction::toggled, this,
             &ApplicationMenuBar::SetRememberRecentFiles);
 
@@ -175,11 +176,7 @@ void ApplicationMenuBar::BuildUi(
 }
 
 void ApplicationMenuBar::SetRememberRecentFiles(bool enabled) {
-    QSettings settings;
-    settings.setValue(QStringLiteral("files/rememberRecent"), enabled);
-    if (!enabled) {
-        settings.remove(QStringLiteral("files/recent"));
-    }
+    presentation::SetRememberRecentFilesEnabled(enabled);
     UpdateRecentFilesMenu();
 }
 
@@ -199,9 +196,7 @@ void ApplicationMenuBar::UpdateRecentFilesMenu(void) {
         return;
     }
 
-    const QSettings settings;
-    const auto recent_files =
-        settings.value(QStringLiteral("files/recent")).toStringList();
+    const auto recent_files = presentation::ConfiguredRecentFiles();
     if (recent_files.empty()) {
         auto *empty = recent_files_menu_->addAction(tr("No recent files"));
         empty->setEnabled(false);
@@ -210,13 +205,14 @@ void ApplicationMenuBar::UpdateRecentFilesMenu(void) {
 
     qsizetype index = 0;
     for (const auto &path : recent_files) {
+        const auto path_text = PathText(path);
         auto *action =
-            recent_files_menu_->addAction(QFileInfo{path}.fileName());
+            recent_files_menu_->addAction(QFileInfo{path_text}.fileName());
         SetAutomationIdentifier(
             *action, QStringLiteral("recentFileAction%1").arg(index));
-        action->setToolTip(path);
+        action->setToolTip(path_text);
         connect(action, &QAction::triggered, this,
-                [this, path](void) { emit OpenPathRequested(path); });
+                [this, path_text](void) { emit OpenPathRequested(path_text); });
         ++index;
     }
 }

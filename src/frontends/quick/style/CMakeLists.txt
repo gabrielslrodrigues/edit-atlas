@@ -21,8 +21,16 @@ qt_add_qml_module(
     VERSION 1.0
     QML_FILES
         Button.qml
+        ComboBox.qml
         DesignTokens.qml
+        Dialog.qml
+        DialogButtonBox.qml
         Icon.qml
+        Menu.qml
+        MenuBar.qml
+        MenuBarItem.qml
+        MenuItem.qml
+        MenuSeparator.qml
         Surface.qml
         TextField.qml
         Theme.qml

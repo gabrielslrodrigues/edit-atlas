@@ -1287,4 +1287,197 @@ Inspecione linhas do tempo editoriais e exporte relatórios estruturados.</trans
         <translation>Linha de origem %1</translation>
     </message>
 </context>
+<context>
+    <name>edit_atlas::frontends::quick::ApplicationShellViewModel</name>
+    <message>
+        <source>Ready</source>
+        <translation>Pronto</translation>
+    </message>
+    <message>
+        <source>Opening %1…</source>
+        <translation>Abrindo %1…</translation>
+    </message>
+    <message>
+        <source>Loaded %1</source>
+        <translation>%1 carregado</translation>
+    </message>
+    <message>
+        <source>Could not open %1</source>
+        <translation>Não foi possível abrir %1</translation>
+    </message>
+</context>
+<context>
+    <name>Main</name>
+    <message>
+        <source>Edit Atlas</source>
+        <translation>Edit Atlas</translation>
+    </message>
+    <message>
+        <source>Application menu</source>
+        <translation>Menu do aplicativo</translation>
+    </message>
+    <message>
+        <source>&amp;File</source>
+        <translation>&amp;Arquivo</translation>
+    </message>
+    <message>
+        <source>&amp;Open Timeline…</source>
+        <translation>&amp;Abrir linha do tempo…</translation>
+    </message>
+    <message>
+        <source>Open &amp;Recent</source>
+        <translation>Abrir &amp;recente</translation>
+    </message>
+    <message>
+        <source>No recent files</source>
+        <translation>Nenhum arquivo recente</translation>
+    </message>
+    <message>
+        <source>History disabled</source>
+        <translation>Histórico desativado</translation>
+    </message>
+    <message>
+        <source>Remember Recent Files</source>
+        <translation>Lembrar arquivos recentes</translation>
+    </message>
+    <message>
+        <source>When enabled, Edit Atlas stores only the paths of opened files.</source>
+        <translation>Quando ativado, o Edit Atlas armazena somente os caminhos dos arquivos abertos.</translation>
+    </message>
+    <message>
+        <source>E&amp;xit</source>
+        <translation>&amp;Sair</translation>
+    </message>
+    <message>
+        <source>&amp;Language</source>
+        <translation>&amp;Idioma</translation>
+    </message>
+    <message>
+        <source>Editorial timeline workspace</source>
+        <translation>Área de trabalho de linhas do tempo editoriais</translation>
+    </message>
+    <message>
+        <source>Choose a local timeline file to inspect</source>
+        <translation>Escolha um arquivo local de linha do tempo para inspecionar</translation>
+    </message>
+    <message>
+        <source>Open Timeline</source>
+        <translation>Abrir linha do tempo</translation>
+    </message>
+    <message>
+        <source>Status</source>
+        <translation>Status</translation>
+    </message>
+    <message>
+        <source>No timeline open</source>
+        <translation>Nenhuma linha do tempo aberta</translation>
+    </message>
+    <message>
+        <source>Open an editorial timeline</source>
+        <translation>Abrir uma linha do tempo editorial</translation>
+    </message>
+    <message>
+        <source>Choose a supported timeline file or drop it anywhere in this window.</source>
+        <translation>Escolha um arquivo de linha do tempo compatível ou solte-o em qualquer lugar desta janela.</translation>
+    </message>
+    <message>
+        <source>Opening timeline</source>
+        <translation>Abrindo linha do tempo</translation>
+    </message>
+    <message>
+        <source>Opening %1…</source>
+        <translation>Abrindo %1…</translation>
+    </message>
+    <message>
+        <source>Timeline ready</source>
+        <translation>Linha do tempo pronta</translation>
+    </message>
+    <message numerus="yes">
+        <source>%n event(s) imported</source>
+        <translation>
+            <numerusform>%n evento importado</numerusform>
+            <numerusform>%n eventos importados</numerusform>
+        </translation>
+    </message>
+    <message>
+        <source>Timeline inspection will appear here.</source>
+        <translation>A inspeção da linha do tempo aparecerá aqui.</translation>
+    </message>
+    <message>
+        <source>Timeline import failed</source>
+        <translation>A importação da linha do tempo falhou</translation>
+    </message>
+    <message>
+        <source>Could not open %1</source>
+        <translation>Não foi possível abrir %1</translation>
+    </message>
+    <message>
+        <source>Open Another Timeline</source>
+        <translation>Abrir outra linha do tempo</translation>
+    </message>
+    <message>
+        <source>Choose a different local timeline file</source>
+        <translation>Escolha outro arquivo local de linha do tempo</translation>
+    </message>
+    <message>
+        <source>Supported timeline files (%1)</source>
+        <translation>Arquivos de linha do tempo compatíveis (%1)</translation>
+    </message>
+    <message>
+        <source>All files (*)</source>
+        <translation>Todos os arquivos (*)</translation>
+    </message>
+    <message>
+        <source>Select Frame Rate</source>
+        <translation>Selecionar taxa de quadros</translation>
+    </message>
+    <message>
+        <source>This non-drop-frame EDL does not declare its frame rate.</source>
+        <translation>Esta EDL non-drop-frame não declara sua taxa de quadros.</translation>
+    </message>
+    <message>
+        <source>Frame rate</source>
+        <translation>Taxa de quadros</translation>
+    </message>
+    <message>
+        <source>23.976 fps</source>
+        <translation>23,976 fps</translation>
+    </message>
+    <message>
+        <source>24 fps</source>
+        <translation>24 fps</translation>
+    </message>
+    <message>
+        <source>25 fps</source>
+        <translation>25 fps</translation>
+    </message>
+    <message>
+        <source>29.97 fps</source>
+        <translation>29,97 fps</translation>
+    </message>
+    <message>
+        <source>30 fps</source>
+        <translation>30 fps</translation>
+    </message>
+    <message>
+        <source>50 fps</source>
+        <translation>50 fps</translation>
+    </message>
+    <message>
+        <source>59.94 fps</source>
+        <translation>59,94 fps</translation>
+    </message>
+    <message>
+        <source>60 fps</source>
+        <translation>60 fps</translation>
+    </message>
+    <message>
+        <source>Operation in Progress</source>
+        <translation>Operação em andamento</translation>
+    </message>
+    <message>
+        <source>Wait for the current operation to finish before closing Edit Atlas.</source>
+        <translation>Aguarde a conclusão da operação atual antes de fechar o Edit Atlas.</translation>
+    </message>
+</context>
 </TS>

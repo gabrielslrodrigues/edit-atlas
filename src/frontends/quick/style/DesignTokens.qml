@@ -3,7 +3,7 @@ pragma Singleton
 import QtQuick
 
 QtObject {
-    readonly property int bodyPointSize: 11
+    readonly property int bodyPointSize: 12
     readonly property int headingPointSize: 14
     readonly property int titlePointSize: 22
 

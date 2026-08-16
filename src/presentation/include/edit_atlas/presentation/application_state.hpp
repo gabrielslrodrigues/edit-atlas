@@ -2,6 +2,7 @@
 #define EDIT_ATLAS_PRESENTATION_APPLICATION_STATE_HPP_
 
 #include <filesystem>
+#include <vector>
 
 namespace edit_atlas::presentation {
 
@@ -23,6 +24,22 @@ void ConfigureApplicationState(void);
 
 /// Returns the directory containing persisted timeline templates.
 [[nodiscard]] std::filesystem::path ConfiguredTemplateDirectory(void);
+
+/// Returns whether successfully opened files should be remembered.
+[[nodiscard]] bool RememberRecentFilesEnabled(void);
+
+/// Enables or disables recent-file persistence.
+///
+/// Disabling the preference also removes the stored file history.
+void SetRememberRecentFilesEnabled(bool enabled);
+
+/// Returns recently opened files in most-recent-first order.
+[[nodiscard]] std::vector<std::filesystem::path> ConfiguredRecentFiles(void);
+
+/// Moves a successfully opened file to the front of the recent-file list.
+///
+/// The request is ignored while recent-file persistence is disabled.
+void RecordRecentFile(const std::filesystem::path &path);
 
 } // namespace edit_atlas::presentation
 
