@@ -20,6 +20,9 @@ class TimelineEventModel final : public QAbstractTableModel {
     Q_OBJECT
 
   public:
+    /// Role containing language-independent values suitable for sorting.
+    static constexpr int kSortRole = Qt::UserRole;
+
     /// Creates an empty model with an optional QObject parent.
     explicit TimelineEventModel(QObject *parent = nullptr);
     /// Destroys the non-owning model.
@@ -52,6 +55,8 @@ class TimelineEventModel final : public QAbstractTableModel {
     void SetDocument(const core::TimelineDocument *document);
     /// Selects source-document event indices to display in the supplied order.
     void SetEventSelection(std::vector<std::size_t> event_indices);
+    /// Notifies views that localized headers and display values changed.
+    void Retranslate(void);
 
   private:
     [[nodiscard]] QString EditTypeText(core::EditType edit_type) const;

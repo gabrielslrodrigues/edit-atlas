@@ -221,6 +221,9 @@ TEST(TimelineDocumentViewModelTest, RetainsImportFailureForTheFrontend) {
     EXPECT_EQ(view_model.ImportFailure()->path, missing);
     EXPECT_EQ(view_model.ImportFailure()->kind,
               services::TimelineDocumentImportFailureKind::kOpenFailed);
+    EXPECT_EQ(view_model.DiagnosticsModel().rowCount(),
+              static_cast<int>(
+                  view_model.ImportFailure()->diagnostics.size()));
 }
 
 } // namespace

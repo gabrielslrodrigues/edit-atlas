@@ -91,6 +91,11 @@ TimelineDocumentCommandResult TimelineDocumentViewModel::SetEventProjection(
     return {};
 }
 
+void TimelineDocumentViewModel::Retranslate(void) {
+    event_model_.Retranslate();
+    diagnostics_model_.Retranslate();
+}
+
 TimelineDocumentCommandResult
 TimelineDocumentViewModel::Export(TimelineExportRequest request) {
     if (IsBusy()) {
@@ -207,6 +212,15 @@ TimelineDocumentViewModel::EventModel(void) const noexcept {
     return event_model_;
 }
 
+DiagnosticModel &TimelineDocumentViewModel::DiagnosticsModel(void) noexcept {
+    return diagnostics_model_;
+}
+
+const DiagnosticModel &
+TimelineDocumentViewModel::DiagnosticsModel(void) const noexcept {
+    return diagnostics_model_;
+}
+
 const services::TimelineRenderedVideoExportResult *
 TimelineDocumentViewModel::ExportResult(void) const noexcept {
     return export_result_.has_value() ? &*export_result_ : nullptr;
@@ -249,6 +263,7 @@ void TimelineDocumentViewModel::HandleImportFinished(void) {
                      result.error().diagnostics.size());
         source_path_ = result.error().path;
         import_failure_ = std::move(result.error());
+        diagnostics_model_.SetDiagnostics(import_failure_->diagnostics);
         SetDocumentState(TimelineDocumentState::kImportFailed);
         emit DocumentChanged();
         return;
@@ -260,6 +275,7 @@ void TimelineDocumentViewModel::HandleImportFinished(void) {
     source_path_ = std::move(result->path);
     document_ = std::move(result->timeline);
     import_diagnostics_ = std::move(result->diagnostics);
+    diagnostics_model_.SetDiagnostics(import_diagnostics_);
     event_model_.SetDocument(&*document_);
     ApplyFilter();
     SetDocumentState(TimelineDocumentState::kReady);
@@ -293,6 +309,7 @@ void TimelineDocumentViewModel::ResetDocument(void) {
     extracted_frame_count_ = 0;
     total_frame_count_ = 0;
     event_model_.SetDocument(nullptr);
+    diagnostics_model_.SetDiagnostics({});
     emit FilterChanged();
     emit DocumentChanged();
 }

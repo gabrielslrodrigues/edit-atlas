@@ -74,6 +74,43 @@ enum Column {
     return comments.join(QStringLiteral(" · "));
 }
 
+[[nodiscard]] QVariant SortData(const core::EditEvent &event, int column) {
+    switch (column) {
+    case kEvent:
+        return Utf8(event.identifier);
+    case kReel:
+        return Utf8(event.reel);
+    case kTrack:
+        return QStringLiteral("%1:%2")
+            .arg(static_cast<int>(event.track.kind))
+            .arg(Utf8(event.track.identifier));
+    case kEdit:
+        return static_cast<int>(event.edit_type);
+    case kClip:
+        return MetadataText(event, "clip_name");
+    case kSourceIn:
+        return QVariant::fromValue(
+            static_cast<qlonglong>(event.source_range.start().ToFrameCount()));
+    case kSourceOut:
+        return QVariant::fromValue(static_cast<qlonglong>(
+            event.source_range.end_exclusive().ToFrameCount()));
+    case kRecordIn:
+        return QVariant::fromValue(
+            static_cast<qlonglong>(event.record_range.start().ToFrameCount()));
+    case kRecordOut:
+        return QVariant::fromValue(static_cast<qlonglong>(
+            event.record_range.end_exclusive().ToFrameCount()));
+    case kDuration:
+    case kDurationFrames:
+        return QVariant::fromValue(
+            static_cast<qlonglong>(event.record_range.DurationInFrames()));
+    case kComments:
+        return CommentsText(event);
+    default:
+        return {};
+    }
+}
+
 } // namespace
 
 TimelineEventModel::TimelineEventModel(QObject *parent)
@@ -107,6 +144,9 @@ QVariant TimelineEventModel::data(const QModelIndex &index, int role) const {
     if (role == Qt::ToolTipRole && event.provenance.has_value()) {
         return tr("Source line %1")
             .arg(static_cast<qulonglong>(event.provenance->location.line));
+    }
+    if (role == kSortRole) {
+        return SortData(event, index.column());
     }
     if (role != Qt::DisplayRole) {
         return {};
@@ -232,6 +272,14 @@ void TimelineEventModel::SetEventSelection(
     beginResetModel();
     event_indices_ = std::move(event_indices);
     endResetModel();
+}
+
+void TimelineEventModel::Retranslate(void) {
+    emit headerDataChanged(Qt::Horizontal, 0, kColumnCount - 1);
+    if (rowCount() != 0) {
+        emit dataChanged(index(0, 0),
+                         index(rowCount() - 1, kColumnCount - 1));
+    }
 }
 
 } // namespace edit_atlas::presentation
