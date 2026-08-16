@@ -3,6 +3,7 @@
 #include <edit_atlas/frontends/widgets/spreadsheet_export_options_dialog.hpp>
 #include <edit_atlas/frontends/widgets/timeline_document_view.hpp>
 #include <edit_atlas/presentation/timeline_event_model.hpp>
+#include <edit_atlas/presentation/timeline_filter_model.hpp>
 #include <edit_atlas/presentation/translation.hpp>
 
 #include "event_projection_dialog.hpp"
@@ -426,6 +427,8 @@ TEST(AccessibilityContractTest,
 TEST(AccessibilityContractTest,
      KeepsDynamicFilterRowsUniqueAndUsesTypedEditors) {
     TimelineDocumentView view;
+    presentation::TimelineFilterModel filter_model;
+    view.SetFilterModel(filter_model);
     const auto document = Document();
     presentation::TimelineEventModel event_model;
     event_model.SetDocument(&document);
@@ -453,8 +456,19 @@ TEST(AccessibilityContractTest,
                 },
             },
     });
+    QCoreApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
     EXPECT_GE(changed.count(), 1);
     EXPECT_EQ(view.FilterQuery().conditions.size(), 3);
+    EXPECT_EQ(filter_model.Query(), view.FilterQuery());
+    auto *condition_text = FindByAccessibleIdentifier<QLineEdit>(
+        view, QStringLiteral("filterCondition0Text"));
+    ASSERT_NE(condition_text, nullptr);
+    condition_text->setText(QStringLiteral("effects"));
+    EXPECT_EQ(filter_model
+                  .data(filter_model.index(0, 0),
+                        presentation::TimelineFilterModel::kTextRole)
+                  .toString(),
+              QStringLiteral("effects"));
     EXPECT_NE(FindByAccessibleIdentifier<QComboBox>(
                   view, QStringLiteral("filterCondition1TrackKind")),
               nullptr);
@@ -503,7 +517,8 @@ TEST(AccessibilityContractTest,
     ASSERT_NE(clear, nullptr);
     clear->click();
     QCoreApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
-    EXPECT_EQ(view.FilterQuery().conditions.size(), 1);
+    EXPECT_TRUE(view.FilterQuery().conditions.empty());
+    EXPECT_TRUE(filter_model.Query().conditions.empty());
     EXPECT_EQ(FindByAccessibleIdentifier<QWidget>(
                   view, QStringLiteral("filterCondition1")),
               nullptr);

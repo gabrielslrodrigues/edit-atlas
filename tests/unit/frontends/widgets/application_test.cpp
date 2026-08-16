@@ -51,10 +51,10 @@ TEST(ApplicationTest, LoadsBrazilianPortugueseTranslations) {
                   "edit_atlas::frontends::widgets::TimelineFilterWidget",
                   "Use regular expression"),
               QStringLiteral("Usar expressão regular"));
-    EXPECT_EQ(QCoreApplication::translate(
-                  "edit_atlas::frontends::widgets::TimelineFilterWidget",
-                  "Track type"),
-              QStringLiteral("Tipo de faixa"));
+    EXPECT_EQ(
+        QCoreApplication::translate(
+            "edit_atlas::presentation::TimelineFilterModel", "Track type"),
+        QStringLiteral("Tipo de faixa"));
     EXPECT_EQ(SpreadsheetExportOptionsDialog::tr("Workbook language"),
               QStringLiteral("Idioma da pasta de trabalho"));
     EXPECT_EQ(SpreadsheetExportOptionsDialog::tr("Same as application"),

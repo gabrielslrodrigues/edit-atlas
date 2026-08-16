@@ -4,6 +4,7 @@
 #include <edit_atlas/core/editorial_timeline.hpp>
 
 #include <edit_atlas/presentation/timeline_event_model.hpp>
+#include <edit_atlas/presentation/timeline_filter_model.hpp>
 
 #include <edit_atlas/services/timeline_document_import_service.hpp>
 #include <edit_atlas/services/timeline_filter.hpp>
@@ -48,6 +49,8 @@ class TimelineDocumentView final : public QWidget {
     void RetranslateUi(void);
     void SetBusy(bool busy);
     void SetEventModel(presentation::TimelineEventModel &event_model);
+    /// Attaches shared editable timeline-filter presentation state.
+    void SetFilterModel(presentation::TimelineFilterModel &filter_model);
     void SetFilterError(QString error);
     void SetFilterQuery(const services::TimelineFilterQuery &query);
     void SetTemplates(std::span<const services::TimelineTemplate> templates,
