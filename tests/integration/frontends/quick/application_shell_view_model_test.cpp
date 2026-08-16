@@ -83,8 +83,6 @@ TEST_F(ApplicationShellViewModelTest,
     EXPECT_EQ(shell.DiagnosticsModel()->rowCount(), 0);
     EXPECT_NE(shell.TimelineConfiguration(), nullptr);
     EXPECT_NE(shell.SpreadsheetExport(), nullptr);
-    EXPECT_NE(shell.ApplicationInformation(), nullptr);
-    EXPECT_NE(shell.SupportBundle(), nullptr);
     EXPECT_EQ(shell.DiagnosticCount(), 0);
     EXPECT_EQ(shell.EventSortColumn(), -1);
     EXPECT_TRUE(shell.SourceFileName().isEmpty());

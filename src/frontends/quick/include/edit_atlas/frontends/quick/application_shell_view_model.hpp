@@ -3,9 +3,7 @@
 
 #include <edit_atlas/core/format_registry.hpp>
 
-#include <edit_atlas/frontends/quick/application_information_view_model.hpp>
 #include <edit_atlas/frontends/quick/spreadsheet_export_view_model.hpp>
-#include <edit_atlas/frontends/quick/support_bundle_view_model.hpp>
 #include <edit_atlas/frontends/quick/timeline_configuration_view_model.hpp>
 
 #include <edit_atlas/presentation/timeline_document_view_model.hpp>
@@ -54,10 +52,6 @@ class ApplicationShellViewModel final : public QObject {
                    TimelineConfiguration CONSTANT)
     Q_PROPERTY(SpreadsheetExportViewModel *spreadsheetExport READ
                    SpreadsheetExport CONSTANT)
-    Q_PROPERTY(ApplicationInformationViewModel *applicationInformation READ
-                   ApplicationInformation CONSTANT)
-    Q_PROPERTY(
-        SupportBundleViewModel *supportBundle READ SupportBundle CONSTANT)
     Q_PROPERTY(int diagnosticCount READ DiagnosticCount NOTIFY
                    DocumentPresentationChanged)
     Q_PROPERTY(int eventSortColumn READ EventSortColumn NOTIFY EventSortChanged)
@@ -127,11 +121,6 @@ class ApplicationShellViewModel final : public QObject {
     TimelineConfiguration(void) noexcept;
     /// Returns the QML-facing spreadsheet-export workflow.
     [[nodiscard]] SpreadsheetExportViewModel *SpreadsheetExport(void) noexcept;
-    /// Returns immutable application, runtime, and licensing information.
-    [[nodiscard]] ApplicationInformationViewModel *
-    ApplicationInformation(void) noexcept;
-    /// Returns the QML-facing diagnostic support-bundle workflow.
-    [[nodiscard]] SupportBundleViewModel *SupportBundle(void) noexcept;
     /// Returns the number of import diagnostics currently presented.
     [[nodiscard]] int DiagnosticCount(void) const noexcept;
     /// Returns the event column currently used for sorting.
@@ -199,8 +188,6 @@ class ApplicationShellViewModel final : public QObject {
     presentation::TimelineDocumentViewModel document_view_model_;
     TimelineConfigurationViewModel timeline_configuration_;
     SpreadsheetExportViewModel spreadsheet_export_;
-    ApplicationInformationViewModel application_information_;
-    SupportBundleViewModel support_bundle_;
     QSortFilterProxyModel event_proxy_model_;
     std::optional<std::string> requested_frame_rate_;
 };

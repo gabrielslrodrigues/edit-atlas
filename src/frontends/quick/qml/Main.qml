@@ -10,9 +10,7 @@ ApplicationWindow {
     required property ApplicationShell applicationShell
     property bool frameRatePromptPending: false
     property url pendingSpreadsheetDestinationUrl: ""
-    property url pendingSupportBundleDestinationUrl: ""
     property url pendingTimelineUrl: ""
-    property var supportBundleSaveDialog: null
 
     function presentPendingFrameRateDialog() {
         if (!frameRatePromptPending || openDialog.visible
@@ -49,26 +47,6 @@ ApplicationWindow {
         const selectedUrl = pendingSpreadsheetDestinationUrl
         pendingSpreadsheetDestinationUrl = ""
         spreadsheetExportDialog.startExport(selectedUrl)
-    }
-
-    function startPendingSupportBundleExport() {
-        if ((supportBundleSaveDialog !== null
-             && supportBundleSaveDialog.visible)
-                || pendingSupportBundleDestinationUrl.toString().length === 0) {
-            return
-        }
-        const selectedUrl = pendingSupportBundleDestinationUrl
-        pendingSupportBundleDestinationUrl = ""
-        supportBundleDialog.startExport(selectedUrl)
-    }
-
-    function finishSupportBundleSaveDialog(dialog) {
-        if (supportBundleSaveDialog !== dialog) {
-            return
-        }
-        supportBundleSaveDialog = null
-        startPendingSupportBundleExport()
-        dialog.destroy()
     }
 
     height: 700
@@ -201,23 +179,6 @@ ApplicationWindow {
                 checked: applicationShell.languageCode === "en"
                 text: "English"
                 onTriggered: applicationShell.languageCode = "en"
-            }
-        }
-
-        Menu {
-            title: qsTr("&Help")
-
-            Action {
-                enabled: !applicationShell.busy
-                text: qsTr("Export Diagnostic &Logs…")
-                onTriggered: supportBundleDialog.openForExport()
-            }
-
-            MenuSeparator {}
-
-            Action {
-                text: qsTr("&About Edit Atlas")
-                onTriggered: aboutDialog.open()
             }
         }
     }
@@ -563,35 +524,6 @@ ApplicationWindow {
         }
     }
 
-    Component {
-        id: supportBundleSaveDialogComponent
-
-        FileDialog {
-            id: dialog
-
-            acceptLabel: qsTr("Export")
-            defaultSuffix: "zip"
-            fileMode: FileDialog.SaveFile
-            nameFilters: [
-                qsTr("ZIP archive (*.zip)"),
-                qsTr("All files (*)")
-            ]
-            options: FileDialog.DontConfirmOverwrite
-            parentWindow: window
-            popupType: Popup.Item
-            title: qsTr("Export Diagnostic Logs")
-            onAccepted: {
-                window.pendingSupportBundleDestinationUrl = selectedFile
-            }
-            onVisibleChanged: {
-                if (!visible) {
-                    Qt.callLater(
-                            () => window.finishSupportBundleSaveDialog(dialog))
-                }
-            }
-        }
-    }
-
     Dialog {
         id: frameRateDialog
 
@@ -628,6 +560,7 @@ ApplicationWindow {
                 ]
             }
         }
+
         onAccepted: {
             applicationShell.RetryWithFrameRate(
                 frameRateValues[frameRateSelector.currentIndex])
@@ -662,24 +595,6 @@ ApplicationWindow {
             renderedVideoDialog.currentFolder = suggestedFolder
             Qt.callLater(() => renderedVideoDialog.open())
         }
-    }
-
-    SupportBundleDialog {
-        id: supportBundleDialog
-
-        workflow: applicationShell.supportBundle
-        onDestinationRequested: suggestedDestination => {
-            const dialog = supportBundleSaveDialogComponent.createObject(
-                    window, {"selectedFile": suggestedDestination})
-            window.supportBundleSaveDialog = dialog
-            dialog.open()
-        }
-    }
-
-    AboutDialog {
-        id: aboutDialog
-
-        information: applicationShell.applicationInformation
     }
 
     Connections {
