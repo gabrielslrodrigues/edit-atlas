@@ -92,6 +92,10 @@ ApplicationShellViewModel::CurrentDocumentState(void) const noexcept {
     return DocumentState::kEmpty;
 }
 
+bool ApplicationShellViewModel::IsEmpty(void) const noexcept {
+    return CurrentDocumentState() == DocumentState::kEmpty;
+}
+
 bool ApplicationShellViewModel::IsBusy(void) const noexcept {
     return document_view_model_.IsBusy();
 }

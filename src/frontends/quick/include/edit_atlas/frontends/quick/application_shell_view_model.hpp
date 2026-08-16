@@ -30,6 +30,7 @@ class ApplicationShellViewModel final : public QObject {
 
     Q_PROPERTY(DocumentState documentState READ CurrentDocumentState NOTIFY
                    DocumentStateChanged)
+    Q_PROPERTY(bool empty READ IsEmpty NOTIFY DocumentStateChanged)
     Q_PROPERTY(bool busy READ IsBusy NOTIFY BusyChanged)
     Q_PROPERTY(QString sourceFileName READ SourceFileName NOTIFY
                    DocumentPresentationChanged)
@@ -90,6 +91,8 @@ class ApplicationShellViewModel final : public QObject {
 
     /// Returns the shell document state.
     [[nodiscard]] DocumentState CurrentDocumentState(void) const noexcept;
+    /// Returns whether no timeline import has been requested.
+    [[nodiscard]] bool IsEmpty(void) const noexcept;
     /// Returns whether a document operation prevents new interaction.
     [[nodiscard]] bool IsBusy(void) const noexcept;
     /// Returns the active source file name without its parent directory.

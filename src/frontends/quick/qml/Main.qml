@@ -175,6 +175,7 @@ ApplicationWindow {
                 enabled: !applicationShell.busy
                 highlighted: true
                 text: qsTr("Open Timeline")
+                visible: !applicationShell.empty
                 onClicked: openDialog.open()
             }
         }
@@ -288,42 +289,54 @@ ApplicationWindow {
         Item {
             Accessible.name: qsTr("Timeline ready")
 
-            Atlas.Surface {
+            ColumnLayout {
                 anchors.fill: parent
+                spacing: Atlas.DesignTokens.spacingMedium
 
-                ColumnLayout {
-                    anchors.fill: parent
-                    anchors.margins: Atlas.DesignTokens.spacingExtraLarge
-                    spacing: Atlas.DesignTokens.spacingMedium
+                RowLayout {
+                    Layout.fillWidth: true
+                    spacing: Atlas.DesignTokens.spacingLarge
 
-                    Label {
+                    ColumnLayout {
                         Layout.fillWidth: true
-                        color: Atlas.Theme.textPrimary
-                        elide: Text.ElideMiddle
-                        font.pointSize: Atlas.DesignTokens.titlePointSize
-                        font.weight: Font.DemiBold
-                        text: applicationShell.sourceFileName
+                        spacing: Atlas.DesignTokens.spacingExtraSmall
+
+                        Label {
+                            Layout.fillWidth: true
+                            color: Atlas.Theme.textPrimary
+                            elide: Text.ElideMiddle
+                            font.pointSize: Atlas.DesignTokens.titlePointSize
+                            font.weight: Font.DemiBold
+                            text: applicationShell.timelineTitle
+                        }
+
+                        Label {
+                            color: Atlas.Theme.textSecondary
+                            text: applicationShell.timelineSummaryText
+                        }
                     }
 
                     Label {
                         color: Atlas.Theme.textSecondary
-                        text: qsTr("%n event(s) imported", "", applicationShell.eventCount)
+                        text: qsTr("Showing %1 of %2 events")
+                                  .arg(applicationShell.visibleEventCount)
+                                  .arg(applicationShell.eventCount)
                     }
+                }
 
-                    Rectangle {
-                        Layout.fillHeight: true
-                        Layout.fillWidth: true
-                        border.color: Atlas.Theme.border
-                        border.width: Atlas.DesignTokens.borderWidth
-                        color: Atlas.Theme.window
-                        radius: Atlas.DesignTokens.radiusMedium
+                TimelineTable {
+                    Layout.fillHeight: true
+                    Layout.fillWidth: true
+                    applicationShell: window.applicationShell
+                }
 
-                        Label {
-                            anchors.centerIn: parent
-                            color: Atlas.Theme.textSecondary
-                            text: qsTr("Timeline inspection will appear here.")
-                        }
-                    }
+                DiagnosticsPanel {
+                    Layout.fillWidth: true
+                    Layout.maximumHeight: 240
+                    Layout.minimumHeight: 160
+                    diagnosticCount: applicationShell.diagnosticCount
+                    diagnosticsModel: applicationShell.diagnosticsModel
+                    visible: applicationShell.diagnosticCount > 0
                 }
             }
         }
@@ -331,41 +344,56 @@ ApplicationWindow {
         Item {
             Accessible.name: qsTr("Timeline import failed")
 
-            Atlas.Surface {
-                anchors.centerIn: parent
-                height: Math.min(parent.height, errorLayout.implicitHeight
-                                 + Atlas.DesignTokens.spacingExtraLarge * 2)
-                width: Math.min(parent.width, 680)
+            ColumnLayout {
+                anchors.fill: parent
+                spacing: Atlas.DesignTokens.spacingMedium
 
-                ColumnLayout {
-                    id: errorLayout
+                Atlas.Surface {
+                    Layout.alignment: Qt.AlignHCenter
+                    Layout.fillWidth: true
+                    Layout.maximumWidth: 680
+                    implicitHeight: errorLayout.implicitHeight
+                                    + Atlas.DesignTokens.spacingExtraLarge * 2
 
-                    anchors.fill: parent
-                    anchors.margins: Atlas.DesignTokens.spacingExtraLarge
-                    spacing: Atlas.DesignTokens.spacingLarge
+                    ColumnLayout {
+                        id: errorLayout
 
-                    Label {
-                        Layout.fillWidth: true
-                        color: Atlas.Theme.textPrimary
-                        font.pointSize: Atlas.DesignTokens.titlePointSize
-                        font.weight: Font.DemiBold
-                        text: qsTr("Could not open %1").arg(applicationShell.sourceFileName)
-                        wrapMode: Text.WordWrap
+                        anchors.fill: parent
+                        anchors.margins: Atlas.DesignTokens.spacingExtraLarge
+                        spacing: Atlas.DesignTokens.spacingLarge
+
+                        Label {
+                            Layout.fillWidth: true
+                            color: Atlas.Theme.textPrimary
+                            font.pointSize: Atlas.DesignTokens.titlePointSize
+                            font.weight: Font.DemiBold
+                            text: qsTr("Could not open %1")
+                                      .arg(applicationShell.sourceFileName)
+                            wrapMode: Text.WordWrap
+                        }
+
+                        Label {
+                            Layout.fillWidth: true
+                            color: Atlas.Theme.textSecondary
+                            text: applicationShell.errorText
+                            wrapMode: Text.WordWrap
+                        }
+
+                        Button {
+                            Accessible.description: qsTr("Choose a different local timeline file")
+                            highlighted: true
+                            text: qsTr("Open Another Timeline")
+                            onClicked: openDialog.open()
+                        }
                     }
+                }
 
-                    Label {
-                        Layout.fillWidth: true
-                        color: Atlas.Theme.textSecondary
-                        text: applicationShell.errorText
-                        wrapMode: Text.WordWrap
-                    }
-
-                    Button {
-                        Accessible.description: qsTr("Choose a different local timeline file")
-                        highlighted: true
-                        text: qsTr("Open Another Timeline")
-                        onClicked: openDialog.open()
-                    }
+                DiagnosticsPanel {
+                    Layout.fillHeight: true
+                    Layout.fillWidth: true
+                    diagnosticCount: applicationShell.diagnosticCount
+                    diagnosticsModel: applicationShell.diagnosticsModel
+                    visible: applicationShell.diagnosticCount > 0
                 }
             }
         }

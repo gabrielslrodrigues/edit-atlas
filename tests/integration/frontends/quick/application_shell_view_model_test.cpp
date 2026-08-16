@@ -70,6 +70,7 @@ TEST_F(ApplicationShellViewModelTest,
 
     EXPECT_EQ(shell.CurrentDocumentState(),
               ApplicationShellViewModel::DocumentState::kEmpty);
+    EXPECT_TRUE(shell.IsEmpty());
     EXPECT_FALSE(shell.IsBusy());
     EXPECT_TRUE(shell.RequestClose());
     EXPECT_EQ(shell.EventCount(), 0U);
@@ -148,6 +149,7 @@ TEST_F(ApplicationShellViewModelTest,
                ApplicationShellViewModel::DocumentState::kImportFailed;
     }));
     EXPECT_FALSE(shell.IsBusy());
+    EXPECT_FALSE(shell.IsEmpty());
     EXPECT_TRUE(shell.RequestClose());
     EXPECT_EQ(frame_rate_required.count(), 1);
     EXPECT_FALSE(shell.ErrorText().isEmpty());
