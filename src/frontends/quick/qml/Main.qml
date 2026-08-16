@@ -403,7 +403,7 @@ ApplicationWindow {
             spacing: Atlas.DesignTokens.spacingMedium
 
             Label {
-                Layout.maximumWidth: 460
+                Layout.maximumWidth: 400
                 text: qsTr("This non-drop-frame EDL does not declare its frame rate.")
                 wrapMode: Text.WordWrap
             }
