@@ -658,12 +658,12 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - check_name: Ubuntu 24.04
+          - check_name: Ubuntu 24.04 / Widgets
             distribution: ubuntu
             container: ubuntu:24.04
             artifact: widgets-frontend-x64-linux-packages
             package_path: build/packages/widgets/x64-linux
-          - check_name: Fedora 44
+          - check_name: Fedora 44 / Widgets
             distribution: fedora
             container: fedora:44
             artifact: widgets-frontend-x64-linux-packages
@@ -692,6 +692,8 @@ jobs:
           cmake
           findutils
           git
+          libgomp1
+          libxkbcommon0
           xauth
           xvfb
 
@@ -706,6 +708,8 @@ jobs:
           cpio
           findutils
           git
+          libgomp
+          libxkbcommon
           rpm
           xorg-x11-server-Xvfb
           xorg-x11-xauth
@@ -843,12 +847,12 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - check_name: Apple Silicon
+          - check_name: Apple Silicon / Widgets
             os: macos-15
             artifact_suffix: apple-silicon-widgets
             package_artifact: widgets-frontend-universal-osx-packages
             package_path: build/packages/widgets/universal-osx
-          - check_name: Intel
+          - check_name: Intel / Widgets
             os: macos-15-intel
             artifact_suffix: intel-widgets
             package_artifact: widgets-frontend-universal-osx-packages
@@ -1013,7 +1017,7 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - check_name: Windows x64
+          - check_name: Windows x64 / Widgets
             artifact: widgets-frontend-x64-windows-packages
             package_path: build/packages/widgets/x64-windows
             artifact_suffix: widgets
