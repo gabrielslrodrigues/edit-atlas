@@ -52,10 +52,10 @@ on that same runner. This preserves serialization of vcpkg publication by
 triplet without duplicating expensive host setup. Frontend-specific staging,
 package names, and verification remain symmetric.
 
-The two macOS jobs upload native staged bundles. A matrix job combines the
-matching ARM64 and x64 bundles for each frontend, uploads the universal PKG,
-and immediately deletes the native staging artifacts. Linux and Windows
-packages are uploaded alongside it for concurrent clean-machine package
+The two macOS jobs upload native staged bundles. One universal-packaging job
+combines the matching ARM64 and x64 bundles for both frontends, uploads both
+PKGs, and immediately deletes the native staging artifacts. Linux and Windows
+packages are uploaded alongside them for concurrent clean-machine package
 verification and packaged E2E consumption.
 
 ## Artifact lifecycle

@@ -9,7 +9,7 @@ permissions:
 jobs:
   verify-linux-packages:
     name: >-
-      Verify Linux packages / ${{ matrix.distribution_name }} / ${{ matrix.frontend_name }}
+      Linux / ${{ matrix.distribution_name }} — ${{ matrix.frontend_name }} package
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     container: ${{ matrix.container }}
@@ -88,7 +88,7 @@ jobs:
 
   verify-macos-package:
     name: >-
-      Verify macOS package / ${{ matrix.architecture_name }} / ${{ matrix.frontend_name }}
+      macOS / ${{ matrix.architecture_name }} — ${{ matrix.frontend_name }} package
     runs-on: ${{ matrix.os }}
     timeout-minutes: 20
 
@@ -156,7 +156,7 @@ jobs:
           retention-days: 7
 
   verify-windows-package:
-    name: Verify Windows package / Windows x64 / ${{ matrix.frontend_name }}
+    name: Windows / x64 — ${{ matrix.frontend_name }} package
     runs-on: windows-2022
     timeout-minutes: 20
 

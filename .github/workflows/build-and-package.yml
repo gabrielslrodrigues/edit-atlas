@@ -14,7 +14,7 @@ permissions:
 
 jobs:
   build-and-package:
-    name: Build and package / ${{ matrix.name }}
+    name: Native / ${{ matrix.name }}
     runs-on: ${{ matrix.os }}
     timeout-minutes: 180
     permissions:
@@ -471,7 +471,7 @@ jobs:
           cmake -E remove_directory "${{ github.workspace }}/vcpkg/packages"
 
   package-macos-universal:
-    name: Package / macOS Universal / ${{ matrix.display_name }}
+    name: Universal / macOS
     needs: build-and-package
     if: always() && needs['build-and-package'].result == 'success'
     runs-on: macos-15
@@ -480,15 +480,6 @@ jobs:
       actions: write
       contents: read
 
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - frontend: widgets
-            display_name: Widgets
-          - frontend: quick
-            display_name: Quick
-
     steps:
       - name: Check out source
         uses: actions/checkout@v7.0.1
@@ -496,30 +487,39 @@ jobs:
       - name: Install CMake
         uses: lukka/get-cmake@v4.4.0
 
-      - name: Download ARM64 staged bundle
+      - name: Download native staged bundles
         uses: actions/download-artifact@v8
         with:
-          name: ${{ matrix.frontend }}-frontend-arm64-osx-stage
-          path: build/stages/${{ matrix.frontend }}-arm64
+          pattern: '*-frontend-*-osx-stage'
+          path: build/stages
 
-      - name: Download x64 staged bundle
-        uses: actions/download-artifact@v8
-        with:
-          name: ${{ matrix.frontend }}-frontend-x64-osx-stage
-          path: build/stages/${{ matrix.frontend }}-x64
-
-      - name: Create universal package
+      - name: Create universal Widgets package
         run: >-
           ./scripts/ci/create-macos-universal-package.sh
-          build/stages/${{ matrix.frontend }}-arm64/edit-atlas-${{ matrix.frontend }}-arm64-osx-stage.tar.gz
-          build/stages/${{ matrix.frontend }}-x64/edit-atlas-${{ matrix.frontend }}-x64-osx-stage.tar.gz
-          build/packages/${{ matrix.frontend }}/universal-osx
+          build/stages/widgets-frontend-arm64-osx-stage/edit-atlas-widgets-arm64-osx-stage.tar.gz
+          build/stages/widgets-frontend-x64-osx-stage/edit-atlas-widgets-x64-osx-stage.tar.gz
+          build/packages/widgets/universal-osx
 
-      - name: Upload universal package
+      - name: Create universal Quick package
+        run: >-
+          ./scripts/ci/create-macos-universal-package.sh
+          build/stages/quick-frontend-arm64-osx-stage/edit-atlas-quick-arm64-osx-stage.tar.gz
+          build/stages/quick-frontend-x64-osx-stage/edit-atlas-quick-x64-osx-stage.tar.gz
+          build/packages/quick/universal-osx
+
+      - name: Upload universal Widgets package
         uses: actions/upload-artifact@v7
         with:
-          name: ${{ matrix.frontend }}-frontend-universal-osx-packages
-          path: build/packages/${{ matrix.frontend }}/universal-osx
+          name: widgets-frontend-universal-osx-packages
+          path: build/packages/widgets/universal-osx
+          if-no-files-found: error
+          retention-days: ${{ inputs.artifact_retention_days }}
+
+      - name: Upload universal Quick package
+        uses: actions/upload-artifact@v7
+        with:
+          name: quick-frontend-universal-osx-packages
+          path: build/packages/quick/universal-osx
           if-no-files-found: error
           retention-days: ${{ inputs.artifact_retention_days }}
 
@@ -527,5 +527,4 @@ jobs:
         uses: ./.github/actions/delete-workflow-artifacts
         with:
           pattern: >-
-            ^${{ matrix.frontend }}-frontend-(arm64|x64)-osx-stage$
-
+            ^(widgets|quick)-frontend-(arm64|x64)-osx-stage$
