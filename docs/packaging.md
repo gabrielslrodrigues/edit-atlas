@@ -157,13 +157,16 @@ sudo dnf remove edit-atlas
 
 ## Package verification
 
-CI separates package production from package consumption. The
-`build-and-package` matrix builds and tests the complete project, then stages
-and packages both the current Widgets frontend and the parallel Qt Quick
-frontend for native macOS ARM64 and x64, Linux x64, and Windows x64. A
-dedicated job merges each matching pair of Mach-O files into a universal
-macOS bundle and creates its installer. Independent verification jobs then
-download both frontend variants and treat them like end-user downloads:
+CI separates package production from package consumption through reusable
+workflows. The `build-and-package.yml` workflow's native matrix builds and
+tests the complete project, then stages and packages both the current Widgets
+frontend and the parallel Qt Quick frontend for native macOS ARM64 and x64,
+Linux x64, and Windows x64. A dedicated matrix job merges each frontend's
+matching pair of Mach-O files into a universal macOS bundle and creates its
+installer.
+The independent `package-verification.yml` workflow then downloads both
+frontend variants and treats them like end-user downloads while packaged E2E
+runs concurrently from the same artifacts:
 
 - extracts the portable archive and both Linux native packages, verifies their
   private runtime-library layout, executable RUNPATHs, deployed Qt libraries,
@@ -237,6 +240,10 @@ The producer's Ubuntu and macOS host dependencies are also captured in
 listed in the project README and are usable when reproducing their respective
 CI environments.
 
+Workflow ownership, artifact lifetimes, permissions, and the relationship
+between ordinary validation and tagged releases are documented in
+[Continuous integration](continuous-integration.md).
+
 These checks validate package structure and dependency deployment. Before a
 release is published, a manual clean-machine smoke test should still open the
 application, switch between English and Brazilian Portuguese, import a
@@ -244,10 +251,10 @@ timeline, export a spreadsheet, and uninstall or remove the application.
 
 ## Tagged releases
 
-Release automation runs only for tags matching `vX.Y.Z`. The tag must match
-the `version-string` in the tagged `vcpkg.json` and must point at the
-checked-out commit. Ordinary branches and pull requests never publish a
-release.
+The dedicated `release.yml` workflow runs only for tags matching `vX.Y.Z`.
+The tag must match the `version-string` in the tagged `vcpkg.json` and must
+point at the checked-out commit. Ordinary branches and pull requests never
+publish a release.
 
 Before using the workflow, configure a protected GitHub environment named
 `edit-atlas-release` with at least one required reviewer. This approval is the
@@ -255,11 +262,13 @@ explicit authorization required for an unsigned tag; signed tags are also
 accepted. Do not put signing or notarization credentials in pull-request
 workflows.
 
-After approval, the workflow builds and tests Linux x64, macOS ARM64 and x64,
-and Windows x64 from the tag. It then assembles the universal macOS package,
-validates every package on the supported verification systems, and uploads
-the five installers/archives to a draft GitHub Release. The workflow also
-downloads the exact source archives selected by the pinned vcpkg ports for Qt
+After approval, the workflow calls the same reusable package and packaged-E2E
+workflows used by ordinary CI. They build and test Linux x64, macOS ARM64 and
+x64, and Windows x64 from the tag, assemble the universal macOS package, and
+validate every package on the supported verification systems. The release
+workflow uploads the five production installers and archives to its draft
+GitHub Release. It also downloads the exact source archives selected by the
+pinned vcpkg ports for Qt
 Base, Declarative, Language Server, Shader Tools, and SVG, verifies their
 SHA-512 digests, and packages them with the complete ports and patch sets,
 vcpkg commit, manifest, triplets, and relevant build configuration. It does

@@ -1,6 +1,12 @@
 name: Documentation
 
 on:
+  workflow_call:
+    inputs:
+      version:
+        description: Published release tag to document
+        required: true
+        type: string
   push:
     branches:
       - master

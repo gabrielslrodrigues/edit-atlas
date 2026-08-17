@@ -382,6 +382,11 @@ install Qt or vcpkg. See [Desktop packaging](docs/packaging.md) for the
 one-command workflows, output locations, supported systems, and installation
 instructions.
 
+The repository separates ordinary validation, reusable package production,
+packaged E2E, documentation, and protected release publication. See
+[Continuous integration](docs/continuous-integration.md) for the workflow
+graph, artifact lifecycle, permissions, and required-check policy.
+
 ## License
 
 Edit Atlas is licensed under the Apache License 2.0. See
