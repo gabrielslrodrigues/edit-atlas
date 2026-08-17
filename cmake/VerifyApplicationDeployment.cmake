@@ -238,7 +238,7 @@ endforeach()
 
 if(edit_atlas_detected_frontend STREQUAL "quick")
     if(WIN32)
-        set(edit_atlas_qml_root "${EDIT_ATLAS_DEPLOYMENT_ROOT}/qml")
+        set(edit_atlas_qml_root "${EDIT_ATLAS_DEPLOYMENT_ROOT}/Qt6/qml")
     elseif(APPLE)
         set(
             edit_atlas_qml_root
