@@ -9,6 +9,7 @@ TestCase {
     when: windowShown
 
     property var applicationWindow: null
+    property var temporaryFilterPanel: null
 
     Component {
         id: applicationComponent
@@ -16,6 +17,16 @@ TestCase {
         Main {
             applicationShell: testApplicationShell
             visible: true
+        }
+    }
+
+    Component {
+        id: timelineConfigurationComponent
+
+        TimelineConfigurationPanel {
+            availableHeight: applicationWindow.height
+            configuration: testApplicationShell.timelineConfiguration
+            expanded: true
         }
     }
 
@@ -28,6 +39,13 @@ TestCase {
     function cleanupTestCase() {
         applicationWindow.destroy()
         applicationWindow = null
+    }
+
+    function cleanup() {
+        if (temporaryFilterPanel !== null) {
+            temporaryFilterPanel.destroy()
+            temporaryFilterPanel = null
+        }
     }
 
     function findObject(identifier) {
@@ -185,9 +203,15 @@ TestCase {
 
     function test_dynamicFilterRowsHaveUniqueIdentifiers() {
         const configuration = testApplicationShell.timelineConfiguration
-        const filter = findObject("timelineFilter")
+        temporaryFilterPanel = timelineConfigurationComponent.createObject(
+            applicationWindow.contentItem,
+            {
+                "height": applicationWindow.height,
+                "width": applicationWindow.width
+            })
+        const filter = temporaryFilterPanel
         verify(filter !== null)
-        filter.expanded = true
+        tryCompare(filter, "visible", true)
         const list = findChild(filter, "filterConditionsScrollArea")
         verify(list !== null)
         tryVerify(() => findChild(list.contentItem,
