@@ -45,10 +45,21 @@ function(edit_atlas_normalize_macos_qt_dependencies target)
     )
 endfunction()
 
-function(edit_atlas_deploy_windows_qt_platform_plugin target)
+function(
+    edit_atlas_deploy_windows_qt_platform_plugin
+    target
+    platform_plugin
+)
     if(NOT WIN32)
         return()
     endif()
+
+    string(
+        CONCAT
+        edit_atlas_qt_platform_plugin_destination
+        "$<TARGET_FILE_DIR:${target}>/platforms/"
+        "$<TARGET_FILE_NAME:${platform_plugin}>"
+    )
 
     add_custom_command(
         TARGET "${target}"
@@ -58,8 +69,8 @@ function(edit_atlas_deploy_windows_qt_platform_plugin target)
             "$<TARGET_FILE_DIR:${target}>/platforms"
         COMMAND
             "${CMAKE_COMMAND}" -E copy_if_different
-            "$<TARGET_FILE:Qt6::QWindowsIntegrationPlugin>"
-            "$<TARGET_FILE_DIR:${target}>/platforms/$<TARGET_FILE_NAME:Qt6::QWindowsIntegrationPlugin>"
+            "$<TARGET_FILE:${platform_plugin}>"
+            "${edit_atlas_qt_platform_plugin_destination}"
         VERBATIM
     )
 endfunction()

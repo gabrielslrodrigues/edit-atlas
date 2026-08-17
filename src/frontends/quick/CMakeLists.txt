@@ -125,6 +125,12 @@ qt_add_executable(edit_atlas_quick main.cpp)
 add_executable(EditAtlas::QuickApplication ALIAS edit_atlas_quick)
 set_target_properties(edit_atlas_quick PROPERTIES OUTPUT_NAME "edit-atlas-quick")
 
+if(APPLE AND EDIT_ATLAS_DEFAULT_FRONTEND STREQUAL "quick")
+    # Qt records the QML deployment layout when it finalizes this directory.
+    # Mark the selected target as a bundle before that deferred finalization.
+    set_target_properties(edit_atlas_quick PROPERTIES MACOSX_BUNDLE ON)
+endif()
+
 set(edit_atlas_quick_resource_directory
     "${PROJECT_SOURCE_DIR}/src/frontends/resources"
 )
@@ -157,4 +163,7 @@ target_link_libraries(
 
 target_compile_features(edit_atlas_quick PRIVATE cxx_std_23)
 edit_atlas_set_project_warnings(edit_atlas_quick)
-edit_atlas_deploy_windows_qt_platform_plugin(edit_atlas_quick)
+edit_atlas_deploy_windows_qt_platform_plugin(
+    edit_atlas_quick
+    Qt6::QWindowsIntegrationPlugin
+)

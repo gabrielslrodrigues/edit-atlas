@@ -76,10 +76,26 @@ class QuickTestSetup final : public QObject {
 } // namespace edit_atlas::frontends::quick
 
 int main(int argc, char *argv[]) {
+#if defined(Q_OS_WIN)
+    if (qEnvironmentVariableIsEmpty("QT_FORCE_STDERR_LOGGING")) {
+        qputenv("QT_FORCE_STDERR_LOGGING", QByteArrayLiteral("1"));
+    }
+#endif
+    if (qEnvironmentVariableIsEmpty("QT_QUICK_BACKEND")) {
+        qputenv("QT_QUICK_BACKEND", QByteArrayLiteral("software"));
+    }
     QQuickStyle::setFallbackStyle(QStringLiteral("Fusion"));
     QQuickStyle::setStyle(QStringLiteral("EditAtlasStyle"));
     if (qEnvironmentVariableIsEmpty("QT_QPA_PLATFORM")) {
+#if defined(Q_OS_MACOS)
+        qputenv("QT_QPA_PLATFORM", QByteArrayLiteral("minimal"));
+#elif defined(Q_OS_WIN)
+        qputenv("QT_QPA_PLATFORM", QByteArrayLiteral("minimal"));
+#elif defined(Q_OS_LINUX)
         qputenv("QT_QPA_PLATFORM", QByteArrayLiteral("offscreen"));
+#else
+#error "Unsupported Qt Quick integration-test platform"
+#endif
     }
     QTEST_SET_MAIN_SOURCE_PATH
     edit_atlas::frontends::quick::QuickTestSetup setup;

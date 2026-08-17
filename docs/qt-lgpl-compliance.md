@@ -21,6 +21,11 @@ The supported presets are:
 | macOS Universal | `debug-universal-osx` | `release-universal-osx` |
 | Windows x64 | `debug-x64-windows` | `release-x64-windows` |
 
+Explicit frontend package validation uses matching `release-widgets-` and
+`release-quick-` preset families for Linux x64, macOS ARM64 and x64, and
+Windows x64. Both families inherit the same dynamic triplets and linkage
+policy.
+
 Qt platform plugins must remain dynamically loaded. The install-time Qt
 deployment script copies the required Qt libraries and plugins into the staged
 application.
@@ -29,8 +34,9 @@ application.
 
 Every binary release must:
 
-1. Include `THIRD_PARTY_NOTICES.md` and the `qtbase` copyright file installed
-   from the resolved vcpkg package.
+1. Include `THIRD_PARTY_NOTICES.md` and the copyright files for Qt Base,
+   Declarative, Language Server, Shader Tools, and SVG installed from the
+   resolved vcpkg packages.
 2. Include the LGPL version 3 terms contained in that copyright material and
    prominently identify Qt as LGPL software.
 3. Publish the complete corresponding source for the exact Qt build,
@@ -59,9 +65,15 @@ Configuration fails if `Qt6::Core`, `Qt6::Gui`, `Qt6::Widgets`,
 shared library target. Release CI must additionally
 inspect the final packaged binary:
 
-- Linux: `readelf -d` or `ldd` must report `libQt6Widgets.so`.
-- macOS: `otool -L` must report a dynamic Qt Widgets library or framework.
-- Windows: `dumpbin /dependents` must report `Qt6Widgets.dll`.
+- Linux: `readelf -d` or `ldd` must report the selected dynamic Qt Widgets or
+  Qt Quick frontend libraries.
+- macOS: `otool -L` must report the selected dynamic Qt Widgets or Qt Quick
+  libraries or frameworks.
+- Windows: `dumpbin /dependents` must report the selected Qt Widgets or Qt
+  Quick DLLs.
+
+Qt Quick package verification additionally checks the deployed Qt QML import
+tree, import metadata, plugins, and their runtime-library resolution.
 
 CI performs these checks on build-tree binaries, staged installations, and
 the extracted or installed contents of every generated package. It also

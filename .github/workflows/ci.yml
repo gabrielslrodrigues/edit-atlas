@@ -175,34 +175,46 @@ jobs:
             source_dir: .
             triplet: x64-linux
             debug_preset: debug-x64-linux
-            release_preset: release-x64-linux
-            package_preset: package-release-x64-linux
-            executable_suffix: src/frontends/widgets/edit-atlas
+            widgets_release_preset: release-widgets-x64-linux
+            quick_release_preset: release-quick-x64-linux
+            package_generators: 'TGZ;DEB;RPM'
+            selected_frontend_executable_suffix: edit-atlas
+            widgets_debug_executable_suffix: edit-atlas
+            quick_debug_executable_suffix: edit-atlas-quick
             staged_executable_suffix: bin/edit-atlas
           - name: macOS ARM64
             os: macos-15
             source_dir: .
             triplet: arm64-osx
             debug_preset: debug-arm64-osx
-            release_preset: release-arm64-osx
-            executable_suffix: src/frontends/widgets/edit-atlas.app/Contents/MacOS/edit-atlas
+            widgets_release_preset: release-widgets-arm64-osx
+            quick_release_preset: release-quick-arm64-osx
+            selected_frontend_executable_suffix: edit-atlas.app/Contents/MacOS/edit-atlas
+            widgets_debug_executable_suffix: edit-atlas.app/Contents/MacOS/edit-atlas
+            quick_debug_executable_suffix: edit-atlas-quick
             staged_executable_suffix: edit-atlas.app/Contents/MacOS/edit-atlas
           - name: macOS x64
             os: macos-15-intel
             source_dir: .
             triplet: x64-osx
             debug_preset: debug-x64-osx
-            release_preset: release-x64-osx
-            executable_suffix: src/frontends/widgets/edit-atlas.app/Contents/MacOS/edit-atlas
+            widgets_release_preset: release-widgets-x64-osx
+            quick_release_preset: release-quick-x64-osx
+            selected_frontend_executable_suffix: edit-atlas.app/Contents/MacOS/edit-atlas
+            widgets_debug_executable_suffix: edit-atlas.app/Contents/MacOS/edit-atlas
+            quick_debug_executable_suffix: edit-atlas-quick
             staged_executable_suffix: edit-atlas.app/Contents/MacOS/edit-atlas
           - name: Windows x64
             os: windows-2022
             source_dir: V:/
             triplet: x64-windows
             debug_preset: debug-x64-windows
-            release_preset: release-x64-windows
-            package_preset: package-release-x64-windows
-            executable_suffix: src/frontends/widgets/edit-atlas.exe
+            widgets_release_preset: release-widgets-x64-windows
+            quick_release_preset: release-quick-x64-windows
+            package_generators: WIX
+            selected_frontend_executable_suffix: edit-atlas.exe
+            widgets_debug_executable_suffix: edit-atlas.exe
+            quick_debug_executable_suffix: edit-atlas-quick.exe
             staged_executable_suffix: bin/edit-atlas.exe
 
     env:
@@ -303,6 +315,7 @@ jobs:
         run: >-
           cmake -S "${{ matrix.source_dir }}"
           --preset ${{ matrix.debug_preset }}
+          -DEDIT_ATLAS_DEFAULT_FRONTEND=widgets
 
       - name: Report vcpkg binary package activity
         if: always()
@@ -326,10 +339,18 @@ jobs:
           cmake --build --preset ${{ matrix.debug_preset }}
           --target all_qmllint
 
-      - name: Verify Debug Qt linkage
+      - name: Verify Widgets Debug Qt linkage
         run: >-
           cmake
-          "-DEDIT_ATLAS_EXECUTABLE=${{ github.workspace }}/build/${{ matrix.debug_preset }}/${{ matrix.executable_suffix }}"
+          "-DEDIT_ATLAS_EXECUTABLE=${{ github.workspace }}/build/${{ matrix.debug_preset }}/src/frontends/widgets/${{ matrix.widgets_debug_executable_suffix }}"
+          -DEDIT_ATLAS_EXPECTED_FRONTEND=widgets
+          -P cmake/VerifyDynamicQtBinary.cmake
+
+      - name: Verify Quick Debug Qt linkage
+        run: >-
+          cmake
+          "-DEDIT_ATLAS_EXECUTABLE=${{ github.workspace }}/build/${{ matrix.debug_preset }}/src/frontends/quick/${{ matrix.quick_debug_executable_suffix }}"
+          -DEDIT_ATLAS_EXPECTED_FRONTEND=quick
           -P cmake/VerifyDynamicQtBinary.cmake
 
       - name: Test Debug
@@ -338,10 +359,10 @@ jobs:
       - name: Remove Debug build tree
         run: cmake -E remove_directory "build/${{ matrix.debug_preset }}"
 
-      - name: Configure Release
+      - name: Configure Widgets Release
         run: >-
           cmake -S "${{ matrix.source_dir }}"
-          --preset ${{ matrix.release_preset }}
+          --preset ${{ matrix.widgets_release_preset }}
 
       - name: Clean vcpkg temporary directories
         run: |
@@ -349,17 +370,18 @@ jobs:
           cmake -E remove_directory "${{ github.workspace }}/vcpkg/downloads"
           cmake -E remove_directory "${{ github.workspace }}/vcpkg/packages"
 
-      - name: Build Release
-        run: cmake --build --preset ${{ matrix.release_preset }}
+      - name: Build Widgets Release
+        run: cmake --build --preset ${{ matrix.widgets_release_preset }}
 
-      - name: Verify Release Qt linkage
+      - name: Verify Widgets Release Qt linkage
         run: >-
           cmake
-          "-DEDIT_ATLAS_EXECUTABLE=${{ github.workspace }}/build/${{ matrix.release_preset }}/${{ matrix.executable_suffix }}"
+          "-DEDIT_ATLAS_EXECUTABLE=${{ github.workspace }}/build/${{ matrix.widgets_release_preset }}/src/frontends/widgets/${{ matrix.selected_frontend_executable_suffix }}"
+          -DEDIT_ATLAS_EXPECTED_FRONTEND=widgets
           -P cmake/VerifyDynamicQtBinary.cmake
 
-      - name: Test Release
-        run: ctest --preset ${{ matrix.release_preset }}
+      - name: Test Widgets Release
+        run: ctest --preset ${{ matrix.widgets_release_preset }}
 
       - name: Restore rendered-video E2E fixture cache
         if: runner.os == 'Linux'
@@ -380,7 +402,7 @@ jobs:
           runner.os == 'Linux' &&
           steps.rendered-video-fixture-cache.outputs.cache-hit != 'true'
         run: >-
-          build/${{ matrix.release_preset }}/tests/integration/media/edit_atlas_e2e_media_fixture_generator
+          build/${{ matrix.widgets_release_preset }}/tests/integration/media/edit_atlas_e2e_media_fixture_generator
           build/e2e-media-fixtures
 
       - name: Save rendered-video E2E fixture cache
@@ -401,61 +423,156 @@ jobs:
           if-no-files-found: error
           retention-days: 3
 
-      - name: Stage Release
+      - name: Stage Widgets Release
         run: >-
           cmake
-          --install "build/${{ matrix.release_preset }}"
-          --prefix "${{ github.workspace }}/build/stage-${{ matrix.triplet }}"
+          --install "build/${{ matrix.widgets_release_preset }}"
+          --prefix "${{ github.workspace }}/build/stage-widgets-${{ matrix.triplet }}"
 
-      - name: Verify staged Qt deployment
+      - name: Verify staged Widgets deployment
         run: >-
           cmake
-          "-DEDIT_ATLAS_DEPLOYMENT_ROOT=${{ github.workspace }}/build/stage-${{ matrix.triplet }}"
-          "-DEDIT_ATLAS_EXECUTABLE=${{ github.workspace }}/build/stage-${{ matrix.triplet }}/${{ matrix.staged_executable_suffix }}"
+          "-DEDIT_ATLAS_DEPLOYMENT_ROOT=${{ github.workspace }}/build/stage-widgets-${{ matrix.triplet }}"
+          "-DEDIT_ATLAS_EXECUTABLE=${{ github.workspace }}/build/stage-widgets-${{ matrix.triplet }}/${{ matrix.staged_executable_suffix }}"
+          -DEDIT_ATLAS_EXPECTED_FRONTEND=widgets
           "-DEDIT_ATLAS_VERIFY_PRIVATE_RUNTIME_BOUNDARY=TRUE"
           -P cmake/VerifyApplicationDeployment.cmake
 
-      - name: Archive staged macOS bundle
+      - name: Archive staged Widgets macOS bundle
         if: runner.os == 'macOS'
         run: |
-          cmake -E chdir "build/stage-${{ matrix.triplet }}" \
+          cmake -E chdir "build/stage-widgets-${{ matrix.triplet }}" \
             cmake -E tar czf \
-            "${{ github.workspace }}/build/edit-atlas-${{ matrix.triplet }}-stage.tar.gz" \
+            "${{ github.workspace }}/build/edit-atlas-widgets-${{ matrix.triplet }}-stage.tar.gz" \
             --format=gnutar \
             edit-atlas.app
 
-      - name: Upload staged macOS bundle
+      - name: Upload staged Widgets macOS bundle
         if: runner.os == 'macOS'
         uses: actions/upload-artifact@v7
         with:
-          name: edit-atlas-${{ matrix.triplet }}-stage
-          path: build/edit-atlas-${{ matrix.triplet }}-stage.tar.gz
+          name: widgets-frontend-${{ matrix.triplet }}-stage
+          path: build/edit-atlas-widgets-${{ matrix.triplet }}-stage.tar.gz
           if-no-files-found: error
           retention-days: 3
 
-      - name: Remove staged Release
-        run: cmake -E remove_directory "build/stage-${{ matrix.triplet }}"
+      - name: Remove staged Widgets Release
+        run: >-
+          cmake -E remove_directory
+          "build/stage-widgets-${{ matrix.triplet }}"
 
-      - name: Package Release
-        id: package
+      - name: Package Widgets Release
+        id: package_widgets
         if: runner.os != 'macOS'
-        run: cpack --preset ${{ matrix.package_preset }}
+        run: >-
+          cpack
+          --config "build/${{ matrix.widgets_release_preset }}/CPackConfig.cmake"
+          -G "${{ matrix.package_generators }}"
+          -B "build/packages/widgets/${{ matrix.triplet }}"
 
-      - name: Remove CPack temporary files
+      - name: Remove Widgets CPack temporary files
         if: runner.os != 'macOS'
         run: >-
           cmake -E remove_directory
-          "build/packages/${{ matrix.triplet }}/_CPack_Packages"
+          "build/packages/widgets/${{ matrix.triplet }}/_CPack_Packages"
 
-      - name: Upload packages
+      - name: Upload Widgets packages
         if: >-
           always() &&
           runner.os != 'macOS' &&
-          steps.package.outcome == 'success'
+          steps.package_widgets.outcome == 'success'
         uses: actions/upload-artifact@v7
         with:
-          name: edit-atlas-${{ matrix.triplet }}-packages
-          path: build/packages/${{ matrix.triplet }}
+          name: widgets-frontend-${{ matrix.triplet }}-packages
+          path: build/packages/widgets/${{ matrix.triplet }}
+          if-no-files-found: error
+          retention-days: 3
+
+      - name: Remove Widgets Release build tree
+        run: >-
+          cmake -E remove_directory
+          "build/${{ matrix.widgets_release_preset }}"
+
+      - name: Configure Quick Release
+        run: >-
+          cmake -S "${{ matrix.source_dir }}"
+          --preset ${{ matrix.quick_release_preset }}
+
+      - name: Build Quick Release
+        run: cmake --build --preset ${{ matrix.quick_release_preset }}
+
+      - name: Verify Quick Release Qt linkage
+        run: >-
+          cmake
+          "-DEDIT_ATLAS_EXECUTABLE=${{ github.workspace }}/build/${{ matrix.quick_release_preset }}/src/frontends/quick/${{ matrix.selected_frontend_executable_suffix }}"
+          -DEDIT_ATLAS_EXPECTED_FRONTEND=quick
+          -P cmake/VerifyDynamicQtBinary.cmake
+
+      - name: Test Quick Release
+        run: ctest --preset ${{ matrix.quick_release_preset }}
+
+      - name: Stage Quick Release
+        run: >-
+          cmake
+          --install "build/${{ matrix.quick_release_preset }}"
+          --prefix "${{ github.workspace }}/build/stage-quick-${{ matrix.triplet }}"
+
+      - name: Verify staged Quick deployment
+        run: >-
+          cmake
+          "-DEDIT_ATLAS_DEPLOYMENT_ROOT=${{ github.workspace }}/build/stage-quick-${{ matrix.triplet }}"
+          "-DEDIT_ATLAS_EXECUTABLE=${{ github.workspace }}/build/stage-quick-${{ matrix.triplet }}/${{ matrix.staged_executable_suffix }}"
+          -DEDIT_ATLAS_EXPECTED_FRONTEND=quick
+          -DEDIT_ATLAS_VERIFY_PRIVATE_RUNTIME_BOUNDARY=TRUE
+          -P cmake/VerifyApplicationDeployment.cmake
+
+      - name: Archive staged Quick macOS bundle
+        if: runner.os == 'macOS'
+        run: |
+          cmake -E chdir "build/stage-quick-${{ matrix.triplet }}" \
+            cmake -E tar czf \
+            "${{ github.workspace }}/build/edit-atlas-quick-${{ matrix.triplet }}-stage.tar.gz" \
+            --format=gnutar \
+            edit-atlas.app
+
+      - name: Upload staged Quick macOS bundle
+        if: runner.os == 'macOS'
+        uses: actions/upload-artifact@v7
+        with:
+          name: quick-frontend-${{ matrix.triplet }}-stage
+          path: build/edit-atlas-quick-${{ matrix.triplet }}-stage.tar.gz
+          if-no-files-found: error
+          retention-days: 3
+
+      - name: Remove staged Quick Release
+        run: >-
+          cmake -E remove_directory
+          "build/stage-quick-${{ matrix.triplet }}"
+
+      - name: Package Quick Release
+        id: package_quick
+        if: runner.os != 'macOS'
+        run: >-
+          cpack
+          --config "build/${{ matrix.quick_release_preset }}/CPackConfig.cmake"
+          -G "${{ matrix.package_generators }}"
+          -B "build/packages/quick/${{ matrix.triplet }}"
+
+      - name: Remove Quick CPack temporary files
+        if: runner.os != 'macOS'
+        run: >-
+          cmake -E remove_directory
+          "build/packages/quick/${{ matrix.triplet }}/_CPack_Packages"
+
+      - name: Upload Quick packages
+        if: >-
+          always() &&
+          runner.os != 'macOS' &&
+          steps.package_quick.outcome == 'success'
+        uses: actions/upload-artifact@v7
+        with:
+          name: quick-frontend-${{ matrix.triplet }}-packages
+          path: build/packages/quick/${{ matrix.triplet }}
           if-no-files-found: error
           retention-days: 3
 
@@ -480,11 +597,20 @@ jobs:
           cmake -E remove_directory "${{ github.workspace }}/vcpkg/packages"
 
   package-macos-universal:
-    name: Package / macOS Universal
+    name: Package / macOS Universal / ${{ matrix.display_name }}
     needs: build-and-package
     if: always() && needs['build-and-package'].result == 'success'
     runs-on: macos-15
     timeout-minutes: 20
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - frontend: widgets
+            display_name: Widgets
+          - frontend: quick
+            display_name: Quick
 
     steps:
       - name: Check out source
@@ -496,32 +622,32 @@ jobs:
       - name: Download ARM64 staged bundle
         uses: actions/download-artifact@v8
         with:
-          name: edit-atlas-arm64-osx-stage
-          path: build/stages/arm64
+          name: ${{ matrix.frontend }}-frontend-arm64-osx-stage
+          path: build/stages/${{ matrix.frontend }}-arm64
 
       - name: Download x64 staged bundle
         uses: actions/download-artifact@v8
         with:
-          name: edit-atlas-x64-osx-stage
-          path: build/stages/x64
+          name: ${{ matrix.frontend }}-frontend-x64-osx-stage
+          path: build/stages/${{ matrix.frontend }}-x64
 
       - name: Create universal package
         run: >-
           ./scripts/ci/create-macos-universal-package.sh
-          build/stages/arm64/edit-atlas-arm64-osx-stage.tar.gz
-          build/stages/x64/edit-atlas-x64-osx-stage.tar.gz
-          build/packages/universal-osx
+          build/stages/${{ matrix.frontend }}-arm64/edit-atlas-${{ matrix.frontend }}-arm64-osx-stage.tar.gz
+          build/stages/${{ matrix.frontend }}-x64/edit-atlas-${{ matrix.frontend }}-x64-osx-stage.tar.gz
+          build/packages/${{ matrix.frontend }}/universal-osx
 
       - name: Upload universal package
         uses: actions/upload-artifact@v7
         with:
-          name: edit-atlas-universal-osx-packages
-          path: build/packages/universal-osx
+          name: ${{ matrix.frontend }}-frontend-universal-osx-packages
+          path: build/packages/${{ matrix.frontend }}/universal-osx
           if-no-files-found: error
           retention-days: 3
 
   verify-linux-packages:
-    name: Verify Linux packages / ${{ matrix.name }}
+    name: Verify Linux packages / ${{ matrix.check_name }}
     needs: build-and-package
     if: always() && needs['build-and-package'].result == 'success'
     runs-on: ubuntu-24.04
@@ -532,12 +658,26 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - name: Ubuntu 24.04
+          - check_name: Ubuntu 24.04 / Widgets
             distribution: ubuntu
             container: ubuntu:24.04
-          - name: Fedora 44
+            artifact: widgets-frontend-x64-linux-packages
+            package_path: build/packages/widgets/x64-linux
+          - check_name: Fedora 44 / Widgets
             distribution: fedora
             container: fedora:44
+            artifact: widgets-frontend-x64-linux-packages
+            package_path: build/packages/widgets/x64-linux
+          - check_name: Ubuntu 24.04 / Quick
+            distribution: ubuntu
+            container: ubuntu:24.04
+            artifact: quick-frontend-x64-linux-packages
+            package_path: build/packages/quick/x64-linux
+          - check_name: Fedora 44 / Quick
+            distribution: fedora
+            container: fedora:44
+            artifact: quick-frontend-x64-linux-packages
+            package_path: build/packages/quick/x64-linux
 
     steps:
       - name: Install Ubuntu verification tools
@@ -552,6 +692,8 @@ jobs:
           cmake
           findutils
           git
+          libgomp1
+          libxkbcommon0
           xauth
           xvfb
 
@@ -566,6 +708,8 @@ jobs:
           cpio
           findutils
           git
+          libgomp
+          libxkbcommon
           rpm
           xorg-x11-server-Xvfb
           xorg-x11-xauth
@@ -576,15 +720,15 @@ jobs:
       - name: Download Linux packages
         uses: actions/download-artifact@v8
         with:
-          name: edit-atlas-x64-linux-packages
-          path: build/packages/x64-linux
+          name: ${{ matrix.artifact }}
+          path: ${{ matrix.package_path }}
 
       - name: Verify packages
         shell: bash
         run: >-
           ./scripts/ci/verify-linux-packages.sh
           ${{ matrix.distribution }}
-          build/packages/x64-linux
+          ${{ matrix.package_path }}
 
   e2e-linux-package:
     name: E2E / Ubuntu packaged desktop
@@ -626,8 +770,8 @@ jobs:
       - name: Download Linux packages
         uses: actions/download-artifact@v8
         with:
-          name: edit-atlas-x64-linux-packages
-          path: build/packages/x64-linux
+          name: widgets-frontend-x64-linux-packages
+          path: build/packages/widgets/x64-linux
 
       - name: Download rendered-video E2E fixtures
         uses: actions/download-artifact@v8
@@ -638,7 +782,7 @@ jobs:
       - name: Install generated DEB
         shell: bash
         run: |
-          mapfile -t packages < <(find "${GITHUB_WORKSPACE}/build/packages/x64-linux" -type f -name '*.deb')
+          mapfile -t packages < <(find "${GITHUB_WORKSPACE}/build/packages/widgets/x64-linux" -type f -name '*.deb')
           if [[ "${#packages[@]}" -ne 1 ]]; then
             echo "Expected exactly one DEB, found ${#packages[@]}" >&2
             exit 1
@@ -693,7 +837,7 @@ jobs:
           fi
 
   verify-macos-package:
-    name: Verify macOS package / ${{ matrix.name }}
+    name: Verify macOS package / ${{ matrix.check_name }}
     needs: package-macos-universal
     if: always() && needs['package-macos-universal'].result == 'success'
     runs-on: ${{ matrix.os }}
@@ -703,12 +847,26 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - name: Apple Silicon
+          - check_name: Apple Silicon / Widgets
             os: macos-15
-            artifact: apple-silicon
-          - name: Intel
+            artifact_suffix: apple-silicon-widgets
+            package_artifact: widgets-frontend-universal-osx-packages
+            package_path: build/packages/widgets/universal-osx
+          - check_name: Intel / Widgets
             os: macos-15-intel
-            artifact: intel
+            artifact_suffix: intel-widgets
+            package_artifact: widgets-frontend-universal-osx-packages
+            package_path: build/packages/widgets/universal-osx
+          - check_name: Apple Silicon / Quick
+            os: macos-15
+            artifact_suffix: apple-silicon-quick
+            package_artifact: quick-frontend-universal-osx-packages
+            package_path: build/packages/quick/universal-osx
+          - check_name: Intel / Quick
+            os: macos-15-intel
+            artifact_suffix: intel-quick
+            package_artifact: quick-frontend-universal-osx-packages
+            package_path: build/packages/quick/universal-osx
 
     steps:
       - name: Check out source
@@ -720,8 +878,8 @@ jobs:
       - name: Download macOS package
         uses: actions/download-artifact@v8
         with:
-          name: edit-atlas-universal-osx-packages
-          path: build/packages/universal-osx
+          name: ${{ matrix.package_artifact }}
+          path: ${{ matrix.package_path }}
 
       - name: Mark macOS crash-report window
         run: |
@@ -729,7 +887,9 @@ jobs:
           touch build/package-check-macos/crash-report-start
 
       - name: Verify package
-        run: ./scripts/ci/verify-macos-package.sh build/packages/universal-osx
+        run: >-
+          ./scripts/ci/verify-macos-package.sh
+          ${{ matrix.package_path }}
 
       - name: Collect macOS crash reports
         if: always()
@@ -742,7 +902,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v7
         with:
-          name: macos-package-crash-reports-${{ matrix.artifact }}
+          name: macos-package-crash-reports-${{ matrix.artifact_suffix }}
           path: build/package-check-macos/crash-reports
           if-no-files-found: ignore
           retention-days: 7
@@ -774,8 +934,8 @@ jobs:
       - name: Download macOS package
         uses: actions/download-artifact@v8
         with:
-          name: edit-atlas-universal-osx-packages
-          path: build/packages/universal-osx
+          name: widgets-frontend-universal-osx-packages
+          path: build/packages/widgets/universal-osx
 
       - name: Download rendered-video E2E fixtures
         uses: actions/download-artifact@v8
@@ -788,7 +948,7 @@ jobs:
           packages=()
           while IFS= read -r package; do
             packages+=("${package}")
-          done < <(find build/packages/universal-osx -type f -name '*.pkg')
+          done < <(find build/packages/widgets/universal-osx -type f -name '*.pkg')
           if [[ "${#packages[@]}" -ne 1 ]]; then
             echo "Expected exactly one PKG, found ${#packages[@]}" >&2
             exit 1
@@ -847,11 +1007,24 @@ jobs:
           retention-days: 7
 
   verify-windows-package:
-    name: Verify Windows package / Windows x64
+    name: Verify Windows package / ${{ matrix.check_name }}
     needs: build-and-package
     if: always() && needs['build-and-package'].result == 'success'
     runs-on: windows-2022
     timeout-minutes: 20
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - check_name: Windows x64 / Widgets
+            artifact: widgets-frontend-x64-windows-packages
+            package_path: build/packages/widgets/x64-windows
+            artifact_suffix: widgets
+          - check_name: Windows x64 / Quick
+            artifact: quick-frontend-x64-windows-packages
+            package_path: build/packages/quick/x64-windows
+            artifact_suffix: quick
 
     steps:
       - name: Check out source
@@ -869,20 +1042,20 @@ jobs:
       - name: Download Windows package
         uses: actions/download-artifact@v8
         with:
-          name: edit-atlas-x64-windows-packages
-          path: build/packages/x64-windows
+          name: ${{ matrix.artifact }}
+          path: ${{ matrix.package_path }}
 
       - name: Verify package
         shell: pwsh
         run: >-
           ./scripts/ci/verify-windows-package.ps1
-          -PackageDirectory build/packages/x64-windows
+          -PackageDirectory ${{ matrix.package_path }}
 
       - name: Upload Windows Installer logs
         if: failure()
         uses: actions/upload-artifact@v7
         with:
-          name: windows-installer-logs
+          name: windows-installer-logs-${{ matrix.artifact_suffix }}
           path: build/package-check-windows/*.log
           if-no-files-found: ignore
           retention-days: 7
@@ -906,8 +1079,8 @@ jobs:
       - name: Download Windows package
         uses: actions/download-artifact@v8
         with:
-          name: edit-atlas-x64-windows-packages
-          path: build/packages/x64-windows
+          name: widgets-frontend-x64-windows-packages
+          path: build/packages/widgets/x64-windows
 
       - name: Download rendered-video E2E fixtures
         uses: actions/download-artifact@v8
@@ -919,7 +1092,8 @@ jobs:
         shell: pwsh
         run: |
           $packages = @(
-            Get-ChildItem build/packages/x64-windows -Recurse -File -Filter *.msi
+            Get-ChildItem build/packages/widgets/x64-windows `
+              -Recurse -File -Filter *.msi
           )
           if ($packages.Count -ne 1) {
             throw "Expected exactly one MSI; found $($packages.Count)."
@@ -1063,7 +1237,7 @@ jobs:
       - name: Download release packages
         uses: actions/download-artifact@v8
         with:
-          pattern: edit-atlas-*-packages
+          pattern: widgets-frontend-*-packages
           path: build/release-artifacts
           merge-multiple: true
 

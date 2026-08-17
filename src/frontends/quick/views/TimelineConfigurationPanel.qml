@@ -191,8 +191,9 @@ Atlas.Surface {
             id: filterList
 
             Layout.fillWidth: true
-            Layout.minimumHeight: Math.min(contentHeight,
-                                           Atlas.DesignTokens.controlHeight)
+            Layout.minimumHeight: count > 0
+                                  ? Atlas.DesignTokens.controlHeight
+                                  : 0
             Layout.preferredHeight: Math.min(contentHeight,
                                              root.maximumFilterHeight)
             Accessible.id: objectName

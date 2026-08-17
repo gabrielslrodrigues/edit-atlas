@@ -125,10 +125,12 @@ graphical toolkits.
 Concrete application targets identify their frontend explicitly:
 `EditAtlas::WidgetsApplication`, `EditAtlas::CliApplication`, and
 `EditAtlas::QuickApplication`. `EditAtlas::Application` aliases the current
-default desktop application selected by `edit_atlas_default_application`, which
-is the Widgets application. The selected target receives the product name,
-platform metadata, installation rules, and Qt deployment. Its output keeps the
-product name `edit-atlas`; the other outputs identify their concrete frontends.
+default desktop frontend selected by `EDIT_ATLAS_DEFAULT_FRONTEND`, which is
+currently Widgets. Generic development presets build both graphical frontends,
+while frontend-specific presets use `EDIT_ATLAS_BUILD_FRONTENDS` to build only
+their named implementation. The CLI remains independently available. The
+selected target receives the product name, platform metadata, installation
+rules, and Qt deployment. Its output keeps the product name `edit-atlas`.
 Shared product icons and desktop metadata live under `src/frontends/resources`;
 frontend-specific styling remains with its concrete frontend.
 
