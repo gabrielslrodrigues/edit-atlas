@@ -240,9 +240,14 @@ if(edit_atlas_detected_frontend STREQUAL "quick")
     if(WIN32)
         set(edit_atlas_qml_root "${EDIT_ATLAS_DEPLOYMENT_ROOT}/Qt6/qml")
     elseif(APPLE)
+        get_filename_component(
+            edit_atlas_macos_contents_directory
+            "${edit_atlas_executable_directory}"
+            DIRECTORY
+        )
         set(
             edit_atlas_qml_root
-            "${EDIT_ATLAS_DEPLOYMENT_ROOT}/edit-atlas.app/Contents/Resources/qml"
+            "${edit_atlas_macos_contents_directory}/Resources/qml"
         )
     elseif(LINUX)
         set(
