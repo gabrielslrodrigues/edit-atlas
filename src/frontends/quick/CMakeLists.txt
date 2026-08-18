@@ -169,6 +169,8 @@ if(EDIT_ATLAS_BUILD_PACKAGING_APPLICATIONS)
     set_target_properties(
         edit_atlas_quick_package
         PROPERTIES
+            ARCHIVE_OUTPUT_DIRECTORY
+                "${PROJECT_BINARY_DIR}/packaging/quick"
             RUNTIME_OUTPUT_DIRECTORY
                 "${PROJECT_BINARY_DIR}/packaging/quick"
     )
