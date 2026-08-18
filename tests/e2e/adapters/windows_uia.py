@@ -262,12 +262,16 @@ class WindowsApplicationSession:
 
     def select_option(self, identifier: str, option: str) -> None:
         control = self.element(identifier)
-        if self._normalized_name(self._node_text(control)) == self._normalized_name(
-            option
-        ):
+        control_type = self._control_type(control)
+        current = (
+            self._combo_display_text(control)
+            if control_type == "ComboBox"
+            else self._node_text(control)
+        )
+        if self._normalized_name(current) == self._normalized_name(option):
             return
 
-        if self._control_type(control) == "ComboBox":
+        if control_type == "ComboBox":
             self._select_combo_option_by_accessible_click(
                 control, identifier, option
             )
@@ -324,7 +328,7 @@ class WindowsApplicationSession:
                     return str(selected[0].CurrentName)
             except Exception:
                 pass
-        return self._node_text(control)
+        return self._combo_display_text(control)
 
     def open_file_dialog(self, dialog_identifier: str, path: Path) -> None:
         dialog = self._native_file_dialog(dialog_identifier)
@@ -608,7 +612,7 @@ class WindowsApplicationSession:
                 )
             except Exception:
                 item_selected = False
-            return (self._node_text(control), item_selected)
+            return (self._combo_display_text(control), item_selected)
 
         wait_until(
             selected_state,
@@ -926,6 +930,15 @@ class WindowsApplicationSession:
             except Exception:
                 pass
         return self._node_name(node)
+
+    def _combo_display_text(self, control: Any) -> str:
+        for node in self._descendants(control):
+            if self._control_type(node) != "Text":
+                continue
+            text = self._node_text(node)
+            if text:
+                return text
+        return self._node_text(control)
 
     @classmethod
     def _named_node(cls, nodes: Sequence[Any], name: str) -> Any | None:

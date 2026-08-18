@@ -72,6 +72,8 @@ T.ComboBox {
     }
 
     contentItem: Text {
+        Accessible.name: control.displayText
+        Accessible.role: Accessible.StaticText
         color: control.enabled ? Theme.textPrimary : Theme.disabled
         elide: Text.ElideRight
         font: control.font

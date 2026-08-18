@@ -480,13 +480,33 @@ class LinuxApplicationSession:
 
     def open_file_dialog(self, dialog_identifier: str, path: Path) -> None:
         dialog = self._file_dialog(dialog_identifier)
+        quick_filename_editor = self._find_identifier(
+            dialog, "fileNameTextField", showing_only=False
+        )
+        if quick_filename_editor is None:
+            self._complete_native_file_dialog(
+                dialog, dialog_identifier, os.fspath(path)
+            )
+            return
+
+        button = self._file_dialog_accept_button(dialog)
+        button_name = self._normalized_name(str(getattr(button, "name", "")))
+        save_dialog = button_name in ("save", "salvar")
+        absolute_path = path.absolute()
+        self._navigate_file_dialog(dialog, absolute_path.parent)
+
+        if not save_dialog:
+            file_entry = self._file_dialog_entry(dialog, absolute_path.name)
+            self._select_file_dialog_entry(file_entry, absolute_path.name)
+            self._activate_file_dialog_accept(dialog)
+            self._wait_file_dialog_closed(dialog, dialog_identifier)
+            return
+
         editor = self._find_identifier(
             dialog, "fileNameEdit", showing_only=False
         )
         if editor is None:
-            editor = self._find_identifier(
-                dialog, "fileNameTextField", showing_only=False
-            )
+            editor = quick_filename_editor
         editors = [
             node
             for node in self._walk(dialog)
@@ -494,18 +514,18 @@ class LinuxApplicationSession:
         ]
         if editor is None and not editors:
             raise ElementNotFoundError(
-                f"{dialog_identifier!r} contains no showing editable path field"
+                f"{dialog_identifier!r} contains no editable filename field"
             )
         if editor is None:
             editor = editors[-1]
+        expected_path = absolute_path.name
         try:
-            result = editor.set_text_contents(os.fspath(path))
+            result = editor.set_text_contents(expected_path)
         except Exception:
-            editor.text = os.fspath(path)
+            editor.text = expected_path
             result = True
         if result is False:
             raise ActionNotSupportedError("native file chooser rejected the path")
-        expected_path = os.fspath(path)
         wait_until(
             lambda: self._node_text(editor),
             lambda text: text == expected_path,
@@ -513,6 +533,102 @@ class LinuxApplicationSession:
             description=f"native file chooser path to become {expected_path!r}",
         )
 
+        self._activate_file_dialog_accept(dialog)
+        self._wait_file_dialog_closed(dialog, dialog_identifier)
+
+    def _complete_native_file_dialog(
+        self, dialog: Any, dialog_identifier: str, path: str
+    ) -> None:
+        editor = self._find_identifier(
+            dialog, "fileNameEdit", showing_only=False
+        )
+        if editor is None:
+            editor = next(
+                (
+                    node
+                    for node in self._walk(dialog)
+                    if self._is_showing(node) and self._is_editable(node)
+                ),
+                None,
+            )
+        if editor is None:
+            raise ElementNotFoundError(
+                f"{dialog_identifier!r} contains no editable path field"
+            )
+        try:
+            result = editor.set_text_contents(path)
+        except Exception:
+            editor.text = path
+            result = True
+        if result is False:
+            raise ActionNotSupportedError("native file chooser rejected the path")
+        wait_until(
+            lambda: self._node_text(editor),
+            lambda text: text == path,
+            timeout=self._timeout,
+            description=f"native file chooser path to become {path!r}",
+        )
+        self._activate_file_dialog_accept(dialog)
+        self._wait_file_dialog_closed(dialog, dialog_identifier)
+
+    def _navigate_file_dialog(self, dialog: Any, directory: Path) -> None:
+        root_button = self._find_named(
+            dialog, ("/",), roles=("push button", "button")
+        )
+        if root_button is None:
+            raise ElementNotFoundError("file chooser root location is absent")
+        self._activate_node(root_button)
+
+        components = tuple(
+            component
+            for component in directory.parts
+            if component not in (directory.anchor, "", "/")
+        )
+        for index, component in enumerate(components):
+            entry = self._file_dialog_entry(dialog, component)
+            self._select_file_dialog_entry(entry, component)
+            self._activate_file_dialog_accept(dialog)
+            if index + 1 < len(components):
+                self._file_dialog_entry(dialog, components[index + 1])
+            else:
+                wait_until(
+                    lambda: self._is_showing(entry),
+                    lambda showing: not showing,
+                    timeout=self._timeout,
+                    description=f"file chooser to enter {component!r}",
+                )
+
+    def _file_dialog_entry(self, dialog: Any, name: str) -> Any:
+        try:
+            return wait_until(
+                lambda: self._find_named(
+                    dialog,
+                    (name,),
+                    roles=("list item",),
+                    showing_only=True,
+                ),
+                lambda value: value is not None,
+                timeout=self._timeout,
+                description=f"file chooser entry {name!r}",
+            )
+        except PollTimeoutError as error:
+            raise ElementNotFoundError(str(error)) from error
+
+    def _select_file_dialog_entry(self, entry: Any, name: str) -> None:
+        try:
+            entry.select()
+        except Exception as error:
+            raise ActionNotSupportedError(
+                f"file chooser entry {name!r} exposes no selection interface"
+            ) from error
+        wait_until(
+            lambda: self._selected_state(entry),
+            lambda selected: selected,
+            timeout=self._timeout,
+            description=f"file chooser entry {name!r} to become selected",
+        )
+
+    def _file_dialog_accept_button(self, dialog: Any) -> Any:
         button = self._find_named(
             dialog,
             (
@@ -528,8 +644,22 @@ class LinuxApplicationSession:
             roles=("push button", "button"),
         )
         if button is None:
-            raise ElementNotFoundError("native file chooser accept button is absent")
+            raise ElementNotFoundError("file chooser accept button is absent")
+        return button
+
+    def _activate_file_dialog_accept(self, dialog: Any) -> None:
+        button = self._file_dialog_accept_button(dialog)
+        wait_until(
+            lambda: self._sensitive_state(button),
+            lambda sensitive: sensitive is True,
+            timeout=self._timeout,
+            description="file chooser accept button to become enabled",
+        )
         self._activate_node(button)
+
+    def _wait_file_dialog_closed(
+        self, dialog: Any, dialog_identifier: str
+    ) -> None:
         wait_until(
             lambda: self._is_showing(dialog),
             lambda showing: not showing,

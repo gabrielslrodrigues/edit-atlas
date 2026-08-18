@@ -254,6 +254,69 @@ def test_file_dialog_lookup_accepts_qt_fallback_identifier(
     assert session._file_dialog("timelineOpenFileDialog") is dialog
 
 
+def test_native_file_dialog_keeps_direct_path_entry(tmp_path: Path) -> None:
+    session = application_session(tmp_path)
+    dialog = AccessibilityNode("timelineOpenFileDialog", role_name="dialog")
+    completed: list[tuple[object, str, str]] = []
+    session._file_dialog = lambda identifier: dialog
+    session._find_identifier = lambda *args, **kwargs: None
+    session._complete_native_file_dialog = (
+        lambda found_dialog, identifier, path: completed.append(
+            (found_dialog, identifier, path)
+        )
+    )
+
+    timeline = tmp_path / "timeline.edl"
+    session.open_file_dialog("timelineOpenFileDialog", timeline)
+
+    assert completed == [
+        (dialog, "timelineOpenFileDialog", str(timeline))
+    ]
+
+
+def test_quick_open_dialog_navigates_and_selects_existing_file(
+    tmp_path: Path,
+) -> None:
+    session = application_session(tmp_path)
+    dialog = AccessibilityNode("quickFileDialog", role_name="dialog")
+    editor = AccessibilityNode("fileNameTextField")
+    button = AccessibilityNode("openButton", name="Open")
+    file_entry = AccessibilityNode("timelineEntry", name="timeline.edl")
+    operations: list[tuple[str, object]] = []
+    session._file_dialog = lambda identifier: dialog
+    session._find_identifier = lambda *args, **kwargs: editor
+    session._file_dialog_accept_button = lambda found_dialog: button
+    session._navigate_file_dialog = (
+        lambda found_dialog, directory: operations.append(
+            ("navigate", directory)
+        )
+    )
+    session._file_dialog_entry = (
+        lambda found_dialog, name: file_entry
+    )
+    session._select_file_dialog_entry = (
+        lambda entry, name: operations.append(("select", name))
+    )
+    session._activate_file_dialog_accept = (
+        lambda found_dialog: operations.append(("accept", found_dialog))
+    )
+    session._wait_file_dialog_closed = (
+        lambda found_dialog, identifier: operations.append(
+            ("close", identifier)
+        )
+    )
+
+    timeline = tmp_path / "timeline.edl"
+    session.open_file_dialog("timelineOpenFileDialog", timeline)
+
+    assert operations == [
+        ("navigate", tmp_path),
+        ("select", "timeline.edl"),
+        ("accept", dialog),
+        ("close", "timelineOpenFileDialog"),
+    ]
+
+
 def test_checkable_menu_action_can_close_before_state_is_observed(
     tmp_path: Path,
 ) -> None:

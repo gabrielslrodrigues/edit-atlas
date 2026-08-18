@@ -158,12 +158,12 @@ def test_combo_selection_uses_accessible_item_bounds(
 ) -> None:
     session = application_session(tmp_path)
     opened = Event()
-    control = Node("Event", "ComboBox", click=opened.set)
-    reel = Node("Reel", "ListItem")
-    reel.iface_selection_item = SelectionPattern(lambda: None)
-    reel._click = lambda: setattr(
-        reel.iface_selection_item, "CurrentIsSelected", True
+    display = Node("Event", "Text")
+    control = Node(
+        "Field", "ComboBox", children=(display,), click=opened.set
     )
+    reel = Node("Reel", "ListItem")
+    reel._click = lambda: setattr(display.element_info, "name", "Reel")
     session.element = lambda identifier: control
     session._find_named = (
         lambda *args, root=None, **kwargs: reel if root is None else None
@@ -172,7 +172,7 @@ def test_combo_selection_uses_accessible_item_bounds(
     session.select_option("filterCondition0Field", "Reel")
 
     assert opened.is_set()
-    assert reel.iface_selection_item.CurrentIsSelected
+    assert session.selected_option("filterCondition0Field") == "Reel"
 
 
 def test_combo_selection_uses_uia_range_value_without_input_simulation(

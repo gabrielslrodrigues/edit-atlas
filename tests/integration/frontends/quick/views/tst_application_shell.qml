@@ -118,6 +118,8 @@ TestCase {
         compare(option.Accessible.role, Accessible.ListItem)
         verify(option.Accessible.selectable)
         verify(option.Accessible.selected)
+        compare(selector.contentItem.Accessible.name, selector.displayText)
+        compare(selector.contentItem.Accessible.role, Accessible.StaticText)
 
         selector.popup.close()
         dialog.close()
