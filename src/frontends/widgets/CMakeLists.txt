@@ -69,6 +69,8 @@ qt_add_resources(
 )
 
 function(edit_atlas_configure_widgets_executable target)
+    edit_atlas_add_application_icon_resource("${target}")
+
     target_link_libraries(
         "${target}"
         PRIVATE

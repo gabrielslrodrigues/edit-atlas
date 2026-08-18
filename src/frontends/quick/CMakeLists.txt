@@ -122,6 +122,8 @@ target_compile_features(edit_atlas_quick_frontend PUBLIC cxx_std_23)
 edit_atlas_set_project_warnings(edit_atlas_quick_frontend)
 
 function(edit_atlas_configure_quick_executable target)
+    edit_atlas_add_application_icon_resource("${target}")
+
     target_link_libraries(
         "${target}"
         PRIVATE
@@ -156,20 +158,6 @@ if(APPLE AND EDIT_ATLAS_DEFAULT_FRONTEND STREQUAL "quick")
     set_target_properties(edit_atlas_quick PROPERTIES MACOSX_BUNDLE ON)
 endif()
 
-set(
-    edit_atlas_quick_resource_directory
-    "${PROJECT_SOURCE_DIR}/src/frontends/resources"
-)
-qt_add_resources(
-    edit_atlas_quick
-    "edit_atlas_quick_icons"
-    PREFIX
-        "/"
-    BASE
-        "${edit_atlas_quick_resource_directory}"
-    FILES
-        "${edit_atlas_quick_resource_directory}/icons/edit_atlas.png"
-)
 edit_atlas_configure_quick_executable(edit_atlas_quick)
 
 if(EDIT_ATLAS_BUILD_PACKAGING_APPLICATIONS)

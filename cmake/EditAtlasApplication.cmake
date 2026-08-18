@@ -1,8 +1,17 @@
 include_guard(GLOBAL)
 
-function(edit_atlas_configure_product_application target)
+function(edit_atlas_add_application_icon_resource target)
     if(NOT TARGET "${target}")
         message(FATAL_ERROR "Unknown application target: ${target}")
+    endif()
+
+    get_target_property(
+        edit_atlas_has_icon_resource
+        "${target}"
+        EDIT_ATLAS_HAS_ICON_RESOURCE
+    )
+    if(edit_atlas_has_icon_resource)
+        return()
     endif()
 
     set(
@@ -19,7 +28,21 @@ function(edit_atlas_configure_product_application target)
         FILES
             "${edit_atlas_resource_directory}/icons/edit_atlas.png"
     )
+    set_target_properties(
+        "${target}"
+        PROPERTIES EDIT_ATLAS_HAS_ICON_RESOURCE TRUE
+    )
+endfunction()
 
+function(edit_atlas_configure_product_application target)
+    if(NOT TARGET "${target}")
+        message(FATAL_ERROR "Unknown application target: ${target}")
+    endif()
+
+    set(
+        edit_atlas_resource_directory
+        "${PROJECT_SOURCE_DIR}/src/frontends/resources"
+    )
     set_target_properties("${target}" PROPERTIES OUTPUT_NAME "edit-atlas")
 
     if(WIN32)
