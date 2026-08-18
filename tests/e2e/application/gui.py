@@ -69,9 +69,11 @@ class EditAtlasApplication:
         return self._session.text_content("eventTable")
 
     def set_filter_field(self, index: int, field: str) -> None:
+        self._ensure_filters_visible()
         self._session.select_option(f"filterCondition{index}Field", field)
 
     def set_filter_text(self, index: int, value: str) -> None:
+        self._ensure_filters_visible()
         self._session.set_text(f"filterCondition{index}Text", value)
 
     def set_filter_track_kind(self, index: int, value: str) -> None:
@@ -138,6 +140,7 @@ class EditAtlasApplication:
         self._session.wait_selected_option("templateSelector", "No template")
 
     def set_export_columns(self, checked: set[str], order: list[str]) -> None:
+        opened_projection = self._open_spreadsheet_export_columns()
         available = self._session.list_items("eventColumnsList")
         # Arrange rows before a selection can reveal conditional controls and
         # shrink the list's visible area.
@@ -160,6 +163,22 @@ class EditAtlasApplication:
             self._session.set_list_item_checked(
                 "eventColumnsList", name, name in checked
             )
+        if opened_projection:
+            self._close_spreadsheet_export_columns()
+
+    def spreadsheet_export_column_selection(
+        self,
+    ) -> tuple[list[str], set[str]]:
+        opened_projection = self._open_spreadsheet_export_columns()
+        columns = self._session.list_items("eventColumnsList")
+        checked = {
+            name
+            for name in columns
+            if self._session.is_list_item_checked("eventColumnsList", name)
+        }
+        if opened_projection:
+            self._close_spreadsheet_export_columns()
+        return (columns, checked)
 
     def begin_spreadsheet_export(
         self,
@@ -238,6 +257,26 @@ class EditAtlasApplication:
         self._session.activate("closeDialogButton")
         self._session.wait_absent("aboutDialog")
         return information
+
+    def _ensure_filters_visible(self) -> None:
+        if self._session.has_element("filterCondition0Field"):
+            return
+        if self._session.has_element("toggleFiltersButton"):
+            self._session.activate("toggleFiltersButton")
+        self._session.element("filterCondition0Field")
+
+    def _open_spreadsheet_export_columns(self) -> bool:
+        if self._session.has_element("eventColumnsList"):
+            return False
+        if self._session.has_element("editSpreadsheetColumnsButton"):
+            self._session.activate("editSpreadsheetColumnsButton")
+            self._session.element("eventProjectionDialog")
+        self._session.element("eventColumnsList")
+        return True
+
+    def _close_spreadsheet_export_columns(self) -> None:
+        self._session.activate("closeProjectionButton")
+        self._session.wait_absent("eventProjectionDialog")
 
     def _complete_template_name(self, name: str) -> None:
         self._session.element("templateNameDialog")

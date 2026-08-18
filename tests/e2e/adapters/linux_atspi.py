@@ -1,8 +1,8 @@
 """Linux desktop automation through dogtail and AT-SPI.
 
-This module deliberately avoids dogtail's pointer and keyboard simulation APIs.
-Every interaction uses an accessibility action, selection, or editable-text
-interface exposed by the application or the native file chooser.
+This module uses accessibility actions, selection, and editable-text interfaces.
+Qt Quick's fallback file chooser exposes its delegates only through SetFocus,
+so focused Enter input is used to activate those delegates without coordinates.
 """
 
 from __future__ import annotations
@@ -48,6 +48,7 @@ class LinuxAtspiAdapter:
         self._timeout = timeout
         self._tree: Any = None
         self._atspi: Any = None
+        self._keyboard_sender: Any = None
 
     def preflight(self) -> None:
         missing = [
@@ -69,7 +70,7 @@ class LinuxAtspiAdapter:
             gi.require_version("Atspi", "2.0")
             from gi.repository import Atspi
 
-            from dogtail import tree
+            from dogtail import rawinput, tree
             from dogtail.config import config
         except (ImportError, ValueError) as error:
             raise AccessibilityBackendError(
@@ -95,6 +96,7 @@ class LinuxAtspiAdapter:
 
         self._tree = tree
         self._atspi = Atspi
+        self._keyboard_sender = rawinput.pressKey
 
     def launch(
         self,
@@ -135,6 +137,7 @@ class LinuxAtspiAdapter:
         session = LinuxApplicationSession(
             tree=self._tree,
             atspi=self._atspi,
+            keyboard_sender=self._keyboard_sender,
             registry=self._registry,
             process=process,
             artifact_directory=self._artifact_directory,
@@ -166,6 +169,7 @@ class LinuxApplicationSession:
         *,
         tree: Any,
         atspi: Any,
+        keyboard_sender: Any,
         registry: ProcessRegistry,
         process: subprocess.Popen[str],
         artifact_directory: Path,
@@ -173,6 +177,7 @@ class LinuxApplicationSession:
     ) -> None:
         self._tree = tree
         self._atspi = atspi
+        self._keyboard_sender = keyboard_sender
         self._registry = registry
         self._process = process
         self._artifact_directory = artifact_directory
@@ -497,8 +502,7 @@ class LinuxApplicationSession:
 
         if not save_dialog:
             file_entry = self._file_dialog_entry(dialog, absolute_path.name)
-            self._select_file_dialog_entry(file_entry, absolute_path.name)
-            self._activate_file_dialog_accept(dialog)
+            self._activate_file_dialog_entry(file_entry, absolute_path.name)
             self._wait_file_dialog_closed(dialog, dialog_identifier)
             return
 
@@ -586,8 +590,7 @@ class LinuxApplicationSession:
         )
         for index, component in enumerate(components):
             entry = self._file_dialog_entry(dialog, component)
-            self._select_file_dialog_entry(entry, component)
-            self._activate_file_dialog_accept(dialog)
+            self._activate_file_dialog_entry(entry, component)
             if index + 1 < len(components):
                 self._file_dialog_entry(dialog, components[index + 1])
             else:
@@ -614,19 +617,25 @@ class LinuxApplicationSession:
         except PollTimeoutError as error:
             raise ElementNotFoundError(str(error)) from error
 
-    def _select_file_dialog_entry(self, entry: Any, name: str) -> None:
+    def _activate_file_dialog_entry(self, entry: Any, name: str) -> None:
         try:
-            entry.select()
+            entry.grabFocus()
         except Exception as error:
             raise ActionNotSupportedError(
-                f"file chooser entry {name!r} exposes no selection interface"
+                f"file chooser entry {name!r} could not receive focus"
             ) from error
         wait_until(
-            lambda: self._selected_state(entry),
-            lambda selected: selected,
+            lambda: self._focused_state(entry),
+            lambda focused: focused,
             timeout=self._timeout,
-            description=f"file chooser entry {name!r} to become selected",
+            description=f"file chooser entry {name!r} to receive focus",
         )
+        try:
+            self._keyboard_sender("enter")
+        except Exception as error:
+            raise ActionNotSupportedError(
+                f"file chooser entry {name!r} rejected Enter input"
+            ) from error
 
     def _file_dialog_accept_button(self, dialog: Any) -> Any:
         button = self._find_named(
@@ -1118,6 +1127,13 @@ class LinuxApplicationSession:
         self._ensure_running()
         try:
             return bool(node.selected)
+        except Exception:
+            return False
+
+    def _focused_state(self, node: Any) -> bool:
+        self._ensure_running()
+        try:
+            return bool(node.focused)
         except Exception:
             return False
 

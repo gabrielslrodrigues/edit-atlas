@@ -178,10 +178,19 @@ class ValueComboBoxNode:
         return ("Accessible", "Value")
 
 
+class FocusableFileEntry:
+    def __init__(self) -> None:
+        self.focused = False
+
+    def grabFocus(self) -> None:
+        self.focused = True
+
+
 def application_session(artifact_directory: Path) -> LinuxApplicationSession:
     return LinuxApplicationSession(
         tree=None,
         atspi=None,
+        keyboard_sender=None,
         registry=None,
         process=None,
         artifact_directory=artifact_directory,
@@ -294,11 +303,8 @@ def test_quick_open_dialog_navigates_and_selects_existing_file(
     session._file_dialog_entry = (
         lambda found_dialog, name: file_entry
     )
-    session._select_file_dialog_entry = (
-        lambda entry, name: operations.append(("select", name))
-    )
-    session._activate_file_dialog_accept = (
-        lambda found_dialog: operations.append(("accept", found_dialog))
+    session._activate_file_dialog_entry = (
+        lambda entry, name: operations.append(("activate", name))
     )
     session._wait_file_dialog_closed = (
         lambda found_dialog, identifier: operations.append(
@@ -311,10 +317,22 @@ def test_quick_open_dialog_navigates_and_selects_existing_file(
 
     assert operations == [
         ("navigate", tmp_path),
-        ("select", "timeline.edl"),
-        ("accept", dialog),
+        ("activate", "timeline.edl"),
         ("close", "timelineOpenFileDialog"),
     ]
+
+
+def test_quick_file_entry_uses_focused_enter_input(tmp_path: Path) -> None:
+    session = application_session(tmp_path)
+    session._process = RunningProcess()
+    keys: list[str] = []
+    session._keyboard_sender = keys.append
+    entry = FocusableFileEntry()
+
+    session._activate_file_dialog_entry(entry, "timeline.edl")
+
+    assert entry.focused
+    assert keys == ["enter"]
 
 
 def test_checkable_menu_action_can_close_before_state_is_observed(
