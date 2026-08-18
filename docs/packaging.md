@@ -85,8 +85,8 @@ cmake --workflow --preset create-quick-package-x64-windows
 ```
 
 The generic `create-package-` workflows continue to follow the project's
-current default frontend. Widgets remains that default until the Qt Quick
-promotion is complete.
+current default frontend, which is Qt Quick. The explicit Widgets workflows
+remain available for secondary-frontend validation and emergency rollback.
 
 The universal macOS package is assembled by CI from independently built and
 staged ARM64 and x64 application bundles. This avoids relying on a universal
@@ -268,10 +268,11 @@ After approval, the workflow calls the same reusable package and packaged-E2E
 workflows used by ordinary CI. They build and test Linux x64, macOS ARM64 and
 x64, and Windows x64 from the tag, assemble the universal macOS package, and
 validate every package on the supported verification systems. The release
-workflow uploads the five production installers and archives to its draft
-GitHub Release. It also downloads the exact source archives selected by the
-pinned vcpkg ports for Qt
-Base, Declarative, Language Server, Shader Tools, and SVG, verifies their
+workflow uploads only the five Qt Quick production installers and archives to
+its draft GitHub Release. Widgets packages remain CI artifacts used for
+secondary-frontend verification. The release workflow also downloads the
+exact source archives selected by the pinned vcpkg ports for Qt Base,
+Declarative, Language Server, Shader Tools, and SVG, verifies their
 SHA-512 digests, and packages them with the complete ports and patch sets,
 vcpkg commit, manifest, triplets, and relevant build configuration. It does
 the same for the exact FFmpeg source and vcpkg port and patch set used by the
@@ -292,6 +293,26 @@ rerun the failed workflow after correcting an infrastructure problem; do not
 manually publish a draft whose required platform checks did not pass.
 Rerunning a workflow can resume an existing draft, but it refuses to modify a
 release that has already been published.
+
+### Emergency frontend rollback
+
+Qt Widgets remains independently buildable, packaged, and verified so a
+regression in the primary Qt Quick frontend does not require reverting the
+shared presentation or service architecture. Before tagging an emergency
+Widgets release:
+
+1. set the default `frontend` input in `packaged-e2e.yml` to `widgets`;
+2. select `widgets-frontend-*-packages` in the release asset download step;
+3. run the complete ordinary CI workflow and confirm that the Widgets package
+   passes package verification and packaged E2E on every required platform;
+4. create the version tag only after those checks pass.
+
+These changes select the already-maintained secondary frontend; they do not
+remove Qt Quick, change persistent application identifiers, or migrate user
+state. The explicit `release-widgets-` presets provide the equivalent local
+development and package-validation path without changing the project default.
+Restore Qt Quick through the same two workflow selection points after the
+blocking regression is fixed and validated.
 
 The Qt corresponding-source archive includes the exact source archives,
 vcpkg ports, and patch sets for Qt Base, Declarative, Language Server, Shader

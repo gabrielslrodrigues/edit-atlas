@@ -190,7 +190,7 @@ jobs:
       - name: Download release packages
         uses: actions/download-artifact@v8
         with:
-          pattern: widgets-frontend-*-packages
+          pattern: quick-frontend-*-packages
           path: build/release-artifacts
           merge-multiple: true
 
