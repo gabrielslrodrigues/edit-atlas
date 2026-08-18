@@ -6,6 +6,12 @@ plugins, the embedded English and Brazilian Portuguese interface resources,
 and license notices from the exact vcpkg dependency installation. End users do
 not need CMake, vcpkg, or a separate Qt installation.
 
+Qt Quick is the primary packaged frontend. The shared maintenance policy and
+secondary Widgets rollback boundary are documented in
+[Architecture](api/architecture.md), with toolkit-specific details in the
+[Qt Quick](api/qt-quick-frontend.md) and
+[Qt Widgets](api/qt-widgets-frontend.md) frontend guides.
+
 Packages are unsigned development artifacts until release signing and Apple
 notarization are implemented. Windows SmartScreen and macOS Installer may
 therefore warn when opening them.

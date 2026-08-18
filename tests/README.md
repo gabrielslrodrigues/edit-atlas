@@ -31,7 +31,14 @@ Qt Quick view tests use Qt Quick Test under
 application ViewModel, while QML cases verify bindings, keyboard focus,
 accessible roles and names, dynamic controls, and dialog cancellation. They
 run with the normal integration label and do not replace GoogleTest coverage
-for ViewModel state and commands.
+for ViewModel state and commands. The complete QML development and testing
+workflow is documented in the
+[Qt Quick frontend guide](../docs/api/qt-quick-frontend.md).
+
+The maintained secondary frontend uses GoogleTest under
+`unit/frontends/widgets` and `integration/frontends/widgets`. Its focused
+workflow and maintenance expectations are documented in the
+[Qt Widgets frontend guide](../docs/api/qt-widgets-frontend.md).
 
 The former CMake-driven separate-process CLI check is intentionally not
 registered here. Packaged CLI process behavior belongs to the pytest E2E suite

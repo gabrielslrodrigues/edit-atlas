@@ -141,3 +141,28 @@ frontend-specific builds exclude the non-selected implementation from the
 default build. Graphical frontends should consume the shared presentation
 APIs; non-Qt callers should integrate through the standard C++ domain, format,
 service, and support interfaces.
+
+## Frontend maintenance policy
+
+Qt Quick defines the production desktop experience and receives new graphical
+features. Production installers contain Qt Quick rather than presenting users
+with multiple graphical applications.
+
+Qt Widgets remains independently buildable and covered by unit, integration,
+package-verification, and automation infrastructure. Its maintenance scope is:
+
+- critical defect and security fixes;
+- compatibility changes required by shared Presentation APIs;
+- regression and deployment coverage for the secondary adapter;
+- emergency distribution rollback when a blocking Qt Quick regression cannot
+  be corrected before a required release.
+
+Widgets is not required to receive ordinary new UI features or visual parity.
+Neither frontend may move domain logic or reusable service orchestration out of
+the shared inward layers. Both retain the same application and organization
+identifiers and use the same presentation-owned settings and application-data
+paths, so changing frontend does not require user-data migration.
+
+The toolkit-specific contributor rules are documented on
+@ref qt_quick_frontend and @ref qt_widgets_frontend. The production rollback
+procedure remains in `docs/packaging.md`.

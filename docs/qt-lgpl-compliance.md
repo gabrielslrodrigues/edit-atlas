@@ -4,6 +4,12 @@ Edit Atlas uses the open source edition of Qt under the GNU Lesser General
 Public License version 3. This document records the project's technical policy;
 it is not legal advice.
 
+Qt Quick is the production graphical frontend. Frontend dependencies and the
+shared maintenance policy are documented in
+[Architecture](api/architecture.md), with deployment-specific guidance in the
+[Qt Quick](api/qt-quick-frontend.md) and
+[Qt Widgets](api/qt-widgets-frontend.md) frontend guides.
+
 ## Linkage policy
 
 All supported desktop targets dynamically link Qt. The inherited platform and

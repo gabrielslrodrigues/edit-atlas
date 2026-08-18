@@ -157,6 +157,12 @@ surfaces, icons, and template-based Qt Quick Controls. The custom style uses
 Basic as its fallback, so controls can be introduced incrementally without
 depending on platform-native styles.
 
+Toolkit-specific contributor workflows and conventions are defined in the
+[Qt Quick](api/qt-quick-frontend.md) and
+[Qt Widgets](api/qt-widgets-frontend.md) frontend guides. The complete shared
+primary/secondary maintenance policy is canonical in the
+[API architecture](api/architecture.md).
+
 The command-line frontend is exposed as `EditAtlas::CliFrontend` in the
 `edit_atlas::frontends::cli` namespace. It links `EditAtlas::Services` without
 Qt and adapts UTF-8 command arguments, local paths, stable process exit codes,
