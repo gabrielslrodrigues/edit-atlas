@@ -1,14 +1,14 @@
 # Architecture
 
-Edit Atlas separates format processing from application workflows and user
+Edit Atlas separates format processing, presentation state, and concrete user
 interfaces:
 
 ```text
-Qt desktop frontend ─┬─> application services ─┬─> core
-                     │                         ├─> built-in formats ─> core
-                     │                         └─> local storage
-                     └─> diagnostic support ─────> local storage
-CLI frontend ───────────> application services
+Qt Widgets / Qt Quick ─> presentation ─┬─> application services ─┬─> core
+                                      │                         ├─> formats ─> core
+                                      │                         └─> storage
+                                      └─> diagnostic support ─────> storage
+CLI ──────────────────────────────────> application services
 ```
 
 ## Core
@@ -65,45 +65,115 @@ using stable, nonlocalized identifiers. `TimelineTemplateService` owns the
 catalog and provides frontend-independent create, update, rename, duplicate,
 and remove operations. Its private JSON store persists each template as an
 independent schema-versioned file. A bad or newer file is reported and skipped
-without preventing valid templates from loading. The desktop template
-controller owns prompts, confirmations, active-template state, localization,
-and dirty-state comparison; other frontends can use the same service directly.
+without preventing valid templates from loading. The shared template ViewModel
+owns active selection and dirty-state comparison. Concrete Views own prompts,
+confirmations, and localization; non-Qt frontends can use the service directly.
 
 `EditAtlas::Storage` centralizes complete binary reads and atomic local-file
 writes. Timeline import/export, template persistence, and diagnostic bundle
 creation share this boundary rather than implementing platform-specific commit
 logic separately.
 
+## Presentation
+
+`EditAtlas::Presentation` is the shared Qt-facing MVVM boundary. Its public
+contract is based on Qt Core and depends on neither Qt Widgets nor Qt Quick. Its
+ViewModels expose state, commands, structured results, item models, and change
+signals without creating windows or dialogs:
+
+- `TimelineDocumentViewModel` owns one imported timeline, filtering, event
+  projection, import/export state, and asynchronous results.
+- `TimelineTemplateViewModel` owns the persisted template catalog, active
+  selection, editable filter/projection state, and modification detection.
+- `SupportBundleViewModel` owns asynchronous diagnostic-bundle export state and
+  its structured receipt or failure.
+
+Presentation workflows schedule synchronous services with Qt Concurrent. The
+same target also owns application paths and settings, translation loading,
+localized diagnostic text, the timeline item model, and desktop integration
+shared by concrete graphical Views.
+
 ## Frontends
 
 Frontends adapt platform-specific values at the application-services boundary.
-The Qt desktop frontend separates its shell, presentation, and asynchronous
-workflow adapters:
+Concrete implementations live under `src/frontends`, with matching unit and
+integration tests under each test suite's `frontends` directory. Their
+namespaces mirror that hierarchy.
+
+The Qt desktop frontends follow Model-View-ViewModel: core and services are the
+Model, `EditAtlas::Presentation` supplies the ViewModels, and Qt Widgets or Qt
+Quick implements the View. Concrete Views own dialogs, confirmations,
+navigation, translated feedback, and toolkit-specific interaction.
+
+The existing Qt Widgets frontend is exposed as `EditAtlas::WidgetsFrontend` in
+the `edit_atlas::frontends::widgets` namespace. It separates its shell and
+focused adapters:
 
 - `MainWindow` composes the desktop UI and handles top-level navigation,
   language changes, and status presentation.
 - `ApplicationMenuBar` owns actions, language selection, and recent-file
   settings.
-- `TimelineDocumentView` presents empty, loading, timeline, and import-failure states.
-- `TimelineDocumentController`, `TimelineTemplateController`, and
-  `SupportBundleController` coordinate localized dialogs and translate user
-  actions into service or workflow requests.
-- `TimelineDocumentWorkflow` and `SupportBundleWorkflow` schedule UI-independent
-  services and report completion through Qt signals.
+- `TimelineDocumentView` presents empty, loading, timeline, and import-failure
+  states.
+- Focused controllers coordinate localized dialogs and translate Widget signals
+  into shared ViewModel commands.
 
-This keeps widget construction, document presentation, persistent desktop
-settings, workflow policy, and background execution out of the top-level
-window.
+This keeps Widget construction and interaction policy out of shared
+presentation state, while keeping application services independent from both
+graphical toolkits.
 
-The command-line frontend links `EditAtlas::Services` without Qt. It adapts
-UTF-8 command arguments, local paths, stable process exit codes, and terminal
-diagnostics to the same synchronous document import and export services used
-by the desktop workflow. Format serialization remains owned by the registered
-format implementations rather than either frontend.
+Concrete application targets identify their frontend explicitly:
+`EditAtlas::WidgetsApplication`, `EditAtlas::CliApplication`, and
+`EditAtlas::QuickApplication`. `EditAtlas::Application` aliases the current
+default desktop frontend selected by `EDIT_ATLAS_DEFAULT_FRONTEND`, which is
+currently Qt Quick. Generic development presets build both graphical frontends,
+while frontend-specific presets use `EDIT_ATLAS_BUILD_FRONTENDS` to build only
+their named implementation. The CLI remains independently available. The
+selected target receives the product name, platform metadata, installation
+rules, and Qt deployment. Its output keeps the product name `edit-atlas`.
+Shared product icons and desktop metadata live under `src/frontends/resources`;
+frontend-specific styling remains with its concrete frontend.
 
-Dependencies point inward: frontends may depend on application services, which
-may depend on core and format targets. Core and format targets never depend on
-application services or a frontend.
+Release configurations additionally define
+`EditAtlas::WidgetsPackageApplication` and
+`EditAtlas::QuickPackageApplication`. They reuse the same compiled frontend
+libraries but link into isolated product-named outputs. Separate
+`WidgetsRuntime` and `QuickRuntime` install components own their application
+and Qt deployment rules, while the shared `Runtime` component supplies the
+CLI, licensing material, desktop metadata, and common runtime libraries.
+This allows one generic Release build to produce either frontend package
+without changing the default developer application or recompiling shared
+code. Production packaging selects `QuickRuntime`; `WidgetsRuntime` remains
+available for clean-machine verification and emergency rollback packages.
+Both executables retain the same application and organization identifiers and
+consume the same presentation-owned settings and application-data paths, so
+selecting either frontend does not create or migrate frontend-specific user
+state.
+
+The primary Qt Quick frontend compiles its application QML into
+`EditAtlas::QuickFrontend`. `EditAtlas::QuickStyle` provides the separate
+`EditAtlasStyle` QML module: shared design tokens, light and dark theme colors,
+surfaces, icons, and template-based Qt Quick Controls. The custom style uses
+Basic as its fallback, so controls can be introduced incrementally without
+depending on platform-native styles.
+
+Toolkit-specific contributor workflows and conventions are defined in the
+[Qt Quick](api/qt-quick-frontend.md) and
+[Qt Widgets](api/qt-widgets-frontend.md) frontend guides. The complete shared
+primary/secondary maintenance policy is canonical in the
+[API architecture](api/architecture.md).
+
+The command-line frontend is exposed as `EditAtlas::CliFrontend` in the
+`edit_atlas::frontends::cli` namespace. It links `EditAtlas::Services` without
+Qt and adapts UTF-8 command arguments, local paths, stable process exit codes,
+and terminal diagnostics to the same synchronous document import and export
+services used by the desktop workflow. Format serialization remains owned by
+the registered format implementations rather than either frontend.
+
+Dependencies point inward: graphical frontends may depend on Presentation,
+which may depend on application services, support, and core. The CLI depends on
+application services directly. Core, formats, services, storage, and support
+never depend on Presentation or a frontend.
 
 ## Diagnostic support
 

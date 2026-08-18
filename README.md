@@ -12,8 +12,10 @@ for automation.
 
 The project separates its UI-independent core, built-in formats, application
 services, and frontend adapters. See [Architecture](docs/architecture.md) for
-the dependency direction and extension points. See [CHANGELOG.md](CHANGELOG.md)
-for release highlights.
+the dependency direction and extension points. Desktop contributors should
+also read the [Qt Quick](docs/api/qt-quick-frontend.md) and
+[Qt Widgets](docs/api/qt-widgets-frontend.md) frontend guides. See
+[CHANGELOG.md](CHANGELOG.md) for release highlights.
 
 ## Common requirements
 
@@ -183,24 +185,56 @@ staged bundles into the universal installer.
 After building, run the application directly on Linux:
 
 ```sh
-./build/debug-x64-linux/src/app/edit-atlas
+./build/debug-x64-linux/src/frontends/quick/edit-atlas
 ```
 
 On macOS, open the application bundle:
 
 ```sh
-open build/debug-arm64-osx/src/app/edit-atlas.app
+open build/debug-arm64-osx/src/frontends/quick/edit-atlas.app
 ```
 
 On Windows PowerShell:
 
 ```powershell
-.\build\debug-x64-windows\src\app\edit-atlas.exe
+.\build\debug-x64-windows\src\frontends\quick\edit-atlas.exe
+```
+
+Ordinary `debug-` and `release-` presets build both graphical frontends plus
+the independent CLI. Qt Quick is the primary application and packaged desktop
+frontend. It includes the compiled `EditAtlasStyle` design-system module.
+Qt Widgets remains available as the secondary desktop frontend and can be run
+from the same Linux debug build with:
+
+```sh
+./build/debug-x64-linux/src/frontends/widgets/edit-atlas-widgets
+```
+
+The `release-widgets-` and `release-quick-` preset families build only their
+named frontend for package validation and provide an explicit rollback path to
+Widgets without removing either concrete application target.
+`EDIT_ATLAS_DEFAULT_FRONTEND` selects the primary application target and
+installed frontend, while `EDIT_ATLAS_BUILD_FRONTENDS` controls whether a
+build includes both graphical frontends or only one. Release presets also
+build isolated Widgets and Quick packaging applications. These thin targets
+reuse the compiled frontend libraries while giving each package independent
+product naming, installation, and Qt deployment rules.
+
+Both graphical frontends use the same application and organization identifiers
+and the same shared presentation persistence. Existing language, recent-file,
+template, and export settings therefore remain available after the Qt Quick
+cutover without migration.
+
+Lint every compiled QML module through its generated CMake target:
+
+```sh
+cmake --build --preset debug-x64-linux --target all_qmllint
 ```
 
 English is the source language. Brazilian Portuguese translations are compiled
-from `src/app/translations/edit_atlas_pt_BR.ts` and embedded in the executable.
-The interface defaults to Brazilian Portuguese on first launch. The
+from `src/presentation/translations/edit_atlas_pt_BR.ts` and embedded through
+the shared presentation layer. The interface defaults to Brazilian Portuguese
+on first launch. The
 **Language** menu switches between Brazilian Portuguese and English and
 remembers the choice for subsequent launches.
 
@@ -253,7 +287,7 @@ XLSX reports through the same application services as the desktop frontend. A
 non-drop-frame EDL needs an explicit frame rate:
 
 ```sh
-./build/debug-x64-linux/src/cli/edit-atlas-cli \
+./build/debug-x64-linux/src/frontends/cli/edit-atlas-cli \
   convert --fps 24 timeline.edl report.xlsx
 ```
 
@@ -359,6 +393,11 @@ installer, and Linux portable and Debian packages without requiring users to
 install Qt or vcpkg. See [Desktop packaging](docs/packaging.md) for the
 one-command workflows, output locations, supported systems, and installation
 instructions.
+
+The repository separates ordinary validation, reusable package production,
+packaged E2E, documentation, and protected release publication. See
+[Continuous integration](docs/continuous-integration.md) for the workflow
+graph, artifact lifecycle, permissions, and required-check policy.
 
 ## License
 

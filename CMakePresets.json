@@ -30,7 +30,31 @@
       "name": "release",
       "hidden": true,
       "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Release"
+        "CMAKE_BUILD_TYPE": "Release",
+        "EDIT_ATLAS_BUILD_PACKAGING_APPLICATIONS": "ON"
+      }
+    },
+    {
+      "name": "primary-frontend",
+      "hidden": true,
+      "cacheVariables": {
+        "EDIT_ATLAS_DEFAULT_FRONTEND": "quick"
+      }
+    },
+    {
+      "name": "widgets-frontend",
+      "hidden": true,
+      "cacheVariables": {
+        "EDIT_ATLAS_BUILD_FRONTENDS": "widgets",
+        "EDIT_ATLAS_DEFAULT_FRONTEND": "widgets"
+      }
+    },
+    {
+      "name": "quick-frontend",
+      "hidden": true,
+      "cacheVariables": {
+        "EDIT_ATLAS_BUILD_FRONTENDS": "quick",
+        "EDIT_ATLAS_DEFAULT_FRONTEND": "quick"
       }
     },
     {
@@ -119,7 +143,8 @@
       "name": "debug-x64-linux",
       "inherits": [
         "x64-linux",
-        "debug"
+        "debug",
+        "primary-frontend"
       ],
       "displayName": "Debug - Linux x64",
       "description": "Configure a Linux x64 debug build"
@@ -128,7 +153,8 @@
       "name": "release-x64-linux",
       "inherits": [
         "x64-linux",
-        "release"
+        "release",
+        "primary-frontend"
       ],
       "displayName": "Release - Linux x64",
       "description": "Configure a Linux x64 release build"
@@ -137,7 +163,8 @@
       "name": "debug-arm64-osx",
       "inherits": [
         "arm64-osx",
-        "debug"
+        "debug",
+        "primary-frontend"
       ],
       "displayName": "Debug - macOS ARM64",
       "description": "Configure a macOS ARM64 debug build"
@@ -146,7 +173,8 @@
       "name": "release-arm64-osx",
       "inherits": [
         "arm64-osx",
-        "release"
+        "release",
+        "primary-frontend"
       ],
       "displayName": "Release - macOS ARM64",
       "description": "Configure a macOS ARM64 release build"
@@ -155,7 +183,8 @@
       "name": "debug-x64-osx",
       "inherits": [
         "x64-osx",
-        "debug"
+        "debug",
+        "primary-frontend"
       ],
       "displayName": "Debug - macOS x64",
       "description": "Configure a macOS x64 debug build"
@@ -164,7 +193,8 @@
       "name": "release-x64-osx",
       "inherits": [
         "x64-osx",
-        "release"
+        "release",
+        "primary-frontend"
       ],
       "displayName": "Release - macOS x64",
       "description": "Configure a macOS x64 release build"
@@ -173,7 +203,8 @@
       "name": "debug-universal-osx",
       "inherits": [
         "universal-osx",
-        "debug"
+        "debug",
+        "primary-frontend"
       ],
       "displayName": "Debug - macOS Universal",
       "description": "Configure a universal macOS x86_64 and ARM64 debug build"
@@ -182,7 +213,8 @@
       "name": "release-universal-osx",
       "inherits": [
         "universal-osx",
-        "release"
+        "release",
+        "primary-frontend"
       ],
       "displayName": "Release - macOS Universal",
       "description": "Configure a universal macOS x86_64 and ARM64 release build"
@@ -191,7 +223,8 @@
       "name": "debug-x64-windows",
       "inherits": [
         "x64-windows",
-        "debug"
+        "debug",
+        "primary-frontend"
       ],
       "displayName": "Debug - Windows x64",
       "description": "Configure a Windows x64 debug build"
@@ -200,10 +233,91 @@
       "name": "release-x64-windows",
       "inherits": [
         "x64-windows",
-        "release"
+        "release",
+        "primary-frontend"
       ],
       "displayName": "Release - Windows x64",
       "description": "Configure a Windows x64 release build"
+    },
+    {
+      "name": "release-widgets-x64-linux",
+      "inherits": [
+        "x64-linux",
+        "release",
+        "widgets-frontend"
+      ],
+      "displayName": "Release Widgets - Linux x64",
+      "description": "Configure the Qt Widgets Linux x64 release package"
+    },
+    {
+      "name": "release-widgets-arm64-osx",
+      "inherits": [
+        "arm64-osx",
+        "release",
+        "widgets-frontend"
+      ],
+      "displayName": "Release Widgets - macOS ARM64",
+      "description": "Configure the Qt Widgets macOS ARM64 release package"
+    },
+    {
+      "name": "release-widgets-x64-osx",
+      "inherits": [
+        "x64-osx",
+        "release",
+        "widgets-frontend"
+      ],
+      "displayName": "Release Widgets - macOS x64",
+      "description": "Configure the Qt Widgets macOS x64 release package"
+    },
+    {
+      "name": "release-widgets-x64-windows",
+      "inherits": [
+        "x64-windows",
+        "release",
+        "widgets-frontend"
+      ],
+      "displayName": "Release Widgets - Windows x64",
+      "description": "Configure the Qt Widgets Windows x64 release package"
+    },
+    {
+      "name": "release-quick-x64-linux",
+      "inherits": [
+        "x64-linux",
+        "release",
+        "quick-frontend"
+      ],
+      "displayName": "Release Quick - Linux x64",
+      "description": "Configure the Qt Quick Linux x64 release package"
+    },
+    {
+      "name": "release-quick-arm64-osx",
+      "inherits": [
+        "arm64-osx",
+        "release",
+        "quick-frontend"
+      ],
+      "displayName": "Release Quick - macOS ARM64",
+      "description": "Configure the Qt Quick macOS ARM64 release package"
+    },
+    {
+      "name": "release-quick-x64-osx",
+      "inherits": [
+        "x64-osx",
+        "release",
+        "quick-frontend"
+      ],
+      "displayName": "Release Quick - macOS x64",
+      "description": "Configure the Qt Quick macOS x64 release package"
+    },
+    {
+      "name": "release-quick-x64-windows",
+      "inherits": [
+        "x64-windows",
+        "release",
+        "quick-frontend"
+      ],
+      "displayName": "Release Quick - Windows x64",
+      "description": "Configure the Qt Quick Windows x64 release package"
     }
   ],
   "buildPresets": [
@@ -253,6 +367,38 @@
     {
       "name": "release-x64-windows",
       "configurePreset": "release-x64-windows"
+    },
+    {
+      "name": "release-widgets-x64-linux",
+      "configurePreset": "release-widgets-x64-linux"
+    },
+    {
+      "name": "release-widgets-arm64-osx",
+      "configurePreset": "release-widgets-arm64-osx"
+    },
+    {
+      "name": "release-widgets-x64-osx",
+      "configurePreset": "release-widgets-x64-osx"
+    },
+    {
+      "name": "release-widgets-x64-windows",
+      "configurePreset": "release-widgets-x64-windows"
+    },
+    {
+      "name": "release-quick-x64-linux",
+      "configurePreset": "release-quick-x64-linux"
+    },
+    {
+      "name": "release-quick-arm64-osx",
+      "configurePreset": "release-quick-arm64-osx"
+    },
+    {
+      "name": "release-quick-x64-osx",
+      "configurePreset": "release-quick-x64-osx"
+    },
+    {
+      "name": "release-quick-x64-windows",
+      "configurePreset": "release-quick-x64-windows"
     }
   ],
   "testPresets": [
@@ -355,6 +501,86 @@
       "execution": {
         "noTestsAction": "error"
       }
+    },
+    {
+      "name": "release-widgets-x64-linux",
+      "configurePreset": "release-widgets-x64-linux",
+      "output": {
+        "outputOnFailure": true
+      },
+      "execution": {
+        "noTestsAction": "error"
+      }
+    },
+    {
+      "name": "release-widgets-arm64-osx",
+      "configurePreset": "release-widgets-arm64-osx",
+      "output": {
+        "outputOnFailure": true
+      },
+      "execution": {
+        "noTestsAction": "error"
+      }
+    },
+    {
+      "name": "release-widgets-x64-osx",
+      "configurePreset": "release-widgets-x64-osx",
+      "output": {
+        "outputOnFailure": true
+      },
+      "execution": {
+        "noTestsAction": "error"
+      }
+    },
+    {
+      "name": "release-widgets-x64-windows",
+      "configurePreset": "release-widgets-x64-windows",
+      "output": {
+        "outputOnFailure": true
+      },
+      "execution": {
+        "noTestsAction": "error"
+      }
+    },
+    {
+      "name": "release-quick-x64-linux",
+      "configurePreset": "release-quick-x64-linux",
+      "output": {
+        "outputOnFailure": true
+      },
+      "execution": {
+        "noTestsAction": "error"
+      }
+    },
+    {
+      "name": "release-quick-arm64-osx",
+      "configurePreset": "release-quick-arm64-osx",
+      "output": {
+        "outputOnFailure": true
+      },
+      "execution": {
+        "noTestsAction": "error"
+      }
+    },
+    {
+      "name": "release-quick-x64-osx",
+      "configurePreset": "release-quick-x64-osx",
+      "output": {
+        "outputOnFailure": true
+      },
+      "execution": {
+        "noTestsAction": "error"
+      }
+    },
+    {
+      "name": "release-quick-x64-windows",
+      "configurePreset": "release-quick-x64-windows",
+      "output": {
+        "outputOnFailure": true
+      },
+      "execution": {
+        "noTestsAction": "error"
+      }
     }
   ],
   "packagePresets": [
@@ -367,7 +593,7 @@
         "DEB",
         "RPM"
       ],
-      "packageDirectory": "${sourceDir}/build/packages/x64-linux",
+      "packageDirectory": "${sourceDir}/build/packages/default/x64-linux",
       "output": {
         "verbose": true
       }
@@ -379,7 +605,59 @@
       "generators": [
         "WIX"
       ],
-      "packageDirectory": "${sourceDir}/build/packages/x64-windows",
+      "packageDirectory": "${sourceDir}/build/packages/default/x64-windows",
+      "output": {
+        "verbose": true
+      }
+    },
+    {
+      "name": "package-release-widgets-x64-linux",
+      "displayName": "Package Widgets Release - Linux x64",
+      "configurePreset": "release-widgets-x64-linux",
+      "generators": [
+        "TGZ",
+        "DEB",
+        "RPM"
+      ],
+      "packageDirectory": "${sourceDir}/build/packages/widgets/x64-linux",
+      "output": {
+        "verbose": true
+      }
+    },
+    {
+      "name": "package-release-widgets-x64-windows",
+      "displayName": "Package Widgets Release - Windows x64",
+      "configurePreset": "release-widgets-x64-windows",
+      "generators": [
+        "WIX"
+      ],
+      "packageDirectory": "${sourceDir}/build/packages/widgets/x64-windows",
+      "output": {
+        "verbose": true
+      }
+    },
+    {
+      "name": "package-release-quick-x64-linux",
+      "displayName": "Package Quick Release - Linux x64",
+      "configurePreset": "release-quick-x64-linux",
+      "generators": [
+        "TGZ",
+        "DEB",
+        "RPM"
+      ],
+      "packageDirectory": "${sourceDir}/build/packages/quick/x64-linux",
+      "output": {
+        "verbose": true
+      }
+    },
+    {
+      "name": "package-release-quick-x64-windows",
+      "displayName": "Package Quick Release - Windows x64",
+      "configurePreset": "release-quick-x64-windows",
+      "generators": [
+        "WIX"
+      ],
+      "packageDirectory": "${sourceDir}/build/packages/quick/x64-windows",
       "output": {
         "verbose": true
       }
@@ -433,6 +711,78 @@
         {
           "type": "package",
           "name": "package-release-x64-windows"
+        }
+      ]
+    },
+    {
+      "name": "create-widgets-package-x64-linux",
+      "displayName": "Create Qt Widgets Package - Linux x64",
+      "steps": [
+        {
+          "type": "configure",
+          "name": "release-widgets-x64-linux"
+        },
+        {
+          "type": "build",
+          "name": "release-widgets-x64-linux"
+        },
+        {
+          "type": "package",
+          "name": "package-release-widgets-x64-linux"
+        }
+      ]
+    },
+    {
+      "name": "create-widgets-package-x64-windows",
+      "displayName": "Create Qt Widgets Package - Windows x64",
+      "steps": [
+        {
+          "type": "configure",
+          "name": "release-widgets-x64-windows"
+        },
+        {
+          "type": "build",
+          "name": "release-widgets-x64-windows"
+        },
+        {
+          "type": "package",
+          "name": "package-release-widgets-x64-windows"
+        }
+      ]
+    },
+    {
+      "name": "create-quick-package-x64-linux",
+      "displayName": "Create Qt Quick Package - Linux x64",
+      "steps": [
+        {
+          "type": "configure",
+          "name": "release-quick-x64-linux"
+        },
+        {
+          "type": "build",
+          "name": "release-quick-x64-linux"
+        },
+        {
+          "type": "package",
+          "name": "package-release-quick-x64-linux"
+        }
+      ]
+    },
+    {
+      "name": "create-quick-package-x64-windows",
+      "displayName": "Create Qt Quick Package - Windows x64",
+      "steps": [
+        {
+          "type": "configure",
+          "name": "release-quick-x64-windows"
+        },
+        {
+          "type": "build",
+          "name": "release-quick-x64-windows"
+        },
+        {
+          "type": "package",
+          "name": "package-release-quick-x64-windows"
         }
       ]
     }

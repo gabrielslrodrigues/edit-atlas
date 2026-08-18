@@ -196,13 +196,111 @@ function(edit_atlas_require_deployed_file description)
     endif()
 endfunction()
 
-edit_atlas_require_deployed_file(
-    "Qt Widgets"
-    "*Qt6Widgets*.dll"
-    "*libQt6Widgets*.dylib"
-    "*libQt6Widgets.so*"
-    "*QtWidgets"
-)
+function(edit_atlas_require_qml_import qml_import)
+    set(
+        edit_atlas_qmldir
+        "${edit_atlas_qml_root}/${qml_import}/qmldir"
+    )
+    if(NOT EXISTS "${edit_atlas_qmldir}")
+        message(
+            FATAL_ERROR
+            "The staged application is missing the ${qml_import} QML import "
+            "under ${edit_atlas_qml_root}."
+        )
+    endif()
+endfunction()
+
+function(edit_atlas_require_qt_library library)
+    if(WIN32)
+        edit_atlas_require_deployed_file(
+            "Qt ${library}"
+            "*Qt6${library}.dll"
+            "*Qt6${library}d.dll"
+        )
+    elseif(APPLE)
+        edit_atlas_require_deployed_file(
+            "Qt ${library}"
+            "*libQt6${library}.dylib"
+            "*libQt6${library}.*.dylib"
+        )
+    elseif(LINUX)
+        edit_atlas_require_deployed_file(
+            "Qt ${library}"
+            "*libQt6${library}.so"
+            "*libQt6${library}.so.*"
+        )
+    endif()
+endfunction()
+
+foreach(edit_atlas_common_qt_library IN ITEMS Core Gui)
+    edit_atlas_require_qt_library("${edit_atlas_common_qt_library}")
+endforeach()
+
+if(edit_atlas_detected_frontend STREQUAL "quick")
+    if(WIN32)
+        set(edit_atlas_qml_root "${EDIT_ATLAS_DEPLOYMENT_ROOT}/Qt6/qml")
+    elseif(APPLE)
+        get_filename_component(
+            edit_atlas_macos_contents_directory
+            "${edit_atlas_executable_directory}"
+            DIRECTORY
+        )
+        set(
+            edit_atlas_qml_root
+            "${edit_atlas_macos_contents_directory}/Resources/qml"
+        )
+    elseif(LINUX)
+        set(
+            edit_atlas_qml_root
+            "${edit_atlas_private_runtime_directory}/Qt6/qml"
+        )
+    endif()
+
+    foreach(
+        edit_atlas_qt_quick_library
+        IN ITEMS Network Qml Quick QuickControls2 QuickTemplates2
+    )
+        edit_atlas_require_qt_library("${edit_atlas_qt_quick_library}")
+    endforeach()
+
+    foreach(
+        edit_atlas_qml_import
+        IN ITEMS
+            QtQml
+            QtQuick
+            QtQuick/Controls
+            QtQuick/Dialogs
+            QtQuick/Layouts
+    )
+        edit_atlas_require_qml_import("${edit_atlas_qml_import}")
+    endforeach()
+
+    foreach(
+        edit_atlas_qml_plugin
+        IN ITEMS
+            qmlplugin
+            qtquick2plugin
+            qtquickcontrols2plugin
+            qtquickdialogsplugin
+            qquicklayoutsplugin
+            qtquicktemplates2plugin
+    )
+        edit_atlas_require_deployed_file(
+            "the ${edit_atlas_qml_plugin} QML plugin"
+            "*${edit_atlas_qml_plugin}.dll"
+            "*${edit_atlas_qml_plugin}d.dll"
+            "*lib${edit_atlas_qml_plugin}.dylib"
+            "*lib${edit_atlas_qml_plugin}.so"
+        )
+    endforeach()
+elseif(edit_atlas_detected_frontend STREQUAL "widgets")
+    edit_atlas_require_qt_library(Widgets)
+else()
+    message(
+        FATAL_ERROR
+        "Unsupported deployed frontend: ${edit_atlas_detected_frontend}"
+    )
+endif()
 
 if(WIN32)
     set(edit_atlas_qt_concurrent_pattern "Qt6Concurrent(d)?\\.dll")
@@ -314,7 +412,7 @@ elseif(APPLE)
         "*libminizip*.dylib"
         "*libre2*.dylib"
     )
-elseif(UNIX)
+elseif(LINUX)
     edit_atlas_require_deployed_file(
         "the XCB Qt platform plugin"
         "*libqxcb.so"
@@ -324,32 +422,94 @@ elseif(UNIX)
         "*libqwayland*.so"
     )
 
-    if(LINUX)
-        file(
-            GLOB_RECURSE edit_atlas_linux_qt_plugins
-            LIST_DIRECTORIES FALSE
-            "${edit_atlas_private_runtime_directory}/Qt6/plugins/*.so"
+    file(
+        GLOB_RECURSE edit_atlas_linux_qt_plugins
+        LIST_DIRECTORIES FALSE
+        "${edit_atlas_private_runtime_directory}/Qt6/plugins/*.so"
+    )
+    foreach(
+        edit_atlas_linux_qt_plugin
+        IN LISTS edit_atlas_linux_qt_plugins
+    )
+        execute_process(
+            COMMAND
+                ${edit_atlas_dependency_command}
+                "${edit_atlas_linux_qt_plugin}"
+            RESULT_VARIABLE edit_atlas_plugin_dependency_result
+            OUTPUT_VARIABLE edit_atlas_plugin_dependencies
+            ERROR_VARIABLE edit_atlas_plugin_dependency_error
         )
-        foreach(edit_atlas_linux_qt_plugin IN LISTS edit_atlas_linux_qt_plugins)
+        if(NOT edit_atlas_plugin_dependency_result EQUAL 0)
+            message(
+                FATAL_ERROR
+                "Failed to inspect ${edit_atlas_linux_qt_plugin}:\n"
+                "${edit_atlas_plugin_dependency_error}"
+            )
+        endif()
+        edit_atlas_require_private_linux_runtime_path(
+            "The Qt plugin ${edit_atlas_linux_qt_plugin}"
+            "${edit_atlas_linux_qt_plugin}"
+            "${edit_atlas_plugin_dependencies}"
+        )
+    endforeach()
+
+    if(edit_atlas_detected_frontend STREQUAL "quick")
+        file(
+            GLOB_RECURSE edit_atlas_linux_qml_plugins
+            LIST_DIRECTORIES FALSE
+            "${EDIT_ATLAS_DEPLOYMENT_ROOT}/*.so"
+        )
+        list(
+            FILTER edit_atlas_linux_qml_plugins
+            INCLUDE REGEX "/qml/"
+        )
+        if(NOT edit_atlas_linux_qml_plugins)
+            message(
+                FATAL_ERROR
+                "The staged Qt Quick application has no deployed QML "
+                "plugins."
+            )
+        endif()
+        file(
+            GET_RUNTIME_DEPENDENCIES
+            MODULES ${edit_atlas_linux_qml_plugins}
+            DIRECTORIES "${edit_atlas_private_runtime_directory}"
+            RESOLVED_DEPENDENCIES_VAR
+                edit_atlas_linux_qml_runtime_dependencies
+            UNRESOLVED_DEPENDENCIES_VAR
+                edit_atlas_linux_qml_unresolved_dependencies
+        )
+        if(edit_atlas_linux_qml_unresolved_dependencies)
+            message(
+                FATAL_ERROR
+                "The staged QML plugins have unresolved runtime "
+                "dependencies: "
+                "${edit_atlas_linux_qml_unresolved_dependencies}"
+            )
+        endif()
+        foreach(
+            edit_atlas_linux_qml_plugin
+            IN LISTS edit_atlas_linux_qml_plugins
+        )
             execute_process(
                 COMMAND
                     ${edit_atlas_dependency_command}
-                    "${edit_atlas_linux_qt_plugin}"
-                RESULT_VARIABLE edit_atlas_plugin_dependency_result
-                OUTPUT_VARIABLE edit_atlas_plugin_dependencies
-                ERROR_VARIABLE edit_atlas_plugin_dependency_error
+                    "${edit_atlas_linux_qml_plugin}"
+                RESULT_VARIABLE edit_atlas_qml_dependency_result
+                OUTPUT_VARIABLE edit_atlas_qml_dependencies
+                ERROR_VARIABLE edit_atlas_qml_dependency_error
             )
-            if(NOT edit_atlas_plugin_dependency_result EQUAL 0)
+            if(NOT edit_atlas_qml_dependency_result EQUAL 0)
                 message(
                     FATAL_ERROR
-                    "Failed to inspect ${edit_atlas_linux_qt_plugin}:\n"
-                    "${edit_atlas_plugin_dependency_error}"
+                    "Failed to inspect ${edit_atlas_linux_qml_plugin}:\n"
+                    "${edit_atlas_qml_dependency_error}"
                 )
             endif()
             edit_atlas_require_private_linux_runtime_path(
-                "The Qt plugin ${edit_atlas_linux_qt_plugin}"
-                "${edit_atlas_linux_qt_plugin}"
-                "${edit_atlas_plugin_dependencies}"
+                "The QML plugin ${edit_atlas_linux_qml_plugin}"
+                "${edit_atlas_linux_qml_plugin}"
+                "${edit_atlas_qml_dependencies}"
             )
         endforeach()
     endif()
@@ -402,8 +562,26 @@ if(WIN32)
         DIRECTORY
     )
     file(
+        GLOB_RECURSE edit_atlas_windows_qml_modules
+        LIST_DIRECTORIES FALSE
+        "${EDIT_ATLAS_DEPLOYMENT_ROOT}/*.dll"
+    )
+    list(
+        FILTER edit_atlas_windows_qml_modules
+        INCLUDE REGEX "[/\\\\]qml[/\\\\]"
+    )
+    set(edit_atlas_windows_module_arguments)
+    if(edit_atlas_windows_qml_modules)
+        list(
+            APPEND edit_atlas_windows_module_arguments
+            MODULES ${edit_atlas_windows_qml_modules}
+        )
+    endif()
+
+    file(
         GET_RUNTIME_DEPENDENCIES
         EXECUTABLES "${EDIT_ATLAS_EXECUTABLE}"
+        ${edit_atlas_windows_module_arguments}
         DIRECTORIES "${edit_atlas_executable_directory}"
         RESOLVED_DEPENDENCIES_VAR edit_atlas_resolved_dependencies
         UNRESOLVED_DEPENDENCIES_VAR edit_atlas_unresolved_dependencies
@@ -463,10 +641,20 @@ edit_atlas_require_deployed_file(
     "the Edit Atlas license"
     "*LICENSE"
 )
-edit_atlas_require_deployed_file(
-    "the Qt Base license notices"
-    "*qtbase-copyright"
+foreach(
+    edit_atlas_qt_notice_package
+    IN ITEMS
+        qtbase
+        qtdeclarative
+        qtlanguageserver
+        qtshadertools
+        qtsvg
 )
+    edit_atlas_require_deployed_file(
+        "the ${edit_atlas_qt_notice_package} license notices"
+        "*${edit_atlas_qt_notice_package}-copyright"
+    )
+endforeach()
 foreach(
     edit_atlas_notice_package
     IN ITEMS

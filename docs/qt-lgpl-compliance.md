@@ -4,6 +4,12 @@ Edit Atlas uses the open source edition of Qt under the GNU Lesser General
 Public License version 3. This document records the project's technical policy;
 it is not legal advice.
 
+Qt Quick is the production graphical frontend. Frontend dependencies and the
+shared maintenance policy are documented in
+[Architecture](api/architecture.md), with deployment-specific guidance in the
+[Qt Quick](api/qt-quick-frontend.md) and
+[Qt Widgets](api/qt-widgets-frontend.md) frontend guides.
+
 ## Linkage policy
 
 All supported desktop targets dynamically link Qt. The inherited platform and
@@ -21,6 +27,13 @@ The supported presets are:
 | macOS Universal | `debug-universal-osx` | `release-universal-osx` |
 | Windows x64 | `debug-x64-windows` | `release-x64-windows` |
 
+Explicit local frontend package validation uses matching `release-widgets-`
+and `release-quick-` preset families for Linux x64, macOS ARM64 and x64, and
+Windows x64. CI builds both isolated packaging applications in one generic
+Release tree. All paths inherit the same dynamic triplets and linkage policy,
+and each generated package is independently checked against its expected Qt
+frontend.
+
 Qt platform plugins must remain dynamically loaded. The install-time Qt
 deployment script copies the required Qt libraries and plugins into the staged
 application.
@@ -29,8 +42,9 @@ application.
 
 Every binary release must:
 
-1. Include `THIRD_PARTY_NOTICES.md` and the `qtbase` copyright file installed
-   from the resolved vcpkg package.
+1. Include `THIRD_PARTY_NOTICES.md` and the copyright files for Qt Base,
+   Declarative, Language Server, Shader Tools, and SVG installed from the
+   resolved vcpkg packages.
 2. Include the LGPL version 3 terms contained in that copyright material and
    prominently identify Qt as LGPL software.
 3. Publish the complete corresponding source for the exact Qt build,
@@ -54,13 +68,20 @@ CMake configuration is the first enforcement layer:
 cmake --preset release-x64-linux
 ```
 
-Configuration fails if `Qt6::Core`, `Qt6::Gui`, `Qt6::Widgets`, or
-`Qt6::Concurrent` is not a shared library target. Release CI must additionally
+Configuration fails if `Qt6::Core`, `Qt6::Gui`, `Qt6::Widgets`,
+`Qt6::Concurrent`, `Qt6::Qml`, `Qt6::Quick`, or `Qt6::QuickControls2` is not a
+shared library target. Release CI must additionally
 inspect the final packaged binary:
 
-- Linux: `readelf -d` or `ldd` must report `libQt6Widgets.so`.
-- macOS: `otool -L` must report a dynamic Qt Widgets library or framework.
-- Windows: `dumpbin /dependents` must report `Qt6Widgets.dll`.
+- Linux: `readelf -d` or `ldd` must report the selected dynamic Qt Widgets or
+  Qt Quick frontend libraries.
+- macOS: `otool -L` must report the selected dynamic Qt Widgets or Qt Quick
+  libraries or frameworks.
+- Windows: `dumpbin /dependents` must report the selected Qt Widgets or Qt
+  Quick DLLs.
+
+Qt Quick package verification additionally checks the deployed Qt QML import
+tree, import metadata, plugins, and their runtime-library resolution.
 
 CI performs these checks on build-tree binaries, staged installations, and
 the extracted or installed contents of every generated package. It also

@@ -1,0 +1,208 @@
+name: Package Verification
+
+on:
+  workflow_call:
+
+permissions:
+  contents: read
+
+jobs:
+  verify-linux-packages:
+    name: >-
+      Linux / ${{ matrix.distribution_name }} — ${{ matrix.frontend_name }} package
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    container: ${{ matrix.container }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        frontend:
+          - widgets
+          - quick
+        distribution:
+          - ubuntu
+          - fedora
+        include:
+          - frontend: widgets
+            frontend_name: Widgets
+          - frontend: quick
+            frontend_name: Quick
+          - distribution: ubuntu
+            distribution_name: Ubuntu 24.04
+            container: ubuntu:24.04
+          - distribution: fedora
+            distribution_name: Fedora 44
+            container: fedora:44
+
+    steps:
+      - name: Install Ubuntu verification tools
+        if: matrix.distribution == 'ubuntu'
+        run: >-
+          apt-get update &&
+          apt-get install
+          --yes
+          --no-install-recommends
+          binutils
+          ca-certificates
+          cmake
+          findutils
+          git
+          libgomp1
+          libxkbcommon0
+          xauth
+          xvfb
+
+      - name: Install Fedora verification tools
+        if: matrix.distribution == 'fedora'
+        run: >-
+          dnf install
+          --assumeyes
+          binutils
+          ca-certificates
+          cmake
+          cpio
+          findutils
+          git
+          libgomp
+          libxkbcommon
+          rpm
+          xorg-x11-server-Xvfb
+          xorg-x11-xauth
+
+      - name: Check out source
+        uses: actions/checkout@v7.0.1
+
+      - name: Download Linux packages
+        uses: actions/download-artifact@v8
+        with:
+          name: ${{ matrix.frontend }}-frontend-x64-linux-packages
+          path: build/packages/${{ matrix.frontend }}/x64-linux
+
+      - name: Verify packages
+        shell: bash
+        run: >-
+          ./scripts/ci/verify-linux-packages.sh
+          ${{ matrix.distribution }}
+          build/packages/${{ matrix.frontend }}/x64-linux
+
+  verify-macos-package:
+    name: >-
+      macOS / ${{ matrix.architecture_name }} — ${{ matrix.frontend_name }} package
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+
+    strategy:
+      fail-fast: false
+      matrix:
+        frontend:
+          - widgets
+          - quick
+        architecture:
+          - arm64
+          - x64
+        include:
+          - frontend: widgets
+            frontend_name: Widgets
+          - frontend: quick
+            frontend_name: Quick
+          - architecture: arm64
+            architecture_name: Apple Silicon
+            os: macos-15
+            artifact_architecture: apple-silicon
+          - architecture: x64
+            architecture_name: Intel
+            os: macos-15-intel
+            artifact_architecture: intel
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v7.0.1
+
+      - name: Install CMake
+        uses: lukka/get-cmake@v4.4.0
+
+      - name: Download macOS package
+        uses: actions/download-artifact@v8
+        with:
+          name: ${{ matrix.frontend }}-frontend-universal-osx-packages
+          path: build/packages/${{ matrix.frontend }}/universal-osx
+
+      - name: Mark macOS crash-report window
+        run: |
+          mkdir -p build/package-check-macos/crash-reports
+          touch build/package-check-macos/crash-report-start
+
+      - name: Verify package
+        run: >-
+          ./scripts/ci/verify-macos-package.sh
+          build/packages/${{ matrix.frontend }}/universal-osx
+
+      - name: Collect macOS crash reports
+        if: always()
+        run: |
+          ./scripts/ci/collect-macos-crash-reports.sh \
+            build/package-check-macos/crash-report-start \
+            build/package-check-macos/crash-reports
+
+      - name: Upload macOS crash reports
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: >-
+            macos-package-crash-reports-${{ matrix.artifact_architecture }}-${{ matrix.frontend }}
+          path: build/package-check-macos/crash-reports
+          if-no-files-found: ignore
+          retention-days: 7
+
+  verify-windows-package:
+    name: Windows / x64 — ${{ matrix.frontend_name }} package
+    runs-on: windows-2022
+    timeout-minutes: 20
+
+    strategy:
+      fail-fast: false
+      matrix:
+        frontend:
+          - widgets
+          - quick
+        include:
+          - frontend: widgets
+            frontend_name: Widgets
+          - frontend: quick
+            frontend_name: Quick
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v7.0.1
+
+      - name: Install CMake
+        uses: lukka/get-cmake@v4.4.0
+
+      - name: Configure MSVC
+        uses: ilammy/msvc-dev-cmd@v1.13.0
+        with:
+          arch: x64
+          vsversion: 2022
+
+      - name: Download Windows package
+        uses: actions/download-artifact@v8
+        with:
+          name: ${{ matrix.frontend }}-frontend-x64-windows-packages
+          path: build/packages/${{ matrix.frontend }}/x64-windows
+
+      - name: Verify package
+        shell: pwsh
+        run: >-
+          ./scripts/ci/verify-windows-package.ps1
+          -PackageDirectory
+          build/packages/${{ matrix.frontend }}/x64-windows
+
+      - name: Upload Windows Installer logs
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: windows-installer-logs-${{ matrix.frontend }}
+          path: build/package-check-windows/*.log
+          if-no-files-found: ignore
+          retention-days: 7

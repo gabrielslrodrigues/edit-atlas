@@ -1,0 +1,242 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  validate-release-tag:
+    name: Validate release tag
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+
+    steps:
+      - name: Check out tagged source
+        uses: actions/checkout@v7.0.1
+        with:
+          fetch-depth: 0
+
+      - name: Validate tag and project version
+        run: ./scripts/ci/validate-release-tag.sh
+
+  create-release:
+    name: Create draft release
+    needs: validate-release-tag
+    runs-on: ubuntu-24.04
+    environment: edit-atlas-release
+    permissions:
+      contents: write
+
+    steps:
+      - name: Create or resume draft release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if release_is_draft="$(
+            gh release view "$GITHUB_REF_NAME" \
+              --repo "$GITHUB_REPOSITORY" \
+              --json isDraft \
+              --jq .isDraft \
+              2>/dev/null
+          )"; then
+            if [[ "$release_is_draft" != "true" ]]; then
+              echo "Release $GITHUB_REF_NAME is already published." >&2
+              exit 1
+            fi
+            echo "Resuming draft release $GITHUB_REF_NAME."
+          else
+            release_version="${GITHUB_REF_NAME#v}"
+            qt_source_url="https://github.com/$GITHUB_REPOSITORY/releases"
+            qt_source_url+="/download/$GITHUB_REF_NAME"
+            qt_source_url+="/edit-atlas-$release_version-qt-source.tar.xz"
+            qt_source_notes="Qt corresponding source and LGPL replacement"
+            qt_source_notes+=" instructions: $qt_source_url"
+            ffmpeg_source_url="https://github.com/$GITHUB_REPOSITORY/releases"
+            ffmpeg_source_url+="/download/$GITHUB_REF_NAME"
+            ffmpeg_source_url+="/edit-atlas-$release_version-ffmpeg-source.tar.xz"
+            ffmpeg_source_notes="FFmpeg corresponding source and LGPL"
+            ffmpeg_source_notes+=" replacement instructions: $ffmpeg_source_url"
+            release_notes="$qt_source_notes"
+            release_notes+=$'\n\n'
+            release_notes+="$ffmpeg_source_notes"
+            gh release create "$GITHUB_REF_NAME" \
+              --repo "$GITHUB_REPOSITORY" \
+              --draft \
+              --title "Edit Atlas $GITHUB_REF_NAME" \
+              --notes "$release_notes" \
+              --generate-notes
+          fi
+
+  prepare-qt-source:
+    name: Prepare Qt corresponding source
+    needs: create-release
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: read
+
+    steps:
+      - name: Check out tagged source
+        uses: actions/checkout@v7.0.1
+        with:
+          submodules: recursive
+
+      - name: Prepare Qt corresponding source archive
+        run: >-
+          ./scripts/ci/prepare-qt-source-archive.sh
+          "$GITHUB_REF_NAME"
+          build/qt-source
+
+      - name: Upload Qt corresponding source
+        uses: actions/upload-artifact@v7
+        with:
+          name: edit-atlas-qt-source
+          path: build/qt-source
+          if-no-files-found: error
+          retention-days: 3
+
+  prepare-ffmpeg-source:
+    name: Prepare FFmpeg corresponding source
+    needs: create-release
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: read
+
+    steps:
+      - name: Check out tagged source
+        uses: actions/checkout@v7.0.1
+        with:
+          submodules: recursive
+
+      - name: Prepare FFmpeg corresponding source archive
+        run: >-
+          ./scripts/ci/prepare-ffmpeg-source-archive.sh
+          "$GITHUB_REF_NAME"
+          build/ffmpeg-source
+
+      - name: Upload FFmpeg corresponding source
+        uses: actions/upload-artifact@v7
+        with:
+          name: edit-atlas-ffmpeg-source
+          path: build/ffmpeg-source
+          if-no-files-found: error
+          retention-days: 3
+
+  packages:
+    name: Build and package
+    needs: create-release
+    uses: ./.github/workflows/build-and-package.yml
+    with:
+      artifact_retention_days: 3
+    permissions:
+      actions: write
+      contents: read
+      packages: write
+
+  package-verification:
+    name: Verify packages
+    needs: packages
+    if: always() && needs.packages.result == 'success'
+    uses: ./.github/workflows/package-verification.yml
+    permissions:
+      contents: read
+
+  packaged-e2e:
+    name: Packaged E2E
+    needs: packages
+    if: always() && needs.packages.result == 'success'
+    uses: ./.github/workflows/packaged-e2e.yml
+    permissions:
+      contents: read
+
+  publish-release:
+    name: Publish release assets
+    needs:
+      - create-release
+      - packages
+      - package-verification
+      - packaged-e2e
+      - prepare-ffmpeg-source
+      - prepare-qt-source
+    if: >-
+      always() &&
+      needs['create-release'].result == 'success' &&
+      needs.packages.result == 'success' &&
+      needs['package-verification'].result == 'success' &&
+      needs['packaged-e2e'].result == 'success' &&
+      needs['prepare-ffmpeg-source'].result == 'success' &&
+      needs['prepare-qt-source'].result == 'success'
+    runs-on: ubuntu-24.04
+    permissions:
+      actions: write
+      contents: write
+
+    steps:
+      - name: Check out tagged source
+        uses: actions/checkout@v7.0.1
+        with:
+          fetch-depth: 0
+
+      - name: Download release packages
+        uses: actions/download-artifact@v8
+        with:
+          pattern: quick-frontend-*-packages
+          path: build/release-artifacts
+          merge-multiple: true
+
+      - name: Download Qt corresponding source
+        uses: actions/download-artifact@v8
+        with:
+          name: edit-atlas-qt-source
+          path: build/release-artifacts
+
+      - name: Download FFmpeg corresponding source
+        uses: actions/download-artifact@v8
+        with:
+          name: edit-atlas-ffmpeg-source
+          path: build/release-artifacts
+
+      - name: Prepare release assets
+        run: >-
+          ./scripts/ci/prepare-release-assets.sh
+          build/release-artifacts
+          build/release-assets
+
+      - name: Upload assets and publish draft release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: >-
+          gh release upload "$GITHUB_REF_NAME"
+          build/release-assets/*
+          --repo "$GITHUB_REPOSITORY"
+          --clobber
+          && gh release edit "$GITHUB_REF_NAME"
+          --repo "$GITHUB_REPOSITORY"
+          --draft=false
+
+      - name: Delete release-transfer artifacts
+        uses: ./.github/actions/delete-workflow-artifacts
+        with:
+          pattern: >-
+            ^(?:(widgets|quick)-frontend-.*-(packages|stage)|edit-atlas-e2e-media-fixtures|edit-atlas-(qt|ffmpeg)-source)$
+
+  publish-documentation:
+    name: Publish versioned documentation
+    needs: publish-release
+    uses: ./.github/workflows/documentation.yml
+    with:
+      version: ${{ github.ref_name }}
+    permissions:
+      contents: write
+      id-token: write
+      pages: write
