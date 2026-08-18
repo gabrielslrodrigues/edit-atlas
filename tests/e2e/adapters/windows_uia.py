@@ -3,9 +3,10 @@
 Interactions in this module use UIA control patterns, except for Windows'
 native file chooser. Its blocking modal UIA provider exposes neither its
 filename field nor accept button, so the adapter types into the field that the
-operating system focuses when the chooser opens. Qt combo items use pointer
-input derived from their accessible bounds because Qt does not commit desktop
-SelectionItem actions. Explicit coordinates and image matching are absent.
+operating system focuses when the chooser opens. Qt combo controls and items
+use pointer input derived from their accessible bounds because Qt does not
+commit desktop ExpandCollapse or SelectionItem actions. Explicit coordinates
+and image matching are absent.
 """
 
 from __future__ import annotations
@@ -559,21 +560,20 @@ class WindowsApplicationSession:
     def _select_combo_option_by_accessible_click(
         self, control: Any, identifier: str, option: str
     ) -> None:
-        expand = self._pattern(control, "iface_expand_collapse")
-        if expand is None:
-            raise ActionNotSupportedError(
-                f"combo box {identifier!r} exposes no UIA ExpandCollapse pattern"
-            )
-        try:
-            expanded = int(expand.CurrentExpandCollapseState) == 1
-        except Exception:
-            expanded = False
-        if not expanded:
-            self._execute_pattern(expand.Expand, control)
-        target = wait_until(
-            lambda: self._find_named(
+        self._click_accessible_node(control, identifier)
+
+        def find_option() -> Any | None:
+            target = self._find_named(
                 (option,), root=control, control_types=("ListItem",)
-            ),
+            )
+            if target is not None:
+                return target
+            return self._find_named(
+                (option,), control_types=("ListItem",)
+            )
+
+        target = wait_until(
+            find_option,
             lambda value: value is not None,
             timeout=self._timeout,
             description=f"showing combo box option {option!r} for {identifier!r}",
@@ -686,17 +686,22 @@ class WindowsApplicationSession:
                 description=f"{description} invocation to complete",
             )
             self._ensure_running()
-            try:
-                current = self._toggle_state(toggle)
-            except Exception:
-                # Qt removes a menu item from the UIA tree when its menu closes.
-                # A completed semantic invocation is the only observable result
-                # until the menu is opened again.
-                return
-            if current != checked:
-                raise ActionNotSupportedError(
-                    f"UIA Invoke did not change {description} checked state"
-                )
+
+            def current_state() -> tuple[bool | None, bool]:
+                try:
+                    return self._toggle_state(toggle), node.is_visible()
+                except Exception:
+                    # Qt removes a menu item from the UIA tree when its menu
+                    # closes. The setting is verified after the menu is opened
+                    # again by the calling workflow.
+                    return None, False
+
+            wait_until(
+                current_state,
+                lambda current: current[0] == checked or not current[1],
+                timeout=self._timeout,
+                description=f"{description} invocation to update its state",
+            )
             return
 
         self._execute_pattern(toggle.Toggle, node)

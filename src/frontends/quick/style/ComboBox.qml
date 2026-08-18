@@ -25,6 +25,10 @@ T.ComboBox {
         required property int index
         required property var model
 
+        Accessible.name: control.textAt(index)
+        Accessible.role: Accessible.ListItem
+        Accessible.selectable: true
+        Accessible.selected: control.currentIndex === index
         bottomPadding: DesignTokens.spacingSmall
         highlighted: control.highlightedIndex === index
         hoverEnabled: control.hoverEnabled

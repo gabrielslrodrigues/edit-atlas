@@ -116,12 +116,6 @@ ApplicationWindow {
         value: window.title
     }
 
-    Binding {
-        property: "role"
-        target: window.contentItem.Accessible
-        value: Accessible.Application
-    }
-
     onClosing: close => {
         if (!applicationShell.RequestClose()) {
             close.accepted = false

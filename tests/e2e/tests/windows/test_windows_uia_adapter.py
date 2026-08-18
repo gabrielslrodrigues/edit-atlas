@@ -67,14 +67,6 @@ class RangeValuePattern:
         self._set_value(value)
 
 
-class ExpandCollapsePattern:
-    def __init__(self) -> None:
-        self.CurrentExpandCollapseState = 0
-
-    def Expand(self) -> None:
-        self.CurrentExpandCollapseState = 1
-
-
 class Node:
     def __init__(
         self,
@@ -165,19 +157,21 @@ def test_combo_selection_uses_accessible_item_bounds(
     tmp_path: Path,
 ) -> None:
     session = application_session(tmp_path)
-    control = Node("Event", "ComboBox")
-    control.iface_expand_collapse = ExpandCollapsePattern()
+    opened = Event()
+    control = Node("Event", "ComboBox", click=opened.set)
     reel = Node(
         "Reel",
         "ListItem",
         click=lambda: setattr(control.element_info, "name", "Reel"),
     )
-    control._children = (reel,)
     session.element = lambda identifier: control
+    session._find_named = (
+        lambda *args, root=None, **kwargs: reel if root is None else None
+    )
 
     session.select_option("filterCondition0Field", "Reel")
 
-    assert control.iface_expand_collapse.CurrentExpandCollapseState == 1
+    assert opened.is_set()
     assert session.selected_option("filterCondition0Field") == "Reel"
 
 

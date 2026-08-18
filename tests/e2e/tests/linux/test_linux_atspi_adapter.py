@@ -201,6 +201,16 @@ def test_identifier_lookup_skips_timeline_table_descendants(
     assert session._find_identifier(application, "progressDialog") is dialog
 
 
+def test_accessibility_walk_has_a_bounded_depth(tmp_path: Path) -> None:
+    session = application_session(tmp_path)
+    node = AccessibilityNode("recursive")
+    node.children = (node,)
+
+    walked = list(session._walk(node))
+
+    assert len(walked) == session._MAX_ACCESSIBILITY_DEPTH + 1
+
+
 def test_named_lookup_prioritizes_dialogs_and_skips_timeline_rows(
     tmp_path: Path,
 ) -> None:

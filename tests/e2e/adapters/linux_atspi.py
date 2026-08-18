@@ -150,6 +150,7 @@ class LinuxAtspiAdapter:
 
 
 class LinuxApplicationSession:
+    _MAX_ACCESSIBILITY_DEPTH = 64
     _IDENTIFIER_SEARCH_LEAVES = ("eventTable",)
     _ACTION_PRIORITY = (
         "click",
@@ -843,7 +844,7 @@ class LinuxApplicationSession:
         lines: list[str] = []
 
         def append(node: Any, depth: int) -> None:
-            if len(lines) >= 5000:
+            if len(lines) >= 5000 or depth > self._MAX_ACCESSIBILITY_DEPTH:
                 return
             try:
                 identifier = self._node_identifier(node)
@@ -868,12 +869,14 @@ class LinuxApplicationSession:
         *,
         descendant_leaves: Sequence[str] = (),
     ) -> Iterable[Any]:
-        pending = [root]
+        pending = [(root, 0)]
         visited = 0
         while pending and visited < 10000:
-            node = pending.pop()
+            node, depth = pending.pop()
             visited += 1
             yield node
+            if depth >= self._MAX_ACCESSIBILITY_DEPTH:
+                continue
             node_identifier = self._node_identifier(node)
             if any(
                 node_identifier == leaf
@@ -882,7 +885,10 @@ class LinuxApplicationSession:
             ):
                 continue
             try:
-                pending.extend(reversed(tuple(node.children)))
+                pending.extend(
+                    (child, depth + 1)
+                    for child in reversed(tuple(node.children))
+                )
             except Exception:
                 continue
 

@@ -84,6 +84,11 @@ TestCase {
         }
     }
 
+    function test_contentItemDoesNotDuplicateApplicationRole() {
+        verify(applicationWindow.contentItem.Accessible.role
+               !== Accessible.Application)
+    }
+
     function test_emptyPageKeyboardFocus() {
         const openButton = findObject("emptyOpenButton")
         verify(openButton !== null)
@@ -93,6 +98,29 @@ TestCase {
         verify(openButton.activeFocusOnTab)
         openButton.forceActiveFocus()
         tryVerify(() => openButton.activeFocus)
+    }
+
+    function test_frameRateOptionsExposeAccessibleListItems() {
+        const dialog = findObject("frameRateDialog")
+        const selector = findObject("frameRateSelector")
+        verify(dialog !== null)
+        verify(selector !== null)
+
+        dialog.open()
+        tryCompare(dialog, "visible", true)
+        selector.popup.open()
+        tryCompare(selector.popup, "visible", true)
+        tryVerify(() => selector.popup.contentItem.itemAtIndex(1) !== null)
+        selector.currentIndex = 1
+
+        const option = selector.popup.contentItem.itemAtIndex(1)
+        compare(option.Accessible.name, "24 fps")
+        compare(option.Accessible.role, Accessible.ListItem)
+        verify(option.Accessible.selectable)
+        verify(option.Accessible.selected)
+
+        selector.popup.close()
+        dialog.close()
     }
 
     function test_projectionDialogExposesAccessibleControls() {
