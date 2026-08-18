@@ -159,10 +159,13 @@ sudo dnf remove edit-atlas
 
 CI separates package production from package consumption through reusable
 workflows. The `build-and-package.yml` workflow's native matrix builds and
-tests the complete project, then stages and packages both the current Widgets
-frontend and the parallel Qt Quick frontend for native macOS ARM64 and x64,
-Linux x64, and Windows x64. A dedicated job merges each frontend's matching
-pair of Mach-O files into a universal macOS bundle and creates both installers.
+tests both frontends in one generic Release tree, then stages and packages the
+isolated Widgets and Qt Quick packaging applications for native macOS ARM64
+and x64, Linux x64, and Windows x64. Both applications reuse the frontend
+libraries from that build; their CPack configurations select the matching
+frontend runtime component together with the shared runtime component. A
+dedicated job merges each frontend's matching pair of Mach-O files into a
+universal macOS bundle and creates both installers.
 The independent `package-verification.yml` workflow then downloads both
 frontend variants and treats them like end-user downloads while packaged E2E
 runs concurrently from the same artifacts:

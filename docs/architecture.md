@@ -134,6 +134,17 @@ rules, and Qt deployment. Its output keeps the product name `edit-atlas`.
 Shared product icons and desktop metadata live under `src/frontends/resources`;
 frontend-specific styling remains with its concrete frontend.
 
+Release configurations additionally define
+`EditAtlas::WidgetsPackageApplication` and
+`EditAtlas::QuickPackageApplication`. They reuse the same compiled frontend
+libraries but link into isolated product-named outputs. Separate
+`WidgetsRuntime` and `QuickRuntime` install components own their application
+and Qt deployment rules, while the shared `Runtime` component supplies the
+CLI, licensing material, desktop metadata, and common runtime libraries.
+This allows one generic Release build to produce either frontend package
+without changing the default developer application or recompiling shared
+code.
+
 The developer Qt Quick frontend compiles its application QML into
 `EditAtlas::QuickFrontend`. `EditAtlas::QuickStyle` provides the separate
 `EditAtlasStyle` QML module: shared design tokens, light and dark theme colors,

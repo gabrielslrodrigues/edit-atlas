@@ -46,11 +46,15 @@ different procedure.
 - macOS x64;
 - Windows x64.
 
-Each native runner performs dependency setup once, builds the shared Debug
-configuration, and then builds the Widgets and Quick release configurations
-on that same runner. This preserves serialization of vcpkg publication by
-triplet without duplicating expensive host setup. Frontend-specific staging,
-package names, and verification remain symmetric.
+Each native runner performs dependency setup once and builds the shared Debug
+configuration. It then configures, builds, and tests one generic Release tree
+containing both graphical frontends. Thin package-only application targets
+reuse those frontend libraries while providing separate product names,
+installation components, and Qt deployment scripts. CI combines each
+frontend component with the shared runtime component when staging or
+packaging it. Shared Release code is therefore compiled once per native
+triplet while frontend-specific staging, package names, and verification
+remain symmetric.
 
 The two macOS jobs upload native staged bundles. One universal-packaging job
 combines the matching ARM64 and x64 bundles for both frontends, uploads both

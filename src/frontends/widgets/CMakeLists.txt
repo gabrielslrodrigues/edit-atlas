@@ -68,21 +68,39 @@ qt_add_resources(
         "resources/styles/edit_atlas.qss"
 )
 
+function(edit_atlas_configure_widgets_executable target)
+    target_link_libraries(
+        "${target}"
+        PRIVATE
+            EditAtlas::WidgetsFrontend
+            EditAtlas::Media
+            spdlog::spdlog
+    )
+
+    target_compile_features("${target}" PRIVATE cxx_std_23)
+    edit_atlas_set_project_warnings("${target}")
+    edit_atlas_deploy_windows_qt_platform_plugin(
+        "${target}"
+        Qt6::QWindowsIntegrationPlugin
+    )
+endfunction()
+
 qt_add_executable(edit_atlas_widgets main.cpp)
 add_executable(EditAtlas::WidgetsApplication ALIAS edit_atlas_widgets)
 set_target_properties(edit_atlas_widgets PROPERTIES OUTPUT_NAME "edit-atlas-widgets")
+edit_atlas_configure_widgets_executable(edit_atlas_widgets)
 
-target_link_libraries(
-    edit_atlas_widgets
-    PRIVATE
-        EditAtlas::WidgetsFrontend
-        EditAtlas::Media
-        spdlog::spdlog
-)
-
-target_compile_features(edit_atlas_widgets PRIVATE cxx_std_23)
-edit_atlas_set_project_warnings(edit_atlas_widgets)
-edit_atlas_deploy_windows_qt_platform_plugin(
-    edit_atlas_widgets
-    Qt6::QWindowsIntegrationPlugin
-)
+if(EDIT_ATLAS_BUILD_PACKAGING_APPLICATIONS)
+    qt_add_executable(edit_atlas_widgets_package main.cpp)
+    add_executable(
+        EditAtlas::WidgetsPackageApplication
+        ALIAS edit_atlas_widgets_package
+    )
+    set_target_properties(
+        edit_atlas_widgets_package
+        PROPERTIES
+            RUNTIME_OUTPUT_DIRECTORY
+                "${PROJECT_BINARY_DIR}/packaging/widgets"
+    )
+    edit_atlas_configure_widgets_executable(edit_atlas_widgets_package)
+endif()

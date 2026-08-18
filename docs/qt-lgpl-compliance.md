@@ -21,10 +21,12 @@ The supported presets are:
 | macOS Universal | `debug-universal-osx` | `release-universal-osx` |
 | Windows x64 | `debug-x64-windows` | `release-x64-windows` |
 
-Explicit frontend package validation uses matching `release-widgets-` and
-`release-quick-` preset families for Linux x64, macOS ARM64 and x64, and
-Windows x64. Both families inherit the same dynamic triplets and linkage
-policy.
+Explicit local frontend package validation uses matching `release-widgets-`
+and `release-quick-` preset families for Linux x64, macOS ARM64 and x64, and
+Windows x64. CI builds both isolated packaging applications in one generic
+Release tree. All paths inherit the same dynamic triplets and linkage policy,
+and each generated package is independently checked against its expected Qt
+frontend.
 
 Qt platform plugins must remain dynamically loaded. The install-time Qt
 deployment script copies the required Qt libraries and plugins into the staged
