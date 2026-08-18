@@ -5,6 +5,10 @@ and black-box desktop automation. User-facing names and descriptions remain
 localized; automation must select objects by identifier instead of visible
 text.
 
+Architectural ownership and toolkit-specific implementation rules are
+documented in the [Qt Quick](api/qt-quick-frontend.md) and
+[Qt Widgets](api/qt-widgets-frontend.md) frontend guides.
+
 Qt widgets and dialogs use `accessibleIdentifier`. `QAction` does not provide
 that property, so actions use the same value for `objectName` and a dynamic
 `accessibleIdentifier` property. Qt Quick views use the same `objectName` for

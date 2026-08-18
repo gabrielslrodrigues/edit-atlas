@@ -12,8 +12,10 @@ for automation.
 
 The project separates its UI-independent core, built-in formats, application
 services, and frontend adapters. See [Architecture](docs/architecture.md) for
-the dependency direction and extension points. See [CHANGELOG.md](CHANGELOG.md)
-for release highlights.
+the dependency direction and extension points. Desktop contributors should
+also read the [Qt Quick](docs/api/qt-quick-frontend.md) and
+[Qt Widgets](docs/api/qt-widgets-frontend.md) frontend guides. See
+[CHANGELOG.md](CHANGELOG.md) for release highlights.
 
 ## Common requirements
 
