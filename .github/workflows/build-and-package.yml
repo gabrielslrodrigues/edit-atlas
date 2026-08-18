@@ -38,8 +38,8 @@ jobs:
             release_preset: release-x64-linux
             package_generators: 'TGZ;DEB;RPM'
             selected_frontend_executable_suffix: edit-atlas
-            widgets_debug_executable_suffix: edit-atlas
-            quick_debug_executable_suffix: edit-atlas-quick
+            widgets_debug_executable_suffix: edit-atlas-widgets
+            quick_debug_executable_suffix: edit-atlas
             staged_executable_suffix: bin/edit-atlas
           - name: macOS ARM64
             os: macos-15
@@ -48,8 +48,8 @@ jobs:
             debug_preset: debug-arm64-osx
             release_preset: release-arm64-osx
             selected_frontend_executable_suffix: edit-atlas.app/Contents/MacOS/edit-atlas
-            widgets_debug_executable_suffix: edit-atlas.app/Contents/MacOS/edit-atlas
-            quick_debug_executable_suffix: edit-atlas-quick
+            widgets_debug_executable_suffix: edit-atlas-widgets
+            quick_debug_executable_suffix: edit-atlas.app/Contents/MacOS/edit-atlas
             staged_executable_suffix: edit-atlas.app/Contents/MacOS/edit-atlas
           - name: macOS x64
             os: macos-15-intel
@@ -58,8 +58,8 @@ jobs:
             debug_preset: debug-x64-osx
             release_preset: release-x64-osx
             selected_frontend_executable_suffix: edit-atlas.app/Contents/MacOS/edit-atlas
-            widgets_debug_executable_suffix: edit-atlas.app/Contents/MacOS/edit-atlas
-            quick_debug_executable_suffix: edit-atlas-quick
+            widgets_debug_executable_suffix: edit-atlas-widgets
+            quick_debug_executable_suffix: edit-atlas.app/Contents/MacOS/edit-atlas
             staged_executable_suffix: edit-atlas.app/Contents/MacOS/edit-atlas
           - name: Windows x64
             os: windows-2022
@@ -69,8 +69,8 @@ jobs:
             release_preset: release-x64-windows
             package_generators: WIX
             selected_frontend_executable_suffix: edit-atlas.exe
-            widgets_debug_executable_suffix: edit-atlas.exe
-            quick_debug_executable_suffix: edit-atlas-quick.exe
+            widgets_debug_executable_suffix: edit-atlas-widgets.exe
+            quick_debug_executable_suffix: edit-atlas.exe
             staged_executable_suffix: bin/edit-atlas.exe
 
     env:
@@ -172,7 +172,6 @@ jobs:
         run: >-
           cmake -S "${{ matrix.source_dir }}"
           --preset ${{ matrix.debug_preset }}
-          -DEDIT_ATLAS_DEFAULT_FRONTEND=widgets
 
       - name: Report vcpkg binary package activity
         if: always()

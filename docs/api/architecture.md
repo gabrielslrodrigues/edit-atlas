@@ -132,11 +132,12 @@ Qt Widgets and Qt Quick classes are adapters rather than public application
 services. Concrete implementations live under `src/frontends`, and their
 namespaces mirror that hierarchy. `EditAtlas::WidgetsFrontend` provides the
 `edit_atlas::frontends::widgets` desktop adapter. `EditAtlas::QuickFrontend`
-provides the developer Qt Quick adapter, while `EditAtlas::CliFrontend`
-provides the `edit_atlas::frontends::cli` terminal adapter and stable process
-outcomes. `EditAtlas::Application` identifies the current default desktop
-frontend. Both implementations retain concrete frontend targets. Generic
-development builds include both, while frontend-specific builds exclude the
-non-selected implementation from the default build. Graphical frontends should
-consume the shared presentation APIs; non-Qt callers should integrate through
-the standard C++ domain, format, service, and support interfaces.
+provides the primary Qt Quick desktop adapter, while
+`EditAtlas::CliFrontend` provides the `edit_atlas::frontends::cli` terminal
+adapter and stable process outcomes. `EditAtlas::Application` identifies Qt
+Quick as the default desktop frontend. Both graphical implementations retain
+concrete frontend targets. Generic development builds include both, while
+frontend-specific builds exclude the non-selected implementation from the
+default build. Graphical frontends should consume the shared presentation
+APIs; non-Qt callers should integrate through the standard C++ domain, format,
+service, and support interfaces.

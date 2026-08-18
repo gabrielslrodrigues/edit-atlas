@@ -75,7 +75,7 @@ option(
 
 set(
     EDIT_ATLAS_DEFAULT_FRONTEND
-    "widgets"
+    "quick"
     CACHE STRING
     "Graphical frontend installed as the Edit Atlas application"
 )

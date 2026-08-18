@@ -126,7 +126,7 @@ Concrete application targets identify their frontend explicitly:
 `EditAtlas::WidgetsApplication`, `EditAtlas::CliApplication`, and
 `EditAtlas::QuickApplication`. `EditAtlas::Application` aliases the current
 default desktop frontend selected by `EDIT_ATLAS_DEFAULT_FRONTEND`, which is
-currently Widgets. Generic development presets build both graphical frontends,
+currently Qt Quick. Generic development presets build both graphical frontends,
 while frontend-specific presets use `EDIT_ATLAS_BUILD_FRONTENDS` to build only
 their named implementation. The CLI remains independently available. The
 selected target receives the product name, platform metadata, installation
@@ -143,9 +143,14 @@ and Qt deployment rules, while the shared `Runtime` component supplies the
 CLI, licensing material, desktop metadata, and common runtime libraries.
 This allows one generic Release build to produce either frontend package
 without changing the default developer application or recompiling shared
-code.
+code. Production packaging selects `QuickRuntime`; `WidgetsRuntime` remains
+available for clean-machine verification and emergency rollback packages.
+Both executables retain the same application and organization identifiers and
+consume the same presentation-owned settings and application-data paths, so
+selecting either frontend does not create or migrate frontend-specific user
+state.
 
-The developer Qt Quick frontend compiles its application QML into
+The primary Qt Quick frontend compiles its application QML into
 `EditAtlas::QuickFrontend`. `EditAtlas::QuickStyle` provides the separate
 `EditAtlasStyle` QML module: shared design tokens, light and dark theme colors,
 surfaces, icons, and template-based Qt Quick Controls. The custom style uses

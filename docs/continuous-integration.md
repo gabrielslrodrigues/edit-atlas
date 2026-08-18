@@ -12,7 +12,7 @@ triggers and permissions.
 | `ci.yml` | `master`, pull requests, daily schedule, manual dispatch | Orchestrate ordinary package validation and packaged E2E, then delete transient package-transfer artifacts |
 | `build-and-package.yml` | Reusable only | Build and test every supported triplet, package Widgets and Quick, and create universal macOS packages |
 | `package-verification.yml` | Reusable only | Install and verify both frontend packages on every supported clean verification system |
-| `packaged-e2e.yml` | Reusable only | Install the selected production package and run CLI and graphical E2E on Linux and Windows; retain the disabled macOS implementation |
+| `packaged-e2e.yml` | Reusable only | Install the Qt Quick production package and run CLI and graphical E2E on Linux and Windows; retain the disabled macOS implementation |
 | `release.yml` | Version tags | Validate the tag, create the protected draft, prepare corresponding source, reuse package and E2E validation, publish release assets, and publish versioned documentation |
 | `documentation.yml` | `master`, pull requests, manual dispatch, reusable call | Validate documentation, publish `/latest/`, and publish release documentation under `/vX.Y.Z/` |
 
@@ -71,10 +71,12 @@ crash dumps, installer logs, and build diagnostics remain available for seven
 days because they do not distribute a runnable Edit Atlas package.
 
 Release runs retain transfer artifacts for up to three days as recovery data.
-The release workflow publishes only the selected production frontend and its
+The release workflow publishes only the Qt Quick production frontend and its
 matching Qt and FFmpeg corresponding-source archives, notices, license, and
-checksums. After successful publication, it deletes the transfer copies from
-the workflow run; the GitHub Release remains the distribution location.
+checksums. Widgets packages remain CI verification artifacts rather than
+release assets. After successful publication, the workflow deletes the
+transfer copies from the workflow run; the GitHub Release remains the
+distribution location.
 
 The vcpkg NuGet feed is a dependency binary cache rather than a workflow
 artifact. Package jobs retain the existing per-triplet concurrency groups so
