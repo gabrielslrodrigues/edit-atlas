@@ -288,9 +288,15 @@ class LinuxApplicationSession:
         node = self.element(identifier)
         if self._is_checked(node) != checked:
             self._activate_node(node)
+
+        def checked_or_closed() -> bool:
+            return self._checked_state(node) == checked or not self._is_showing(
+                node
+            )
+
         wait_until(
-            lambda: self._checked_state(node),
-            lambda value: value == checked,
+            checked_or_closed,
+            lambda complete: complete,
             timeout=self._timeout,
             description=f"{identifier!r} checked state to become {checked}",
         )
@@ -473,15 +479,18 @@ class LinuxApplicationSession:
         return self._node_text(control) or str(control.name)
 
     def open_file_dialog(self, dialog_identifier: str, path: Path) -> None:
-        dialog = self.element(dialog_identifier)
-        try:
-            editor = self._find_identifier(dialog, "fileNameEdit")
-        except Exception:
-            editor = None
+        dialog = self._file_dialog(dialog_identifier)
+        editor = self._find_identifier(
+            dialog, "fileNameEdit", showing_only=False
+        )
+        if editor is None:
+            editor = self._find_identifier(
+                dialog, "fileNameTextField", showing_only=False
+            )
         editors = [
             node
             for node in self._walk(dialog)
-            if self._is_showing(node) and self._is_editable(node)
+            if self._is_editable(node)
         ]
         if editor is None and not editors:
             raise ElementNotFoundError(
@@ -521,7 +530,46 @@ class LinuxApplicationSession:
         if button is None:
             raise ElementNotFoundError("native file chooser accept button is absent")
         self._activate_node(button)
-        self.wait_absent(dialog_identifier)
+        wait_until(
+            lambda: self._is_showing(dialog),
+            lambda showing: not showing,
+            timeout=self._timeout,
+            consecutive=2,
+            description=f"native file chooser {dialog_identifier!r} to close",
+        )
+
+    def _file_dialog(self, dialog_identifier: str) -> Any:
+        def find() -> Any | None:
+            self._ensure_running()
+            exact = self._find_identifier(
+                self._application, dialog_identifier, showing_only=True
+            )
+            if exact is not None:
+                return exact
+            for node in self._walk(self._application):
+                try:
+                    if (
+                        str(node.role_name).casefold() == "dialog"
+                        and self._is_showing(node)
+                        and self._find_identifier(
+                            node, "fileNameTextField", showing_only=False
+                        )
+                        is not None
+                    ):
+                        return node
+                except Exception:
+                    continue
+            return None
+
+        try:
+            return wait_until(
+                find,
+                lambda value: value is not None,
+                timeout=self._timeout,
+                description=f"native file chooser {dialog_identifier!r}",
+            )
+        except PollTimeoutError as error:
+            raise ElementNotFoundError(str(error)) from error
 
     def activate_menu_action(
         self, menu_identifier: str, action_identifier: str

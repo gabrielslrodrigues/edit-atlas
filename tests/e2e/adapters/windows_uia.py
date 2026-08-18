@@ -584,13 +584,7 @@ class WindowsApplicationSession:
             raise ActionNotSupportedError(
                 f"combo box option {option!r} could not be clicked: {error}"
             ) from error
-        wait_until(
-            lambda: self._node_text(control),
-            lambda selected: self._normalized_name(selected)
-            == self._normalized_name(option),
-            timeout=self._timeout,
-            description=f"combo box option {option!r} to become active",
-        )
+        self._wait_selected_option_for(control, target, option)
 
     @staticmethod
     def _click_accessible_node(node: Any, description: str) -> None:
@@ -603,16 +597,24 @@ class WindowsApplicationSession:
 
     def _wait_selected_option_for(
         self, control: Any, target: Any, expected: str
-    ) -> str:
+    ) -> None:
         selection = self._pattern(target, "iface_selection_item")
-        return wait_until(
-            lambda: self._node_text(control),
-            lambda selected: self._normalized_name(selected)
+
+        def selected_state() -> tuple[str, bool]:
+            self._ensure_running()
+            try:
+                item_selected = selection is not None and bool(
+                    selection.CurrentIsSelected
+                )
+            except Exception:
+                item_selected = False
+            return (self._node_text(control), item_selected)
+
+        wait_until(
+            selected_state,
+            lambda state: self._normalized_name(state[0])
             == self._normalized_name(expected)
-            or (
-                selection is not None
-                and bool(selection.CurrentIsSelected)
-            ),
+            or state[1],
             timeout=self._timeout,
             description=f"option {expected!r} to become selected",
         )

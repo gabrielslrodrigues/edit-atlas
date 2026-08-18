@@ -82,6 +82,18 @@ class AccessibilityNode:
         self.showing = True
 
 
+class ClosingCheckableNode(SuccessfulActionNode):
+    def __init__(self) -> None:
+        super().__init__("Remember recent files", "Press")
+        self.checked = False
+
+    def do_action_named(self, action: str) -> bool:
+        assert action in self.actions
+        self.showing = False
+        self.invoked.set()
+        return True
+
+
 class UnexpectedTraversalNode:
     accessible_id = "mainWindow"
     showing = True
@@ -224,6 +236,35 @@ def test_named_lookup_prioritizes_dialogs_and_skips_timeline_rows(
     session._application = application
 
     assert session._find_named(application, ("Cancel",)) is dialog_action
+
+
+def test_file_dialog_lookup_accepts_qt_fallback_identifier(
+    tmp_path: Path,
+) -> None:
+    session = application_session(tmp_path)
+    session._process = RunningProcess()
+    dialog = AccessibilityNode(
+        "QGuiApplication.mainWindow.FileDialog",
+        (AccessibilityNode("fileNameTextField"),),
+        name="Open Timeline",
+        role_name="dialog",
+    )
+    session._application = AccessibilityNode("application", (dialog,))
+
+    assert session._file_dialog("timelineOpenFileDialog") is dialog
+
+
+def test_checkable_menu_action_can_close_before_state_is_observed(
+    tmp_path: Path,
+) -> None:
+    session = application_session(tmp_path)
+    session._process = RunningProcess()
+    node = ClosingCheckableNode()
+    session.element = lambda identifier: node
+
+    session.set_checked("rememberRecentFilesAction", True)
+
+    assert node.invoked.wait(1.0)
 
 
 @pytest.mark.parametrize("action", ["Press", "ShowMenu"])
