@@ -30,7 +30,8 @@
       "name": "release",
       "hidden": true,
       "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Release"
+        "CMAKE_BUILD_TYPE": "Release",
+        "EDIT_ATLAS_BUILD_PACKAGING_APPLICATIONS": "ON"
       }
     },
     {

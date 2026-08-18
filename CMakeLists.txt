@@ -95,6 +95,12 @@ set_property(
     PROPERTY STRINGS all quick widgets
 )
 
+option(
+    EDIT_ATLAS_BUILD_PACKAGING_APPLICATIONS
+    "Build isolated frontend application targets used by packaging"
+    OFF
+)
+
 if(
     NOT EDIT_ATLAS_DEFAULT_FRONTEND STREQUAL "quick"
     AND NOT EDIT_ATLAS_DEFAULT_FRONTEND STREQUAL "widgets"

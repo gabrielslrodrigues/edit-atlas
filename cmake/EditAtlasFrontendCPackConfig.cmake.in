@@ -1,0 +1,7 @@
+include("@PROJECT_BINARY_DIR@/CPackConfig.cmake")
+
+set(
+    CPACK_INSTALL_CMAKE_PROJECTS
+    "@PROJECT_BINARY_DIR@;@PROJECT_NAME@;@edit_atlas_package_component@;/"
+    "@PROJECT_BINARY_DIR@;@PROJECT_NAME@;Runtime;/"
+)

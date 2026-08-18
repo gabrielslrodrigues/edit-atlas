@@ -1,32 +1,17 @@
 include_guard(GLOBAL)
 
-function(edit_atlas_define_default_frontend frontend)
-    if(frontend STREQUAL "quick")
-        set(target edit_atlas_quick)
-        set(edit_atlas_requires_qml_deployment TRUE)
-    elseif(frontend STREQUAL "widgets")
-        set(target edit_atlas_widgets)
-        set(edit_atlas_requires_qml_deployment FALSE)
-    else()
-        message(
-            FATAL_ERROR
-            "Unsupported Edit Atlas frontend: ${frontend}. "
-            "Expected quick or widgets."
-        )
-    endif()
-
+function(edit_atlas_configure_product_application target)
     if(NOT TARGET "${target}")
-        message(FATAL_ERROR "Unknown target for default frontend: ${target}")
+        message(FATAL_ERROR "Unknown application target: ${target}")
     endif()
 
-    add_executable(EditAtlas::Application ALIAS "${target}")
-
-    set(edit_atlas_resource_directory
+    set(
+        edit_atlas_resource_directory
         "${PROJECT_SOURCE_DIR}/src/frontends/resources"
     )
     qt_add_resources(
         "${target}"
-        "edit_atlas_icons"
+        "${target}_icons"
         PREFIX
             "/"
         BASE
@@ -38,26 +23,21 @@ function(edit_atlas_define_default_frontend frontend)
     set_target_properties("${target}" PROPERTIES OUTPUT_NAME "edit-atlas")
 
     if(WIN32)
-        set(edit_atlas_windows_icon
+        set(
+            edit_atlas_windows_icon
             "${edit_atlas_resource_directory}/icons/edit_atlas.ico"
         )
+        set(edit_atlas_resource_file "${PROJECT_BINARY_DIR}/${target}.rc")
         configure_file(
             "${edit_atlas_resource_directory}/icons/edit_atlas.rc.in"
-            "${PROJECT_BINARY_DIR}/edit_atlas.rc"
+            "${edit_atlas_resource_file}"
             @ONLY
         )
-        target_sources(
-            "${target}"
-            PRIVATE
-                "${PROJECT_BINARY_DIR}/edit_atlas.rc"
-        )
-        set_target_properties(
-            "${target}"
-            PROPERTIES
-                WIN32_EXECUTABLE ON
-        )
+        target_sources("${target}" PRIVATE "${edit_atlas_resource_file}")
+        set_target_properties("${target}" PROPERTIES WIN32_EXECUTABLE ON)
     elseif(APPLE)
-        set(edit_atlas_macos_icon
+        set(
+            edit_atlas_macos_icon
             "${edit_atlas_resource_directory}/icons/edit_atlas.icns"
         )
         set_source_files_properties(
@@ -86,12 +66,46 @@ function(edit_atlas_define_default_frontend frontend)
                     "$ORIGIN/../${edit_atlas_runtime_install_libdir}"
         )
     endif()
+endfunction()
+
+function(
+    edit_atlas_install_frontend_application
+    frontend
+    target
+    component
+    exclude_from_all
+)
+    if(frontend STREQUAL "quick")
+        set(edit_atlas_requires_qml_deployment TRUE)
+    elseif(frontend STREQUAL "widgets")
+        set(edit_atlas_requires_qml_deployment FALSE)
+    else()
+        message(
+            FATAL_ERROR
+            "Unsupported Edit Atlas frontend: ${frontend}. "
+            "Expected quick or widgets."
+        )
+    endif()
+
+    if(NOT TARGET "${target}")
+        message(FATAL_ERROR "Unknown application target: ${target}")
+    endif()
+
+    set(edit_atlas_install_exclusion)
+    if(exclude_from_all)
+        set(edit_atlas_install_exclusion EXCLUDE_FROM_ALL)
+    endif()
 
     set(edit_atlas_runtime_dependency_arguments)
     if(WIN32)
+        set(
+            edit_atlas_runtime_dependency_set
+            "${target}_runtime_dependencies"
+        )
         list(
             APPEND edit_atlas_runtime_dependency_arguments
-            RUNTIME_DEPENDENCY_SET edit_atlas_runtime_dependencies
+            RUNTIME_DEPENDENCY_SET
+                "${edit_atlas_runtime_dependency_set}"
         )
     endif()
 
@@ -100,17 +114,20 @@ function(edit_atlas_define_default_frontend frontend)
         ${edit_atlas_runtime_dependency_arguments}
         BUNDLE
             DESTINATION "."
-            COMPONENT Runtime
+            COMPONENT "${component}"
+            ${edit_atlas_install_exclusion}
         RUNTIME
             DESTINATION "${CMAKE_INSTALL_BINDIR}"
-            COMPONENT Runtime
+            COMPONENT "${component}"
+            ${edit_atlas_install_exclusion}
     )
 
     if(WIN32)
         install(
-            RUNTIME_DEPENDENCY_SET edit_atlas_runtime_dependencies
+            RUNTIME_DEPENDENCY_SET "${edit_atlas_runtime_dependency_set}"
             DESTINATION "${CMAKE_INSTALL_BINDIR}"
-            COMPONENT Runtime
+            COMPONENT "${component}"
+            ${edit_atlas_install_exclusion}
             DIRECTORIES
                 "$<IF:$<CONFIG:Debug>,${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/debug/bin,${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/bin>"
             PRE_EXCLUDE_REGEXES
@@ -118,28 +135,6 @@ function(edit_atlas_define_default_frontend frontend)
                 "ext-ms-.*"
             POST_EXCLUDE_REGEXES
                 ".*[/\\\\][Ww][Ii][Nn][Dd][Oo][Ww][Ss][/\\\\][Ss][Yy][Ss][Tt][Ee][Mm]32[/\\\\].*"
-        )
-    elseif(APPLE)
-        install(
-            FILES
-                "$<TARGET_FILE:spdlog::spdlog>"
-                "$<TARGET_FILE:fmt::fmt>"
-            DESTINATION "edit-atlas.app/Contents/Frameworks"
-            COMPONENT Runtime
-        )
-    elseif(LINUX)
-        install(
-            FILES
-                "${edit_atlas_resource_directory}/linux/edit-atlas.desktop"
-            DESTINATION "${CMAKE_INSTALL_DATADIR}/applications"
-            COMPONENT Runtime
-        )
-        install(
-            FILES "${edit_atlas_resource_directory}/icons/edit_atlas.png"
-            DESTINATION
-                "${CMAKE_INSTALL_DATADIR}/icons/hicolor/1024x1024/apps"
-            RENAME "edit-atlas.png"
-            COMPONENT Runtime
         )
     endif()
 
@@ -224,7 +219,7 @@ function(edit_atlas_define_default_frontend frontend)
     else()
         message(
             FATAL_ERROR
-            "Default frontend deployment is unsupported on this platform."
+            "Frontend deployment is unsupported on this platform."
         )
     endif()
 
@@ -250,7 +245,89 @@ function(edit_atlas_define_default_frontend frontend)
     endif()
     install(
         SCRIPT "${edit_atlas_deploy_script}"
-        COMPONENT Runtime
+        COMPONENT "${component}"
+        ${edit_atlas_install_exclusion}
+    )
+endfunction()
+
+function(edit_atlas_define_packaged_frontend frontend target)
+    if(frontend STREQUAL "quick")
+        set(edit_atlas_component QuickRuntime)
+    elseif(frontend STREQUAL "widgets")
+        set(edit_atlas_component WidgetsRuntime)
+    else()
+        message(
+            FATAL_ERROR
+            "Unsupported Edit Atlas frontend: ${frontend}. "
+            "Expected quick or widgets."
+        )
+    endif()
+
+    edit_atlas_configure_product_application("${target}")
+    # Package applications must not collide with the normal default frontend
+    # during an unqualified `cmake --install` invocation.
+    edit_atlas_install_frontend_application(
+        "${frontend}"
+        "${target}"
+        "${edit_atlas_component}"
+        TRUE
+    )
+endfunction()
+
+function(edit_atlas_install_shared_application_runtime)
+    set(
+        edit_atlas_resource_directory
+        "${PROJECT_SOURCE_DIR}/src/frontends/resources"
+    )
+    if(APPLE)
+        install(
+            FILES
+                "$<TARGET_FILE:spdlog::spdlog>"
+                "$<TARGET_FILE:fmt::fmt>"
+            DESTINATION "edit-atlas.app/Contents/Frameworks"
+            COMPONENT Runtime
+        )
+    elseif(LINUX)
+        install(
+            FILES
+                "${edit_atlas_resource_directory}/linux/edit-atlas.desktop"
+            DESTINATION "${CMAKE_INSTALL_DATADIR}/applications"
+            COMPONENT Runtime
+        )
+        install(
+            FILES "${edit_atlas_resource_directory}/icons/edit_atlas.png"
+            DESTINATION
+                "${CMAKE_INSTALL_DATADIR}/icons/hicolor/1024x1024/apps"
+            RENAME "edit-atlas.png"
+            COMPONENT Runtime
+        )
+    endif()
+endfunction()
+
+function(edit_atlas_define_default_frontend frontend)
+    if(frontend STREQUAL "quick")
+        set(target edit_atlas_quick)
+    elseif(frontend STREQUAL "widgets")
+        set(target edit_atlas_widgets)
+    else()
+        message(
+            FATAL_ERROR
+            "Unsupported Edit Atlas frontend: ${frontend}. "
+            "Expected quick or widgets."
+        )
+    endif()
+
+    if(NOT TARGET "${target}")
+        message(FATAL_ERROR "Unknown target for default frontend: ${target}")
+    endif()
+
+    add_executable(EditAtlas::Application ALIAS "${target}")
+    edit_atlas_configure_product_application("${target}")
+    edit_atlas_install_frontend_application(
+        "${frontend}"
+        "${target}"
+        DefaultFrontendRuntime
+        FALSE
     )
 endfunction()
 

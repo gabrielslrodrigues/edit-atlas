@@ -211,7 +211,10 @@ work is complete. The `release-widgets-` and `release-quick-` preset families
 build only their named frontend for package validation.
 `EDIT_ATLAS_DEFAULT_FRONTEND` selects the primary application target and
 installed frontend, while `EDIT_ATLAS_BUILD_FRONTENDS` controls whether a
-build includes both graphical frontends or only one.
+build includes both graphical frontends or only one. Release presets also
+build isolated Widgets and Quick packaging applications. These thin targets
+reuse the compiled frontend libraries while giving each package independent
+product naming, installation, and Qt deployment rules.
 
 Lint every compiled QML module through its generated CMake target:
 
@@ -381,6 +384,11 @@ installer, and Linux portable and Debian packages without requiring users to
 install Qt or vcpkg. See [Desktop packaging](docs/packaging.md) for the
 one-command workflows, output locations, supported systems, and installation
 instructions.
+
+The repository separates ordinary validation, reusable package production,
+packaged E2E, documentation, and protected release publication. See
+[Continuous integration](docs/continuous-integration.md) for the workflow
+graph, artifact lifecycle, permissions, and required-check policy.
 
 ## License
 
