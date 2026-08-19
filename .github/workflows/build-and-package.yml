@@ -107,9 +107,33 @@ jobs:
             /usr/share/dotnet
           df --human-readable /
 
+      - name: Prepare apt archive cache directory
+        if: runner.os == 'Linux'
+        run: sudo chown "$(id -un)" /var/cache/apt/archives
+
+      - name: Restore Ubuntu apt archive cache
+        if: runner.os == 'Linux'
+        id: apt-archive-cache
+        uses: actions/cache/restore@v6
+        with:
+          path: /var/cache/apt/archives
+          key: >-
+            apt-archives-v1-${{ matrix.os }}-${{
+              hashFiles('scripts/ci/install-ubuntu-dependencies.sh') }}
+
       - name: Install Ubuntu host dependencies
         if: runner.os == 'Linux'
+        timeout-minutes: 45
         run: ./scripts/ci/install-ubuntu-dependencies.sh
+
+      - name: Save Ubuntu apt archive cache
+        if: >-
+          runner.os == 'Linux' &&
+          steps.apt-archive-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v6
+        with:
+          path: /var/cache/apt/archives
+          key: ${{ steps.apt-archive-cache.outputs.cache-primary-key }}
 
       - name: Install macOS host dependencies
         if: runner.os == 'macOS'
