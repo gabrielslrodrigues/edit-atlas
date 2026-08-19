@@ -135,11 +135,30 @@ jobs:
           path: /var/cache/apt/archives
           key: ${{ steps.apt-archive-cache.outputs.cache-primary-key }}
 
+      - name: Restore Homebrew download cache
+        if: runner.os == 'macOS'
+        id: brew-cache
+        uses: actions/cache/restore@v6
+        with:
+          path: ~/Library/Caches/Homebrew
+          key: >-
+            brew-v1-${{ matrix.os }}-${{
+              hashFiles('scripts/ci/install-macos-dependencies.sh') }}
+
       - name: Install macOS host dependencies
         if: runner.os == 'macOS'
         env:
           HOMEBREW_NO_AUTO_UPDATE: 1
         run: ./scripts/ci/install-macos-dependencies.sh
+
+      - name: Save Homebrew download cache
+        if: >-
+          runner.os == 'macOS' &&
+          steps.brew-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v6
+        with:
+          path: ~/Library/Caches/Homebrew
+          key: ${{ steps.brew-cache.outputs.cache-primary-key }}
 
       - name: Install CMake and Ninja
         uses: lukka/get-cmake@v4.4.0
