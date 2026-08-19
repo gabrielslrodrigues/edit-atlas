@@ -15,7 +15,7 @@ class DesktopElement(Protocol):
 
 
 class DesktopSession(Protocol):
-    def activate(self, identifier: str) -> None: ...
+    def activate(self, identifier: str, *, showing: bool = True) -> None: ...
 
     def activate_named(
         self, names: Sequence[str], *, within: str | None = None

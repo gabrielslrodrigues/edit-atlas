@@ -2,7 +2,7 @@
 
 This module uses accessibility actions, selection, and editable-text interfaces.
 Qt Quick's fallback file chooser exposes no action for its file delegates, so
-their accessible bounds provide the target for the double-click Qt requires.
+their accessible bounds select an entry before Enter invokes its keyboard path.
 """
 
 from __future__ import annotations
@@ -48,6 +48,7 @@ class LinuxAtspiAdapter:
         self._timeout = timeout
         self._tree: Any = None
         self._atspi: Any = None
+        self._keyboard_sender: Any = None
 
     def preflight(self) -> None:
         missing = [
@@ -69,7 +70,7 @@ class LinuxAtspiAdapter:
             gi.require_version("Atspi", "2.0")
             from gi.repository import Atspi
 
-            from dogtail import tree
+            from dogtail import rawinput, tree
             from dogtail.config import config
         except (ImportError, ValueError) as error:
             raise AccessibilityBackendError(
@@ -95,6 +96,7 @@ class LinuxAtspiAdapter:
 
         self._tree = tree
         self._atspi = Atspi
+        self._keyboard_sender = rawinput.pressKey
 
     def launch(
         self,
@@ -135,6 +137,7 @@ class LinuxAtspiAdapter:
         session = LinuxApplicationSession(
             tree=self._tree,
             atspi=self._atspi,
+            keyboard_sender=self._keyboard_sender,
             registry=self._registry,
             process=process,
             artifact_directory=self._artifact_directory,
@@ -166,6 +169,7 @@ class LinuxApplicationSession:
         *,
         tree: Any,
         atspi: Any,
+        keyboard_sender: Any,
         registry: ProcessRegistry,
         process: subprocess.Popen[str],
         artifact_directory: Path,
@@ -173,6 +177,7 @@ class LinuxApplicationSession:
     ) -> None:
         self._tree = tree
         self._atspi = atspi
+        self._keyboard_sender = keyboard_sender
         self._registry = registry
         self._process = process
         self._artifact_directory = artifact_directory
@@ -247,8 +252,8 @@ class LinuxApplicationSession:
             description=f"accessible identifier {identifier!r} to disappear",
         )
 
-    def activate(self, identifier: str) -> None:
-        self._activate_node(self.element(identifier))
+    def activate(self, identifier: str, *, showing: bool = True) -> None:
+        self._activate_node(self.element(identifier, showing=showing))
 
     def activate_named(
         self, names: Sequence[str], *, within: str | None = None
@@ -614,11 +619,16 @@ class LinuxApplicationSession:
 
     def _activate_file_dialog_entry(self, entry: Any, name: str) -> None:
         try:
-            entry.double_click()
+            entry.click()
         except Exception as error:
             raise ActionNotSupportedError(
-                f"file chooser entry {name!r} rejected accessible-bounds "
-                "double-click input"
+                f"file chooser entry {name!r} rejected accessible-bounds input"
+            ) from error
+        try:
+            self._keyboard_sender("enter")
+        except Exception as error:
+            raise ActionNotSupportedError(
+                f"file chooser entry {name!r} rejected Enter input"
             ) from error
 
     def _file_dialog_accept_button(self, dialog: Any) -> Any:

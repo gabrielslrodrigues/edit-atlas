@@ -53,8 +53,7 @@ class EditAtlasApplication:
         frame_rate: str | None = None,
         expect_document: bool = True,
     ) -> None:
-        self._open_menu("fileMenu")
-        self._session.activate("openDocumentAction")
+        self._session.activate_menu_action("fileMenu", "openDocumentAction")
         self._session.open_file_dialog("timelineOpenFileDialog", path)
         if frame_rate is not None:
             self._session.select_option("frameRateSelector", frame_rate)
@@ -148,8 +147,10 @@ class EditAtlasApplication:
             while available.index(name) > target_index:
                 position = available.index(name)
                 quick_move_button = f"eventColumn{position}MoveUpButton"
-                if self._session.has_element(quick_move_button):
-                    self._session.activate(quick_move_button)
+                if self._session.has_element(
+                    quick_move_button, showing=False
+                ):
+                    self._session.activate(quick_move_button, showing=False)
                 else:
                     self._session.select_list_item("eventColumnsList", name)
                     self._session.activate("moveColumnUpButton")

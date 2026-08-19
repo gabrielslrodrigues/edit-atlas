@@ -126,8 +126,12 @@ Dialog {
                         objectName: "eventColumn" + projectionRow.index
                                     + "CheckBox"
                         text: projectionRow.model.display
-                        onToggled: root.configuration.SetEventProjectionSelected(
-                                       projectionRow.index, checked)
+                        onCheckedChanged: {
+                            if (projectionRow.model.selected !== checked) {
+                                root.configuration.SetEventProjectionSelected(
+                                    projectionRow.index, checked)
+                            }
+                        }
                     }
 
                     RowLayout {

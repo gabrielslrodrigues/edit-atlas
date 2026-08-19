@@ -184,8 +184,8 @@ class WindowsApplicationSession:
             description=f"accessible identifier {identifier!r} to disappear",
         )
 
-    def activate(self, identifier: str) -> None:
-        self._activate_node(self.element(identifier))
+    def activate(self, identifier: str, *, showing: bool = True) -> None:
+        self._activate_node(self.element(identifier, showing=showing))
 
     def activate_named(
         self, names: Sequence[str], *, within: str | None = None
