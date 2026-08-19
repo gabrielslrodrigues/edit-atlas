@@ -185,7 +185,10 @@ ApplicationWindow {
                 objectName: "rememberRecentFilesAction"
                 text: qsTr("Remember Recent Files")
                 Accessible.description: qsTr("When enabled, Edit Atlas stores only the paths of opened files.")
-                Accessible.onPressAction: checked = !checked
+                Accessible.onPressAction: {
+                    applicationShell.rememberRecentFiles =
+                        !applicationShell.rememberRecentFiles
+                }
                 onToggled: {
                     applicationShell.rememberRecentFiles = checked
                 }
