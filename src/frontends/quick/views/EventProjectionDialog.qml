@@ -39,6 +39,7 @@ Dialog {
             Layout.fillWidth: true
             Accessible.id: objectName
             Accessible.name: qsTr("Export event columns")
+            cacheBuffer: contentHeight
             clip: true
             model: root.configuration.eventProjectionModel
             objectName: "eventColumnsList"

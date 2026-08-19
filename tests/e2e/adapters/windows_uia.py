@@ -360,11 +360,25 @@ class WindowsApplicationSession:
     def activate_menu_action(
         self, menu_identifier: str, action_identifier: str
     ) -> None:
-        self._click_accessible_node(
-            self.element(menu_identifier), menu_identifier
-        )
+        menu = self.element(menu_identifier)
+        self._click_accessible_node(menu, menu_identifier)
+        expand = self._pattern(menu, "iface_expand_collapse")
+        if expand is not None:
+            wait_until(
+                lambda: self._expand_collapse_state(expand),
+                lambda state: state == 1,
+                timeout=self._timeout,
+                description=f"{menu_identifier!r} menu to open",
+            )
         action = self.element(action_identifier)
         self._click_accessible_node(action, action_identifier)
+
+    @staticmethod
+    def _expand_collapse_state(expand: Any) -> int:
+        try:
+            return int(expand.CurrentExpandCollapseState)
+        except Exception:
+            return 0
 
     def element_name(self, identifier: str, *, showing: bool = True) -> str:
         return self._node_name(self.element(identifier, showing=showing))
@@ -513,11 +527,7 @@ class WindowsApplicationSession:
     def _activate_node(self, node: Any) -> None:
         expand = self._pattern(node, "iface_expand_collapse")
         if expand is not None:
-            try:
-                state = int(expand.CurrentExpandCollapseState)
-            except Exception:
-                state = 0
-            if state != 1:
+            if self._expand_collapse_state(expand) != 1:
                 self._execute_pattern(expand.Expand, node)
             return
         invoke = self._pattern(node, "iface_invoke")

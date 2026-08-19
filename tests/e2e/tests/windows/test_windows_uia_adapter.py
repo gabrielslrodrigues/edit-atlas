@@ -1,7 +1,8 @@
 from __future__ import annotations
 
+import time
 from pathlib import Path
-from threading import Event
+from threading import Event, Thread
 from typing import Any
 
 from adapters.windows_uia import WindowsApplicationSession
@@ -47,6 +48,14 @@ class TogglePattern:
 
     def Toggle(self) -> None:
         self.CurrentToggleState = 1 - self.CurrentToggleState
+
+
+class ExpandCollapsePattern:
+    def __init__(self) -> None:
+        self.CurrentExpandCollapseState = 0
+
+    def Expand(self) -> None:
+        self.CurrentExpandCollapseState = 1
 
 
 class SelectionPattern:
@@ -122,7 +131,7 @@ def test_activation_uses_uia_invoke_pattern(tmp_path: Path) -> None:
     session = application_session(tmp_path)
     node = Node("Open", "Button")
     node.iface_invoke = InvokePattern()
-    session.element = lambda identifier: node
+    session.element = lambda identifier, *, showing=True: node
 
     session.activate("openDocumentAction")
 
@@ -254,6 +263,32 @@ def test_menu_action_uses_accessible_item_bounds(tmp_path: Path) -> None:
     )
 
     assert clicked == ["menu", "action"]
+
+
+def test_menu_action_waits_for_the_dropdown_to_expand(tmp_path: Path) -> None:
+    session = application_session(tmp_path)
+    clicked: list[str] = []
+    action = Node(
+        "Open", "MenuItem", click=lambda: clicked.append("action")
+    )
+    expand = ExpandCollapsePattern()
+
+    def open_after_delay() -> None:
+        time.sleep(0.2)
+        expand.CurrentExpandCollapseState = 1
+
+    menu = Node(
+        "File",
+        "MenuItem",
+        click=lambda: Thread(target=open_after_delay, daemon=True).start(),
+    )
+    menu.iface_expand_collapse = expand
+    nodes = {"fileMenu": menu, "openDocumentAction": action}
+    session.element = lambda identifier: nodes[identifier]
+
+    session.activate_menu_action("fileMenu", "openDocumentAction")
+
+    assert clicked == ["action"]
 
 
 def test_identifier_lookup_accepts_qt_hierarchical_automation_id(
