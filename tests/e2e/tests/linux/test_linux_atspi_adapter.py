@@ -121,10 +121,10 @@ class PopupNode:
 
 
 class MenuActionNode:
-    actions = {"ShowMenu": 0}
     name = "File"
 
-    def __init__(self, popup: PopupNode) -> None:
+    def __init__(self, popup: PopupNode, *, action: str = "ShowMenu") -> None:
+        self.actions = {action: 0}
         self.children = (popup,)
         self.invocations = 0
         self.popup = popup
@@ -180,16 +180,30 @@ class ValueComboBoxNode:
 
 class FileEntry:
     def __init__(self) -> None:
-        self.double_click_count = 0
+        self.click_count = 0
+        self.focus_calls: list[str] = []
 
-    def double_click(self) -> None:
-        self.double_click_count += 1
+    def click(self) -> None:
+        self.click_count += 1
+
+    def do_action_named(self, action: str) -> bool:
+        self.focus_calls.append(action)
+        return True
+
+
+class RecordingKeyboardSender:
+    def __init__(self) -> None:
+        self.presses: list[str] = []
+
+    def __call__(self, key: str) -> None:
+        self.presses.append(key)
 
 
 def application_session(artifact_directory: Path) -> LinuxApplicationSession:
     return LinuxApplicationSession(
         tree=None,
         atspi=None,
+        keyboard_sender=RecordingKeyboardSender(),
         registry=None,
         process=None,
         artifact_directory=artifact_directory,
@@ -321,7 +335,7 @@ def test_quick_open_dialog_navigates_and_selects_existing_file(
     ]
 
 
-def test_quick_file_entry_uses_accessible_bounds_double_click(
+def test_quick_file_entry_selects_then_invokes_the_keyboard_path(
     tmp_path: Path,
 ) -> None:
     session = application_session(tmp_path)
@@ -330,7 +344,9 @@ def test_quick_file_entry_uses_accessible_bounds_double_click(
 
     session._activate_file_dialog_entry(entry, "timeline.edl")
 
-    assert entry.double_click_count == 1
+    assert entry.click_count == 1
+    assert entry.focus_calls == ["SetFocus"]
+    assert session._keyboard_sender.presses == ["enter"]
 
 
 def test_checkable_menu_action_can_close_before_state_is_observed(
@@ -405,6 +421,20 @@ def test_show_menu_waits_for_open_state_and_does_not_toggle_an_open_menu(
     menu = MenuActionNode(popup)
 
     session._activate_node(menu)
+    session._activate_node(menu)
+
+    assert popup.showing
+    assert menu.invocations == 1
+
+
+def test_press_action_on_a_menu_bar_item_also_waits_for_its_popup(
+    tmp_path: Path,
+) -> None:
+    session = application_session(tmp_path)
+    session._process = RunningProcess()
+    popup = PopupNode(showing=False)
+    menu = MenuActionNode(popup, action="Press")
+
     session._activate_node(menu)
 
     assert popup.showing

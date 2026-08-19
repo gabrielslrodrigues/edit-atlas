@@ -1,8 +1,9 @@
 """Linux desktop automation through dogtail and AT-SPI.
 
 This module uses accessibility actions, selection, and editable-text interfaces.
-Qt Quick's fallback file chooser exposes no action for its file delegates, so
-their accessible bounds select an entry before Enter invokes its keyboard path.
+Qt Quick's fallback file chooser exposes only "SetFocus" for its file
+delegates, so their accessible bounds select an entry, "SetFocus" claims
+keyboard focus for it, and Enter then invokes its keyboard path.
 """
 
 from __future__ import annotations
@@ -624,6 +625,17 @@ class LinuxApplicationSession:
             raise ActionNotSupportedError(
                 f"file chooser entry {name!r} rejected accessible-bounds input"
             ) from error
+        # A click at the entry's accessible bounds does not guarantee Qt's
+        # fallback file dialog moved its internal keyboard focus onto this
+        # delegate, and Enter is delivered to whatever currently holds that
+        # focus. "SetFocus" is the one action these delegates expose for
+        # exactly this purpose, so claim it explicitly before the keypress.
+        try:
+            entry.do_action_named("SetFocus")
+        except Exception as error:
+            raise ActionNotSupportedError(
+                f"file chooser entry {name!r} rejected keyboard focus"
+            ) from error
         try:
             self._keyboard_sender("enter")
         except Exception as error:
@@ -881,11 +893,15 @@ class LinuxApplicationSession:
                 f"{getattr(node, 'name', '')!r} exposes actions "
                 f"{tuple(actions)!r}, none of which is supported"
             )
-        popup = None
-        if self._normalized_action_name(action) == "showmenu":
-            popup = self._find_role(node, "popup menu")
-            if popup is not None and self._is_showing(popup):
-                return
+        # Wait for a popup this node owns to open regardless of which
+        # action name Qt happened to expose for it. Qt Widgets menu bar
+        # items expose "ShowMenu", but Qt Quick's MenuBarItem exposes only
+        # "Press"/"SetFocus" for the same open-a-dropdown behavior, so
+        # gating this wait on the literal action name misses Quick menus
+        # entirely and lets callers race the popup's creation.
+        popup = self._find_role(node, "popup menu")
+        if popup is not None and self._is_showing(popup):
+            return
         threading.Thread(
             target=self._invoke_action,
             args=(node, action),
