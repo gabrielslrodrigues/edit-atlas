@@ -126,6 +126,14 @@ jobs:
         timeout-minutes: 45
         run: ./scripts/ci/install-ubuntu-dependencies.sh
 
+      - name: Prepare apt archive cache for save
+        if: >-
+          runner.os == 'Linux' &&
+          steps.apt-archive-cache.outputs.cache-hit != 'true'
+        run: |
+          sudo rm -f /var/cache/apt/archives/lock
+          sudo rm -rf /var/cache/apt/archives/partial
+
       - name: Save Ubuntu apt archive cache
         if: >-
           runner.os == 'Linux' &&
