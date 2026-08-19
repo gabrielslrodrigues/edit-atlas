@@ -178,19 +178,18 @@ class ValueComboBoxNode:
         return ("Accessible", "Value")
 
 
-class FocusableFileEntry:
+class FileEntry:
     def __init__(self) -> None:
-        self.focused = False
+        self.double_click_count = 0
 
-    def grabFocus(self) -> None:
-        self.focused = True
+    def double_click(self) -> None:
+        self.double_click_count += 1
 
 
 def application_session(artifact_directory: Path) -> LinuxApplicationSession:
     return LinuxApplicationSession(
         tree=None,
         atspi=None,
-        keyboard_sender=None,
         registry=None,
         process=None,
         artifact_directory=artifact_directory,
@@ -322,17 +321,16 @@ def test_quick_open_dialog_navigates_and_selects_existing_file(
     ]
 
 
-def test_quick_file_entry_uses_focused_enter_input(tmp_path: Path) -> None:
+def test_quick_file_entry_uses_accessible_bounds_double_click(
+    tmp_path: Path,
+) -> None:
     session = application_session(tmp_path)
     session._process = RunningProcess()
-    keys: list[str] = []
-    session._keyboard_sender = keys.append
-    entry = FocusableFileEntry()
+    entry = FileEntry()
 
     session._activate_file_dialog_entry(entry, "timeline.edl")
 
-    assert entry.focused
-    assert keys == ["enter"]
+    assert entry.double_click_count == 1
 
 
 def test_checkable_menu_action_can_close_before_state_is_observed(

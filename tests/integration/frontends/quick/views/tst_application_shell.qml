@@ -205,6 +205,18 @@ TestCase {
         tryCompare(english, "checked", true)
     }
 
+    function test_recentFilesAccessibilityActionUpdatesApplicationState() {
+        const action = findObject("rememberRecentFilesAction")
+        verify(action !== null)
+        const original = testApplicationShell.rememberRecentFiles
+
+        action.Accessible.pressAction()
+        tryCompare(testApplicationShell, "rememberRecentFiles", !original)
+
+        action.Accessible.pressAction()
+        tryCompare(testApplicationShell, "rememberRecentFiles", original)
+    }
+
     function test_aboutDialogCanBeCancelled() {
         const dialog = findObject("aboutDialog")
         verify(dialog !== null)
@@ -258,5 +270,43 @@ TestCase {
         configuration.ClearFilter()
         tryVerify(() => findChild(list.contentItem,
                                   "filterCondition1") === null)
+    }
+
+    function test_programmaticFilterTextUpdatesTheFilterModel() {
+        const configuration = testApplicationShell.timelineConfiguration
+        configuration.ClearFilter()
+        temporaryFilterPanel = timelineConfigurationComponent.createObject(
+            applicationWindow.contentItem,
+            {
+                "height": applicationWindow.height,
+                "width": applicationWindow.width
+            })
+        verify(temporaryFilterPanel !== null)
+        const firstList = findChild(temporaryFilterPanel,
+                                    "filterConditionsScrollArea")
+        verify(firstList !== null)
+        tryVerify(() => findChild(firstList.contentItem,
+                                  "filterCondition0Text") !== null)
+        const firstEditor = findChild(firstList.contentItem,
+                                      "filterCondition0Text")
+        firstEditor.text = "BROLL"
+
+        temporaryFilterPanel.destroy()
+        temporaryFilterPanel = timelineConfigurationComponent.createObject(
+            applicationWindow.contentItem,
+            {
+                "height": applicationWindow.height,
+                "width": applicationWindow.width
+            })
+        verify(temporaryFilterPanel !== null)
+        const secondList = findChild(temporaryFilterPanel,
+                                     "filterConditionsScrollArea")
+        verify(secondList !== null)
+        tryVerify(() => findChild(secondList.contentItem,
+                                  "filterCondition0Text") !== null)
+        const secondEditor = findChild(secondList.contentItem,
+                                       "filterCondition0Text")
+        compare(secondEditor.text, "BROLL")
+        configuration.ClearFilter()
     }
 }

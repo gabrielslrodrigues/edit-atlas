@@ -107,13 +107,13 @@ class EditAtlasApplication:
         self, checked: set[str], order: list[str]
     ) -> None:
         self._template_action("editExportColumnsAction")
-        self._session.element("eventProjectionDialog")
+        self._session.element("eventColumnsList")
         self.set_export_columns(checked, order)
         if self._session.has_element("closeProjectionButton"):
             self._session.activate("closeProjectionButton")
         else:
             self._session.activate("saveProjectionButton")
-        self._session.wait_absent("eventProjectionDialog")
+        self._session.wait_absent("eventColumnsList")
 
     def update_template(self) -> None:
         if self._session.has_element("updateTemplateButton"):
@@ -270,13 +270,12 @@ class EditAtlasApplication:
             return False
         if self._session.has_element("editSpreadsheetColumnsButton"):
             self._session.activate("editSpreadsheetColumnsButton")
-            self._session.element("eventProjectionDialog")
         self._session.element("eventColumnsList")
         return True
 
     def _close_spreadsheet_export_columns(self) -> None:
         self._session.activate("closeProjectionButton")
-        self._session.wait_absent("eventProjectionDialog")
+        self._session.wait_absent("eventColumnsList")
 
     def _complete_template_name(self, name: str) -> None:
         self._session.element("templateNameDialog")

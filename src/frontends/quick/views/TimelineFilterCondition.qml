@@ -58,7 +58,11 @@ Item {
                          !== root.configuration.trackKindFilterEditor
                          && root.rowModel.editor
                             !== root.configuration.editTypeFilterEditor
-                onTextEdited: root.rowModel.conditionText = text
+                onTextChanged: {
+                    if (root.rowModel.conditionText !== text) {
+                        root.rowModel.conditionText = text
+                    }
+                }
             }
 
             ComboBox {
