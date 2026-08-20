@@ -39,6 +39,7 @@ def wait_until(
         remaining = deadline - time.monotonic()
         if remaining <= 0:
             raise PollTimeoutError(
-                f"timed out after {timeout:g} seconds waiting for {description}"
+                f"timed out after {timeout:g} seconds waiting for "
+                f"{description} (last observed: {value!r})"
             )
         wake.wait(min(interval, remaining))
