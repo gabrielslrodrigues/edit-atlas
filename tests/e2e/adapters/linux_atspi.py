@@ -591,6 +591,12 @@ class LinuxApplicationSession:
         self._wait_file_dialog_closed(dialog, dialog_identifier)
 
     def _navigate_file_dialog(self, dialog: Any, directory: Path) -> None:
+        # Prefer the breadcrumb bar's editable path field. Its reveal button
+        # exposes a real Press action, while the folder delegates expose
+        # only SetFocus, so entering the path outright is both fewer
+        # interactions and the only one Qt gives us a real action for.
+        if self._enter_file_dialog_path(dialog, directory):
+            return
         root_button = self._find_named(
             dialog, ("/",), roles=("push button", "button")
         )
@@ -615,6 +621,70 @@ class LinuxApplicationSession:
                     timeout=self._timeout,
                     description=f"file chooser to enter {component!r}",
                 )
+
+    def _enter_file_dialog_path(self, dialog: Any, directory: Path) -> bool:
+        """Navigate by typing into the breadcrumb bar's path field.
+
+        Returns False when the dialog does not expose that control, so the
+        caller can fall back to activating one folder delegate at a time.
+        """
+        breadcrumbs = self._find_role(dialog, "page tab list")
+        if breadcrumbs is None:
+            return False
+        reveal = next(
+            (
+                node
+                for node in self._walk(breadcrumbs)
+                if str(getattr(node, "role_name", "")).casefold()
+                in ("push button", "button")
+                if not str(getattr(node, "name", "")).strip()
+            ),
+            None,
+        )
+        editor = self._find_role(breadcrumbs, "text")
+        if reveal is None or editor is None:
+            return False
+        if not self._is_showing(editor):
+            self._activate_node(reveal)
+            try:
+                wait_until(
+                    lambda: self._is_showing(editor),
+                    lambda showing: showing,
+                    timeout=self._timeout,
+                    description="file chooser path field to appear",
+                )
+            except PollTimeoutError:
+                return False
+        expected = os.fspath(directory)
+        try:
+            if editor.set_text_contents(expected) is False:
+                return False
+        except Exception:
+            try:
+                editor.text = expected
+            except Exception:
+                return False
+        try:
+            wait_until(
+                lambda: self._node_text(editor),
+                lambda text: text == expected,
+                timeout=self._timeout,
+                description=f"file chooser path to become {expected!r}",
+            )
+        except PollTimeoutError:
+            return False
+        self._keyboard_sender("enter")
+        # Qt hides the path field once it accepts the typed location.
+        try:
+            wait_until(
+                lambda: self._is_showing(editor),
+                lambda showing: not showing,
+                timeout=self._timeout,
+                description=f"file chooser to enter {expected!r}",
+            )
+        except PollTimeoutError:
+            return False
+        return True
 
     def _file_dialog_entry(self, dialog: Any, name: str) -> Any:
         try:

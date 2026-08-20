@@ -134,6 +134,11 @@ class WindowsUiaAdapter:
 
 
 class WindowsApplicationSession:
+    # Bounds the paging sweep used to enumerate virtualized lists. Every
+    # list in this application is small; this only prevents an unbounded
+    # loop if a control keeps accepting scrolls without revealing rows.
+    _MAX_LIST_PAGES = 32
+
     def __init__(
         self,
         *,
@@ -774,7 +779,8 @@ class WindowsApplicationSession:
         seen: set[str] = set()
         ordered: list[Any] = []
 
-        def collect() -> None:
+        def collect() -> bool:
+            added = False
             for node in self._descendants(control):
                 if self._control_type(node) not in ("ListItem", "DataItem"):
                     continue
@@ -783,28 +789,33 @@ class WindowsApplicationSession:
                     continue
                 seen.add(name)
                 ordered.append(node)
+                added = True
+            return added
 
         collect()
-        # A virtualized list only realizes rows within its current
-        # viewport, so a single snapshot can silently omit everything
-        # scrolled out of view. Walk to the bottom, merging newly
-        # revealed rows at each step, so callers see the complete
-        # logical list regardless of where it happens to be scrolled.
-        scroll = self._pattern(control, "iface_scroll")
-        if scroll is not None:
-            previous_count = -1
-            while len(ordered) != previous_count:
-                previous_count = len(ordered)
-                try:
-                    if not bool(scroll.CurrentVerticallyScrollable):
-                        break
-                    if float(scroll.CurrentVerticalScrollPercent) >= 100.0:
-                        break
-                    scroll.Scroll(2, 3)  # NoAmount, LargeIncrement
-                except Exception:
-                    break
-                collect()
+        # A virtualized list exposes only the rows inside its viewport, so
+        # a single snapshot silently omits everything scrolled out of view.
+        # Page to the bottom merging newly revealed rows, then page back so
+        # repeated observations of the same list stay consistent.
+        pages = 0
+        while pages < self._MAX_LIST_PAGES:
+            if not self._page_list(control, "down"):
+                break
+            pages += 1
+            if not collect():
+                break
+        for _ in range(pages):
+            self._page_list(control, "up")
         return ordered
+
+    @staticmethod
+    def _page_list(control: Any, direction: str) -> bool:
+        """Page a scrollable control, reporting whether it accepted it."""
+        try:
+            control.scroll(direction, "page")
+        except Exception:
+            return False
+        return True
 
     def _list_item(self, identifier: str, name: str) -> Any:
         node = self._named_node(self._list_nodes(identifier), name)

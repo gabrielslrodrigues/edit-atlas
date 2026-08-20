@@ -252,24 +252,23 @@ def test_list_items_scrolls_through_a_virtualized_list(tmp_path: Path) -> None:
     fields = [Node(f"Field {index}", "ListItem") for index in range(10)]
     page_size = 3
 
-    class ScrollPattern:
-        def __init__(self) -> None:
-            self.CurrentVerticallyScrollable = True
-            self.CurrentVerticalScrollPercent = 0.0
-            self._revealed = page_size
+    class VirtualizedList:
+        """Exposes only the rows inside its current viewport."""
 
-        def Scroll(self, horizontal: int, vertical: int) -> None:
-            self._revealed = min(self._revealed + page_size, len(fields))
-            self.CurrentVerticalScrollPercent = (
-                100.0 * self._revealed / len(fields)
+        def __init__(self) -> None:
+            self.offset = 0
+            self.scrolls: list[str] = []
+
+        def scroll(self, direction: str, amount: str) -> None:
+            assert amount == "page"
+            self.scrolls.append(direction)
+            step = page_size if direction == "down" else -page_size
+            self.offset = max(
+                0, min(self.offset + step, len(fields) - page_size)
             )
 
-    class VirtualizedList:
-        def __init__(self) -> None:
-            self.iface_scroll = ScrollPattern()
-
         def descendants(self) -> list[Node]:
-            return fields[: self.iface_scroll._revealed]
+            return fields[self.offset : self.offset + page_size]
 
     control = VirtualizedList()
     session.element = lambda identifier: control
@@ -277,6 +276,9 @@ def test_list_items_scrolls_through_a_virtualized_list(tmp_path: Path) -> None:
     names = session.list_items("eventColumnsList")
 
     assert names == [f"Field {index}" for index in range(10)]
+    # The sweep must leave the list where it found it, so that repeated
+    # observations of the same list stay consistent.
+    assert control.offset == 0
 
 
 def test_menu_option_selection_uses_uia_invoke_pattern(tmp_path: Path) -> None:

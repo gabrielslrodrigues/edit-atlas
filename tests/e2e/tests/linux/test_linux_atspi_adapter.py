@@ -8,6 +8,7 @@ import pytest
 
 from adapters.linux_atspi import (
     ActionNotSupportedError,
+    ElementNotFoundError,
     LinuxApplicationSession,
 )
 from application.polling import wait_until
@@ -315,6 +316,71 @@ def test_native_file_dialog_keeps_direct_path_entry(tmp_path: Path) -> None:
     assert completed == [
         (dialog, "timelineOpenFileDialog", str(timeline))
     ]
+
+
+class BreadcrumbPathField:
+    role_name = "text"
+    children = ()
+    name = ""
+
+    def __init__(self) -> None:
+        self.showing = False
+        self.text = ""
+
+    def set_text_contents(self, value: str) -> bool:
+        self.text = value
+        return True
+
+
+class BreadcrumbRevealButton(SuccessfulActionNode):
+    role_name = "push button"
+    children = ()
+
+    def __init__(self, field: BreadcrumbPathField) -> None:
+        super().__init__("", "Press")
+        self._field = field
+
+    def do_action_named(self, action: str) -> bool:
+        self._field.showing = True
+        self.invoked.set()
+        return True
+
+
+def test_quick_file_dialog_navigates_by_typing_the_path(
+    tmp_path: Path,
+) -> None:
+    session = application_session(tmp_path)
+    session._process = RunningProcess()
+    field = BreadcrumbPathField()
+    reveal = BreadcrumbRevealButton(field)
+    breadcrumbs = AccessibilityNode(
+        "breadcrumbs", (field, reveal), role_name="page tab list"
+    )
+    dialog = AccessibilityNode(
+        "quickFileDialog", (breadcrumbs,), role_name="dialog"
+    )
+
+    def send_enter(key: str) -> None:
+        assert key == "enter"
+        # Qt hides the path field once it accepts the typed location.
+        field.showing = False
+
+    session._keyboard_sender = send_enter
+
+    assert session._navigate_file_dialog(dialog, tmp_path) is None
+    assert reveal.invoked.is_set()
+    assert field.text == str(tmp_path)
+
+
+def test_quick_file_dialog_falls_back_when_no_path_field_exists(
+    tmp_path: Path,
+) -> None:
+    session = application_session(tmp_path)
+    session._process = RunningProcess()
+    dialog = AccessibilityNode("quickFileDialog", role_name="dialog")
+
+    with pytest.raises(ElementNotFoundError):
+        session._navigate_file_dialog(dialog, tmp_path)
 
 
 def test_quick_open_dialog_navigates_and_selects_existing_file(
