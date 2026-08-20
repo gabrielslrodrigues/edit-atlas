@@ -22,7 +22,6 @@ T.DialogButtonBox {
 
     contentItem: ListView {
         boundsBehavior: Flickable.StopAtBounds
-        implicitWidth: contentWidth
         model: control.contentModel
         orientation: ListView.Horizontal
         spacing: control.spacing
