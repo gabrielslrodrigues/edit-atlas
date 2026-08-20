@@ -256,6 +256,20 @@ class LinuxApplicationSession:
     def activate(self, identifier: str, *, showing: bool = True) -> None:
         self._activate_node(self.element(identifier, showing=showing))
 
+    def focus(self, identifier: str, *, showing: bool = False) -> None:
+        # A virtualized row must actually be brought into view before a
+        # click at its accessible bounds can land anywhere meaningful.
+        # Qt's accessibility bridge maps "SetFocus" to forceActiveFocus(),
+        # which pulls the target back into the viewport the same way
+        # keyboard navigation would.
+        node = self.element(identifier, showing=showing)
+        try:
+            node.do_action_named("SetFocus")
+        except Exception as error:
+            raise ActionNotSupportedError(
+                f"{identifier!r} rejected keyboard focus"
+            ) from error
+
     def activate_named(
         self, names: Sequence[str], *, within: str | None = None
     ) -> None:
@@ -732,7 +746,13 @@ class LinuxApplicationSession:
         }
         action = normalized.get(self._normalized_action_name(action_identifier))
         if action is None:
-            self._activate_node(menu)
+            # A prior interaction with this same menu (e.g. toggling one of
+            # its own checkable items) may have left it open. Clicking the
+            # menu bar item again would toggle it closed instead of opening
+            # it, so only click when the target action is not already
+            # showing.
+            if not self.has_element(action_identifier):
+                self._activate_node(menu)
             self._activate_node(self.element(action_identifier))
             return
         try:

@@ -207,6 +207,14 @@ class MacApplicationSession:
     def activate(self, identifier: str, *, showing: bool = True) -> None:
         self._activate_node(self.element(identifier, showing=showing)._raw)
 
+    def focus(self, identifier: str, *, showing: bool = False) -> None:
+        # A virtualized row must actually be brought into view before a
+        # click at its accessible bounds can land anywhere meaningful.
+        # Setting AXFocused pulls the target back into the viewport the
+        # same way keyboard navigation would.
+        node = self.element(identifier, showing=showing)._raw
+        self._set_attribute(node, "AXFocused", True, identifier)
+
     def activate_named(
         self, names: Sequence[str], *, within: str | None = None
     ) -> None:

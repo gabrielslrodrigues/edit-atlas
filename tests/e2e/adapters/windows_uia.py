@@ -187,6 +187,19 @@ class WindowsApplicationSession:
     def activate(self, identifier: str, *, showing: bool = True) -> None:
         self._activate_node(self.element(identifier, showing=showing))
 
+    def focus(self, identifier: str, *, showing: bool = False) -> None:
+        # A virtualized row must actually be brought into view before a
+        # coordinate-based click can land anywhere meaningful. UIA's
+        # SetFocus scrolls the target element into view as part of
+        # granting it focus, the same way keyboard navigation would.
+        node = self.element(identifier, showing=showing)
+        try:
+            node.set_focus()
+        except Exception as error:
+            raise ActionNotSupportedError(
+                f"{identifier!r} rejected keyboard focus"
+            ) from error
+
     def activate_named(
         self, names: Sequence[str], *, within: str | None = None
     ) -> None:
@@ -361,15 +374,20 @@ class WindowsApplicationSession:
         self, menu_identifier: str, action_identifier: str
     ) -> None:
         menu = self.element(menu_identifier)
-        self._click_accessible_node(menu, menu_identifier)
-        expand = self._pattern(menu, "iface_expand_collapse")
-        if expand is not None:
-            wait_until(
-                lambda: self._expand_collapse_state(expand),
-                lambda state: state == 1,
-                timeout=self._timeout,
-                description=f"{menu_identifier!r} menu to open",
-            )
+        # A prior interaction with this same menu (e.g. toggling one of its
+        # own checkable items) may have left it open. Clicking the menu bar
+        # item again would toggle it closed instead of opening it, so only
+        # click when the target action is not already showing.
+        if not self.has_element(action_identifier):
+            self._click_accessible_node(menu, menu_identifier)
+            expand = self._pattern(menu, "iface_expand_collapse")
+            if expand is not None:
+                wait_until(
+                    lambda: self._expand_collapse_state(expand),
+                    lambda state: state == 1,
+                    timeout=self._timeout,
+                    description=f"{menu_identifier!r} menu to open",
+                )
         action = self.element(action_identifier)
         self._click_accessible_node(action, action_identifier)
 

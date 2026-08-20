@@ -89,6 +89,7 @@ class Node:
         self.element_info = ElementInfo(name, control_type, automation_id)
         self._children = children
         self._click = click
+        self.focus_calls = 0
 
     def descendants(self) -> list["Node"]:
         descendants: list[Node] = []
@@ -104,6 +105,9 @@ class Node:
         if self._click is None:
             raise RuntimeError("node is not clickable")
         self._click()
+
+    def set_focus(self) -> None:
+        self.focus_calls += 1
 
     @staticmethod
     def is_visible() -> bool:
@@ -136,6 +140,18 @@ def test_activation_uses_uia_invoke_pattern(tmp_path: Path) -> None:
     session.activate("openDocumentAction")
 
     assert node.iface_invoke.invoked.wait(1.0)
+
+
+def test_focus_claims_keyboard_focus_via_uia_set_focus(
+    tmp_path: Path,
+) -> None:
+    session = application_session(tmp_path)
+    node = Node("Comments", "ListItem")
+    session.element = lambda identifier, *, showing=True: node
+
+    session.focus("eventColumn12MoveUpButton")
+
+    assert node.focus_calls == 1
 
 
 def test_checked_state_uses_uia_toggle_pattern(tmp_path: Path) -> None:
@@ -257,6 +273,7 @@ def test_menu_action_uses_accessible_item_bounds(tmp_path: Path) -> None:
         "editExportColumnsAction": action,
     }
     session.element = lambda identifier: nodes[identifier]
+    session.has_element = lambda identifier: False
 
     session.activate_menu_action(
         "templateActionsButton", "editExportColumnsAction"
@@ -285,6 +302,25 @@ def test_menu_action_waits_for_the_dropdown_to_expand(tmp_path: Path) -> None:
     menu.iface_expand_collapse = expand
     nodes = {"fileMenu": menu, "openDocumentAction": action}
     session.element = lambda identifier: nodes[identifier]
+    session.has_element = lambda identifier: False
+
+    session.activate_menu_action("fileMenu", "openDocumentAction")
+
+    assert clicked == ["action"]
+
+
+def test_menu_action_skips_reclicking_an_already_open_menu(
+    tmp_path: Path,
+) -> None:
+    session = application_session(tmp_path)
+    clicked: list[str] = []
+    menu = Node("File", "MenuItem", click=lambda: clicked.append("menu"))
+    action = Node(
+        "Open", "MenuItem", click=lambda: clicked.append("action")
+    )
+    nodes = {"fileMenu": menu, "openDocumentAction": action}
+    session.element = lambda identifier: nodes[identifier]
+    session.has_element = lambda identifier: identifier == "openDocumentAction"
 
     session.activate_menu_action("fileMenu", "openDocumentAction")
 

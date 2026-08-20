@@ -349,6 +349,19 @@ def test_quick_file_entry_selects_then_invokes_the_keyboard_path(
     assert session._keyboard_sender.presses == ["enter"]
 
 
+def test_focus_claims_keyboard_focus_via_set_focus_action(
+    tmp_path: Path,
+) -> None:
+    session = application_session(tmp_path)
+    node = SuccessfulActionNode("Comments", "SetFocus")
+    session.element = lambda identifier, *, showing=True: node
+
+    session.focus("eventColumn12MoveUpButton")
+
+    assert node.selected
+    assert node.invoked.is_set()
+
+
 def test_checkable_menu_action_can_close_before_state_is_observed(
     tmp_path: Path,
 ) -> None:
@@ -439,6 +452,25 @@ def test_press_action_on_a_menu_bar_item_also_waits_for_its_popup(
 
     assert popup.showing
     assert menu.invocations == 1
+
+
+def test_menu_action_skips_reclicking_an_already_open_menu(
+    tmp_path: Path,
+) -> None:
+    session = application_session(tmp_path)
+    session._process = RunningProcess()
+    menu = SuccessfulActionNode("File", "Press")
+    action = SuccessfulActionNode("Open", "Press")
+    nodes = {"fileMenu": menu, "openDocumentAction": action}
+    session.element = lambda identifier, *, showing=True: nodes[identifier]
+    session.has_element = (
+        lambda identifier, *, showing=True: identifier == "openDocumentAction"
+    )
+
+    session.activate_menu_action("fileMenu", "openDocumentAction")
+
+    assert not menu.invoked.is_set()
+    assert action.invoked.is_set()
 
 
 def test_selecting_the_current_option_is_idempotent(tmp_path: Path) -> None:

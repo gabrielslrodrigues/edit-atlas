@@ -150,6 +150,10 @@ class EditAtlasApplication:
                 if self._session.has_element(
                     quick_move_button, showing=False
                 ):
+                    # The row may be virtualized out of the visible
+                    # viewport; bring it into view before clicking so the
+                    # click actually lands on it.
+                    self._session.focus(quick_move_button, showing=False)
                     self._session.activate(quick_move_button, showing=False)
                 else:
                     self._session.select_list_item("eventColumnsList", name)
