@@ -650,6 +650,22 @@ class LinuxApplicationSession:
             raise ActionNotSupportedError(
                 f"file chooser entry {name!r} rejected keyboard focus"
             ) from error
+        # The SetFocus request is a D-Bus round trip; Qt may not have
+        # actually processed the focus change by the time it returns. Wait
+        # for the state AT-SPI reports back, rather than assuming the
+        # keypress below already has somewhere correct to land. Nodes that
+        # do not expose a focused state at all are treated as ready.
+        try:
+            wait_until(
+                lambda: bool(getattr(entry, "focused", True)),
+                lambda focused: focused,
+                timeout=self._timeout,
+                description=f"file chooser entry {name!r} to accept keyboard focus",
+            )
+        except PollTimeoutError as error:
+            raise ActionNotSupportedError(
+                f"file chooser entry {name!r} never reported keyboard focus"
+            ) from error
         try:
             self._keyboard_sender("enter")
         except Exception as error:

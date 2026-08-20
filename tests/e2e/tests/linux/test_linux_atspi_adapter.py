@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import time
 from pathlib import Path
 from threading import Event, Thread
 
@@ -191,6 +192,26 @@ class FileEntry:
         return True
 
 
+class DelayedFocusFileEntry:
+    def __init__(self) -> None:
+        self.click_count = 0
+        self.focus_calls: list[str] = []
+        self.focused = False
+
+    def click(self) -> None:
+        self.click_count += 1
+
+    def do_action_named(self, action: str) -> bool:
+        self.focus_calls.append(action)
+
+        def become_focused_after_delay() -> None:
+            time.sleep(0.05)
+            self.focused = True
+
+        Thread(target=become_focused_after_delay, daemon=True).start()
+        return True
+
+
 class RecordingKeyboardSender:
     def __init__(self) -> None:
         self.presses: list[str] = []
@@ -346,6 +367,20 @@ def test_quick_file_entry_selects_then_invokes_the_keyboard_path(
 
     assert entry.click_count == 1
     assert entry.focus_calls == ["SetFocus"]
+    assert session._keyboard_sender.presses == ["enter"]
+
+
+def test_file_entry_waits_for_focus_before_sending_enter(
+    tmp_path: Path,
+) -> None:
+    session = application_session(tmp_path)
+    session._process = RunningProcess()
+    entry = DelayedFocusFileEntry()
+
+    session._activate_file_dialog_entry(entry, "timeline.edl")
+
+    assert entry.focus_calls == ["SetFocus"]
+    assert entry.focused
     assert session._keyboard_sender.presses == ["enter"]
 
 
