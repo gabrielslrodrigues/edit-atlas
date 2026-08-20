@@ -247,6 +247,38 @@ def test_table_text_includes_virtualized_uia_grid_cells(
     assert "SYNTHETIC AUDIO NOTE" in session.text_content("eventTable")
 
 
+def test_list_items_scrolls_through_a_virtualized_list(tmp_path: Path) -> None:
+    session = application_session(tmp_path)
+    fields = [Node(f"Field {index}", "ListItem") for index in range(10)]
+    page_size = 3
+
+    class ScrollPattern:
+        def __init__(self) -> None:
+            self.CurrentVerticallyScrollable = True
+            self.CurrentVerticalScrollPercent = 0.0
+            self._revealed = page_size
+
+        def Scroll(self, horizontal: int, vertical: int) -> None:
+            self._revealed = min(self._revealed + page_size, len(fields))
+            self.CurrentVerticalScrollPercent = (
+                100.0 * self._revealed / len(fields)
+            )
+
+    class VirtualizedList:
+        def __init__(self) -> None:
+            self.iface_scroll = ScrollPattern()
+
+        def descendants(self) -> list[Node]:
+            return fields[: self.iface_scroll._revealed]
+
+    control = VirtualizedList()
+    session.element = lambda identifier: control
+
+    names = session.list_items("eventColumnsList")
+
+    assert names == [f"Field {index}" for index in range(10)]
+
+
 def test_menu_option_selection_uses_uia_invoke_pattern(tmp_path: Path) -> None:
     session = application_session(tmp_path)
     english = Node("English", "MenuItem")

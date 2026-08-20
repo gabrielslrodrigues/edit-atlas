@@ -771,11 +771,40 @@ class WindowsApplicationSession:
 
     def _list_nodes(self, identifier: str) -> list[Any]:
         control = self.element(identifier)
-        return [
-            node
-            for node in self._descendants(control)
-            if self._control_type(node) in ("ListItem", "DataItem")
-        ]
+        seen: set[str] = set()
+        ordered: list[Any] = []
+
+        def collect() -> None:
+            for node in self._descendants(control):
+                if self._control_type(node) not in ("ListItem", "DataItem"):
+                    continue
+                name = self._node_name(node)
+                if name in seen:
+                    continue
+                seen.add(name)
+                ordered.append(node)
+
+        collect()
+        # A virtualized list only realizes rows within its current
+        # viewport, so a single snapshot can silently omit everything
+        # scrolled out of view. Walk to the bottom, merging newly
+        # revealed rows at each step, so callers see the complete
+        # logical list regardless of where it happens to be scrolled.
+        scroll = self._pattern(control, "iface_scroll")
+        if scroll is not None:
+            previous_count = -1
+            while len(ordered) != previous_count:
+                previous_count = len(ordered)
+                try:
+                    if not bool(scroll.CurrentVerticallyScrollable):
+                        break
+                    if float(scroll.CurrentVerticalScrollPercent) >= 100.0:
+                        break
+                    scroll.Scroll(2, 3)  # NoAmount, LargeIncrement
+                except Exception:
+                    break
+                collect()
+        return ordered
 
     def _list_item(self, identifier: str, name: str) -> Any:
         node = self._named_node(self._list_nodes(identifier), name)
