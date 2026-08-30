@@ -289,6 +289,38 @@ def test_list_items_scrolls_through_a_virtualized_list(tmp_path: Path) -> None:
     assert control.focus_calls > 0
 
 
+def test_list_items_include_flattened_quick_checkboxes(tmp_path: Path) -> None:
+    session = application_session(tmp_path)
+    visible = tuple(
+        Node(
+            f"Field {index}",
+            "ListItem",
+            automation_id=f"eventColumn{index}",
+        )
+        for index in range(3)
+    )
+    field_4 = Node(
+        "Field 4", "CheckBox", automation_id="eventColumn4CheckBox"
+    )
+    field_4.iface_toggle = TogglePattern()
+    flattened = (
+        field_4,
+        Node("Field 3", "CheckBox", automation_id="eventColumn3CheckBox"),
+    )
+    control = Node("Columns", "Group", children=visible + flattened)
+    session.element = lambda identifier: control
+
+    assert session.list_items("eventColumnsList") == [
+        "Field 0",
+        "Field 1",
+        "Field 2",
+        "Field 3",
+        "Field 4",
+    ]
+    session.set_list_item_checked("eventColumnsList", "Field 4", True)
+    assert field_4.iface_toggle.CurrentToggleState == 1
+
+
 def test_menu_option_selection_uses_uia_invoke_pattern(tmp_path: Path) -> None:
     session = application_session(tmp_path)
     english = Node("English", "MenuItem")

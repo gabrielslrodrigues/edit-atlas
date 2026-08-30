@@ -778,13 +778,27 @@ class WindowsApplicationSession:
         control = self.element(identifier)
         seen: set[str] = set()
         ordered: list[Any] = []
+        indexed: dict[int, Any] = {}
 
         def collect() -> bool:
             added = False
             for node in self._descendants(control):
-                if self._control_type(node) not in ("ListItem", "DataItem"):
+                control_type = self._control_type(node)
+                if control_type not in ("ListItem", "DataItem", "CheckBox"):
                     continue
                 name = self._node_name(node)
+                index = self._event_column_index(node)
+                if index is not None:
+                    existing = indexed.get(index)
+                    if existing is None or control_type in (
+                        "ListItem",
+                        "DataItem",
+                    ):
+                        indexed[index] = node
+                        added = existing is None
+                    continue
+                if control_type == "CheckBox":
+                    continue
                 if name in seen:
                     continue
                 seen.add(name)
@@ -806,7 +820,20 @@ class WindowsApplicationSession:
                 break
         for _ in range(pages):
             self._page_list(control, "up")
+        if indexed:
+            return [indexed[index] for index in sorted(indexed)]
         return ordered
+
+    def _event_column_index(self, node: Any) -> int | None:
+        automation_id = self._automation_id(node)
+        marker = "eventColumn"
+        marker_position = automation_id.rfind(marker)
+        if marker_position < 0:
+            return None
+        suffix = automation_id[marker_position + len(marker) :]
+        if suffix.endswith("CheckBox"):
+            suffix = suffix[: -len("CheckBox")]
+        return int(suffix) if suffix.isdigit() else None
 
     def _page_list(self, control: Any, direction: str) -> bool:
         """Page a scrollable control, reporting whether it accepted it."""

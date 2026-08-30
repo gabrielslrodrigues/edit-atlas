@@ -632,6 +632,8 @@ class LinuxApplicationSession:
 
         Returns False when the dialog does not expose that control, so the
         caller can fall back to activating one folder delegate at a time.
+        Once the editor is found, failures are reported at their exact stage
+        instead of being hidden by that fallback.
         """
         breadcrumbs = self._find_role(dialog, "page tab list")
         if breadcrumbs is None:
@@ -643,10 +645,42 @@ class LinuxApplicationSession:
             # FolderBreadcrumbBar reserves Ctrl+L for revealing and focusing
             # its path editor. The unnamed button beside the breadcrumbs is
             # the Up button, not a path-editor action.
+            focus_target = self._find_named(
+                breadcrumbs,
+                ("/",),
+                roles=("push button", "button"),
+            )
+            if focus_target is not None:
+                try:
+                    if focus_target.do_action_named("SetFocus") is False:
+                        raise ActionNotSupportedError(
+                            "file chooser breadcrumb rejected SetFocus"
+                        )
+                except ActionNotSupportedError:
+                    raise
+                except Exception as error:
+                    raise ActionNotSupportedError(
+                        "file chooser breadcrumb focus action failed: "
+                        f"{type(error).__name__}: {error}"
+                    ) from error
+                try:
+                    wait_until(
+                        lambda: bool(getattr(focus_target, "focused", True)),
+                        lambda focused: focused,
+                        timeout=self._timeout,
+                        description="file chooser breadcrumb to receive focus",
+                    )
+                except PollTimeoutError as error:
+                    raise ActionNotSupportedError(
+                        "file chooser breadcrumb never received focus"
+                    ) from error
             try:
                 self._key_combo_sender("<Control>l")
-            except Exception:
-                return False
+            except Exception as error:
+                raise ActionNotSupportedError(
+                    "file chooser Ctrl+L input failed: "
+                    f"{type(error).__name__}: {error}"
+                ) from error
             try:
                 wait_until(
                     lambda: self._is_showing(editor),
@@ -654,17 +688,28 @@ class LinuxApplicationSession:
                     timeout=self._timeout,
                     description="file chooser path field to appear",
                 )
-            except PollTimeoutError:
-                return False
+            except PollTimeoutError as error:
+                raise ActionNotSupportedError(
+                    "file chooser Ctrl+L did not reveal the path field"
+                ) from error
         expected = os.fspath(directory)
         try:
             if editor.set_text_contents(expected) is False:
-                return False
-        except Exception:
+                raise ActionNotSupportedError(
+                    "file chooser path field rejected editable text input"
+                )
+        except ActionNotSupportedError:
+            raise
+        except Exception as editable_error:
             try:
                 editor.text = expected
-            except Exception:
-                return False
+            except Exception as property_error:
+                raise ActionNotSupportedError(
+                    "file chooser path assignment failed through editable "
+                    f"text ({type(editable_error).__name__}: {editable_error}) "
+                    "and the text property "
+                    f"({type(property_error).__name__}: {property_error})"
+                ) from property_error
         try:
             wait_until(
                 lambda: self._node_text(editor),
@@ -672,9 +717,17 @@ class LinuxApplicationSession:
                 timeout=self._timeout,
                 description=f"file chooser path to become {expected!r}",
             )
-        except PollTimeoutError:
-            return False
-        self._keyboard_sender("enter")
+        except PollTimeoutError as error:
+            raise ActionNotSupportedError(
+                f"file chooser path field did not retain {expected!r}"
+            ) from error
+        try:
+            self._keyboard_sender("enter")
+        except Exception as error:
+            raise ActionNotSupportedError(
+                "file chooser path field rejected Enter input: "
+                f"{type(error).__name__}: {error}"
+            ) from error
         # Qt hides the path field once it accepts the typed location.
         try:
             wait_until(
@@ -683,8 +736,10 @@ class LinuxApplicationSession:
                 timeout=self._timeout,
                 description=f"file chooser to enter {expected!r}",
             )
-        except PollTimeoutError:
-            return False
+        except PollTimeoutError as error:
+            raise ActionNotSupportedError(
+                f"file chooser kept the path field open after accepting {expected!r}"
+            ) from error
         return True
 
     def _file_dialog_entry(self, dialog: Any, name: str) -> Any:

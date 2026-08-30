@@ -333,14 +333,29 @@ class BreadcrumbPathField:
         return True
 
 
+class BreadcrumbRootButton(SuccessfulActionNode):
+    role_name = "push button"
+    children = ()
+
+    def __init__(self) -> None:
+        super().__init__("/", "SetFocus")
+        self.focused = False
+
+    def do_action_named(self, action: str) -> bool:
+        result = super().do_action_named(action)
+        self.focused = True
+        return result
+
+
 def test_quick_file_dialog_navigates_by_typing_the_path(
     tmp_path: Path,
 ) -> None:
     session = application_session(tmp_path)
     session._process = RunningProcess()
     field = BreadcrumbPathField()
+    root_button = BreadcrumbRootButton()
     breadcrumbs = AccessibilityNode(
-        "breadcrumbs", (field,), role_name="page tab list"
+        "breadcrumbs", (field, root_button), role_name="page tab list"
     )
     dialog = AccessibilityNode(
         "quickFileDialog", (breadcrumbs,), role_name="dialog"
@@ -362,8 +377,32 @@ def test_quick_file_dialog_navigates_by_typing_the_path(
     session._key_combo_sender = send_combo
 
     assert session._navigate_file_dialog(dialog, tmp_path) is None
+    assert root_button.focused
     assert combos == ["<Control>l"]
     assert field.text == str(tmp_path)
+
+
+def test_quick_file_dialog_reports_path_shortcut_failure(
+    tmp_path: Path,
+) -> None:
+    session = application_session(tmp_path)
+    session._process = RunningProcess()
+    session._timeout = 0.01
+    field = BreadcrumbPathField()
+    root_button = BreadcrumbRootButton()
+    breadcrumbs = AccessibilityNode(
+        "breadcrumbs", (field, root_button), role_name="page tab list"
+    )
+    dialog = AccessibilityNode(
+        "quickFileDialog", (breadcrumbs,), role_name="dialog"
+    )
+    session._key_combo_sender = lambda combo: None
+
+    with pytest.raises(
+        ActionNotSupportedError,
+        match="Ctrl\\+L did not reveal the path field",
+    ):
+        session._navigate_file_dialog(dialog, tmp_path)
 
 
 def test_quick_file_dialog_falls_back_when_no_path_field_exists(
