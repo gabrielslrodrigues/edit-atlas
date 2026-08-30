@@ -808,11 +808,22 @@ class WindowsApplicationSession:
             self._page_list(control, "up")
         return ordered
 
-    @staticmethod
-    def _page_list(control: Any, direction: str) -> bool:
+    def _page_list(self, control: Any, direction: str) -> bool:
         """Page a scrollable control, reporting whether it accepted it."""
         try:
             control.scroll(direction, "page")
+            return True
+        except Exception:
+            pass
+
+        # Qt Quick's ListView currently exposes its rows through UIA but no
+        # Scroll pattern. It does implement keyboard paging once UIA gives
+        # the list focus, so use that semantic fallback instead of wheel or
+        # coordinate input.
+        try:
+            control.set_focus()
+            key = "{PGDN}" if direction == "down" else "{PGUP}"
+            self._keyboard_sender(key, pause=0)
         except Exception:
             return False
         return True

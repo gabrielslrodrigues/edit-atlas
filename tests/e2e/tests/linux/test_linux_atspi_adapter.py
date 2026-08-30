@@ -226,6 +226,7 @@ def application_session(artifact_directory: Path) -> LinuxApplicationSession:
         tree=None,
         atspi=None,
         keyboard_sender=RecordingKeyboardSender(),
+        key_combo_sender=RecordingKeyboardSender(),
         registry=None,
         process=None,
         artifact_directory=artifact_directory,
@@ -332,29 +333,14 @@ class BreadcrumbPathField:
         return True
 
 
-class BreadcrumbRevealButton(SuccessfulActionNode):
-    role_name = "push button"
-    children = ()
-
-    def __init__(self, field: BreadcrumbPathField) -> None:
-        super().__init__("", "Press")
-        self._field = field
-
-    def do_action_named(self, action: str) -> bool:
-        self._field.showing = True
-        self.invoked.set()
-        return True
-
-
 def test_quick_file_dialog_navigates_by_typing_the_path(
     tmp_path: Path,
 ) -> None:
     session = application_session(tmp_path)
     session._process = RunningProcess()
     field = BreadcrumbPathField()
-    reveal = BreadcrumbRevealButton(field)
     breadcrumbs = AccessibilityNode(
-        "breadcrumbs", (field, reveal), role_name="page tab list"
+        "breadcrumbs", (field,), role_name="page tab list"
     )
     dialog = AccessibilityNode(
         "quickFileDialog", (breadcrumbs,), role_name="dialog"
@@ -367,8 +353,16 @@ def test_quick_file_dialog_navigates_by_typing_the_path(
 
     session._keyboard_sender = send_enter
 
+    combos: list[str] = []
+
+    def send_combo(combo: str) -> None:
+        combos.append(combo)
+        field.showing = True
+
+    session._key_combo_sender = send_combo
+
     assert session._navigate_file_dialog(dialog, tmp_path) is None
-    assert reveal.invoked.is_set()
+    assert combos == ["<Control>l"]
     assert field.text == str(tmp_path)
 
 

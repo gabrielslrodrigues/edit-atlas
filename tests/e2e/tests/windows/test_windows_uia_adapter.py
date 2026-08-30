@@ -257,15 +257,13 @@ def test_list_items_scrolls_through_a_virtualized_list(tmp_path: Path) -> None:
 
         def __init__(self) -> None:
             self.offset = 0
-            self.scrolls: list[str] = []
+            self.focus_calls = 0
 
         def scroll(self, direction: str, amount: str) -> None:
-            assert amount == "page"
-            self.scrolls.append(direction)
-            step = page_size if direction == "down" else -page_size
-            self.offset = max(
-                0, min(self.offset + step, len(fields) - page_size)
-            )
+            raise RuntimeError("Qt Quick exposes no UIA Scroll pattern")
+
+        def set_focus(self) -> None:
+            self.focus_calls += 1
 
         def descendants(self) -> list[Node]:
             return fields[self.offset : self.offset + page_size]
@@ -273,12 +271,22 @@ def test_list_items_scrolls_through_a_virtualized_list(tmp_path: Path) -> None:
     control = VirtualizedList()
     session.element = lambda identifier: control
 
+    def send_keys(keys: str, **options: Any) -> None:
+        assert options == {"pause": 0}
+        step = page_size if keys == "{PGDN}" else -page_size
+        control.offset = max(
+            0, min(control.offset + step, len(fields) - page_size)
+        )
+
+    session._keyboard_sender = send_keys
+
     names = session.list_items("eventColumnsList")
 
     assert names == [f"Field {index}" for index in range(10)]
     # The sweep must leave the list where it found it, so that repeated
     # observations of the same list stay consistent.
     assert control.offset == 0
+    assert control.focus_calls > 0
 
 
 def test_menu_option_selection_uses_uia_invoke_pattern(tmp_path: Path) -> None:

@@ -50,6 +50,7 @@ class LinuxAtspiAdapter:
         self._tree: Any = None
         self._atspi: Any = None
         self._keyboard_sender: Any = None
+        self._key_combo_sender: Any = None
 
     def preflight(self) -> None:
         missing = [
@@ -98,6 +99,7 @@ class LinuxAtspiAdapter:
         self._tree = tree
         self._atspi = Atspi
         self._keyboard_sender = rawinput.pressKey
+        self._key_combo_sender = rawinput.keyCombo
 
     def launch(
         self,
@@ -139,6 +141,7 @@ class LinuxAtspiAdapter:
             tree=self._tree,
             atspi=self._atspi,
             keyboard_sender=self._keyboard_sender,
+            key_combo_sender=self._key_combo_sender,
             registry=self._registry,
             process=process,
             artifact_directory=self._artifact_directory,
@@ -171,6 +174,7 @@ class LinuxApplicationSession:
         tree: Any,
         atspi: Any,
         keyboard_sender: Any,
+        key_combo_sender: Any,
         registry: ProcessRegistry,
         process: subprocess.Popen[str],
         artifact_directory: Path,
@@ -179,6 +183,7 @@ class LinuxApplicationSession:
         self._tree = tree
         self._atspi = atspi
         self._keyboard_sender = keyboard_sender
+        self._key_combo_sender = key_combo_sender
         self._registry = registry
         self._process = process
         self._artifact_directory = artifact_directory
@@ -631,21 +636,17 @@ class LinuxApplicationSession:
         breadcrumbs = self._find_role(dialog, "page tab list")
         if breadcrumbs is None:
             return False
-        reveal = next(
-            (
-                node
-                for node in self._walk(breadcrumbs)
-                if str(getattr(node, "role_name", "")).casefold()
-                in ("push button", "button")
-                if not str(getattr(node, "name", "")).strip()
-            ),
-            None,
-        )
         editor = self._find_role(breadcrumbs, "text")
-        if reveal is None or editor is None:
+        if editor is None:
             return False
         if not self._is_showing(editor):
-            self._activate_node(reveal)
+            # FolderBreadcrumbBar reserves Ctrl+L for revealing and focusing
+            # its path editor. The unnamed button beside the breadcrumbs is
+            # the Up button, not a path-editor action.
+            try:
+                self._key_combo_sender("<Control>l")
+            except Exception:
+                return False
             try:
                 wait_until(
                     lambda: self._is_showing(editor),
