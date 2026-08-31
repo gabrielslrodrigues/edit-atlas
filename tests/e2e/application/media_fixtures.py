@@ -38,9 +38,10 @@ def regeneration_command(fixture_directory: Path) -> str:
     """Spell the entry-point invocation that refreshes a fixture directory."""
     generator = "build/<preset>/tests/integration/media/" + GENERATOR_NAME
     if os.name == "nt":
+        windows_generator = generator.replace("/", "\\")
         return (
             "tests/e2e/generate-media-fixtures.ps1 `\n"
-            f'  -Generator "{generator}.exe" `\n'
+            f'  -Generator "{windows_generator}.exe" `\n'
             f"  -FixtureDirectory {fixture_directory}"
         )
     return (
@@ -53,6 +54,11 @@ def regeneration_command(fixture_directory: Path) -> str:
 def generator_digest(repository_root: Path) -> str | None:
     """Digest the inputs that determine fixture content.
 
+    Line endings are normalized because the fixtures travel between
+    platforms: one job generates them and others consume them, and a
+    checkout that converts to CRLF must still agree with one that does not.
+    Paths are hashed in their POSIX spelling for the same reason.
+
     Returns None when an input is absent, such as a run from a tree without
     the generator sources, so provenance is reported as unknown rather than
     as a mismatch.
@@ -62,7 +68,7 @@ def generator_digest(repository_root: Path) -> str | None:
         path = repository_root / relative
         if not path.is_file():
             return None
-        payload = path.read_bytes()
+        payload = path.read_bytes().replace(b"\r\n", b"\n")
         digest.update(relative.as_posix().encode("utf-8"))
         digest.update(len(payload).to_bytes(8, "big"))
         digest.update(payload)

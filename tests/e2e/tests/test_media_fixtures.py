@@ -42,6 +42,19 @@ def test_digest_changes_with_any_input(tmp_path: Path) -> None:
     assert len(digests) == len(GENERATOR_INPUTS)
 
 
+def test_digest_ignores_the_checkout_line_endings(tmp_path: Path) -> None:
+    # Windows checkouts convert to CRLF, and one platform's fixtures are
+    # consumed by another, so the digest must not depend on the conversion.
+    unix_root, _ = _tree(tmp_path / "unix")
+    windows_root, _ = _tree(tmp_path / "windows")
+    for relative in GENERATOR_INPUTS:
+        path = windows_root / relative
+        path.write_bytes(
+            path.read_text(encoding="utf-8").replace("\n", "\r\n").encode()
+        )
+    assert generator_digest(windows_root) == generator_digest(unix_root)
+
+
 def test_digest_is_unknown_without_the_generator_inputs(
     tmp_path: Path,
 ) -> None:
