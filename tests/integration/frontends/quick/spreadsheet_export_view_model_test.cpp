@@ -81,7 +81,7 @@ TEST(SpreadsheetExportViewModelTest,
                          &SpreadsheetExportViewModel::exportSucceeded};
     ASSERT_TRUE(export_view_model.Start(QUrl::fromLocalFile(destination),
                                         QStringLiteral("pt-BR"), true, false,
-                                        QUrl{}));
+                                        QUrl{}, false));
     EXPECT_TRUE(export_view_model.IsBusy());
     ASSERT_TRUE(WaitForSignal(succeeded));
 
@@ -115,7 +115,7 @@ TEST(SpreadsheetExportViewModelTest,
                       &SpreadsheetExportViewModel::exportFailed};
     EXPECT_FALSE(export_view_model.Start(
         QUrl::fromLocalFile(output.filePath(QStringLiteral("report.xlsx"))),
-        QStringLiteral("en"), true, true, QUrl{}));
+        QStringLiteral("en"), true, true, QUrl{}, false));
 
     EXPECT_EQ(failed.count(), 1);
     EXPECT_FALSE(export_view_model.ErrorText().isEmpty());

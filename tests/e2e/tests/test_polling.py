@@ -1,6 +1,8 @@
 from __future__ import annotations
 
-from application.polling import wait_until
+import pytest
+
+from application.polling import PollTimeoutError, wait_until
 
 
 def test_wait_until_requires_consecutive_accepted_observations() -> None:
@@ -15,3 +17,14 @@ def test_wait_until_requires_consecutive_accepted_observations() -> None:
     )
 
     assert result
+
+
+def test_wait_until_timeout_reports_the_last_observed_value() -> None:
+    with pytest.raises(PollTimeoutError, match=r"last observed: \['a', 'b'\]"):
+        wait_until(
+            lambda: ["a", "b"],
+            lambda value: value == ["a", "b", "c"],
+            timeout=0.05,
+            interval=0.01,
+            description="'thing' to become something else",
+        )

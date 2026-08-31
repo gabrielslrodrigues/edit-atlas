@@ -66,6 +66,28 @@ namespace {
         .arg(timecode.frames(), 2, 10, QChar{u'0'});
 }
 
+[[nodiscard]] QString RenderedVideoFailureText(
+    services::TimelineRenderedVideoExportFailureKind kind) {
+    using services::TimelineRenderedVideoExportFailureKind;
+    switch (kind) {
+    case TimelineRenderedVideoExportFailureKind::kVideoRequired:
+        return SpreadsheetExportViewModel::tr(
+            "Select a matching rendered video for the Initial Frame column.");
+    case TimelineRenderedVideoExportFailureKind::kVideoInspectionFailed:
+        return SpreadsheetExportViewModel::tr(
+            "The rendered video could not be validated. It must be a "
+            "constant-frame-rate MOV, MP4, or MXF file with embedded starting "
+            "timecode, frame rate, and duration matching the imported EDL.");
+    case TimelineRenderedVideoExportFailureKind::kFrameExtractionFailed:
+        return SpreadsheetExportViewModel::tr(
+            "Initial frames could not be extracted from the rendered video.");
+    case TimelineRenderedVideoExportFailureKind::kDocumentExportFailed:
+        return SpreadsheetExportViewModel::tr(
+            "The prepared spreadsheet could not be exported.");
+    }
+    return {};
+}
+
 [[nodiscard]] bool
 HasDiagnosticCode(std::span<const core::Diagnostic> diagnostics,
                   std::string_view code) {
@@ -184,11 +206,23 @@ bool SpreadsheetExportViewModel::HasWarnings(void) const noexcept {
     return !warning_text_.isEmpty();
 }
 
+bool SpreadsheetExportViewModel::DestinationExists(
+    const QUrl &destination) const {
+    if (!destination.isLocalFile() || destination.toLocalFile().isEmpty()) {
+        return false;
+    }
+    std::error_code exists_error;
+    const auto exists = std::filesystem::exists(
+        FilesystemPath(destination.toLocalFile()), exists_error);
+    return !exists_error && exists;
+}
+
 bool SpreadsheetExportViewModel::Start(const QUrl &destination,
                                        const QString &workbook_language,
                                        bool include_timeline_sheet,
                                        bool include_diagnostics_sheet,
-                                       const QUrl &rendered_video) {
+                                       const QUrl &rendered_video,
+                                       bool replace_existing) {
     ClearResult();
     if (exporter_identifier_.empty()) {
         SetImmediateFailure(
@@ -222,13 +256,6 @@ bool SpreadsheetExportViewModel::Start(const QUrl &destination,
     }
 
     const auto destination_path = FilesystemPath(destination.toLocalFile());
-    std::error_code exists_error;
-    const auto replace_existing =
-        std::filesystem::exists(destination_path, exists_error);
-    if (exists_error) {
-        SetImmediateFailure(tr("The workbook destination could not be read."));
-        return false;
-    }
 
     QSettings settings;
     settings.setValue(QStringLiteral("export/lastDirectory"),
@@ -303,8 +330,15 @@ void SpreadsheetExportViewModel::HandleExportFinished(void) {
             emit exportCancelled();
             return;
         }
-        error_text_ =
+        error_text_ = RenderedVideoFailureText(result->error().kind);
+        const auto diagnostic_text =
             presentation::diagnostic_text::Summary(result->error().diagnostics);
+        if (!diagnostic_text.isEmpty()) {
+            if (!error_text_.isEmpty()) {
+                error_text_ += QStringLiteral("\n\n");
+            }
+            error_text_ += diagnostic_text;
+        }
         if (error_text_.isEmpty()) {
             error_text_ = tr("The spreadsheet could not be exported.");
         }

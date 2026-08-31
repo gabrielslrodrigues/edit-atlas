@@ -39,6 +39,13 @@ Dialog {
             Layout.fillWidth: true
             Accessible.id: objectName
             Accessible.name: qsTr("Export event columns")
+            // The field list is small and compile-time bounded, and
+            // reordering/automation need every row addressable regardless
+            // of scroll position. A fixed, generous buffer keeps the whole
+            // list realized from the start; binding this to contentHeight
+            // does not work reliably, since contentHeight itself is not
+            // known until delegates exist to measure it.
+            cacheBuffer: 4000
             clip: true
             model: root.configuration.eventProjectionModel
             objectName: "eventColumnsList"
@@ -126,8 +133,12 @@ Dialog {
                         objectName: "eventColumn" + projectionRow.index
                                     + "CheckBox"
                         text: projectionRow.model.display
-                        onToggled: root.configuration.SetEventProjectionSelected(
-                                       projectionRow.index, checked)
+                        onCheckedChanged: {
+                            if (projectionRow.model.selected !== checked) {
+                                root.configuration.SetEventProjectionSelected(
+                                    projectionRow.index, checked)
+                            }
+                        }
                     }
 
                     RowLayout {

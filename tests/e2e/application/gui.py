@@ -53,8 +53,7 @@ class EditAtlasApplication:
         frame_rate: str | None = None,
         expect_document: bool = True,
     ) -> None:
-        self._open_menu("fileMenu")
-        self._session.activate("openDocumentAction")
+        self._session.activate_menu_action("fileMenu", "openDocumentAction")
         self._session.open_file_dialog("timelineOpenFileDialog", path)
         if frame_rate is not None:
             self._session.select_option("frameRateSelector", frame_rate)
@@ -69,9 +68,11 @@ class EditAtlasApplication:
         return self._session.text_content("eventTable")
 
     def set_filter_field(self, index: int, field: str) -> None:
+        self._ensure_filters_visible()
         self._session.select_option(f"filterCondition{index}Field", field)
 
     def set_filter_text(self, index: int, value: str) -> None:
+        self._ensure_filters_visible()
         self._session.set_text(f"filterCondition{index}Text", value)
 
     def set_filter_track_kind(self, index: int, value: str) -> None:
@@ -105,13 +106,13 @@ class EditAtlasApplication:
         self, checked: set[str], order: list[str]
     ) -> None:
         self._template_action("editExportColumnsAction")
-        self._session.element("eventProjectionDialog")
+        self._session.element("eventColumnsList")
         self.set_export_columns(checked, order)
         if self._session.has_element("closeProjectionButton"):
             self._session.activate("closeProjectionButton")
         else:
             self._session.activate("saveProjectionButton")
-        self._session.wait_absent("eventProjectionDialog")
+        self._session.wait_absent("eventColumnsList")
 
     def update_template(self) -> None:
         if self._session.has_element("updateTemplateButton"):
@@ -138,6 +139,7 @@ class EditAtlasApplication:
         self._session.wait_selected_option("templateSelector", "No template")
 
     def set_export_columns(self, checked: set[str], order: list[str]) -> None:
+        opened_projection = self._open_spreadsheet_export_columns()
         available = self._session.list_items("eventColumnsList")
         # Arrange rows before a selection can reveal conditional controls and
         # shrink the list's visible area.
@@ -145,8 +147,14 @@ class EditAtlasApplication:
             while available.index(name) > target_index:
                 position = available.index(name)
                 quick_move_button = f"eventColumn{position}MoveUpButton"
-                if self._session.has_element(quick_move_button):
-                    self._session.activate(quick_move_button)
+                if self._session.has_element(
+                    quick_move_button, showing=False
+                ):
+                    # The row may be virtualized out of the visible
+                    # viewport; bring it into view before clicking so the
+                    # click actually lands on it.
+                    self._session.focus(quick_move_button, showing=False)
+                    self._session.activate(quick_move_button, showing=False)
                 else:
                     self._session.select_list_item("eventColumnsList", name)
                     self._session.activate("moveColumnUpButton")
@@ -160,6 +168,22 @@ class EditAtlasApplication:
             self._session.set_list_item_checked(
                 "eventColumnsList", name, name in checked
             )
+        if opened_projection:
+            self._close_spreadsheet_export_columns()
+
+    def spreadsheet_export_column_selection(
+        self,
+    ) -> tuple[list[str], set[str]]:
+        opened_projection = self._open_spreadsheet_export_columns()
+        columns = self._session.list_items("eventColumnsList")
+        checked = {
+            name
+            for name in columns
+            if self._session.is_list_item_checked("eventColumnsList", name)
+        }
+        if opened_projection:
+            self._close_spreadsheet_export_columns()
+        return (columns, checked)
 
     def begin_spreadsheet_export(
         self,
@@ -238,6 +262,25 @@ class EditAtlasApplication:
         self._session.activate("closeDialogButton")
         self._session.wait_absent("aboutDialog")
         return information
+
+    def _ensure_filters_visible(self) -> None:
+        if self._session.has_element("filterCondition0Field"):
+            return
+        if self._session.has_element("toggleFiltersButton"):
+            self._session.activate("toggleFiltersButton")
+        self._session.element("filterCondition0Field")
+
+    def _open_spreadsheet_export_columns(self) -> bool:
+        if self._session.has_element("eventColumnsList"):
+            return False
+        if self._session.has_element("editSpreadsheetColumnsButton"):
+            self._session.activate("editSpreadsheetColumnsButton")
+        self._session.element("eventColumnsList")
+        return True
+
+    def _close_spreadsheet_export_columns(self) -> None:
+        self._session.activate("closeProjectionButton")
+        self._session.wait_absent("eventColumnsList")
 
     def _complete_template_name(self, name: str) -> None:
         self._session.element("templateNameDialog")

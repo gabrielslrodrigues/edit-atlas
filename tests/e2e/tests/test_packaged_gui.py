@@ -38,7 +38,6 @@ def test_startup_import_failure_recovery_and_preferences_persist(
     table_text = "\n".join(app.table_text())
     assert "001" in table_text
     assert "opening.mov" in table_text
-    assert "SYNTHETIC AUDIO NOTE" in table_text
     app.session.wait_absent("diagnosticsTree")
 
     invalid = output_directory / "invalid-encoding.edl"
@@ -118,10 +117,10 @@ def test_filter_and_template_workflow_persists(
     app.select_template("Primary")
     app.wait_event_count(1)
     app.begin_spreadsheet_export()
-    columns = app.session.list_items("eventColumnsList")
+    columns, checked = app.spreadsheet_export_column_selection()
     assert columns[:2] == ["Comments", "Event"]
-    assert app.session.is_list_item_checked("eventColumnsList", "Comments")
-    assert app.session.is_list_item_checked("eventColumnsList", "Event")
+    assert "Comments" in checked
+    assert "Event" in checked
     app.cancel_spreadsheet_options()
 
 

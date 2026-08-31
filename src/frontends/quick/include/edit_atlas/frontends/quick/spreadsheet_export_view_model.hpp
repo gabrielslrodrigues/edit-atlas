@@ -85,12 +85,18 @@ class SpreadsheetExportViewModel final : public QObject {
     /// Returns whether the completed workbook contains warnings.
     [[nodiscard]] bool HasWarnings(void) const noexcept;
 
+    /// Returns whether a local destination already exists.
+    Q_INVOKABLE bool DestinationExists(const QUrl &destination) const;
     /// Starts an XLSX export using frontend-selected presentation options.
+    ///
+    /// Replacing an existing destination requires explicit authorization
+    /// from the View, which owns the replacement confirmation.
     Q_INVOKABLE bool Start(const QUrl &destination,
                            const QString &workbook_language,
                            bool include_timeline_sheet,
                            bool include_diagnostics_sheet,
-                           const QUrl &rendered_video);
+                           const QUrl &rendered_video,
+                           bool replace_existing);
     /// Requests cooperative cancellation of rendered-video frame extraction.
     Q_INVOKABLE void Cancel(void);
     /// Opens the completed workbook's containing folder.

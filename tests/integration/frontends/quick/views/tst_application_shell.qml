@@ -84,6 +84,11 @@ TestCase {
         }
     }
 
+    function test_contentItemDoesNotDuplicateApplicationRole() {
+        verify(applicationWindow.contentItem.Accessible.role
+               !== Accessible.Application)
+    }
+
     function test_emptyPageKeyboardFocus() {
         const openButton = findObject("emptyOpenButton")
         verify(openButton !== null)
@@ -93,6 +98,31 @@ TestCase {
         verify(openButton.activeFocusOnTab)
         openButton.forceActiveFocus()
         tryVerify(() => openButton.activeFocus)
+    }
+
+    function test_frameRateOptionsExposeAccessibleListItems() {
+        const dialog = findObject("frameRateDialog")
+        const selector = findObject("frameRateSelector")
+        verify(dialog !== null)
+        verify(selector !== null)
+
+        dialog.open()
+        tryCompare(dialog, "visible", true)
+        selector.popup.open()
+        tryCompare(selector.popup, "visible", true)
+        tryVerify(() => selector.popup.contentItem.itemAtIndex(1) !== null)
+        selector.currentIndex = 1
+
+        const option = selector.popup.contentItem.itemAtIndex(1)
+        compare(option.Accessible.name, "24 fps")
+        compare(option.Accessible.role, Accessible.ListItem)
+        verify(option.Accessible.selectable)
+        verify(option.Accessible.selected)
+        compare(selector.contentItem.Accessible.name, selector.displayText)
+        compare(selector.contentItem.Accessible.role, Accessible.StaticText)
+
+        selector.popup.close()
+        dialog.close()
     }
 
     function test_projectionDialogExposesAccessibleControls() {
@@ -175,6 +205,18 @@ TestCase {
         tryCompare(english, "checked", true)
     }
 
+    function test_recentFilesAccessibilityActionUpdatesApplicationState() {
+        const action = findObject("rememberRecentFilesAction")
+        verify(action !== null)
+        const original = testApplicationShell.rememberRecentFiles
+
+        action.Accessible.pressAction()
+        tryCompare(testApplicationShell, "rememberRecentFiles", !original)
+
+        action.Accessible.pressAction()
+        tryCompare(testApplicationShell, "rememberRecentFiles", original)
+    }
+
     function test_aboutDialogCanBeCancelled() {
         const dialog = findObject("aboutDialog")
         verify(dialog !== null)
@@ -228,5 +270,43 @@ TestCase {
         configuration.ClearFilter()
         tryVerify(() => findChild(list.contentItem,
                                   "filterCondition1") === null)
+    }
+
+    function test_programmaticFilterTextUpdatesTheFilterModel() {
+        const configuration = testApplicationShell.timelineConfiguration
+        configuration.ClearFilter()
+        temporaryFilterPanel = timelineConfigurationComponent.createObject(
+            applicationWindow.contentItem,
+            {
+                "height": applicationWindow.height,
+                "width": applicationWindow.width
+            })
+        verify(temporaryFilterPanel !== null)
+        const firstList = findChild(temporaryFilterPanel,
+                                    "filterConditionsScrollArea")
+        verify(firstList !== null)
+        tryVerify(() => findChild(firstList.contentItem,
+                                  "filterCondition0Text") !== null)
+        const firstEditor = findChild(firstList.contentItem,
+                                      "filterCondition0Text")
+        firstEditor.text = "BROLL"
+
+        temporaryFilterPanel.destroy()
+        temporaryFilterPanel = timelineConfigurationComponent.createObject(
+            applicationWindow.contentItem,
+            {
+                "height": applicationWindow.height,
+                "width": applicationWindow.width
+            })
+        verify(temporaryFilterPanel !== null)
+        const secondList = findChild(temporaryFilterPanel,
+                                     "filterConditionsScrollArea")
+        verify(secondList !== null)
+        tryVerify(() => findChild(secondList.contentItem,
+                                  "filterCondition0Text") !== null)
+        const secondEditor = findChild(secondList.contentItem,
+                                       "filterCondition0Text")
+        compare(secondEditor.text, "BROLL")
+        configuration.ClearFilter()
     }
 }

@@ -58,7 +58,11 @@ Item {
                          !== root.configuration.trackKindFilterEditor
                          && root.rowModel.editor
                             !== root.configuration.editTypeFilterEditor
-                onTextEdited: root.rowModel.conditionText = text
+                onTextChanged: {
+                    if (root.rowModel.conditionText !== text) {
+                        root.rowModel.conditionText = text
+                    }
+                }
             }
 
             ComboBox {
@@ -100,14 +104,22 @@ Item {
                 checked: root.rowModel.matchCase
                 objectName: "filterCondition" + root.row + "MatchCase"
                 text: qsTr("Match case")
-                onToggled: root.rowModel.matchCase = checked
+                onCheckedChanged: {
+                    if (root.rowModel.matchCase !== checked) {
+                        root.rowModel.matchCase = checked
+                    }
+                }
             }
 
             CheckBox {
                 checked: root.rowModel.matchWholeWord
                 objectName: "filterCondition" + root.row + "MatchWholeWord"
                 text: qsTr("Whole word")
-                onToggled: root.rowModel.matchWholeWord = checked
+                onCheckedChanged: {
+                    if (root.rowModel.matchWholeWord !== checked) {
+                        root.rowModel.matchWholeWord = checked
+                    }
+                }
             }
 
             CheckBox {
@@ -115,7 +127,11 @@ Item {
                 objectName: "filterCondition" + root.row
                             + "RegularExpression"
                 text: qsTr("Regular expression")
-                onToggled: root.rowModel.regularExpression = checked
+                onCheckedChanged: {
+                    if (root.rowModel.regularExpression !== checked) {
+                        root.rowModel.regularExpression = checked
+                    }
+                }
             }
         }
 

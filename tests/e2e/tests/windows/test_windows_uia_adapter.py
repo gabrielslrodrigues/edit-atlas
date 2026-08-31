@@ -1,7 +1,8 @@
 from __future__ import annotations
 
+import time
 from pathlib import Path
-from threading import Event
+from threading import Event, Thread
 from typing import Any
 
 from adapters.windows_uia import WindowsApplicationSession
@@ -49,6 +50,14 @@ class TogglePattern:
         self.CurrentToggleState = 1 - self.CurrentToggleState
 
 
+class ExpandCollapsePattern:
+    def __init__(self) -> None:
+        self.CurrentExpandCollapseState = 0
+
+    def Expand(self) -> None:
+        self.CurrentExpandCollapseState = 1
+
+
 class SelectionPattern:
     def __init__(self, select: Any) -> None:
         self.CurrentIsSelected = False
@@ -67,14 +76,6 @@ class RangeValuePattern:
         self._set_value(value)
 
 
-class ExpandCollapsePattern:
-    def __init__(self) -> None:
-        self.CurrentExpandCollapseState = 0
-
-    def Expand(self) -> None:
-        self.CurrentExpandCollapseState = 1
-
-
 class Node:
     def __init__(
         self,
@@ -88,6 +89,7 @@ class Node:
         self.element_info = ElementInfo(name, control_type, automation_id)
         self._children = children
         self._click = click
+        self.focus_calls = 0
 
     def descendants(self) -> list["Node"]:
         descendants: list[Node] = []
@@ -103,6 +105,15 @@ class Node:
         if self._click is None:
             raise RuntimeError("node is not clickable")
         self._click()
+
+    def window_text(self) -> str:
+        return self.element_info.name
+
+    def class_name(self) -> str:
+        return self.element_info.control_type
+
+    def set_focus(self) -> None:
+        self.focus_calls += 1
 
     @staticmethod
     def is_visible() -> bool:
@@ -130,11 +141,23 @@ def test_activation_uses_uia_invoke_pattern(tmp_path: Path) -> None:
     session = application_session(tmp_path)
     node = Node("Open", "Button")
     node.iface_invoke = InvokePattern()
-    session.element = lambda identifier: node
+    session.element = lambda identifier, *, showing=True: node
 
     session.activate("openDocumentAction")
 
     assert node.iface_invoke.invoked.wait(1.0)
+
+
+def test_focus_claims_keyboard_focus_via_uia_set_focus(
+    tmp_path: Path,
+) -> None:
+    session = application_session(tmp_path)
+    node = Node("Comments", "ListItem")
+    session.element = lambda identifier, *, showing=True: node
+
+    session.focus("eventColumn12MoveUpButton")
+
+    assert node.focus_calls == 1
 
 
 def test_checked_state_uses_uia_toggle_pattern(tmp_path: Path) -> None:
@@ -165,19 +188,21 @@ def test_combo_selection_uses_accessible_item_bounds(
     tmp_path: Path,
 ) -> None:
     session = application_session(tmp_path)
-    control = Node("Event", "ComboBox")
-    control.iface_expand_collapse = ExpandCollapsePattern()
-    reel = Node(
-        "Reel",
-        "ListItem",
-        click=lambda: setattr(control.element_info, "name", "Reel"),
+    opened = Event()
+    display = Node("Event", "Text")
+    control = Node(
+        "Field", "ComboBox", children=(display,), click=opened.set
     )
-    control._children = (reel,)
+    reel = Node("Reel", "ListItem")
+    reel._click = lambda: setattr(display.element_info, "name", "Reel")
     session.element = lambda identifier: control
+    session._find_named = (
+        lambda *args, root=None, **kwargs: reel if root is None else None
+    )
 
     session.select_option("filterCondition0Field", "Reel")
 
-    assert control.iface_expand_collapse.CurrentExpandCollapseState == 1
+    assert opened.is_set()
     assert session.selected_option("filterCondition0Field") == "Reel"
 
 
@@ -228,6 +253,80 @@ def test_table_text_includes_virtualized_uia_grid_cells(
     assert "SYNTHETIC AUDIO NOTE" in session.text_content("eventTable")
 
 
+def test_list_items_scrolls_through_a_virtualized_list(tmp_path: Path) -> None:
+    session = application_session(tmp_path)
+    fields = [Node(f"Field {index}", "ListItem") for index in range(10)]
+    page_size = 3
+
+    class VirtualizedList:
+        """Exposes only the rows inside its current viewport."""
+
+        def __init__(self) -> None:
+            self.offset = 0
+            self.focus_calls = 0
+
+        def scroll(self, direction: str, amount: str) -> None:
+            raise RuntimeError("Qt Quick exposes no UIA Scroll pattern")
+
+        def set_focus(self) -> None:
+            self.focus_calls += 1
+
+        def descendants(self) -> list[Node]:
+            return fields[self.offset : self.offset + page_size]
+
+    control = VirtualizedList()
+    session.element = lambda identifier: control
+
+    def send_keys(keys: str, **options: Any) -> None:
+        assert options == {"pause": 0}
+        step = page_size if keys == "{PGDN}" else -page_size
+        control.offset = max(
+            0, min(control.offset + step, len(fields) - page_size)
+        )
+
+    session._keyboard_sender = send_keys
+
+    names = session.list_items("eventColumnsList")
+
+    assert names == [f"Field {index}" for index in range(10)]
+    # The sweep must leave the list where it found it, so that repeated
+    # observations of the same list stay consistent.
+    assert control.offset == 0
+    assert control.focus_calls > 0
+
+
+def test_list_items_include_flattened_quick_checkboxes(tmp_path: Path) -> None:
+    session = application_session(tmp_path)
+    visible = tuple(
+        Node(
+            f"Field {index}",
+            "ListItem",
+            automation_id=f"eventColumn{index}",
+        )
+        for index in range(3)
+    )
+    field_4 = Node(
+        "Field 4", "CheckBox", automation_id="eventColumn4CheckBox"
+    )
+    field_4.iface_toggle = TogglePattern()
+    flattened = (
+        field_4,
+        Node("Field 3", "CheckBox", automation_id="eventColumn3CheckBox"),
+    )
+    control = Node("Columns", "Group", children=visible + flattened)
+    session.element = lambda identifier: control
+
+    assert session.list_items("eventColumnsList") == [
+        "Field 0",
+        "Field 1",
+        "Field 2",
+        "Field 3",
+        "Field 4",
+    ]
+    session.set_list_item_checked("eventColumnsList", "Field 4", True)
+    assert field_4.iface_toggle.CurrentToggleState == 1
+
+
 def test_menu_option_selection_uses_uia_invoke_pattern(tmp_path: Path) -> None:
     session = application_session(tmp_path)
     english = Node("English", "MenuItem")
@@ -254,12 +353,58 @@ def test_menu_action_uses_accessible_item_bounds(tmp_path: Path) -> None:
         "editExportColumnsAction": action,
     }
     session.element = lambda identifier: nodes[identifier]
+    session.has_element = lambda identifier: False
 
     session.activate_menu_action(
         "templateActionsButton", "editExportColumnsAction"
     )
 
     assert clicked == ["menu", "action"]
+
+
+def test_menu_action_waits_for_the_dropdown_to_expand(tmp_path: Path) -> None:
+    session = application_session(tmp_path)
+    clicked: list[str] = []
+    action = Node(
+        "Open", "MenuItem", click=lambda: clicked.append("action")
+    )
+    expand = ExpandCollapsePattern()
+
+    def open_after_delay() -> None:
+        time.sleep(0.2)
+        expand.CurrentExpandCollapseState = 1
+
+    menu = Node(
+        "File",
+        "MenuItem",
+        click=lambda: Thread(target=open_after_delay, daemon=True).start(),
+    )
+    menu.iface_expand_collapse = expand
+    nodes = {"fileMenu": menu, "openDocumentAction": action}
+    session.element = lambda identifier: nodes[identifier]
+    session.has_element = lambda identifier: False
+
+    session.activate_menu_action("fileMenu", "openDocumentAction")
+
+    assert clicked == ["action"]
+
+
+def test_menu_action_skips_reclicking_an_already_open_menu(
+    tmp_path: Path,
+) -> None:
+    session = application_session(tmp_path)
+    clicked: list[str] = []
+    menu = Node("File", "MenuItem", click=lambda: clicked.append("menu"))
+    action = Node(
+        "Open", "MenuItem", click=lambda: clicked.append("action")
+    )
+    nodes = {"fileMenu": menu, "openDocumentAction": action}
+    session.element = lambda identifier: nodes[identifier]
+    session.has_element = lambda identifier: identifier == "openDocumentAction"
+
+    session.activate_menu_action("fileMenu", "openDocumentAction")
+
+    assert clicked == ["action"]
 
 
 def test_identifier_lookup_accepts_qt_hierarchical_automation_id(
@@ -403,6 +548,72 @@ def test_native_file_dialog_uses_focused_keyboard_input(
         ),
         ("{ENTER}", {"pause": 0}),
     ]
+
+
+def test_native_save_dialog_accepts_shell_overwrite_confirmation(
+    tmp_path: Path,
+) -> None:
+    session = application_session(tmp_path)
+    file_dialog_open = Event()
+    file_dialog_open.set()
+    confirmation_open = Event()
+
+    class FileDialog:
+        @staticmethod
+        def exists() -> bool:
+            return file_dialog_open.is_set()
+
+        @staticmethod
+        def has_focus() -> bool:
+            return True
+
+    yes = Node(
+        "&Yes",
+        "Button",
+        click=lambda: confirmation_open.clear(),
+    )
+
+    class Confirmation(Node):
+        def __init__(self) -> None:
+            super().__init__("Confirm Save As", "Window", children=(yes,))
+
+        @staticmethod
+        def exists() -> bool:
+            return confirmation_open.is_set()
+
+    file_dialog = FileDialog()
+    confirmation = Confirmation()
+
+    class Desktop:
+        @staticmethod
+        def windows(**criteria: Any) -> list[object]:
+            if confirmation_open.is_set():
+                return [confirmation]
+            if file_dialog_open.is_set():
+                return [file_dialog]
+            return []
+
+    session._win32_desktop = Desktop()
+
+    def send_keys(keys: str, **options: Any) -> None:
+        if keys == "{ENTER}":
+            file_dialog_open.clear()
+
+            def show_confirmation_after_delay() -> None:
+                time.sleep(0.05)
+                confirmation_open.set()
+
+            Thread(target=show_confirmation_after_delay, daemon=True).start()
+
+    session._keyboard_sender = send_keys
+    destination = tmp_path / "existing.xlsx"
+    destination.touch()
+
+    session.open_file_dialog(
+        "spreadsheetSaveFileDialog", destination
+    )
+
+    assert not confirmation_open.is_set()
 
 
 def test_uia_actions_do_not_block_the_driver(tmp_path: Path) -> None:

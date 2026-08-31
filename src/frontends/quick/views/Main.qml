@@ -43,6 +43,15 @@ ApplicationWindow {
         applicationShell.OpenUrl(selectedUrl)
     }
 
+    // Qt rejects a selected file that does not exist yet, so a suggested
+    // destination is applied as a folder plus, when it already exists, a
+    // preselected file.
+    function suggestedFolderUrl(fileUrl) {
+        const text = fileUrl.toString()
+        const separator = text.lastIndexOf("/")
+        return separator > 0 ? Qt.url(text.substring(0, separator)) : fileUrl
+    }
+
     function startPendingSpreadsheetExport() {
         if (spreadsheetSaveDialog.visible
                 || pendingSpreadsheetDestinationUrl.toString().length === 0) {
@@ -116,12 +125,6 @@ ApplicationWindow {
         value: window.title
     }
 
-    Binding {
-        property: "role"
-        target: window.contentItem.Accessible
-        value: Accessible.Application
-    }
-
     onClosing: close => {
         if (!applicationShell.RequestClose()) {
             close.accepted = false
@@ -191,7 +194,11 @@ ApplicationWindow {
                 objectName: "rememberRecentFilesAction"
                 text: qsTr("Remember Recent Files")
                 Accessible.description: qsTr("When enabled, Edit Atlas stores only the paths of opened files.")
-                onTriggered: {
+                Accessible.onPressAction: {
+                    applicationShell.rememberRecentFiles =
+                        !applicationShell.rememberRecentFiles
+                }
+                onToggled: {
                     applicationShell.rememberRecentFiles = checked
                 }
             }
@@ -610,6 +617,11 @@ ApplicationWindow {
             qsTr("Excel workbook (*.xlsx)"),
             qsTr("All files (*)")
         ]
+        // Edit Atlas owns replacement confirmation through
+        // replaceSpreadsheetDialog, which also authorizes the export
+        // service to overwrite. Letting the dialog confirm as well asks
+        // twice and hides the application's own prompt.
+        options: FileDialog.DontConfirmOverwrite
         objectName: "spreadsheetSaveFileDialog"
         parentWindow: window
         popupType: Popup.Item
@@ -726,7 +738,12 @@ ApplicationWindow {
         objectName: "spreadsheetOptionsDialog"
         workflow: applicationShell.spreadsheetExport
         onDestinationRequested: suggestedDestination => {
-            spreadsheetSaveDialog.selectedFile = suggestedDestination
+            spreadsheetSaveDialog.currentFolder =
+                window.suggestedFolderUrl(suggestedDestination)
+            if (applicationShell.spreadsheetExport.DestinationExists(
+                    suggestedDestination)) {
+                spreadsheetSaveDialog.selectedFile = suggestedDestination
+            }
             Qt.callLater(() => spreadsheetSaveDialog.open())
         }
         onVideoSelectionRequested: suggestedFolder => {
@@ -741,8 +758,15 @@ ApplicationWindow {
         objectName: "supportBundleDisclosureDialog"
         workflow: applicationShell.supportBundle
         onDestinationRequested: suggestedDestination => {
+            const properties = {
+                "currentFolder": window.suggestedFolderUrl(suggestedDestination)
+            }
+            if (applicationShell.supportBundle.DestinationExists(
+                    suggestedDestination)) {
+                properties["selectedFile"] = suggestedDestination
+            }
             const dialog = supportBundleSaveDialogComponent.createObject(
-                    window, {"selectedFile": suggestedDestination})
+                    window, properties)
             window.supportBundleSaveDialog = dialog
             dialog.open()
         }

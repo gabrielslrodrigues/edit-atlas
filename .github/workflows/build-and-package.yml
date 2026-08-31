@@ -107,15 +107,66 @@ jobs:
             /usr/share/dotnet
           df --human-readable /
 
+      - name: Prepare apt archive cache directory
+        if: runner.os == 'Linux'
+        run: sudo chown "$(id -un)" /var/cache/apt/archives
+
+      - name: Restore Ubuntu apt archive cache
+        if: runner.os == 'Linux'
+        id: apt-archive-cache
+        uses: actions/cache/restore@v6
+        with:
+          path: /var/cache/apt/archives
+          key: >-
+            apt-archives-v1-${{ matrix.os }}-${{
+              hashFiles('scripts/ci/install-ubuntu-dependencies.sh') }}
+
       - name: Install Ubuntu host dependencies
         if: runner.os == 'Linux'
+        timeout-minutes: 45
         run: ./scripts/ci/install-ubuntu-dependencies.sh
+
+      - name: Prepare apt archive cache for save
+        if: >-
+          runner.os == 'Linux' &&
+          steps.apt-archive-cache.outputs.cache-hit != 'true'
+        run: |
+          sudo rm -f /var/cache/apt/archives/lock
+          sudo rm -rf /var/cache/apt/archives/partial
+
+      - name: Save Ubuntu apt archive cache
+        if: >-
+          runner.os == 'Linux' &&
+          steps.apt-archive-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v6
+        with:
+          path: /var/cache/apt/archives
+          key: ${{ steps.apt-archive-cache.outputs.cache-primary-key }}
+
+      - name: Restore Homebrew download cache
+        if: runner.os == 'macOS'
+        id: brew-cache
+        uses: actions/cache/restore@v6
+        with:
+          path: ~/Library/Caches/Homebrew
+          key: >-
+            brew-v1-${{ matrix.os }}-${{
+              hashFiles('scripts/ci/install-macos-dependencies.sh') }}
 
       - name: Install macOS host dependencies
         if: runner.os == 'macOS'
         env:
           HOMEBREW_NO_AUTO_UPDATE: 1
         run: ./scripts/ci/install-macos-dependencies.sh
+
+      - name: Save Homebrew download cache
+        if: >-
+          runner.os == 'macOS' &&
+          steps.brew-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v6
+        with:
+          path: ~/Library/Caches/Homebrew
+          key: ${{ steps.brew-cache.outputs.cache-primary-key }}
 
       - name: Install CMake and Ninja
         uses: lukka/get-cmake@v4.4.0
