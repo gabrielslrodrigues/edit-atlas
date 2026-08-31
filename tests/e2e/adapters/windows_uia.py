@@ -379,19 +379,24 @@ class WindowsApplicationSession:
             self._accept_native_overwrite_confirmation()
 
     def _accept_native_overwrite_confirmation(self) -> None:
-        """Accept the shell's overwrite prompt before the app confirms it.
+        """Accept the shell's overwrite prompt when Windows raises one.
 
-        Windows inserts its own ``Confirm Save As`` dialog when an existing
-        path is entered. Edit Atlas deliberately presents a second,
-        application-owned replacement dialog, so E2E must pass through the
-        shell prompt to exercise that application contract.
+        The packaged dialogs are declared with ``popupType: Popup.Item``, so
+        they render in-scene and Windows adds no ``Confirm Save As`` window
+        of its own; the application-owned replacement dialog is then the
+        only confirmation. Pass through the shell prompt when a build does
+        raise one, and continue when it does not, rather than requiring a
+        window the frontend never creates.
         """
-        confirmation = wait_until(
-            self._current_native_overwrite_confirmation,
-            lambda value: value is not None,
-            timeout=self._timeout,
-            description="native overwrite confirmation to appear",
-        )
+        try:
+            confirmation = wait_until(
+                self._current_native_overwrite_confirmation,
+                lambda value: value is not None,
+                timeout=min(2.0, self._timeout),
+                description="native overwrite confirmation to appear",
+            )
+        except PollTimeoutError:
+            return
         yes = wait_until(
             lambda: self._find_win32_button(
                 confirmation, ("Yes", "&Yes", "Sim", "&Sim")
