@@ -12,7 +12,20 @@ set(CPACK_PACKAGE_INSTALL_DIRECTORY "Edit Atlas")
 set(CPACK_PACKAGE_CHECKSUM "SHA256")
 set(CPACK_RESOURCE_FILE_LICENSE "${PROJECT_SOURCE_DIR}/LICENSE")
 set(CPACK_RESOURCE_FILE_README "${PROJECT_SOURCE_DIR}/README.md")
-set(CPACK_COMPONENTS_ALL Runtime)
+if(NOT EDIT_ATLAS_BUILD_PACKAGING_APPLICATIONS)
+    set(edit_atlas_default_package_component DefaultFrontendRuntime)
+elseif(EDIT_ATLAS_DEFAULT_FRONTEND STREQUAL "quick")
+    set(edit_atlas_default_package_component QuickRuntime)
+else()
+    set(edit_atlas_default_package_component WidgetsRuntime)
+endif()
+# Keep native installers monolithic while selecting exactly one graphical
+# application plus the files shared by every distribution.
+set(
+    CPACK_INSTALL_CMAKE_PROJECTS
+    "${PROJECT_BINARY_DIR};${PROJECT_NAME};${edit_atlas_default_package_component};/"
+    "${PROJECT_BINARY_DIR};${PROJECT_NAME};Runtime;/"
+)
 set(CPACK_THREADS 0)
 set(CPACK_VERBATIM_VARIABLES ON)
 
@@ -47,7 +60,7 @@ if(WIN32)
         "01BB5D14-C875-4EC5-9F30-1E31C2791DC7"
     )
     set(CPACK_WIX_PRODUCT_ICON
-        "${PROJECT_SOURCE_DIR}/src/app/resources/icons/edit_atlas.ico"
+        "${PROJECT_SOURCE_DIR}/src/frontends/resources/icons/edit_atlas.ico"
     )
     set(CPACK_WIX_UI_REF "WixUI_InstallDir")
     set(CPACK_WIX_PROGRAM_MENU_FOLDER "Edit Atlas")
@@ -102,3 +115,12 @@ else()
 endif()
 
 include(CPack)
+
+foreach(edit_atlas_frontend IN ITEMS Widgets Quick)
+    set(edit_atlas_package_component "${edit_atlas_frontend}Runtime")
+    configure_file(
+        "${CMAKE_CURRENT_LIST_DIR}/EditAtlasFrontendCPackConfig.cmake.in"
+        "${PROJECT_BINARY_DIR}/CPack${edit_atlas_frontend}Config.cmake"
+        @ONLY
+    )
+endforeach()

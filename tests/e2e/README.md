@@ -20,6 +20,12 @@ under `build/`.
 
 Only `conftest.py` and files under `tests/` may import pytest.
 
+The semantic GUI façade supports both graphical frontends through their shared
+nonlocalized accessibility contract. Where Widgets and Qt Quick necessarily
+present a control differently, such as shared projection movement buttons
+versus per-row actions, the façade resolves the available identifier before
+performing the same user operation. Test scenarios remain frontend-neutral.
+
 ## Running packaged tests
 
 The entry points use uv and the committed lockfile to create a pinned Python
@@ -69,8 +75,9 @@ retained for inspection.
 
 The required Linux suite drives the installed GUI with dogtail over AT-SPI in
 an X11 and D-Bus session. It uses semantic accessibility identifiers, actions,
-selection, and editable-text interfaces only. It never uses pointer
-coordinates, image matching, or fixed sleeps.
+selection, and editable-text interfaces. Where Qt Quick exposes only focus
+actions, it sends pointer input at accessibility-reported bounds. It never uses
+fixed coordinates, image matching, or fixed sleeps.
 
 On Ubuntu 24.04, install the native accessibility and Python build
 dependencies used by the pinned PyGObject package:

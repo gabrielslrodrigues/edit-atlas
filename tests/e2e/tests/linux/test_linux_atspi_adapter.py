@@ -7,6 +7,7 @@ import pytest
 
 from adapters.linux_atspi import (
     ActionNotSupportedError,
+    ElementNotFoundError,
     LinuxApplicationSession,
 )
 from application.polling import wait_until
@@ -82,6 +83,32 @@ class AccessibilityNode:
         self.showing = True
 
 
+class ClosingCheckableNode(SuccessfulActionNode):
+    def __init__(self) -> None:
+        super().__init__("Remember recent files", "Press")
+        self.checked = False
+
+    def do_action_named(self, action: str) -> bool:
+        assert action in self.actions
+        self.showing = False
+        self.invoked.set()
+        return True
+
+
+class MultiActionCheckBoxNode:
+    actions = {"Press": 0, "Toggle": 1}
+    name = "Match case"
+    showing = True
+    checked = False
+    invoked_action = ""
+
+    def do_action_named(self, action: str) -> bool:
+        self.invoked_action = action
+        if action == "Toggle":
+            self.checked = not self.checked
+        return True
+
+
 class UnexpectedTraversalNode:
     accessible_id = "mainWindow"
     showing = True
@@ -109,10 +136,10 @@ class PopupNode:
 
 
 class MenuActionNode:
-    actions = {"ShowMenu": 0}
     name = "File"
 
-    def __init__(self, popup: PopupNode) -> None:
+    def __init__(self, popup: PopupNode, *, action: str = "ShowMenu") -> None:
+        self.actions = {action: 0}
         self.children = (popup,)
         self.invocations = 0
         self.popup = popup
@@ -166,10 +193,52 @@ class ValueComboBoxNode:
         return ("Accessible", "Value")
 
 
+class BoundsComboBoxNode:
+    role_name = "combo box"
+    name = "23.976 fps"
+    position = (200, 300)
+    size = (100, 40)
+
+    @staticmethod
+    def get_interfaces() -> tuple[str, ...]:
+        return ("Accessible",)
+
+
+class BoundsComboOptionNode:
+    role_name = "list item"
+    name = "24 fps"
+    position = (200, 380)
+    size = (100, 40)
+    selected = False
+
+
+class FileEntry:
+    position = (100, 200)
+    size = (60, 40)
+
+
+class RecordingKeyboardSender:
+    def __init__(self) -> None:
+        self.presses: list[str] = []
+
+    def __call__(self, key: str) -> None:
+        self.presses.append(key)
+
+
+class RecordingPointerClick:
+    def __init__(self) -> None:
+        self.positions: list[tuple[int, int]] = []
+
+    def __call__(self, x: int, y: int) -> None:
+        self.positions.append((x, y))
+
+
 def application_session(artifact_directory: Path) -> LinuxApplicationSession:
     return LinuxApplicationSession(
         tree=None,
         atspi=None,
+        keyboard_sender=RecordingKeyboardSender(),
+        pointer_click=RecordingPointerClick(),
         registry=None,
         process=None,
         artifact_directory=artifact_directory,
@@ -201,6 +270,35 @@ def test_identifier_lookup_skips_timeline_table_descendants(
     assert session._find_identifier(application, "progressDialog") is dialog
 
 
+def test_event_column_items_follow_model_indices_when_rows_are_virtualized(
+    tmp_path: Path,
+) -> None:
+    session = application_session(tmp_path)
+    controls = (
+        AccessibilityNode("eventColumn2CheckBox", name="Comments"),
+        AccessibilityNode("eventColumn0CheckBox", name="Event"),
+        AccessibilityNode("eventColumn1CheckBox", name="Duration"),
+    )
+    event_columns = AccessibilityNode("eventColumnsList", controls)
+    session.element = lambda identifier: event_columns
+
+    assert session.list_items("eventColumnsList") == [
+        "Event",
+        "Duration",
+        "Comments",
+    ]
+
+
+def test_accessibility_walk_has_a_bounded_depth(tmp_path: Path) -> None:
+    session = application_session(tmp_path)
+    node = AccessibilityNode("recursive")
+    node.children = (node,)
+
+    walked = list(session._walk(node))
+
+    assert len(walked) == session._MAX_ACCESSIBILITY_DEPTH + 1
+
+
 def test_named_lookup_prioritizes_dialogs_and_skips_timeline_rows(
     tmp_path: Path,
 ) -> None:
@@ -214,6 +312,301 @@ def test_named_lookup_prioritizes_dialogs_and_skips_timeline_rows(
     session._application = application
 
     assert session._find_named(application, ("Cancel",)) is dialog_action
+
+
+def test_file_dialog_lookup_accepts_qt_fallback_identifier(
+    tmp_path: Path,
+) -> None:
+    session = application_session(tmp_path)
+    session._process = RunningProcess()
+    dialog = AccessibilityNode(
+        "QGuiApplication.mainWindow.FileDialog",
+        (AccessibilityNode("fileNameTextField"),),
+        name="Open Timeline",
+        role_name="dialog",
+    )
+    session._application = AccessibilityNode("application", (dialog,))
+
+    assert session._file_dialog("timelineOpenFileDialog") is dialog
+
+
+def test_native_file_dialog_keeps_direct_path_entry(tmp_path: Path) -> None:
+    session = application_session(tmp_path)
+    dialog = AccessibilityNode("timelineOpenFileDialog", role_name="dialog")
+    completed: list[tuple[object, str, str]] = []
+    session._file_dialog = lambda identifier: dialog
+    session._find_identifier = lambda *args, **kwargs: None
+    session._complete_native_file_dialog = (
+        lambda found_dialog, identifier, path: completed.append(
+            (found_dialog, identifier, path)
+        )
+    )
+
+    timeline = tmp_path / "timeline.edl"
+    session.open_file_dialog("timelineOpenFileDialog", timeline)
+
+    assert completed == [
+        (dialog, "timelineOpenFileDialog", str(timeline))
+    ]
+
+
+def test_quick_file_dialog_starts_from_visible_descendant() -> None:
+    session = application_session(Path("/tmp"))
+    session._process = RunningProcess()
+    dialog = AccessibilityNode("quickFileDialog", role_name="dialog")
+    operations: list[tuple[str, str]] = []
+    visible_entries = {"tests"}
+    selected: list[str] = []
+
+    def find_named(root, names, **kwargs):
+        name = next(iter(names))
+        return object() if name in visible_entries else None
+
+    class Entry:
+        showing = True
+
+    def activate(entry, name: str) -> None:
+        operations.append(("activate", name))
+        selected[:] = [name]
+
+    def accept(found_dialog) -> None:
+        operations.append(("accept", ""))
+        name = selected.pop()
+        visible_entries.discard(name)
+        if name == "tests":
+            visible_entries.add("fixtures")
+
+    session._find_named = find_named
+    session._file_dialog_entry = lambda found_dialog, name: Entry()
+    session._activate_file_dialog_entry = activate
+    session._file_dialog_accept_button = lambda found_dialog: type(
+        "Button", (), {"sensitive": True}
+    )()
+    session._activate_file_dialog_accept = accept
+
+    session._navigate_file_dialog(
+        dialog,
+        Path("/home/runner/work/edit-atlas/edit-atlas/tests/fixtures"),
+    )
+
+    assert operations == [
+        ("activate", "tests"),
+        ("accept", ""),
+        ("activate", "fixtures"),
+        ("accept", ""),
+    ]
+
+
+def test_quick_file_dialog_uses_deepest_shared_breadcrumb() -> None:
+    session = application_session(Path("/tmp"))
+    session._process = RunningProcess()
+    dialog = AccessibilityNode("quickFileDialog", role_name="dialog")
+    breadcrumb = SuccessfulActionNode("edit-atlas", "Press")
+    breadcrumb.position = (100, 200)
+    breadcrumb.size = (80, 40)
+    operations: list[tuple[str, str]] = []
+    visible_entries: set[str] = set()
+    selected: list[str] = []
+
+    def find_named(root, names, *, roles, showing_only=True):
+        name = next(iter(names))
+        if "button" in roles and name == "edit-atlas":
+            return breadcrumb
+        return object() if name in visible_entries else None
+
+    class Entry:
+        showing = True
+
+    def activate(entry, name: str) -> None:
+        operations.append(("activate", name))
+        selected[:] = [name]
+
+    def accept(found_dialog) -> None:
+        operations.append(("accept", ""))
+        name = selected.pop()
+        visible_entries.discard(name)
+        if name == "build":
+            visible_entries.add("e2e")
+        elif name == "e2e":
+            visible_entries.add("output")
+
+    session._find_named = find_named
+    session._pointer_click = lambda x, y: visible_entries.add("build")
+    session._file_dialog_entry = lambda found_dialog, name: Entry()
+    session._activate_file_dialog_entry = activate
+    session._file_dialog_accept_button = lambda found_dialog: type(
+        "Button", (), {"sensitive": True}
+    )()
+    session._activate_file_dialog_accept = accept
+
+    session._navigate_file_dialog(
+        dialog,
+        Path("/home/gabriel/projects/edit-atlas/build/e2e/output"),
+    )
+
+    assert operations == [
+        ("activate", "build"),
+        ("accept", ""),
+        ("activate", "e2e"),
+        ("accept", ""),
+        ("activate", "output"),
+        ("accept", ""),
+    ]
+
+
+def test_quick_file_dialog_enters_a_repeated_path_component() -> None:
+    """The runner checkout lives at .../edit-atlas/edit-atlas.
+
+    Entering the first component leaves a row of the same name in the new
+    listing, so confirmation cannot depend on that row disappearing. The
+    accept button going insensitive again is what settles it.
+    """
+    session = application_session(Path("/tmp"))
+    session._process = RunningProcess()
+    dialog = AccessibilityNode("quickFileDialog", role_name="dialog")
+    operations: list[str] = []
+    accepted: list[str] = []
+    # Selecting a row enables accept; entering the folder clears it.
+    sensitive = [False]
+
+    class Entry:
+        showing = True
+
+    class AcceptButton:
+        @property
+        def sensitive(self) -> bool:
+            return sensitive[0]
+
+    def activate(entry, name: str) -> None:
+        operations.append(name)
+        sensitive[0] = True
+
+    def accept(found_dialog) -> None:
+        accepted.append("accept")
+        sensitive[0] = False
+
+    # The clicked row never disappears: both folders list one edit-atlas,
+    # which is also what makes /home/runner/work the starting folder.
+    def find_named(root, names, **kwargs):
+        return object() if next(iter(names)) == "edit-atlas" else None
+
+    session._find_named = find_named
+    session._file_dialog_entry = lambda found_dialog, name: Entry()
+    session._activate_file_dialog_entry = activate
+    session._file_dialog_accept_button = lambda found_dialog: AcceptButton()
+    session._activate_file_dialog_accept = accept
+
+    session._navigate_file_dialog(
+        dialog, Path("/home/runner/work/edit-atlas/edit-atlas")
+    )
+
+    assert operations == ["edit-atlas", "edit-atlas"]
+    assert accepted == ["accept", "accept"]
+
+
+def test_quick_file_dialog_falls_back_when_no_path_field_exists(
+    tmp_path: Path,
+) -> None:
+    session = application_session(tmp_path)
+    session._process = RunningProcess()
+    dialog = AccessibilityNode("quickFileDialog", role_name="dialog")
+
+    with pytest.raises(ElementNotFoundError):
+        session._navigate_file_dialog(dialog, tmp_path)
+
+
+def test_quick_open_dialog_navigates_and_selects_existing_file(
+    tmp_path: Path,
+) -> None:
+    session = application_session(tmp_path)
+    dialog = AccessibilityNode("quickFileDialog", role_name="dialog")
+    editor = AccessibilityNode("fileNameTextField")
+    button = AccessibilityNode("openButton", name="Open")
+    file_entry = AccessibilityNode("timelineEntry", name="timeline.edl")
+    operations: list[tuple[str, object]] = []
+    session._file_dialog = lambda identifier: dialog
+    session._find_identifier = lambda *args, **kwargs: editor
+    session._file_dialog_accept_button = lambda found_dialog: button
+    session._navigate_file_dialog = (
+        lambda found_dialog, directory: operations.append(
+            ("navigate", directory)
+        )
+    )
+    session._file_dialog_entry = (
+        lambda found_dialog, name: file_entry
+    )
+    session._activate_file_dialog_entry = (
+        lambda entry, name: operations.append(("activate", name))
+    )
+    session._activate_file_dialog_accept = (
+        lambda found_dialog: operations.append(("accept", found_dialog))
+    )
+    session._wait_file_dialog_closed = (
+        lambda found_dialog, identifier: operations.append(
+            ("close", identifier)
+        )
+    )
+
+    timeline = tmp_path / "timeline.edl"
+    session.open_file_dialog("timelineOpenFileDialog", timeline)
+
+    assert operations == [
+        ("navigate", tmp_path),
+        ("activate", "timeline.edl"),
+        ("accept", dialog),
+        ("close", "timelineOpenFileDialog"),
+    ]
+
+
+def test_quick_file_entry_uses_accessible_bounds(
+    tmp_path: Path,
+) -> None:
+    session = application_session(tmp_path)
+    session._process = RunningProcess()
+    entry = FileEntry()
+
+    session._activate_file_dialog_entry(entry, "timeline.edl")
+
+    assert session._pointer_click.positions == [(130, 220)]
+    assert session._keyboard_sender.presses == []
+
+
+def test_focus_claims_keyboard_focus_via_set_focus_action(
+    tmp_path: Path,
+) -> None:
+    session = application_session(tmp_path)
+    node = SuccessfulActionNode("Comments", "SetFocus")
+    session.element = lambda identifier, *, showing=True: node
+
+    session.focus("eventColumn12MoveUpButton")
+
+    assert node.selected
+    assert node.invoked.is_set()
+
+
+def test_checkable_menu_action_can_close_before_state_is_observed(
+    tmp_path: Path,
+) -> None:
+    session = application_session(tmp_path)
+    session._process = RunningProcess()
+    node = ClosingCheckableNode()
+    session.element = lambda identifier: node
+
+    session.set_checked("rememberRecentFilesAction", True)
+
+    assert node.invoked.wait(1.0)
+
+
+def test_checkbox_prefers_toggle_over_press(tmp_path: Path) -> None:
+    session = application_session(tmp_path)
+    session._process = RunningProcess()
+    node = MultiActionCheckBoxNode()
+    session.element = lambda identifier: node
+
+    session.set_checked("filterCondition0MatchCase", True)
+
+    assert node.invoked_action == "Toggle"
+    assert node.checked
 
 
 @pytest.mark.parametrize("action", ["Press", "ShowMenu"])
@@ -281,6 +674,39 @@ def test_show_menu_waits_for_open_state_and_does_not_toggle_an_open_menu(
     assert menu.invocations == 1
 
 
+def test_press_action_on_a_menu_bar_item_also_waits_for_its_popup(
+    tmp_path: Path,
+) -> None:
+    session = application_session(tmp_path)
+    session._process = RunningProcess()
+    popup = PopupNode(showing=False)
+    menu = MenuActionNode(popup, action="Press")
+
+    session._activate_node(menu)
+
+    assert popup.showing
+    assert menu.invocations == 1
+
+
+def test_menu_action_skips_reclicking_an_already_open_menu(
+    tmp_path: Path,
+) -> None:
+    session = application_session(tmp_path)
+    session._process = RunningProcess()
+    menu = SuccessfulActionNode("File", "Press")
+    action = SuccessfulActionNode("Open", "Press")
+    nodes = {"fileMenu": menu, "openDocumentAction": action}
+    session.element = lambda identifier, *, showing=True: nodes[identifier]
+    session.has_element = (
+        lambda identifier, *, showing=True: identifier == "openDocumentAction"
+    )
+
+    session.activate_menu_action("fileMenu", "openDocumentAction")
+
+    assert not menu.invoked.is_set()
+    assert action.invoked.is_set()
+
+
 def test_selecting_the_current_option_is_idempotent(tmp_path: Path) -> None:
     session = application_session(tmp_path)
     control = SuccessfulActionNode("24 fps", "ShowMenu")
@@ -289,6 +715,20 @@ def test_selecting_the_current_option_is_idempotent(tmp_path: Path) -> None:
     session.select_option("frameRateSelector", "24 fps")
 
     assert not control.invoked.is_set()
+
+
+def test_combo_selected_option_uses_visible_child_label(tmp_path: Path) -> None:
+    session = application_session(tmp_path)
+    label = AccessibilityNode("comboLabel", name="B-roll", role_name="label")
+    control = AccessibilityNode(
+        "templateSelector",
+        (label,),
+        name="Saved template",
+        role_name="combo box",
+    )
+    session.element = lambda identifier: control
+
+    assert session.selected_option("templateSelector") == "B-roll"
 
 
 def test_combo_option_selection_uses_accessible_value(tmp_path: Path) -> None:
@@ -301,6 +741,30 @@ def test_combo_option_selection_uses_accessible_value(tmp_path: Path) -> None:
 
     assert control.value == 1.0
     assert control.name == "Reel"
+
+
+def test_combo_without_value_interface_uses_accessible_bounds(
+    tmp_path: Path,
+) -> None:
+    session = application_session(tmp_path)
+    session._process = RunningProcess()
+    control = BoundsComboBoxNode()
+    option = BoundsComboOptionNode()
+    positions: list[tuple[int, int]] = []
+
+    def pointer_click(x: int, y: int) -> None:
+        positions.append((x, y))
+        if (x, y) == (250, 400):
+            option.selected = True
+            control.name = option.name
+
+    session._pointer_click = pointer_click
+    session.element = lambda identifier: control
+    session._find_named = lambda *args, **kwargs: option
+
+    session.select_option("frameRateSelector", "24 fps")
+
+    assert positions == [(250, 320), (250, 400)]
 
 
 def test_option_selection_does_not_wait_for_qt_to_hide_the_option_node(

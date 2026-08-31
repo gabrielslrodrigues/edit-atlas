@@ -1,0 +1,366 @@
+name: Packaged E2E
+
+on:
+  workflow_call:
+    inputs:
+      frontend:
+        description: Packaged graphical frontend to exercise; defaults to production
+        required: false
+        default: quick
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  linux:
+    name: Linux / Production frontend
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v7.0.1
+
+      - name: Install desktop automation dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install \
+            --yes \
+            --no-install-recommends \
+            at-spi2-core \
+            build-essential \
+            dbus-x11 \
+            gir1.2-atspi-2.0 \
+            gir1.2-gtk-3.0 \
+            libcairo2-dev \
+            libgirepository1.0-dev \
+            locales \
+            pkg-config \
+            python3-dev \
+            x11-apps \
+            xauth \
+            xvfb
+          sudo locale-gen pt_BR.UTF-8
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
+        with:
+          version: 0.12.3
+
+      - name: Download Linux package
+        uses: actions/download-artifact@v8
+        with:
+          name: ${{ inputs.frontend }}-frontend-x64-linux-packages
+          path: build/packages/${{ inputs.frontend }}/x64-linux
+
+      - name: Download rendered-video E2E fixtures
+        uses: actions/download-artifact@v8
+        with:
+          name: edit-atlas-e2e-media-fixtures
+          path: build/e2e/media-fixtures
+
+      - name: Install generated DEB
+        shell: bash
+        env:
+          EDIT_ATLAS_FRONTEND: ${{ inputs.frontend }}
+        run: |
+          package_directory="${GITHUB_WORKSPACE}/build/packages"
+          package_directory+="/${EDIT_ATLAS_FRONTEND}/x64-linux"
+          mapfile -t packages < <(
+            find "$package_directory" -type f -name '*.deb'
+          )
+          if [[ "${#packages[@]}" -ne 1 ]]; then
+            echo "Expected exactly one DEB, found ${#packages[@]}" >&2
+            exit 1
+          fi
+          sudo apt-get install --yes "${packages[0]}"
+
+      - name: Configure Linux crash dumps
+        shell: bash
+        run: |
+          dump_directory="${GITHUB_WORKSPACE}/build/e2e/crash-dumps"
+          mkdir -p "$dump_directory"
+          cat /proc/sys/kernel/core_pattern >build/e2e/original-core-pattern
+          sudo sysctl -w \
+            "kernel.core_pattern=${dump_directory}/core.%e.%p.%t"
+
+      - name: Run packaged CLI and desktop E2E tests
+        shell: bash
+        env:
+          GSETTINGS_BACKEND: memory
+        run: |
+          ulimit -c unlimited
+          dbus-run-session -- \
+            xvfb-run \
+            --auto-servernum \
+            --server-args="-screen 0 1440x1000x24 -nolisten tcp" \
+            tests/e2e/run-linux.sh \
+            --app /usr/bin/edit-atlas \
+            --cli /usr/bin/edit-atlas-cli
+
+      - name: Upload Linux E2E reports and artifacts
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: linux-packaged-e2e-results-${{ inputs.frontend }}
+          path: |
+            build/e2e/reports
+            build/e2e/artifacts
+            build/e2e/crash-dumps
+            build/e2e/output
+          if-no-files-found: ignore
+          retention-days: 7
+
+      - name: Remove installed package
+        if: always()
+        run: |
+          if [[ -f build/e2e/original-core-pattern ]]; then
+            sudo sysctl -w \
+              "kernel.core_pattern=$(<build/e2e/original-core-pattern)"
+          fi
+          if dpkg-query --show edit-atlas >/dev/null 2>&1; then
+            sudo apt-get remove --yes edit-atlas
+          fi
+
+  macos:
+    # GitHub-hosted macOS runners cannot grant Accessibility permission to the
+    # test process non-interactively. Keep the implementation visible until a
+    # pre-authorized interactive runner is available.
+    name: macOS / Production frontend (experimental, disabled)
+    if: false
+    continue-on-error: true
+    runs-on: macos-15
+    timeout-minutes: 30
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v7.0.1
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
+        with:
+          version: 0.12.3
+
+      - name: Download macOS package
+        uses: actions/download-artifact@v8
+        with:
+          name: ${{ inputs.frontend }}-frontend-universal-osx-packages
+          path: build/packages/${{ inputs.frontend }}/universal-osx
+
+      - name: Download rendered-video E2E fixtures
+        uses: actions/download-artifact@v8
+        with:
+          name: edit-atlas-e2e-media-fixtures
+          path: build/e2e/media-fixtures
+
+      - name: Install generated PKG
+        env:
+          EDIT_ATLAS_FRONTEND: ${{ inputs.frontend }}
+        run: |
+          package_directory="build/packages"
+          package_directory+="/${EDIT_ATLAS_FRONTEND}/universal-osx"
+          packages=()
+          while IFS= read -r package; do
+            packages+=("${package}")
+          done < <(find "$package_directory" -type f -name '*.pkg')
+          if [[ "${#packages[@]}" -ne 1 ]]; then
+            echo "Expected exactly one PKG, found ${#packages[@]}" >&2
+            exit 1
+          fi
+          if [[ -e /Applications/edit-atlas.app ]]; then
+            echo "Package target already exists: /Applications/edit-atlas.app" >&2
+            exit 1
+          fi
+          sudo installer -pkg "${packages[0]}" -target /
+          package_id="$(
+            /usr/libexec/PlistBuddy \
+              -c 'Print :CFBundleIdentifier' \
+              /Applications/edit-atlas.app/Contents/Info.plist
+          )"
+          echo "EDIT_ATLAS_E2E_PACKAGE_ID=${package_id}" >>"${GITHUB_ENV}"
+
+      - name: Mark macOS crash-report window
+        run: |
+          mkdir -p build/e2e/crash-dumps
+          touch build/e2e/crash-report-start
+
+      - name: Run packaged CLI and desktop E2E tests
+        run: |
+          tests/e2e/run-macos.sh \
+            --app /Applications/edit-atlas.app/Contents/MacOS/edit-atlas \
+            --cli /Applications/edit-atlas.app/Contents/MacOS/edit-atlas-cli
+
+      - name: Collect macOS crash reports
+        if: always()
+        run: |
+          ./scripts/ci/collect-macos-crash-reports.sh \
+            build/e2e/crash-report-start \
+            build/e2e/crash-dumps
+
+      - name: Remove installed package and test state
+        if: always()
+        run: |
+          pkill -x edit-atlas || true
+          sudo rm -rf /Applications/edit-atlas.app
+          if [[ -n "${EDIT_ATLAS_E2E_PACKAGE_ID:-}" ]]; then
+            sudo pkgutil --forget "${EDIT_ATLAS_E2E_PACKAGE_ID}" || true
+          fi
+          rm -rf build/e2e/state
+
+      - name: Upload macOS E2E reports and artifacts
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: macos-packaged-e2e-results-${{ inputs.frontend }}
+          path: |
+            build/e2e/reports
+            build/e2e/artifacts
+            build/e2e/crash-dumps
+            build/e2e/output
+          if-no-files-found: ignore
+          retention-days: 7
+
+  windows:
+    name: Windows / Production frontend
+    runs-on: windows-2022
+    timeout-minutes: 30
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v7.0.1
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
+        with:
+          version: 0.12.3
+
+      - name: Download Windows package
+        uses: actions/download-artifact@v8
+        with:
+          name: ${{ inputs.frontend }}-frontend-x64-windows-packages
+          path: build/packages/${{ inputs.frontend }}/x64-windows
+
+      - name: Download rendered-video E2E fixtures
+        uses: actions/download-artifact@v8
+        with:
+          name: edit-atlas-e2e-media-fixtures
+          path: build/e2e/media-fixtures
+
+      - name: Install generated MSI
+        shell: pwsh
+        env:
+          EDIT_ATLAS_FRONTEND: ${{ inputs.frontend }}
+        run: |
+          $packageDirectory = Join-Path `
+            "build/packages" "$env:EDIT_ATLAS_FRONTEND/x64-windows"
+          $packages = @(
+            Get-ChildItem $packageDirectory -Recurse -File -Filter *.msi
+          )
+          if ($packages.Count -ne 1) {
+            throw "Expected exactly one MSI; found $($packages.Count)."
+          }
+          $installer = $packages[0].FullName
+          $installRoot = Join-Path $env:GITHUB_WORKSPACE "build/e2e/install"
+          $installLog = Join-Path $env:GITHUB_WORKSPACE "build/e2e/msi-install.log"
+          New-Item -ItemType Directory -Force (Split-Path $installLog) |
+            Out-Null
+          "EDIT_ATLAS_E2E_MSI=$installer" | Out-File `
+            -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          "EDIT_ATLAS_E2E_INSTALL_ROOT=$installRoot" | Out-File `
+            -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          $process = Start-Process `
+            -FilePath msiexec.exe `
+            -ArgumentList @(
+              "/i", "`"$installer`"", "/qn", "/norestart", "/L*V",
+              "`"$installLog`"", "INSTALL_ROOT=`"$installRoot`""
+            ) `
+            -PassThru `
+            -Wait
+          if ($process.ExitCode -notin @(0, 3010)) {
+            throw "MSI installation failed with exit code $($process.ExitCode)."
+          }
+
+      - name: Configure Windows crash dumps
+        shell: pwsh
+        run: |
+          $dumpDirectory = Join-Path `
+            $env:GITHUB_WORKSPACE "build/e2e/crash-dumps"
+          New-Item -ItemType Directory -Force $dumpDirectory | Out-Null
+          $registryRoot = `
+            "HKCU:\Software\Microsoft\Windows\Windows Error Reporting\LocalDumps"
+          foreach ($executable in @("edit-atlas.exe", "edit-atlas-cli.exe")) {
+            $registryPath = Join-Path $registryRoot $executable
+            New-Item -Path $registryPath -Force | Out-Null
+            New-ItemProperty `
+              -Path $registryPath `
+              -Name DumpFolder `
+              -PropertyType ExpandString `
+              -Value $dumpDirectory `
+              -Force | Out-Null
+            New-ItemProperty `
+              -Path $registryPath `
+              -Name DumpType `
+              -PropertyType DWord `
+              -Value 2 `
+              -Force | Out-Null
+            New-ItemProperty `
+              -Path $registryPath `
+              -Name DumpCount `
+              -PropertyType DWord `
+              -Value 5 `
+              -Force | Out-Null
+          }
+
+      - name: Run packaged CLI and desktop E2E tests
+        shell: pwsh
+        run: |
+          tests/e2e/run-windows.ps1 `
+            -App "$env:EDIT_ATLAS_E2E_INSTALL_ROOT/bin/edit-atlas.exe" `
+            -Cli "$env:EDIT_ATLAS_E2E_INSTALL_ROOT/bin/edit-atlas-cli.exe"
+
+      - name: Remove installed package and test state
+        if: always()
+        shell: pwsh
+        run: |
+          Get-Process -Name edit-atlas -ErrorAction SilentlyContinue |
+            Stop-Process -Force -ErrorAction SilentlyContinue
+          if ($env:EDIT_ATLAS_E2E_MSI) {
+            $uninstallLog = Join-Path `
+              $env:GITHUB_WORKSPACE "build/e2e/msi-uninstall.log"
+            $process = Start-Process `
+              -FilePath msiexec.exe `
+              -ArgumentList @(
+                "/x", "`"$env:EDIT_ATLAS_E2E_MSI`"", "/qn", "/norestart",
+                "/L*V", "`"$uninstallLog`""
+              ) `
+              -PassThru `
+              -Wait
+            if ($process.ExitCode -notin @(0, 3010)) {
+              throw "MSI uninstall failed with exit code $($process.ExitCode)."
+            }
+          }
+          $registryRoot = `
+            "HKCU:\Software\Microsoft\Windows\Windows Error Reporting\LocalDumps"
+          foreach ($executable in @("edit-atlas.exe", "edit-atlas-cli.exe")) {
+            Remove-Item `
+              (Join-Path $registryRoot $executable) `
+              -Recurse `
+              -Force `
+              -ErrorAction SilentlyContinue
+          }
+          Remove-Item build/e2e/state -Recurse -Force -ErrorAction SilentlyContinue
+
+      - name: Upload Windows E2E reports and artifacts
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: windows-packaged-e2e-results-${{ inputs.frontend }}
+          path: |
+            build/e2e/reports
+            build/e2e/artifacts
+            build/e2e/crash-dumps
+            build/e2e/output
+            build/e2e/*.log
+          if-no-files-found: ignore
+          retention-days: 7

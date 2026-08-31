@@ -116,18 +116,15 @@ normalize_dylib_alias() {
   ln -s "$(basename "$versioned_library")" "$compatibility_library"
 }
 
-normalize_dylib_alias \
-  "$frameworks_dir/libQt6Concurrent.6.dylib" \
-  "$frameworks_dir"/libQt6Concurrent.6.*.dylib
-normalize_dylib_alias \
-  "$frameworks_dir/libQt6Core.6.dylib" \
-  "$frameworks_dir"/libQt6Core.6.*.dylib
-normalize_dylib_alias \
-  "$frameworks_dir/libQt6Gui.6.dylib" \
-  "$frameworks_dir"/libQt6Gui.6.*.dylib
-normalize_dylib_alias \
-  "$frameworks_dir/libQt6Widgets.6.dylib" \
-  "$frameworks_dir"/libQt6Widgets.6.*.dylib
+for compatibility_library in "$frameworks_dir"/libQt6*.6.dylib; do
+  if [[ ! -e "$compatibility_library" ]]; then
+    continue
+  fi
+  versioned_library_prefix="${compatibility_library%.6.dylib}"
+  normalize_dylib_alias \
+    "$compatibility_library" \
+    "$versioned_library_prefix".6.*.dylib
+done
 
 codesign --force --deep --sign - "$universal_app"
 

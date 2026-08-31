@@ -1,0 +1,570 @@
+name: Build and Package
+
+on:
+  workflow_call:
+    inputs:
+      artifact_retention_days:
+        description: Retention for transient staged bundles and packages
+        required: false
+        default: 1
+        type: number
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-package:
+    name: Native / ${{ matrix.name }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 180
+    permissions:
+      contents: read
+      packages: write
+    # Serialize publication for each triplet while allowing different
+    # triplets to run concurrently.
+    concurrency:
+      group: vcpkg-cache-${{ matrix.os }}-${{ matrix.triplet }}
+      cancel-in-progress: false
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Linux x64
+            os: ubuntu-24.04
+            source_dir: .
+            triplet: x64-linux
+            debug_preset: debug-x64-linux
+            release_preset: release-x64-linux
+            package_generators: 'TGZ;DEB;RPM'
+            selected_frontend_executable_suffix: edit-atlas
+            widgets_debug_executable_suffix: edit-atlas-widgets
+            quick_debug_executable_suffix: edit-atlas
+            staged_executable_suffix: bin/edit-atlas
+          - name: macOS ARM64
+            os: macos-15
+            source_dir: .
+            triplet: arm64-osx
+            debug_preset: debug-arm64-osx
+            release_preset: release-arm64-osx
+            selected_frontend_executable_suffix: edit-atlas.app/Contents/MacOS/edit-atlas
+            widgets_debug_executable_suffix: edit-atlas-widgets
+            quick_debug_executable_suffix: edit-atlas.app/Contents/MacOS/edit-atlas
+            staged_executable_suffix: edit-atlas.app/Contents/MacOS/edit-atlas
+          - name: macOS x64
+            os: macos-15-intel
+            source_dir: .
+            triplet: x64-osx
+            debug_preset: debug-x64-osx
+            release_preset: release-x64-osx
+            selected_frontend_executable_suffix: edit-atlas.app/Contents/MacOS/edit-atlas
+            widgets_debug_executable_suffix: edit-atlas-widgets
+            quick_debug_executable_suffix: edit-atlas.app/Contents/MacOS/edit-atlas
+            staged_executable_suffix: edit-atlas.app/Contents/MacOS/edit-atlas
+          - name: Windows x64
+            os: windows-2022
+            source_dir: V:/
+            triplet: x64-windows
+            debug_preset: debug-x64-windows
+            release_preset: release-x64-windows
+            package_generators: WIX
+            selected_frontend_executable_suffix: edit-atlas.exe
+            widgets_debug_executable_suffix: edit-atlas-widgets.exe
+            quick_debug_executable_suffix: edit-atlas.exe
+            staged_executable_suffix: bin/edit-atlas.exe
+
+    env:
+      FEED_URL: https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json
+      VCPKG_BINARY_SOURCES: clear;nuget,https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json,readwrite
+      VCPKG_DISABLE_METRICS: 1
+      VCPKG_EXE: ${{ github.workspace }}/vcpkg/vcpkg
+      VCPKG_USERNAME: ${{ github.repository_owner }}
+      X_VCPKG_NUGET_ID_PREFIX: edit-atlas-
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v7.0.1
+        with:
+          submodules: recursive
+
+      - name: Shorten Windows workspace path
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          subst V: "${{ github.workspace }}"
+
+      - name: Free Linux runner disk space
+        if: runner.os == 'Linux'
+        run: |
+          df --human-readable /
+          sudo rm -rf \
+            /opt/ghc \
+            /opt/hostedtoolcache/CodeQL \
+            /usr/local/.ghcup \
+            /usr/local/lib/android \
+            /usr/local/share/boost \
+            /usr/local/share/powershell \
+            /usr/share/dotnet
+          df --human-readable /
+
+      - name: Prepare apt archive cache directory
+        if: runner.os == 'Linux'
+        run: sudo chown "$(id -un)" /var/cache/apt/archives
+
+      - name: Restore Ubuntu apt archive cache
+        if: runner.os == 'Linux'
+        id: apt-archive-cache
+        uses: actions/cache/restore@v6
+        with:
+          path: /var/cache/apt/archives
+          key: >-
+            apt-archives-v1-${{ matrix.os }}-${{
+              hashFiles('scripts/ci/install-ubuntu-dependencies.sh') }}
+
+      - name: Install Ubuntu host dependencies
+        if: runner.os == 'Linux'
+        timeout-minutes: 45
+        run: ./scripts/ci/install-ubuntu-dependencies.sh
+
+      - name: Prepare apt archive cache for save
+        if: >-
+          runner.os == 'Linux' &&
+          steps.apt-archive-cache.outputs.cache-hit != 'true'
+        run: |
+          sudo rm -f /var/cache/apt/archives/lock
+          sudo rm -rf /var/cache/apt/archives/partial
+
+      - name: Save Ubuntu apt archive cache
+        if: >-
+          runner.os == 'Linux' &&
+          steps.apt-archive-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v6
+        with:
+          path: /var/cache/apt/archives
+          key: ${{ steps.apt-archive-cache.outputs.cache-primary-key }}
+
+      - name: Restore Homebrew download cache
+        if: runner.os == 'macOS'
+        id: brew-cache
+        uses: actions/cache/restore@v6
+        with:
+          path: ~/Library/Caches/Homebrew
+          key: >-
+            brew-v1-${{ matrix.os }}-${{
+              hashFiles('scripts/ci/install-macos-dependencies.sh') }}
+
+      - name: Install macOS host dependencies
+        if: runner.os == 'macOS'
+        env:
+          HOMEBREW_NO_AUTO_UPDATE: 1
+        run: ./scripts/ci/install-macos-dependencies.sh
+
+      - name: Save Homebrew download cache
+        if: >-
+          runner.os == 'macOS' &&
+          steps.brew-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v6
+        with:
+          path: ~/Library/Caches/Homebrew
+          key: ${{ steps.brew-cache.outputs.cache-primary-key }}
+
+      - name: Install CMake and Ninja
+        uses: lukka/get-cmake@v4.4.0
+
+      - name: Configure MSVC
+        if: runner.os == 'Windows'
+        uses: ilammy/msvc-dev-cmd@v1.13.0
+        with:
+          arch: x64
+          vsversion: 2022
+
+      - name: Bootstrap vcpkg
+        if: runner.os != 'Windows'
+        run: ./vcpkg/bootstrap-vcpkg.sh -disableMetrics
+
+      - name: Bootstrap vcpkg
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: .\vcpkg\bootstrap-vcpkg.bat -disableMetrics
+
+      - name: Configure GitHub Packages NuGet source
+        if: runner.os == 'Windows'
+        shell: pwsh
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          $nuget = (& $env:VCPKG_EXE fetch nuget | Select-Object -Last 1).Trim()
+          & $nuget sources add `
+            -Source $env:FEED_URL `
+            -StorePasswordInClearText `
+            -Name GitHubPackages `
+            -UserName $env:VCPKG_USERNAME `
+            -Password $env:GITHUB_TOKEN
+          & $nuget setapikey $env:GITHUB_TOKEN -Source $env:FEED_URL
+
+      - name: Configure GitHub Packages NuGet source
+        if: runner.os != 'Windows'
+        shell: bash
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          nuget_path="$("$VCPKG_EXE" fetch nuget | tail -n 1)"
+          mono "$nuget_path" sources add \
+            -Source "$FEED_URL" \
+            -StorePasswordInClearText \
+            -Name GitHubPackages \
+            -UserName "$VCPKG_USERNAME" \
+            -Password "$GITHUB_TOKEN"
+          mono "$nuget_path" setapikey "$GITHUB_TOKEN" -Source "$FEED_URL"
+
+      # The shared Debug build exercises both graphical frontends and the CLI.
+      - name: Configure Debug
+        id: configure
+        run: >-
+          cmake -S "${{ matrix.source_dir }}"
+          --preset ${{ matrix.debug_preset }}
+
+      - name: Report vcpkg binary package activity
+        if: always()
+        shell: pwsh
+        run: >-
+          ./scripts/ci/report-vcpkg-install.ps1
+          -BuildDirectory "${{ github.workspace }}/build/${{ matrix.debug_preset }}"
+
+      - name: Clean vcpkg temporary directories
+        run: |
+          cmake -E remove_directory "${{ github.workspace }}/vcpkg/buildtrees"
+          cmake -E remove_directory "${{ github.workspace }}/vcpkg/downloads"
+          cmake -E remove_directory "${{ github.workspace }}/vcpkg/packages"
+
+      - name: Build Debug
+        run: cmake --build --preset ${{ matrix.debug_preset }}
+
+      - name: Lint Qt Quick QML
+        if: runner.os == 'Linux'
+        run: >-
+          cmake --build --preset ${{ matrix.debug_preset }}
+          --target all_qmllint
+
+      - name: Verify Widgets Debug Qt linkage
+        run: >-
+          cmake
+          "-DEDIT_ATLAS_EXECUTABLE=${{ github.workspace }}/build/${{ matrix.debug_preset }}/src/frontends/widgets/${{ matrix.widgets_debug_executable_suffix }}"
+          -DEDIT_ATLAS_EXPECTED_FRONTEND=widgets
+          -P cmake/VerifyDynamicQtBinary.cmake
+
+      - name: Verify Quick Debug Qt linkage
+        run: >-
+          cmake
+          "-DEDIT_ATLAS_EXECUTABLE=${{ github.workspace }}/build/${{ matrix.debug_preset }}/src/frontends/quick/${{ matrix.quick_debug_executable_suffix }}"
+          -DEDIT_ATLAS_EXPECTED_FRONTEND=quick
+          -P cmake/VerifyDynamicQtBinary.cmake
+
+      - name: Test Debug
+        run: ctest --preset ${{ matrix.debug_preset }}
+
+      - name: Restore rendered-video E2E fixture cache
+        if: runner.os == 'Linux'
+        id: rendered-video-fixture-cache
+        uses: actions/cache/restore@v6
+        with:
+          path: build/e2e-media-fixtures
+          key: >-
+            rendered-video-e2e-v1-${{ hashFiles(
+              'tests/integration/media/e2e_fixture_generator.cpp',
+              'tests/integration/media/media_fixture.cpp',
+              'tests/integration/media/include/edit_atlas/test/media_fixture.hpp',
+              'vcpkg.json'
+            ) }}
+
+      - name: Prepare rendered-video E2E fixtures
+        if: >-
+          runner.os == 'Linux' &&
+          steps.rendered-video-fixture-cache.outputs.cache-hit != 'true'
+        run: >-
+          build/${{ matrix.debug_preset }}/tests/integration/media/edit_atlas_e2e_media_fixture_generator
+          build/e2e-media-fixtures
+
+      - name: Save rendered-video E2E fixture cache
+        if: >-
+          runner.os == 'Linux' &&
+          steps.rendered-video-fixture-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v6
+        with:
+          path: build/e2e-media-fixtures
+          key: ${{ steps.rendered-video-fixture-cache.outputs.cache-primary-key }}
+
+      - name: Publish rendered-video E2E fixtures for this workflow
+        if: runner.os == 'Linux'
+        uses: actions/upload-artifact@v7
+        with:
+          name: edit-atlas-e2e-media-fixtures
+          path: build/e2e-media-fixtures
+          if-no-files-found: error
+          retention-days: ${{ inputs.artifact_retention_days }}
+
+      - name: Remove Debug build tree
+        run: cmake -E remove_directory "build/${{ matrix.debug_preset }}"
+
+      # Package-only application targets reuse the frontend libraries built in
+      # this single Release tree while retaining independent install rules.
+      - name: Configure Release
+        run: >-
+          cmake -S "${{ matrix.source_dir }}"
+          --preset ${{ matrix.release_preset }}
+
+      - name: Clean vcpkg temporary directories
+        run: |
+          cmake -E remove_directory "${{ github.workspace }}/vcpkg/buildtrees"
+          cmake -E remove_directory "${{ github.workspace }}/vcpkg/downloads"
+          cmake -E remove_directory "${{ github.workspace }}/vcpkg/packages"
+
+      - name: Build Release
+        run: cmake --build --preset ${{ matrix.release_preset }}
+
+      - name: Verify Widgets Release Qt linkage
+        run: >-
+          cmake
+          "-DEDIT_ATLAS_EXECUTABLE=${{ github.workspace }}/build/${{ matrix.release_preset }}/packaging/widgets/${{ matrix.selected_frontend_executable_suffix }}"
+          -DEDIT_ATLAS_EXPECTED_FRONTEND=widgets
+          -P cmake/VerifyDynamicQtBinary.cmake
+
+      - name: Verify Quick Release Qt linkage
+        run: >-
+          cmake
+          "-DEDIT_ATLAS_EXECUTABLE=${{ github.workspace }}/build/${{ matrix.release_preset }}/packaging/quick/${{ matrix.selected_frontend_executable_suffix }}"
+          -DEDIT_ATLAS_EXPECTED_FRONTEND=quick
+          -P cmake/VerifyDynamicQtBinary.cmake
+
+      - name: Test Release
+        run: ctest --preset ${{ matrix.release_preset }}
+
+      - name: Stage Widgets Release
+        run: >-
+          cmake
+          --install "build/${{ matrix.release_preset }}"
+          --component WidgetsRuntime
+          --prefix "${{ github.workspace }}/build/stage-widgets-${{ matrix.triplet }}"
+
+      - name: Add shared runtime to staged Widgets Release
+        run: >-
+          cmake
+          --install "build/${{ matrix.release_preset }}"
+          --component Runtime
+          --prefix "${{ github.workspace }}/build/stage-widgets-${{ matrix.triplet }}"
+
+      - name: Verify staged Widgets deployment
+        run: >-
+          cmake
+          "-DEDIT_ATLAS_DEPLOYMENT_ROOT=${{ github.workspace }}/build/stage-widgets-${{ matrix.triplet }}"
+          "-DEDIT_ATLAS_EXECUTABLE=${{ github.workspace }}/build/stage-widgets-${{ matrix.triplet }}/${{ matrix.staged_executable_suffix }}"
+          -DEDIT_ATLAS_EXPECTED_FRONTEND=widgets
+          "-DEDIT_ATLAS_VERIFY_PRIVATE_RUNTIME_BOUNDARY=TRUE"
+          -P cmake/VerifyApplicationDeployment.cmake
+
+      - name: Archive staged Widgets macOS bundle
+        if: runner.os == 'macOS'
+        run: |
+          cmake -E chdir "build/stage-widgets-${{ matrix.triplet }}" \
+            cmake -E tar czf \
+            "${{ github.workspace }}/build/edit-atlas-widgets-${{ matrix.triplet }}-stage.tar.gz" \
+            --format=gnutar \
+            edit-atlas.app
+
+      - name: Upload staged Widgets macOS bundle
+        if: runner.os == 'macOS'
+        uses: actions/upload-artifact@v7
+        with:
+          name: widgets-frontend-${{ matrix.triplet }}-stage
+          path: build/edit-atlas-widgets-${{ matrix.triplet }}-stage.tar.gz
+          if-no-files-found: error
+          retention-days: ${{ inputs.artifact_retention_days }}
+
+      - name: Remove staged Widgets Release
+        run: >-
+          cmake -E remove_directory
+          "build/stage-widgets-${{ matrix.triplet }}"
+
+      - name: Package Widgets Release
+        id: package_widgets
+        if: runner.os != 'macOS'
+        run: >-
+          cpack
+          --config "build/${{ matrix.release_preset }}/CPackWidgetsConfig.cmake"
+          -G "${{ matrix.package_generators }}"
+          -B "build/packages/widgets/${{ matrix.triplet }}"
+
+      - name: Remove Widgets CPack temporary files
+        if: runner.os != 'macOS'
+        run: >-
+          cmake -E remove_directory
+          "build/packages/widgets/${{ matrix.triplet }}/_CPack_Packages"
+
+      - name: Upload Widgets packages
+        if: >-
+          always() &&
+          runner.os != 'macOS' &&
+          steps.package_widgets.outcome == 'success'
+        uses: actions/upload-artifact@v7
+        with:
+          name: widgets-frontend-${{ matrix.triplet }}-packages
+          path: build/packages/widgets/${{ matrix.triplet }}
+          if-no-files-found: error
+          retention-days: ${{ inputs.artifact_retention_days }}
+
+      - name: Stage Quick Release
+        run: >-
+          cmake
+          --install "build/${{ matrix.release_preset }}"
+          --component QuickRuntime
+          --prefix "${{ github.workspace }}/build/stage-quick-${{ matrix.triplet }}"
+
+      - name: Add shared runtime to staged Quick Release
+        run: >-
+          cmake
+          --install "build/${{ matrix.release_preset }}"
+          --component Runtime
+          --prefix "${{ github.workspace }}/build/stage-quick-${{ matrix.triplet }}"
+
+      - name: Verify staged Quick deployment
+        run: >-
+          cmake
+          "-DEDIT_ATLAS_DEPLOYMENT_ROOT=${{ github.workspace }}/build/stage-quick-${{ matrix.triplet }}"
+          "-DEDIT_ATLAS_EXECUTABLE=${{ github.workspace }}/build/stage-quick-${{ matrix.triplet }}/${{ matrix.staged_executable_suffix }}"
+          -DEDIT_ATLAS_EXPECTED_FRONTEND=quick
+          -DEDIT_ATLAS_VERIFY_PRIVATE_RUNTIME_BOUNDARY=TRUE
+          -P cmake/VerifyApplicationDeployment.cmake
+
+      - name: Archive staged Quick macOS bundle
+        if: runner.os == 'macOS'
+        run: |
+          cmake -E chdir "build/stage-quick-${{ matrix.triplet }}" \
+            cmake -E tar czf \
+            "${{ github.workspace }}/build/edit-atlas-quick-${{ matrix.triplet }}-stage.tar.gz" \
+            --format=gnutar \
+            edit-atlas.app
+
+      - name: Upload staged Quick macOS bundle
+        if: runner.os == 'macOS'
+        uses: actions/upload-artifact@v7
+        with:
+          name: quick-frontend-${{ matrix.triplet }}-stage
+          path: build/edit-atlas-quick-${{ matrix.triplet }}-stage.tar.gz
+          if-no-files-found: error
+          retention-days: ${{ inputs.artifact_retention_days }}
+
+      - name: Remove staged Quick Release
+        run: >-
+          cmake -E remove_directory
+          "build/stage-quick-${{ matrix.triplet }}"
+
+      - name: Package Quick Release
+        id: package_quick
+        if: runner.os != 'macOS'
+        run: >-
+          cpack
+          --config "build/${{ matrix.release_preset }}/CPackQuickConfig.cmake"
+          -G "${{ matrix.package_generators }}"
+          -B "build/packages/quick/${{ matrix.triplet }}"
+
+      - name: Remove Quick CPack temporary files
+        if: runner.os != 'macOS'
+        run: >-
+          cmake -E remove_directory
+          "build/packages/quick/${{ matrix.triplet }}/_CPack_Packages"
+
+      - name: Upload Quick packages
+        if: >-
+          always() &&
+          runner.os != 'macOS' &&
+          steps.package_quick.outcome == 'success'
+        uses: actions/upload-artifact@v7
+        with:
+          name: quick-frontend-${{ matrix.triplet }}-packages
+          path: build/packages/quick/${{ matrix.triplet }}
+          if-no-files-found: error
+          retention-days: ${{ inputs.artifact_retention_days }}
+
+      - name: Remove Release build tree
+        run: >-
+          cmake -E remove_directory
+          "build/${{ matrix.release_preset }}"
+
+      - name: Upload build and test diagnostics
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: ${{ runner.os }}-${{ runner.arch }}-build-test-diagnostics
+          path: |
+            build/*/CMakeFiles/CMakeConfigureLog.yaml
+            build/*/Testing/Temporary
+            build/*/vcpkg-manifest-install.log
+            vcpkg/buildtrees/**/*.log
+          if-no-files-found: ignore
+          retention-days: 7
+
+      - name: Clean vcpkg temporary directories
+        if: always()
+        run: |
+          cmake -E remove_directory "${{ github.workspace }}/vcpkg/buildtrees"
+          cmake -E remove_directory "${{ github.workspace }}/vcpkg/downloads"
+          cmake -E remove_directory "${{ github.workspace }}/vcpkg/packages"
+
+  package-macos-universal:
+    name: Universal / macOS
+    needs: build-and-package
+    if: always() && needs['build-and-package'].result == 'success'
+    runs-on: macos-15
+    timeout-minutes: 20
+    permissions:
+      actions: write
+      contents: read
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v7.0.1
+
+      - name: Install CMake
+        uses: lukka/get-cmake@v4.4.0
+
+      - name: Download native staged bundles
+        uses: actions/download-artifact@v8
+        with:
+          pattern: '*-frontend-*-osx-stage'
+          path: build/stages
+
+      - name: Create universal Widgets package
+        run: >-
+          ./scripts/ci/create-macos-universal-package.sh
+          build/stages/widgets-frontend-arm64-osx-stage/edit-atlas-widgets-arm64-osx-stage.tar.gz
+          build/stages/widgets-frontend-x64-osx-stage/edit-atlas-widgets-x64-osx-stage.tar.gz
+          build/packages/widgets/universal-osx
+
+      - name: Create universal Quick package
+        run: >-
+          ./scripts/ci/create-macos-universal-package.sh
+          build/stages/quick-frontend-arm64-osx-stage/edit-atlas-quick-arm64-osx-stage.tar.gz
+          build/stages/quick-frontend-x64-osx-stage/edit-atlas-quick-x64-osx-stage.tar.gz
+          build/packages/quick/universal-osx
+
+      - name: Upload universal Widgets package
+        uses: actions/upload-artifact@v7
+        with:
+          name: widgets-frontend-universal-osx-packages
+          path: build/packages/widgets/universal-osx
+          if-no-files-found: error
+          retention-days: ${{ inputs.artifact_retention_days }}
+
+      - name: Upload universal Quick package
+        uses: actions/upload-artifact@v7
+        with:
+          name: quick-frontend-universal-osx-packages
+          path: build/packages/quick/universal-osx
+          if-no-files-found: error
+          retention-days: ${{ inputs.artifact_retention_days }}
+
+      - name: Delete staged bundle artifacts
+        uses: ./.github/actions/delete-workflow-artifacts
+        with:
+          pattern: >-
+            ^(widgets|quick)-frontend-(arm64|x64)-osx-stage$

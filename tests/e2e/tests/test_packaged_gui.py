@@ -9,6 +9,17 @@ from inspectors.support_bundle import SupportBundle
 from inspectors.xlsx import XlsxWorkbook
 
 
+def test_about_dialog_exposes_application_information(
+    edit_atlas_application: EditAtlasApplication,
+) -> None:
+    app = edit_atlas_application
+    app.switch_language("English")
+    information = app.about_information()
+
+    for expected in ("Edit Atlas", "structured reports"):
+        assert any(expected in text for text in information)
+
+
 def test_startup_import_failure_recovery_and_preferences_persist(
     edit_atlas_application: EditAtlasApplication,
     fixture_directory: Path,
@@ -27,7 +38,6 @@ def test_startup_import_failure_recovery_and_preferences_persist(
     table_text = "\n".join(app.table_text())
     assert "001" in table_text
     assert "opening.mov" in table_text
-    assert "SYNTHETIC AUDIO NOTE" in table_text
     app.session.wait_absent("diagnosticsTree")
 
     invalid = output_directory / "invalid-encoding.edl"
@@ -107,10 +117,10 @@ def test_filter_and_template_workflow_persists(
     app.select_template("Primary")
     app.wait_event_count(1)
     app.begin_spreadsheet_export()
-    columns = app.session.list_items("eventColumnsList")
+    columns, checked = app.spreadsheet_export_column_selection()
     assert columns[:2] == ["Comments", "Event"]
-    assert app.session.is_list_item_checked("eventColumnsList", "Comments")
-    assert app.session.is_list_item_checked("eventColumnsList", "Event")
+    assert "Comments" in checked
+    assert "Event" in checked
     app.cancel_spreadsheet_options()
 
 

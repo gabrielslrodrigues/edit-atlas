@@ -26,6 +26,20 @@ Use the preset matching the configured platform and build type. The packaged
 E2E suite is intentionally outside CTest and has its own reproducible entry
 points.
 
+Qt Quick view tests use Qt Quick Test under
+`integration/frontends/quick/views`. Their C++ setup injects the real shared
+application ViewModel, while QML cases verify bindings, keyboard focus,
+accessible roles and names, dynamic controls, and dialog cancellation. They
+run with the normal integration label and do not replace GoogleTest coverage
+for ViewModel state and commands. The complete QML development and testing
+workflow is documented in the
+[Qt Quick frontend guide](../docs/api/qt-quick-frontend.md).
+
+The maintained secondary frontend uses GoogleTest under
+`unit/frontends/widgets` and `integration/frontends/widgets`. Its focused
+workflow and maintenance expectations are documented in the
+[Qt Widgets frontend guide](../docs/api/qt-widgets-frontend.md).
+
 The former CMake-driven separate-process CLI check is intentionally not
 registered here. Packaged CLI process behavior belongs to the pytest E2E suite
 tracked by issue #88; the integration suite invokes the CLI application in

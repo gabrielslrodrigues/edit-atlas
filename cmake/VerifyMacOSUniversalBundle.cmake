@@ -9,26 +9,20 @@ if(NOT IS_DIRECTORY "${EDIT_ATLAS_BUNDLE}")
     )
 endif()
 
-set(
-    edit_atlas_compatibility_dylibs
-    libQt6Concurrent.6.dylib
-    libQt6Core.6.dylib
-    libQt6Gui.6.dylib
-    libQt6Widgets.6.dylib
+file(
+    GLOB edit_atlas_compatibility_dylibs
+    LIST_DIRECTORIES FALSE
+    "${EDIT_ATLAS_BUNDLE}/Contents/Frameworks/libQt6*.6.dylib"
 )
 foreach(edit_atlas_compatibility_dylib IN LISTS edit_atlas_compatibility_dylibs)
-    set(
-        edit_atlas_compatibility_path
-        "${EDIT_ATLAS_BUNDLE}/Contents/Frameworks/${edit_atlas_compatibility_dylib}"
-    )
     if(
-        EXISTS "${edit_atlas_compatibility_path}"
-        AND NOT IS_SYMLINK "${edit_atlas_compatibility_path}"
+        EXISTS "${edit_atlas_compatibility_dylib}"
+        AND NOT IS_SYMLINK "${edit_atlas_compatibility_dylib}"
     )
         message(
             FATAL_ERROR
             "Compatibility dylib is a duplicate regular file instead of a "
-            "symlink: ${edit_atlas_compatibility_path}"
+            "symlink: ${edit_atlas_compatibility_dylib}"
         )
     endif()
 endforeach()

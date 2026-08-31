@@ -73,12 +73,75 @@ option(
     OFF
 )
 
+set(
+    EDIT_ATLAS_DEFAULT_FRONTEND
+    "quick"
+    CACHE STRING
+    "Graphical frontend installed as the Edit Atlas application"
+)
+set_property(
+    CACHE EDIT_ATLAS_DEFAULT_FRONTEND
+    PROPERTY STRINGS quick widgets
+)
+
+set(
+    EDIT_ATLAS_BUILD_FRONTENDS
+    "all"
+    CACHE STRING
+    "Graphical frontends included in the default build"
+)
+set_property(
+    CACHE EDIT_ATLAS_BUILD_FRONTENDS
+    PROPERTY STRINGS all quick widgets
+)
+
+option(
+    EDIT_ATLAS_BUILD_PACKAGING_APPLICATIONS
+    "Build isolated frontend application targets used by packaging"
+    OFF
+)
+
+if(
+    NOT EDIT_ATLAS_DEFAULT_FRONTEND STREQUAL "quick"
+    AND NOT EDIT_ATLAS_DEFAULT_FRONTEND STREQUAL "widgets"
+)
+    message(
+        FATAL_ERROR
+        "Unsupported Edit Atlas frontend: ${EDIT_ATLAS_DEFAULT_FRONTEND}. "
+        "Expected quick or widgets."
+    )
+endif()
+
+if(
+    NOT EDIT_ATLAS_BUILD_FRONTENDS STREQUAL "all"
+    AND NOT EDIT_ATLAS_BUILD_FRONTENDS STREQUAL "quick"
+    AND NOT EDIT_ATLAS_BUILD_FRONTENDS STREQUAL "widgets"
+)
+    message(
+        FATAL_ERROR
+        "Unsupported Edit Atlas frontend build selection: "
+        "${EDIT_ATLAS_BUILD_FRONTENDS}. Expected all, quick, or widgets."
+    )
+endif()
+
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 include(EditAtlasWarnings)
 include(EditAtlasFfmpegLinkage)
 include(EditAtlasQtLinkage)
 
-find_package(Qt6 REQUIRED COMPONENTS Concurrent LinguistTools Widgets)
+find_package(
+    Qt6
+    REQUIRED
+    COMPONENTS
+        Concurrent
+        Core
+        Gui
+        LinguistTools
+        Qml
+        Quick
+        QuickControls2
+        Widgets
+)
 find_package(FFMPEG REQUIRED)
 find_package(spdlog CONFIG REQUIRED)
 
@@ -123,16 +186,27 @@ configure_file(
 set(edit_atlas_vcpkg_share_directory
     "${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/share"
 )
-set(edit_atlas_qtbase_copyright
-    "${edit_atlas_vcpkg_share_directory}/qtbase/copyright"
+foreach(
+    edit_atlas_qt_package
+    IN ITEMS
+        qtbase
+        qtdeclarative
+        qtlanguageserver
+        qtshadertools
+        qtsvg
 )
-if(NOT EXISTS "${edit_atlas_qtbase_copyright}")
-    message(
-        FATAL_ERROR
-        "The resolved Qt Base copyright file was not found at "
-        "${edit_atlas_qtbase_copyright}."
+    set(
+        edit_atlas_qt_copyright
+        "${edit_atlas_vcpkg_share_directory}/${edit_atlas_qt_package}/copyright"
     )
-endif()
+    if(NOT EXISTS "${edit_atlas_qt_copyright}")
+        message(
+            FATAL_ERROR
+            "The resolved ${edit_atlas_qt_package} copyright file was not "
+            "found at ${edit_atlas_qt_copyright}."
+        )
+    endif()
+endforeach()
 set(edit_atlas_ffmpeg_copyright
     "${edit_atlas_vcpkg_share_directory}/ffmpeg/copyright"
 )
@@ -151,12 +225,29 @@ add_subdirectory(src/formats/cmx3600)
 add_subdirectory(src/formats/xlsx)
 add_subdirectory(src/services)
 add_subdirectory(src/support)
-add_subdirectory(src/app)
-add_subdirectory(src/cli)
+add_subdirectory(src/presentation)
+add_subdirectory(src/frontends)
+
+qt_add_translations(
+    TARGETS edit_atlas_presentation
+    SOURCE_TARGETS
+        edit_atlas_presentation
+        edit_atlas_quick_frontend
+        edit_atlas_widgets_frontend
+    TS_FILES src/presentation/translations/edit_atlas_pt_BR.ts
+    RESOURCE_PREFIX "/i18n"
+)
 
 if(BUILD_TESTING)
     find_package(GTest CONFIG REQUIRED)
-    find_package(Qt6 REQUIRED COMPONENTS Test)
+    set(edit_atlas_test_qt_components Test)
+    if(
+        EDIT_ATLAS_BUILD_FRONTENDS STREQUAL "all"
+        OR EDIT_ATLAS_BUILD_FRONTENDS STREQUAL "quick"
+    )
+        list(APPEND edit_atlas_test_qt_components QuickTest)
+    endif()
+    find_package(Qt6 REQUIRED COMPONENTS ${edit_atlas_test_qt_components})
     add_subdirectory(tests)
 endif()
 

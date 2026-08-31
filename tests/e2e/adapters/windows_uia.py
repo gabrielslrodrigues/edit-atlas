@@ -3,9 +3,10 @@
 Interactions in this module use UIA control patterns, except for Windows'
 native file chooser. Its blocking modal UIA provider exposes neither its
 filename field nor accept button, so the adapter types into the field that the
-operating system focuses when the chooser opens. Qt combo items use pointer
-input derived from their accessible bounds because Qt does not commit desktop
-SelectionItem actions. Explicit coordinates and image matching are absent.
+operating system focuses when the chooser opens. Qt combo controls and items
+use pointer input derived from their accessible bounds because Qt does not
+commit desktop ExpandCollapse or SelectionItem actions. Explicit coordinates
+and image matching are absent.
 """
 
 from __future__ import annotations
@@ -133,6 +134,11 @@ class WindowsUiaAdapter:
 
 
 class WindowsApplicationSession:
+    # Bounds the paging sweep used to enumerate virtualized lists. Every
+    # list in this application is small; this only prevents an unbounded
+    # loop if a control keeps accepting scrolls without revealing rows.
+    _MAX_LIST_PAGES = 32
+
     def __init__(
         self,
         *,
@@ -183,8 +189,21 @@ class WindowsApplicationSession:
             description=f"accessible identifier {identifier!r} to disappear",
         )
 
-    def activate(self, identifier: str) -> None:
-        self._activate_node(self.element(identifier))
+    def activate(self, identifier: str, *, showing: bool = True) -> None:
+        self._activate_node(self.element(identifier, showing=showing))
+
+    def focus(self, identifier: str, *, showing: bool = False) -> None:
+        # A virtualized row must actually be brought into view before a
+        # coordinate-based click can land anywhere meaningful. UIA's
+        # SetFocus scrolls the target element into view as part of
+        # granting it focus, the same way keyboard navigation would.
+        node = self.element(identifier, showing=showing)
+        try:
+            node.set_focus()
+        except Exception as error:
+            raise ActionNotSupportedError(
+                f"{identifier!r} rejected keyboard focus"
+            ) from error
 
     def activate_named(
         self, names: Sequence[str], *, within: str | None = None
@@ -261,12 +280,16 @@ class WindowsApplicationSession:
 
     def select_option(self, identifier: str, option: str) -> None:
         control = self.element(identifier)
-        if self._normalized_name(self._node_text(control)) == self._normalized_name(
-            option
-        ):
+        control_type = self._control_type(control)
+        current = (
+            self._combo_display_text(control)
+            if control_type == "ComboBox"
+            else self._node_text(control)
+        )
+        if self._normalized_name(current) == self._normalized_name(option):
             return
 
-        if self._control_type(control) == "ComboBox":
+        if control_type == "ComboBox":
             self._select_combo_option_by_accessible_click(
                 control, identifier, option
             )
@@ -323,9 +346,10 @@ class WindowsApplicationSession:
                     return str(selected[0].CurrentName)
             except Exception:
                 pass
-        return self._node_text(control)
+        return self._combo_display_text(control)
 
     def open_file_dialog(self, dialog_identifier: str, path: Path) -> None:
+        overwrite_expected = path.exists()
         dialog = self._native_file_dialog(dialog_identifier)
         wait_until(
             dialog.has_focus,
@@ -351,15 +375,76 @@ class WindowsApplicationSession:
                 f"native file chooser {dialog_identifier!r} to accept keyboard input"
             ),
         )
+        if overwrite_expected:
+            self._accept_native_overwrite_confirmation()
+
+    def _accept_native_overwrite_confirmation(self) -> None:
+        """Accept the shell's overwrite prompt when Windows raises one.
+
+        The packaged dialogs are declared with ``popupType: Popup.Item``, so
+        they render in-scene and Windows adds no ``Confirm Save As`` window
+        of its own; the application-owned replacement dialog is then the
+        only confirmation. Pass through the shell prompt when a build does
+        raise one, and continue when it does not, rather than requiring a
+        window the frontend never creates.
+        """
+        try:
+            confirmation = wait_until(
+                self._current_native_overwrite_confirmation,
+                lambda value: value is not None,
+                timeout=min(2.0, self._timeout),
+                description="native overwrite confirmation to appear",
+            )
+        except PollTimeoutError:
+            return
+        yes = wait_until(
+            lambda: self._find_win32_button(
+                confirmation, ("Yes", "&Yes", "Sim", "&Sim")
+            ),
+            lambda value: value is not None,
+            timeout=self._timeout,
+            description="native overwrite confirmation Yes button",
+        )
+        try:
+            yes.click_input()
+        except Exception as error:
+            raise ActionNotSupportedError(
+                "native overwrite confirmation rejected the Yes command"
+            ) from error
+        wait_until(
+            lambda: self._window_exists_while_running(confirmation),
+            lambda present: not present,
+            timeout=self._timeout,
+            description="native overwrite confirmation to close",
+        )
 
     def activate_menu_action(
         self, menu_identifier: str, action_identifier: str
     ) -> None:
-        self._click_accessible_node(
-            self.element(menu_identifier), menu_identifier
-        )
+        menu = self.element(menu_identifier)
+        # A prior interaction with this same menu (e.g. toggling one of its
+        # own checkable items) may have left it open. Clicking the menu bar
+        # item again would toggle it closed instead of opening it, so only
+        # click when the target action is not already showing.
+        if not self.has_element(action_identifier):
+            self._click_accessible_node(menu, menu_identifier)
+            expand = self._pattern(menu, "iface_expand_collapse")
+            if expand is not None:
+                wait_until(
+                    lambda: self._expand_collapse_state(expand),
+                    lambda state: state == 1,
+                    timeout=self._timeout,
+                    description=f"{menu_identifier!r} menu to open",
+                )
         action = self.element(action_identifier)
         self._click_accessible_node(action, action_identifier)
+
+    @staticmethod
+    def _expand_collapse_state(expand: Any) -> int:
+        try:
+            return int(expand.CurrentExpandCollapseState)
+        except Exception:
+            return 0
 
     def element_name(self, identifier: str, *, showing: bool = True) -> str:
         return self._node_name(self.element(identifier, showing=showing))
@@ -508,11 +593,7 @@ class WindowsApplicationSession:
     def _activate_node(self, node: Any) -> None:
         expand = self._pattern(node, "iface_expand_collapse")
         if expand is not None:
-            try:
-                state = int(expand.CurrentExpandCollapseState)
-            except Exception:
-                state = 0
-            if state != 1:
+            if self._expand_collapse_state(expand) != 1:
                 self._execute_pattern(expand.Expand, node)
             return
         invoke = self._pattern(node, "iface_invoke")
@@ -559,21 +640,20 @@ class WindowsApplicationSession:
     def _select_combo_option_by_accessible_click(
         self, control: Any, identifier: str, option: str
     ) -> None:
-        expand = self._pattern(control, "iface_expand_collapse")
-        if expand is None:
-            raise ActionNotSupportedError(
-                f"combo box {identifier!r} exposes no UIA ExpandCollapse pattern"
-            )
-        try:
-            expanded = int(expand.CurrentExpandCollapseState) == 1
-        except Exception:
-            expanded = False
-        if not expanded:
-            self._execute_pattern(expand.Expand, control)
-        target = wait_until(
-            lambda: self._find_named(
+        self._click_accessible_node(control, identifier)
+
+        def find_option() -> Any | None:
+            target = self._find_named(
                 (option,), root=control, control_types=("ListItem",)
-            ),
+            )
+            if target is not None:
+                return target
+            return self._find_named(
+                (option,), control_types=("ListItem",)
+            )
+
+        target = wait_until(
+            find_option,
             lambda value: value is not None,
             timeout=self._timeout,
             description=f"showing combo box option {option!r} for {identifier!r}",
@@ -584,13 +664,7 @@ class WindowsApplicationSession:
             raise ActionNotSupportedError(
                 f"combo box option {option!r} could not be clicked: {error}"
             ) from error
-        wait_until(
-            lambda: self._node_text(control),
-            lambda selected: self._normalized_name(selected)
-            == self._normalized_name(option),
-            timeout=self._timeout,
-            description=f"combo box option {option!r} to become active",
-        )
+        self._wait_selected_option_for(control, target, option)
 
     @staticmethod
     def _click_accessible_node(node: Any, description: str) -> None:
@@ -603,16 +677,24 @@ class WindowsApplicationSession:
 
     def _wait_selected_option_for(
         self, control: Any, target: Any, expected: str
-    ) -> str:
+    ) -> None:
         selection = self._pattern(target, "iface_selection_item")
-        return wait_until(
-            lambda: self._node_text(control),
-            lambda selected: self._normalized_name(selected)
+
+        def selected_state() -> tuple[str, bool]:
+            self._ensure_running()
+            try:
+                item_selected = selection is not None and bool(
+                    selection.CurrentIsSelected
+                )
+            except Exception:
+                item_selected = False
+            return (self._combo_display_text(control), item_selected)
+
+        wait_until(
+            selected_state,
+            lambda state: self._normalized_name(state[0])
             == self._normalized_name(expected)
-            or (
-                selection is not None
-                and bool(selection.CurrentIsSelected)
-            ),
+            or state[1],
             timeout=self._timeout,
             description=f"option {expected!r} to become selected",
         )
@@ -686,17 +768,22 @@ class WindowsApplicationSession:
                 description=f"{description} invocation to complete",
             )
             self._ensure_running()
-            try:
-                current = self._toggle_state(toggle)
-            except Exception:
-                # Qt removes a menu item from the UIA tree when its menu closes.
-                # A completed semantic invocation is the only observable result
-                # until the menu is opened again.
-                return
-            if current != checked:
-                raise ActionNotSupportedError(
-                    f"UIA Invoke did not change {description} checked state"
-                )
+
+            def current_state() -> tuple[bool | None, bool]:
+                try:
+                    return self._toggle_state(toggle), node.is_visible()
+                except Exception:
+                    # Qt removes a menu item from the UIA tree when its menu
+                    # closes. The setting is verified after the menu is opened
+                    # again by the calling workflow.
+                    return None, False
+
+            wait_until(
+                current_state,
+                lambda current: current[0] == checked or not current[1],
+                timeout=self._timeout,
+                description=f"{description} invocation to update its state",
+            )
             return
 
         self._execute_pattern(toggle.Toggle, node)
@@ -732,11 +819,84 @@ class WindowsApplicationSession:
 
     def _list_nodes(self, identifier: str) -> list[Any]:
         control = self.element(identifier)
-        return [
-            node
-            for node in self._descendants(control)
-            if self._control_type(node) in ("ListItem", "DataItem")
-        ]
+        seen: set[str] = set()
+        ordered: list[Any] = []
+        indexed: dict[int, Any] = {}
+
+        def collect() -> bool:
+            added = False
+            for node in self._descendants(control):
+                control_type = self._control_type(node)
+                if control_type not in ("ListItem", "DataItem", "CheckBox"):
+                    continue
+                name = self._node_name(node)
+                index = self._event_column_index(node)
+                if index is not None:
+                    existing = indexed.get(index)
+                    if existing is None or control_type in (
+                        "ListItem",
+                        "DataItem",
+                    ):
+                        indexed[index] = node
+                        added = existing is None
+                    continue
+                if control_type == "CheckBox":
+                    continue
+                if name in seen:
+                    continue
+                seen.add(name)
+                ordered.append(node)
+                added = True
+            return added
+
+        collect()
+        # A virtualized list exposes only the rows inside its viewport, so
+        # a single snapshot silently omits everything scrolled out of view.
+        # Page to the bottom merging newly revealed rows, then page back so
+        # repeated observations of the same list stay consistent.
+        pages = 0
+        while pages < self._MAX_LIST_PAGES:
+            if not self._page_list(control, "down"):
+                break
+            pages += 1
+            if not collect():
+                break
+        for _ in range(pages):
+            self._page_list(control, "up")
+        if indexed:
+            return [indexed[index] for index in sorted(indexed)]
+        return ordered
+
+    def _event_column_index(self, node: Any) -> int | None:
+        automation_id = self._automation_id(node)
+        marker = "eventColumn"
+        marker_position = automation_id.rfind(marker)
+        if marker_position < 0:
+            return None
+        suffix = automation_id[marker_position + len(marker) :]
+        if suffix.endswith("CheckBox"):
+            suffix = suffix[: -len("CheckBox")]
+        return int(suffix) if suffix.isdigit() else None
+
+    def _page_list(self, control: Any, direction: str) -> bool:
+        """Page a scrollable control, reporting whether it accepted it."""
+        try:
+            control.scroll(direction, "page")
+            return True
+        except Exception:
+            pass
+
+        # Qt Quick's ListView currently exposes its rows through UIA but no
+        # Scroll pattern. It does implement keyboard paging once UIA gives
+        # the list focus, so use that semantic fallback instead of wheel or
+        # coordinate input.
+        try:
+            control.set_focus()
+            key = "{PGDN}" if direction == "down" else "{PGUP}"
+            self._keyboard_sender(key, pause=0)
+        except Exception:
+            return False
+        return True
 
     def _list_item(self, identifier: str, name: str) -> Any:
         node = self._named_node(self._list_nodes(identifier), name)
@@ -775,6 +935,50 @@ class WindowsApplicationSession:
         except Exception:
             return None
         return dialogs[-1] if dialogs else None
+
+    def _current_native_overwrite_confirmation(self) -> Any | None:
+        self._ensure_running()
+        try:
+            dialogs = self._win32_desktop.windows(
+                class_name="#32770",
+                visible_only=True,
+            )
+        except Exception:
+            return None
+        expected_titles = {
+            self._normalized_name(title)
+            for title in ("Confirm Save As", "Confirmar Salvar Como")
+        }
+        return next(
+            (
+                dialog
+                for dialog in reversed(dialogs)
+                if self._normalized_name(self._win32_text(dialog))
+                in expected_titles
+            ),
+            None,
+        )
+
+    def _find_win32_button(
+        self, root: Any, names: Sequence[str]
+    ) -> Any | None:
+        candidates = {self._normalized_name(name) for name in names}
+        try:
+            nodes = (root, *root.descendants())
+        except Exception:
+            nodes = (root,)
+        for node in nodes:
+            try:
+                if (
+                    str(node.class_name()).casefold() == "button"
+                    and self._normalized_name(self._win32_text(node))
+                    in candidates
+                    and node.is_visible()
+                ):
+                    return node
+            except Exception:
+                continue
+        return None
 
     def _find_identifier(
         self, identifier: str, *, showing: bool = True
@@ -919,6 +1123,15 @@ class WindowsApplicationSession:
             except Exception:
                 pass
         return self._node_name(node)
+
+    def _combo_display_text(self, control: Any) -> str:
+        for node in self._descendants(control):
+            if self._control_type(node) != "Text":
+                continue
+            text = self._node_text(node)
+            if text:
+                return text
+        return self._node_text(control)
 
     @classmethod
     def _named_node(cls, nodes: Sequence[Any], name: str) -> Any | None:

@@ -2,6 +2,14 @@
 
 This file records user-facing Edit Atlas changes beginning with version 0.2.0.
 
+## [Unreleased]
+
+### Changed
+
+- The production desktop application now uses the redesigned Qt Quick
+  interface while preserving existing language, recent-file, template, and
+  export settings.
+
 ## [0.3.0]
 
 ### Added
@@ -47,5 +55,6 @@ This file records user-facing Edit Atlas changes beginning with version 0.2.0.
 - Filter, export, and template responsibilities are separated from the desktop
   interface so they can be shared by other frontends.
 
+[Unreleased]: https://github.com/gabrielslrodrigues/edit-atlas/compare/v0.3.0...HEAD
 [0.3.0]: https://github.com/gabrielslrodrigues/edit-atlas/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/gabrielslrodrigues/edit-atlas/compare/v0.1.2...v0.2.0

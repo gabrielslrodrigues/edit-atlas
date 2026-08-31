@@ -1,13 +1,15 @@
 # Edit Atlas C++ API {#mainpage}
 
-Edit Atlas provides a UI-independent C++23 foundation for importing editorial
-timeline formats and exporting structured reports. The documented API covers
-the domain model, format extension points, application services, built-in
-formats, media decoding, and privacy-limited diagnostic support.
+Edit Atlas provides a C++23 foundation for importing editorial timeline formats
+and exporting structured reports. Its domain, format, service, media, storage,
+and diagnostic APIs are UI-independent; the documented API also covers the
+shared Qt presentation boundary.
 
 ## Start here
 
 - @ref api_architecture "Architecture and dependency direction"
+- @ref qt_quick_frontend "Qt Quick frontend development guide"
+- @ref qt_widgets_frontend "Qt Widgets frontend maintenance guide"
 - `edit_atlas::core::TimelineDocument` is the shared editorial model.
 - `edit_atlas::core::Importer` and `edit_atlas::core::Exporter` are the format
   extension points.
@@ -16,8 +18,8 @@ formats, media decoding, and privacy-limited diagnostic support.
 - `edit_atlas::core::RgbImage` provides presentation-neutral RGB24 ownership
   for event images passed through export requests.
 - `edit_atlas::services::TimelineDocumentImportService` and
-  `edit_atlas::services::TimelineDocumentExportService` provide filesystem workflows
-  that do not depend on a frontend.
+  `edit_atlas::services::TimelineDocumentExportService` provide filesystem
+  workflows that do not depend on a frontend.
 - `edit_atlas::services::TimelineTemplateService` manages and persists reusable
   filter and export-column templates without depending on a frontend.
 - `edit_atlas::services::TimelineVideoInspectionService` validates rendered
@@ -34,6 +36,12 @@ formats, media decoding, and privacy-limited diagnostic support.
   shipped with the application.
 - `edit_atlas::media::VideoDecoder::Open()` opens supported MOV, MP4, and MXF
   inputs behind a frontend-independent decoding interface.
+- `edit_atlas::presentation::TimelineDocumentViewModel` exposes shared timeline
+  state and commands to graphical frontends.
+- `edit_atlas::presentation::TimelineTemplateViewModel` exposes reusable filter
+  and projection templates without owning dialogs.
+- `edit_atlas::presentation::SupportBundleViewModel` exposes asynchronous
+  diagnostic export state and structured results.
 
 ## API stability
 

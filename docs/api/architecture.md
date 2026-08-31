@@ -3,10 +3,12 @@
 The public API follows one inward dependency direction:
 
 ```text
-frontend -> application services -> core
-                              |----> built-in formats -> core
-                              |----> media decoding backend -> FFmpeg
-frontend -> diagnostic support -> local storage
+frontend -> presentation -> application services -> core
+         |              |----> diagnostic support -> local storage
+         |              |----> Qt Core, Concurrent, and Gui
+         |----> concrete Qt frontend toolkit
+application services -> built-in formats -> core
+                     |-> media decoding backend -> FFmpeg
 ```
 
 ## Core model and pipeline
@@ -29,8 +31,8 @@ future formats.
 The `edit_atlas::services` namespace adapts local filesystem operations to the
 in-memory pipeline. Services return presentation-neutral receipts or failures,
 leaving scheduling, overwrite confirmation, localization, and user feedback to
-the caller. The desktop frontend and CLI therefore share the same
-workflows. Timeline filter queries and event selections also live here so a
+the caller. The desktop frontend and CLI therefore share the same service
+behavior. Timeline filter queries and event selections also live here so a
 frontend can present and export the same result set without modifying its
 imported document. Free-text conditions support literal or RE2 matching with
 optional case and Unicode whole-word constraints. Categorical, timecode, and
@@ -39,8 +41,9 @@ structured validation failures.
 
 Ordered event projections use `edit_atlas::core::TimelineEventField`. Stable
 identifiers are independent from translated labels, and the default projection
-reproduces the complete event report. `TimelineDocumentExportService` rejects empty or
-duplicate projections before invoking an exporter or touching its destination.
+reproduces the complete event report. `TimelineDocumentExportService` rejects
+empty or duplicate projections before invoking an exporter or touching its
+destination.
 Named `edit_atlas::services::TimelineTemplate` values combine these filter and
 projection types. `edit_atlas::services::TimelineTemplateService` owns their
 catalog and persistence-neutral CRUD behavior. Its private store writes
@@ -96,9 +99,70 @@ privacy-limited support bundles. Callers provide explicit paths and diagnostic
 metadata; support code does not inspect user documents or arbitrary environment
 state.
 
+## Presentation layer
+
+The graphical frontends follow Model-View-ViewModel. Core types and application
+services form the Model, `edit_atlas::presentation` owns frontend-neutral Qt
+ViewModels and their supporting infrastructure, and Qt Widgets or Qt Quick
+implements the View. The CLI continues to call application services directly.
+
+The presentation layer adapts application services, diagnostic support,
+persistent application paths, language selection, bundled translations,
+localized diagnostic text, and timeline data to Qt Core item models, commands,
+state, and signals without depending on Qt Widgets or Qt Quick.
+
+`edit_atlas::presentation::TimelineDocumentViewModel` owns one imported document,
+its filter selection and export projection, explicit import and export states,
+and the asynchronous results consumed by a frontend. Its associated table
+model exposes selected events without transferring document ownership to a
+view. `edit_atlas::presentation::TimelineTemplateViewModel` owns the reusable
+template catalog, active selection, editable filter and projection state,
+modification detection, and persistence command results without owning any
+dialogs or translated feedback. The support-bundle ViewModel similarly exposes
+asynchronous diagnostic-export state and structured results while leaving the
+privacy disclosure, destination selection, and result dialogs to each View.
+
+Concrete frontends own dialogs, confirmations, navigation, and view-specific
+interaction. Desktop implementations consume the same presentation APIs
+instead of scheduling services or interpreting results independently.
+
 ## Frontend boundary
 
-Qt desktop classes are adapters rather than public application services. The
-`edit_atlas::cli` namespace provides the corresponding terminal adapter and
-stable process outcomes. Callers should integrate reusable workflows through
-the standard C++ domain, format, service, and support interfaces.
+Qt Widgets and Qt Quick classes are adapters rather than public application
+services. Concrete implementations live under `src/frontends`, and their
+namespaces mirror that hierarchy. `EditAtlas::WidgetsFrontend` provides the
+`edit_atlas::frontends::widgets` desktop adapter. `EditAtlas::QuickFrontend`
+provides the primary Qt Quick desktop adapter, while
+`EditAtlas::CliFrontend` provides the `edit_atlas::frontends::cli` terminal
+adapter and stable process outcomes. `EditAtlas::Application` identifies Qt
+Quick as the default desktop frontend. Both graphical implementations retain
+concrete frontend targets. Generic development builds include both, while
+frontend-specific builds exclude the non-selected implementation from the
+default build. Graphical frontends should consume the shared presentation
+APIs; non-Qt callers should integrate through the standard C++ domain, format,
+service, and support interfaces.
+
+## Frontend maintenance policy
+
+Qt Quick defines the production desktop experience and receives new graphical
+features. Production installers contain Qt Quick rather than presenting users
+with multiple graphical applications.
+
+Qt Widgets remains independently buildable and covered by unit, integration,
+package-verification, and automation infrastructure. Its maintenance scope is:
+
+- critical defect and security fixes;
+- compatibility changes required by shared Presentation APIs;
+- regression and deployment coverage for the secondary adapter;
+- emergency distribution rollback when a blocking Qt Quick regression cannot
+  be corrected before a required release.
+
+Widgets is not required to receive ordinary new UI features or visual parity.
+Neither frontend may move domain logic or reusable service orchestration out of
+the shared inward layers. Both retain the same application and organization
+identifiers and use the same presentation-owned settings and application-data
+paths, so changing frontend does not require user-data migration.
+
+The toolkit-specific contributor rules are documented on
+@ref qt_quick_frontend and @ref qt_widgets_frontend. The production rollback
+procedure remains in `docs/packaging.md`.
