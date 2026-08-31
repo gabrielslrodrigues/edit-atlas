@@ -454,6 +454,56 @@ def test_quick_file_dialog_uses_deepest_shared_breadcrumb() -> None:
     ]
 
 
+def test_quick_file_dialog_enters_a_repeated_path_component() -> None:
+    """The runner checkout lives at .../edit-atlas/edit-atlas.
+
+    Entering the first component leaves a row of the same name in the new
+    listing, so confirmation cannot depend on that row disappearing. The
+    accept button going insensitive again is what settles it.
+    """
+    session = application_session(Path("/tmp"))
+    session._process = RunningProcess()
+    dialog = AccessibilityNode("quickFileDialog", role_name="dialog")
+    operations: list[str] = []
+    accepted: list[str] = []
+    # Selecting a row enables accept; entering the folder clears it.
+    sensitive = [False]
+
+    class Entry:
+        showing = True
+
+    class AcceptButton:
+        @property
+        def sensitive(self) -> bool:
+            return sensitive[0]
+
+    def activate(entry, name: str) -> None:
+        operations.append(name)
+        sensitive[0] = True
+
+    def accept(found_dialog) -> None:
+        accepted.append("accept")
+        sensitive[0] = False
+
+    # The clicked row never disappears: both folders list one edit-atlas,
+    # which is also what makes /home/runner/work the starting folder.
+    def find_named(root, names, **kwargs):
+        return object() if next(iter(names)) == "edit-atlas" else None
+
+    session._find_named = find_named
+    session._file_dialog_entry = lambda found_dialog, name: Entry()
+    session._activate_file_dialog_entry = activate
+    session._file_dialog_accept_button = lambda found_dialog: AcceptButton()
+    session._activate_file_dialog_accept = accept
+
+    session._navigate_file_dialog(
+        dialog, Path("/home/runner/work/edit-atlas/edit-atlas")
+    )
+
+    assert operations == ["edit-atlas", "edit-atlas"]
+    assert accepted == ["accept", "accept"]
+
+
 def test_quick_file_dialog_falls_back_when_no_path_field_exists(
     tmp_path: Path,
 ) -> None:

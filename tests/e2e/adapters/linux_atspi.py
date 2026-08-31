@@ -887,11 +887,14 @@ class LinuxApplicationSession:
             self._activate_node(root_button)
             start = 0
 
-        remaining = components[start:]
-        for component in remaining:
+        for component in components[start:]:
             entry = self._file_dialog_entry(dialog, component)
             self._activate_file_dialog_entry(entry, component)
             try:
+                # Trigger on the row itself: it is the leading signal that
+                # the click only selected the folder. Breadcrumb depth lags
+                # behind the click, so triggering on depth presses the
+                # accept button before the selection has registered.
                 visible_entry, accept_enabled = wait_until(
                     lambda: (
                         self._find_named(
@@ -913,14 +916,25 @@ class LinuxApplicationSession:
                 )
                 if visible_entry is not None and accept_enabled:
                     self._activate_file_dialog_accept(dialog)
+                # Entering a folder clears the selection, so the accept
+                # button goes insensitive again. Accept that as confirmation
+                # alongside the row disappearing: a repeated path component
+                # keeps a row of the same name in the new listing -- the
+                # runner checkout lives at .../edit-atlas/edit-atlas -- so
+                # absence alone never settles there.
                 wait_until(
-                    lambda: self._find_named(
-                        dialog,
-                        (component,),
-                        roles=("list item",),
-                        showing_only=True,
+                    lambda: (
+                        self._find_named(
+                            dialog,
+                            (component,),
+                            roles=("list item",),
+                            showing_only=True,
+                        ),
+                        self._sensitive_state(
+                            self._file_dialog_accept_button(dialog)
+                        ),
                     ),
-                    lambda value: value is None,
+                    lambda state: state[0] is None or state[1] is False,
                     timeout=self._timeout,
                     description=f"file chooser to enter {component!r}",
                 )
