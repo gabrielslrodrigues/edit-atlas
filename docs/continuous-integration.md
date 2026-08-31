@@ -9,7 +9,7 @@ triggers and permissions.
 
 | Workflow | Trigger | Responsibility |
 | --- | --- | --- |
-| `ci.yml` | `master`, pull requests, daily schedule, manual dispatch | Orchestrate ordinary package validation and packaged E2E, then delete transient package-transfer artifacts |
+| `ci.yml` | `master`, pull requests, daily schedule, manual dispatch | Orchestrate ordinary package validation and packaged E2E, report the single required gate, then delete transient package-transfer artifacts |
 | `build-and-package.yml` | Reusable only | Build and test every supported triplet, package Widgets and Quick, and create universal macOS packages |
 | `package-verification.yml` | Reusable only | Install and verify both frontend packages on every supported clean verification system |
 | `packaged-e2e.yml` | Reusable only | Install the Qt Quick production package and run CLI and graphical E2E on Linux and Windows; retain the disabled macOS implementation |
@@ -97,11 +97,30 @@ cannot create releases or publish versioned documentation.
 
 ## Required status checks
 
-Reusable workflow jobs appear with their caller and nested job names in the
-GitHub checks interface. After changing a job identity, update the `master`
-ruleset to require the replacement checks shown by a successful pull-request
-run. Do not require the disabled experimental macOS E2E job.
+`master` requires exactly one status check, `CI gate`. Nothing else belongs
+in the ruleset.
 
-Keep required checks at the independently actionable matrix-job level. This
-preserves separate visibility for operating systems, architectures,
-frontends, package verification, and required E2E platforms.
+The gate job in `ci.yml` depends on package production, package
+verification, and packaged E2E, runs with `if: always()`, and fails unless
+every dependency concluded `success`. Making a job mandatory therefore means
+adding it to the gate's `needs:` list, which is reviewed with the change that
+introduces it. Renaming, re-matrixing, or splitting a job needs no ruleset
+edit, and a required context that nothing reports can no longer strand a pull
+request at "Expected — Waiting for status to be reported".
+
+The comparison is against `success` rather than a tolerance for `skipped`,
+because a job that a failed dependency prevented from running concludes
+`skipped` and would otherwise pass the gate. A job that a reusable workflow
+skips through its own `if:` condition, such as the disabled experimental
+macOS E2E job, does not change its caller's result and needs no exception.
+A job that does not run on pull requests must stay out of the gate, or every
+pull request fails.
+
+Artifact cleanup is deliberately ungated. It runs even when validation
+fails, and it reports housekeeping rather than a quality signal.
+
+Reusable workflow jobs still appear individually, with their caller and
+nested job names, in the GitHub checks interface. This preserves separate
+visibility for operating systems, architectures, frontends, package
+verification, and E2E platforms, so a failure stays attributable without
+opening the run.

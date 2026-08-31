@@ -43,6 +43,47 @@ jobs:
     permissions:
       contents: read
 
+  gate:
+    # The single context `master` requires. Adding a job that must pass before
+    # a merge means adding it here, not editing the branch ruleset. Artifact
+    # cleanup is deliberately absent: it is housekeeping that runs even when
+    # validation fails, and it reports no quality signal.
+    name: CI gate
+    needs:
+      - packages
+      - package-verification
+      - packaged-e2e
+    if: always()
+    runs-on: ubuntu-24.04
+    permissions: {}
+
+    steps:
+      - name: Require every gated workflow to succeed
+        env:
+          GATED_RESULTS: ${{ toJSON(needs) }}
+        run: |
+          set -euo pipefail
+          python3 - <<'GATE'
+          import json
+          import os
+          import sys
+
+          results = json.loads(os.environ["GATED_RESULTS"])
+          if not results:
+              sys.exit("::error::the gate resolved no dependency results")
+
+          unsuccessful = []
+          for job, outcome in sorted(results.items()):
+              result = outcome.get("result") or "no result"
+              print(f"{job}: {result}")
+              if result != "success":
+                  unsuccessful.append(job)
+
+          if unsuccessful:
+              names = ", ".join(unsuccessful)
+              sys.exit(f"::error::gated workflows did not succeed: {names}")
+          GATE
+
   cleanup-artifacts:
     name: Remove transient workflow artifacts
     needs:
