@@ -210,6 +210,7 @@ class LinuxAtspiAdapter:
 
 class LinuxApplicationSession:
     _MAX_ACCESSIBILITY_DEPTH = 64
+    _IDENTIFIED_DIALOG_TIMEOUT = 5.0
     _IDENTIFIER_SEARCH_LEAVES = ("eventTable",)
     _ACTION_PRIORITY = (
         "click",
@@ -962,13 +963,32 @@ class LinuxApplicationSession:
         )
 
     def _file_dialog(self, dialog_identifier: str) -> Any:
-        def find() -> Any | None:
+        def by_top_level_identifier() -> Any | None:
+            """Find a chooser that is its own window, as Qt Widgets shows.
+
+            Only the application's own windows are inspected. Searching the
+            whole tree for the identifier costs seconds on a populated
+            window, which turns a bounded wait into a single blocking scan
+            that cannot observe a chooser opening while it runs.
+            """
             self._ensure_running()
-            exact = self._find_identifier(
-                self._application, dialog_identifier, showing_only=True
-            )
-            if exact is not None:
-                return exact
+            try:
+                windows = tuple(self._application.children)
+            except Exception:
+                return None
+            for window in windows:
+                try:
+                    if (
+                        self._node_identifier(window) == dialog_identifier
+                        and self._is_showing(window)
+                    ):
+                        return window
+                except Exception:
+                    continue
+            return None
+
+        def by_filename_field() -> Any | None:
+            self._ensure_running()
             for node in self._walk(self._application):
                 try:
                     if (
@@ -986,7 +1006,20 @@ class LinuxApplicationSession:
 
         try:
             return wait_until(
-                find,
+                by_top_level_identifier,
+                lambda value: value is not None,
+                timeout=min(self._IDENTIFIED_DIALOG_TIMEOUT, self._timeout),
+                description=f"file chooser window {dialog_identifier!r}",
+            )
+        except PollTimeoutError:
+            pass
+
+        # Qt Quick renders its chooser in-scene, where it carries the
+        # dialog's own object name rather than the semantic identifier, so
+        # fall back to the dialog that owns the chooser's filename field.
+        try:
+            return wait_until(
+                by_filename_field,
                 lambda value: value is not None,
                 timeout=self._timeout,
                 description=f"native file chooser {dialog_identifier!r}",
