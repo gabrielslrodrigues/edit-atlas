@@ -43,6 +43,15 @@ ApplicationWindow {
         applicationShell.OpenUrl(selectedUrl)
     }
 
+    // Qt rejects a selected file that does not exist yet, so a suggested
+    // destination is applied as a folder plus, when it already exists, a
+    // preselected file.
+    function suggestedFolderUrl(fileUrl) {
+        const text = fileUrl.toString()
+        const separator = text.lastIndexOf("/")
+        return separator > 0 ? Qt.url(text.substring(0, separator)) : fileUrl
+    }
+
     function startPendingSpreadsheetExport() {
         if (spreadsheetSaveDialog.visible
                 || pendingSpreadsheetDestinationUrl.toString().length === 0) {
@@ -729,7 +738,12 @@ ApplicationWindow {
         objectName: "spreadsheetOptionsDialog"
         workflow: applicationShell.spreadsheetExport
         onDestinationRequested: suggestedDestination => {
-            spreadsheetSaveDialog.selectedFile = suggestedDestination
+            spreadsheetSaveDialog.currentFolder =
+                window.suggestedFolderUrl(suggestedDestination)
+            if (applicationShell.spreadsheetExport.DestinationExists(
+                    suggestedDestination)) {
+                spreadsheetSaveDialog.selectedFile = suggestedDestination
+            }
             Qt.callLater(() => spreadsheetSaveDialog.open())
         }
         onVideoSelectionRequested: suggestedFolder => {
@@ -744,8 +758,15 @@ ApplicationWindow {
         objectName: "supportBundleDisclosureDialog"
         workflow: applicationShell.supportBundle
         onDestinationRequested: suggestedDestination => {
+            const properties = {
+                "currentFolder": window.suggestedFolderUrl(suggestedDestination)
+            }
+            if (applicationShell.supportBundle.DestinationExists(
+                    suggestedDestination)) {
+                properties["selectedFile"] = suggestedDestination
+            }
             const dialog = supportBundleSaveDialogComponent.createObject(
-                    window, {"selectedFile": suggestedDestination})
+                    window, properties)
             window.supportBundleSaveDialog = dialog
             dialog.open()
         }
