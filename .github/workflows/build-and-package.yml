@@ -270,7 +270,7 @@ jobs:
         with:
           path: build/e2e-media-fixtures
           key: >-
-            rendered-video-e2e-v1-${{ hashFiles(
+            rendered-video-e2e-v2-${{ hashFiles(
               'tests/integration/media/e2e_fixture_generator.cpp',
               'tests/integration/media/media_fixture.cpp',
               'tests/integration/media/include/edit_atlas/test/media_fixture.hpp',
@@ -282,6 +282,7 @@ jobs:
           runner.os == 'Linux' &&
           steps.rendered-video-fixture-cache.outputs.cache-hit != 'true'
         run: >-
+          tests/e2e/generate-media-fixtures.sh
           build/${{ matrix.debug_preset }}/tests/integration/media/edit_atlas_e2e_media_fixture_generator
           build/e2e-media-fixtures
 

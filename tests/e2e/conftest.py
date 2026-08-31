@@ -12,9 +12,14 @@ import pytest
 from adapters.processes import ProcessRegistry
 from application.cli import InstalledCli
 from application.gui import EditAtlasApplication
+from application.media_fixtures import (
+    regeneration_command,
+    stale_fixture_reason,
+)
 
 
 REPORTS_KEY = pytest.StashKey[dict[str, pytest.TestReport]]()
+REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
 
 
 @pytest.hookimpl(hookwrapper=True)
@@ -50,6 +55,16 @@ def pytest_addoption(parser: pytest.Parser) -> None:
 def pytest_collection_finish(session: pytest.Session) -> None:
     if not session.items:
         raise pytest.UsageError("required E2E suite collected no tests")
+    # Reject fixtures left over from an older generator before anything
+    # runs, rather than when the first rendered-video scenario reaches
+    # them. The directory is optional, so an absent option is not an error.
+    option = session.config.getoption("media_fixture_dir")
+    if option is None:
+        return
+    directory = option.resolve()
+    stale = stale_fixture_reason(REPOSITORY_ROOT, directory)
+    if stale is not None:
+        raise pytest.UsageError(_stale_fixture_message(directory, stale))
 
 
 def pytest_deselected(items: list[pytest.Item]) -> None:
@@ -75,6 +90,14 @@ def pytest_sessionfinish(
 
 
 DESELECTED_KEY = pytest.StashKey[int]()
+
+
+def _stale_fixture_message(directory: Path, reason: str) -> str:
+    return (
+        f"rendered-video fixtures in {directory} are not current: {reason}. "
+        "Regenerate them from a configured build tree:\n"
+        f"{regeneration_command(directory)}"
+    )
 
 
 @pytest.fixture(scope="session")
@@ -110,6 +133,9 @@ def media_fixture_directory(pytestconfig: pytest.Config) -> Path:
             "rendered-video fixture directory is incomplete: "
             + ", ".join(missing)
         )
+    stale = stale_fixture_reason(REPOSITORY_ROOT, path)
+    if stale is not None:
+        raise pytest.UsageError(_stale_fixture_message(path, stale))
     return path
 
 

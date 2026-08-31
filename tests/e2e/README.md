@@ -39,13 +39,32 @@ the project's FFmpeg-backed integration-test utility. After building a preset,
 generate them under the E2E tree before running a desktop suite:
 
 ```sh
-build/<preset>/tests/integration/media/edit_atlas_e2e_media_fixture_generator \
+tests/e2e/generate-media-fixtures.sh \
+  build/<preset>/tests/integration/media/edit_atlas_e2e_media_fixture_generator \
   build/e2e/media-fixtures
 ```
 
-On Windows, invoke the corresponding `.exe`. CI prepares and caches the
-fixtures once, then supplies the same timecoded media to the required Linux
-and Windows jobs and the disabled macOS job.
+Windows PowerShell, with the corresponding `.exe`:
+
+```powershell
+tests/e2e/generate-media-fixtures.ps1 `
+  -Generator "build\<preset>\tests\integration\media\edit_atlas_e2e_media_fixture_generator.exe" `
+  -FixtureDirectory build\e2e\media-fixtures
+```
+
+CI prepares and caches the fixtures once through the same entry point, then
+supplies the same timecoded media to the required Linux and Windows jobs and
+the disabled macOS job.
+
+The entry points record a digest of the inputs that determine fixture content
+— the generator and fixture-helper sources and `vcpkg.json`, the same inputs
+CI's fixture cache key hashes — in a `generator-digest.txt` file beside the
+fixtures. A desktop suite verifies that digest against the tree before
+collecting any test and fails with the regeneration command when the digest is
+absent or no longer matches, so fixtures from an older generator revision
+cannot silently exercise a newer build. Invoking the generator directly leaves
+no digest and is rejected on that basis; regenerate through the entry point
+instead.
 
 Packaged CLI tests on Linux and macOS:
 
