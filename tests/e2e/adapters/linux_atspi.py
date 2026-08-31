@@ -308,8 +308,6 @@ class LinuxApplicationSession:
 
     def has_element(self, identifier: str, *, showing: bool = True) -> bool:
         self._ensure_running()
-        if identifier == "replaceSpreadsheetDialog":
-            return self._native_overwrite_button(True) is not None
         try:
             return (
                 self._find_identifier(
@@ -338,44 +336,6 @@ class LinuxApplicationSession:
                 node,
                 "frame extraction cancel button",
             )
-            return
-        if identifier in (
-            "cancelReplaceSpreadsheetButton",
-            "replaceSpreadsheetButton",
-        ):
-            replace = identifier == "replaceSpreadsheetButton"
-            save_dialog = self._file_dialog("spreadsheetSaveFileDialog")
-            button = self._native_overwrite_button(replace)
-            if button is None:
-                raise ElementNotFoundError(
-                    "native overwrite confirmation button is absent"
-                )
-            self._click_accessible_bounds(
-                button, "native overwrite confirmation button"
-            )
-            if not replace:
-                wait_until(
-                    lambda: self._native_overwrite_button(True),
-                    lambda value: value is None,
-                    timeout=self._timeout,
-                    description="native overwrite confirmation to close",
-                )
-                cancel = self._find_named(
-                    save_dialog,
-                    ("Cancel", "&Cancel", "Cancelar", "&Cancelar"),
-                    roles=("push button", "button"),
-                    showing_only=True,
-                )
-                if cancel is None:
-                    raise ElementNotFoundError(
-                        "file chooser cancel button is absent"
-                    )
-                self._click_accessible_bounds(
-                    cancel, "file chooser cancel button"
-                )
-                self._wait_file_dialog_closed(
-                    save_dialog, "spreadsheetSaveFileDialog"
-                )
             return
         self._activate_node(self.element(identifier, showing=showing))
 
@@ -753,19 +713,6 @@ class LinuxApplicationSession:
         if showing and confirmation is not None:
             return
         self._wait_file_dialog_closed(dialog, dialog_identifier)
-
-    def _native_overwrite_button(self, replace: bool) -> Any | None:
-        names = (
-            ("Yes", "&Yes", "Sim", "&Sim")
-            if replace
-            else ("No", "&No", "Não", "&Não")
-        )
-        return self._find_named(
-            self._application,
-            names,
-            roles=("push button", "button"),
-            showing_only=True,
-        )
 
     def _complete_native_file_dialog(
         self, dialog: Any, dialog_identifier: str, path: str

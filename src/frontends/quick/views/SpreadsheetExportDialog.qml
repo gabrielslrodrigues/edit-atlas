@@ -11,6 +11,8 @@ Dialog {
     required property SpreadsheetExport workflow
 
     property url renderedVideoUrl: ""
+    property url pendingDestination: ""
+    property bool replacementPending: false
     property bool failurePending: false
     property bool progressClosing: false
     property bool saveDialogPending: false
@@ -25,6 +27,8 @@ Dialog {
         includeTimeline.checked = true
         includeDiagnostics.checked = true
         renderedVideoUrl = ""
+        pendingDestination = ""
+        replacementPending = false
         failurePending = false
         progressClosing = false
         saveDialogPending = false
@@ -37,9 +41,21 @@ Dialog {
     }
 
     function startExport(destination) {
+        // Edit Atlas owns replacement confirmation rather than delegating
+        // it to the file dialog, so an existing destination is only
+        // replaced once the user authorizes it here.
+        if (workflow.DestinationExists(destination)) {
+            pendingDestination = destination
+            replaceDialog.open()
+        } else {
+            beginExport(destination, false)
+        }
+    }
+
+    function beginExport(destination, replaceExisting) {
         workflow.Start(destination, selectedWorkbookLanguage(),
                        includeTimeline.checked, includeDiagnostics.checked,
-                       renderedVideoUrl)
+                       renderedVideoUrl, replaceExisting)
     }
 
     function presentPendingResult() {
@@ -247,6 +263,55 @@ Dialog {
 
         configuration: root.configuration
         objectName: "spreadsheetEventProjectionDialog"
+    }
+
+    Dialog {
+        id: replaceDialog
+
+        anchors.centerIn: parent
+        modal: true
+        objectName: "replaceSpreadsheetDialog"
+        parent: Overlay.overlay
+        title: qsTr("Replace Existing File?")
+
+        Label {
+            text: qsTr("The selected file already exists. Do you want to replace it?")
+            wrapMode: Text.WordWrap
+        }
+
+        footer: DialogButtonBox {
+            onRejected: {
+                root.replacementPending = false
+                root.pendingDestination = ""
+                replaceDialog.close()
+            }
+
+            Button {
+                DialogButtonBox.buttonRole: DialogButtonBox.RejectRole
+                objectName: "cancelReplaceSpreadsheetButton"
+                text: qsTr("Cancel")
+            }
+
+            Button {
+                DialogButtonBox.buttonRole: DialogButtonBox.AcceptRole
+                highlighted: true
+                objectName: "replaceSpreadsheetButton"
+                text: qsTr("Replace")
+                onClicked: {
+                    root.replacementPending = true
+                    replaceDialog.close()
+                }
+            }
+        }
+
+        onClosed: {
+            const destination = root.pendingDestination
+            root.pendingDestination = ""
+            if (root.replacementPending) {
+                root.replacementPending = false
+                Qt.callLater(() => root.beginExport(destination, true))
+            }
+        }
     }
 
     Dialog {

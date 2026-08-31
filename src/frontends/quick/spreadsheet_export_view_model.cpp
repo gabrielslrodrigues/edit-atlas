@@ -206,11 +206,23 @@ bool SpreadsheetExportViewModel::HasWarnings(void) const noexcept {
     return !warning_text_.isEmpty();
 }
 
+bool SpreadsheetExportViewModel::DestinationExists(
+    const QUrl &destination) const {
+    if (!destination.isLocalFile() || destination.toLocalFile().isEmpty()) {
+        return false;
+    }
+    std::error_code exists_error;
+    const auto exists = std::filesystem::exists(
+        FilesystemPath(destination.toLocalFile()), exists_error);
+    return !exists_error && exists;
+}
+
 bool SpreadsheetExportViewModel::Start(const QUrl &destination,
                                        const QString &workbook_language,
                                        bool include_timeline_sheet,
                                        bool include_diagnostics_sheet,
-                                       const QUrl &rendered_video) {
+                                       const QUrl &rendered_video,
+                                       bool replace_existing) {
     ClearResult();
     if (exporter_identifier_.empty()) {
         SetImmediateFailure(
@@ -244,13 +256,6 @@ bool SpreadsheetExportViewModel::Start(const QUrl &destination,
     }
 
     const auto destination_path = FilesystemPath(destination.toLocalFile());
-    std::error_code exists_error;
-    const auto replace_existing =
-        std::filesystem::exists(destination_path, exists_error);
-    if (exists_error) {
-        SetImmediateFailure(tr("The workbook destination could not be read."));
-        return false;
-    }
 
     QSettings settings;
     settings.setValue(QStringLiteral("export/lastDirectory"),

@@ -608,6 +608,11 @@ ApplicationWindow {
             qsTr("Excel workbook (*.xlsx)"),
             qsTr("All files (*)")
         ]
+        // Edit Atlas owns replacement confirmation through
+        // replaceSpreadsheetDialog, which also authorizes the export
+        // service to overwrite. Letting the dialog confirm as well asks
+        // twice and hides the application's own prompt.
+        options: FileDialog.DontConfirmOverwrite
         objectName: "spreadsheetSaveFileDialog"
         parentWindow: window
         popupType: Popup.Item
