@@ -1,0 +1,5 @@
+<map id="edit_atlas::presentation::TimelineEventModel" name="edit_atlas::presentation::TimelineEventModel">
+<area shape="rect" id="Node000001" title="Presents timeline events lazily for sorting and filtering in the desktop UI." alt="" coords="5,79,181,119"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="13,5,173,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="96,44,96,79,91,79,91,44"/>
+</map>

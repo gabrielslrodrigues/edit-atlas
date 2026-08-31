@@ -47,6 +47,19 @@ var annotated_dup =
         [ "VideoFrameSizeLimit", "structedit__atlas_1_1media_1_1VideoFrameSizeLimit.html", "structedit__atlas_1_1media_1_1VideoFrameSizeLimit" ],
         [ "VideoMediaInfo", "structedit__atlas_1_1media_1_1VideoMediaInfo.html", "structedit__atlas_1_1media_1_1VideoMediaInfo" ]
       ] ],
+      [ "presentation", null, [
+        [ "DiagnosticModel", "classedit__atlas_1_1presentation_1_1DiagnosticModel.html", "classedit__atlas_1_1presentation_1_1DiagnosticModel" ],
+        [ "SupportBundleViewModel", "classedit__atlas_1_1presentation_1_1SupportBundleViewModel.html", "classedit__atlas_1_1presentation_1_1SupportBundleViewModel" ],
+        [ "SupportBundleWorkflow", "classedit__atlas_1_1presentation_1_1SupportBundleWorkflow.html", "classedit__atlas_1_1presentation_1_1SupportBundleWorkflow" ],
+        [ "TimelineDocumentViewModel", "classedit__atlas_1_1presentation_1_1TimelineDocumentViewModel.html", "classedit__atlas_1_1presentation_1_1TimelineDocumentViewModel" ],
+        [ "TimelineDocumentWorkflow", "classedit__atlas_1_1presentation_1_1TimelineDocumentWorkflow.html", "classedit__atlas_1_1presentation_1_1TimelineDocumentWorkflow" ],
+        [ "TimelineEventModel", "classedit__atlas_1_1presentation_1_1TimelineEventModel.html", "classedit__atlas_1_1presentation_1_1TimelineEventModel" ],
+        [ "TimelineEventProjectionModel", "classedit__atlas_1_1presentation_1_1TimelineEventProjectionModel.html", "classedit__atlas_1_1presentation_1_1TimelineEventProjectionModel" ],
+        [ "TimelineExportRequest", "structedit__atlas_1_1presentation_1_1TimelineExportRequest.html", "structedit__atlas_1_1presentation_1_1TimelineExportRequest" ],
+        [ "TimelineFilterModel", "classedit__atlas_1_1presentation_1_1TimelineFilterModel.html", "classedit__atlas_1_1presentation_1_1TimelineFilterModel" ],
+        [ "TimelineTemplateModel", "classedit__atlas_1_1presentation_1_1TimelineTemplateModel.html", "classedit__atlas_1_1presentation_1_1TimelineTemplateModel" ],
+        [ "TimelineTemplateViewModel", "classedit__atlas_1_1presentation_1_1TimelineTemplateViewModel.html", "classedit__atlas_1_1presentation_1_1TimelineTemplateViewModel" ]
+      ] ],
       [ "services", "namespaceedit__atlas_1_1services.html", [
         [ "TimelineDocumentExportFailure", "structedit__atlas_1_1services_1_1TimelineDocumentExportFailure.html", "structedit__atlas_1_1services_1_1TimelineDocumentExportFailure" ],
         [ "TimelineDocumentExportReceipt", "structedit__atlas_1_1services_1_1TimelineDocumentExportReceipt.html", "structedit__atlas_1_1services_1_1TimelineDocumentExportReceipt" ],

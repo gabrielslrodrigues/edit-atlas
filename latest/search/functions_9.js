@@ -1,5 +1,4 @@
 var searchData=
 [
-  ['minutes_0',['minutes',['../classedit__atlas_1_1core_1_1Timecode.html#a9f6365f4612b6bc73b732768a164fb5d',1,'edit_atlas::core::Timecode']]],
-  ['mode_1',['mode',['../classedit__atlas_1_1core_1_1Timecode.html#a055b6aeadde91dfbd4cc615fa7878dd3',1,'edit_atlas::core::Timecode']]]
+  ['load_0',['load',['../classedit__atlas_1_1presentation_1_1TimelineTemplateViewModel.html#a529b7bcca8304131a0513edf2a9146cb',1,'edit_atlas::presentation::TimelineTemplateViewModel::Load()'],['../classedit__atlas_1_1services_1_1TimelineTemplateService.html#a7ddbf3f5b853575427602eec92362c55',1,'edit_atlas::services::TimelineTemplateService::Load()']]]
 ];

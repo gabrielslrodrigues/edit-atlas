@@ -24,6 +24,22 @@ var hierarchy =
     [ "edit_atlas::media::MediaMetadataEntry", "structedit__atlas_1_1media_1_1MediaMetadataEntry.html", null ],
     [ "edit_atlas::media::MediaStreamInfo", "structedit__atlas_1_1media_1_1MediaStreamInfo.html", null ],
     [ "edit_atlas::core::MetadataEntry", "structedit__atlas_1_1core_1_1MetadataEntry.html", null ],
+    [ "QAbstractListModel", null, [
+      [ "edit_atlas::presentation::TimelineEventProjectionModel", "classedit__atlas_1_1presentation_1_1TimelineEventProjectionModel.html", null ],
+      [ "edit_atlas::presentation::TimelineFilterModel", "classedit__atlas_1_1presentation_1_1TimelineFilterModel.html", null ],
+      [ "edit_atlas::presentation::TimelineTemplateModel", "classedit__atlas_1_1presentation_1_1TimelineTemplateModel.html", null ]
+    ] ],
+    [ "QAbstractTableModel", null, [
+      [ "edit_atlas::presentation::DiagnosticModel", "classedit__atlas_1_1presentation_1_1DiagnosticModel.html", null ],
+      [ "edit_atlas::presentation::TimelineEventModel", "classedit__atlas_1_1presentation_1_1TimelineEventModel.html", null ]
+    ] ],
+    [ "QObject", null, [
+      [ "edit_atlas::presentation::SupportBundleViewModel", "classedit__atlas_1_1presentation_1_1SupportBundleViewModel.html", null ],
+      [ "edit_atlas::presentation::SupportBundleWorkflow", "classedit__atlas_1_1presentation_1_1SupportBundleWorkflow.html", null ],
+      [ "edit_atlas::presentation::TimelineDocumentViewModel", "classedit__atlas_1_1presentation_1_1TimelineDocumentViewModel.html", null ],
+      [ "edit_atlas::presentation::TimelineDocumentWorkflow", "classedit__atlas_1_1presentation_1_1TimelineDocumentWorkflow.html", null ],
+      [ "edit_atlas::presentation::TimelineTemplateViewModel", "classedit__atlas_1_1presentation_1_1TimelineTemplateViewModel.html", null ]
+    ] ],
     [ "edit_atlas::media::Rational", "structedit__atlas_1_1media_1_1Rational.html", null ],
     [ "edit_atlas::core::RgbImage", "structedit__atlas_1_1core_1_1RgbImage.html", null ],
     [ "edit_atlas::core::SourceLineProvenance", "structedit__atlas_1_1core_1_1SourceLineProvenance.html", null ],
@@ -47,6 +63,7 @@ var hierarchy =
     [ "edit_atlas::services::TimelineEditTypeFilterCondition", "structedit__atlas_1_1services_1_1TimelineEditTypeFilterCondition.html", null ],
     [ "edit_atlas::services::TimelineEventFrame", "structedit__atlas_1_1services_1_1TimelineEventFrame.html", null ],
     [ "edit_atlas::core::TimelineEventImage", "structedit__atlas_1_1core_1_1TimelineEventImage.html", null ],
+    [ "edit_atlas::presentation::TimelineExportRequest", "structedit__atlas_1_1presentation_1_1TimelineExportRequest.html", null ],
     [ "edit_atlas::services::TimelineFilterError", "structedit__atlas_1_1services_1_1TimelineFilterError.html", null ],
     [ "edit_atlas::services::TimelineFilterQuery", "structedit__atlas_1_1services_1_1TimelineFilterQuery.html", null ],
     [ "edit_atlas::services::TimelineFrameExtractionFailure", "structedit__atlas_1_1services_1_1TimelineFrameExtractionFailure.html", null ],

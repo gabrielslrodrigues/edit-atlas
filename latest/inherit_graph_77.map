@@ -1,0 +1,13 @@
+<map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
+<area shape="rect" id="Node000000" title=" " alt="" coords="5,141,80,166"/>
+<area shape="rect" id="Node000001" href="$classedit__atlas_1_1presentation_1_1SupportBundleViewModel.html" title="Owns asynchronous diagnostic&#45;bundle export state for desktop frontends." alt="" coords="143,5,340,45"/>
+<area shape="poly" id="edge8_Node000000_Node000001" title=" " alt="" coords="58,127,87,90,127,55,150,43,152,48,129,60,91,93,62,130"/>
+<area shape="rect" id="Node000002" href="$classedit__atlas_1_1presentation_1_1SupportBundleWorkflow.html" title="Owns Qt asynchronous execution for diagnostic support&#45;bundle creation." alt="" coords="149,69,334,109"/>
+<area shape="poly" id="edge9_Node000000_Node000002" title=" " alt="" coords="87,133,127,119,165,107,167,112,129,124,89,138"/>
+<area shape="rect" id="Node000003" href="$classedit__atlas_1_1presentation_1_1TimelineDocumentViewModel.html" title="Owns one imported timeline and its frontend&#45;neutral MVVM presentation state." alt="" coords="128,133,355,173"/>
+<area shape="poly" id="edge10_Node000000_Node000003" title=" " alt="" coords="94,151,128,151,128,156,94,156"/>
+<area shape="rect" id="Node000004" href="$classedit__atlas_1_1presentation_1_1TimelineDocumentWorkflow.html" title="Owns Qt asynchronous execution for the UI&#45;independent document services." alt="" coords="134,197,349,237"/>
+<area shape="poly" id="edge11_Node000000_Node000004" title=" " alt="" coords="89,169,129,183,167,195,165,200,127,188,87,174"/>
+<area shape="rect" id="Node000005" href="$classedit__atlas_1_1presentation_1_1TimelineTemplateViewModel.html" title="Owns reusable&#45;template catalog and selection state for desktop frontends." alt="" coords="132,261,351,301"/>
+<area shape="poly" id="edge12_Node000000_Node000005" title=" " alt="" coords="62,177,91,213,129,247,152,259,150,264,127,252,87,217,58,180"/>
+</map>

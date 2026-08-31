@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['interface_0',['Command-line interface',['../md_docs_2cli.html',1,'']]]
+  ['frontend_0',['frontend',['../qt_quick_frontend.html',1,'Qt Quick frontend'],['../qt_widgets_frontend.html',1,'Qt Widgets frontend']]]
 ];

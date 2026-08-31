@@ -94,11 +94,13 @@ $(document).ready(function(){initNavTree('index.html',''); initResizable(); });
   <div class="headertitle"><div class="title">Edit Atlas C++ API </div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="anchor" id="mainpage"></a> Edit Atlas provides a UI-independent C++23 foundation for importing editorial timeline formats and exporting structured reports. The documented API covers the domain model, format extension points, application services, built-in formats, media decoding, and privacy-limited diagnostic support.</p>
-<h1><a class="anchor" id="autotoc_md6"></a>
+<div class="textblock"><p><a class="anchor" id="mainpage"></a> Edit Atlas provides a C++23 foundation for importing editorial timeline formats and exporting structured reports. Its domain, format, service, media, storage, and diagnostic APIs are UI-independent; the documented API also covers the shared Qt presentation boundary.</p>
+<h1><a class="anchor" id="autotoc_md8"></a>
 Start here</h1>
 <ul>
 <li><a class="el" href="api_architecture.html">Architecture and dependency direction</a></li>
+<li><a class="el" href="qt_quick_frontend.html">Qt Quick frontend development guide</a></li>
+<li><a class="el" href="qt_widgets_frontend.html">Qt Widgets frontend maintenance guide</a></li>
 <li><code><a class="el" href="structedit__atlas_1_1core_1_1TimelineDocument.html" title="A format-independent editorial timeline and its import diagnostics.">edit_atlas::core::TimelineDocument</a></code> is the shared editorial model.</li>
 <li><code><a class="el" href="classedit__atlas_1_1core_1_1Importer.html" title="Converts in-memory content into the format-independent timeline model.">edit_atlas::core::Importer</a></code> and <code><a class="el" href="classedit__atlas_1_1core_1_1Exporter.html" title="Converts a timeline document into an interchange or report format.">edit_atlas::core::Exporter</a></code> are the format extension points.</li>
 <li><code><a class="el" href="namespaceedit__atlas_1_1core.html#a8202057a8e50482dd31c61e0f36c8411" title="Identifies one exportable field of an editorial timeline event.">edit_atlas::core::TimelineEventField</a></code> provides stable event-column identifiers and the default report projection.</li>
@@ -111,11 +113,14 @@ Start here</h1>
 <li><code>edit_atlas::storage::ReadLocalFile()</code> and <code>edit_atlas::storage::WriteLocalFileAtomically()</code> provide the shared local storage boundary.</li>
 <li><code><a class="el" href="namespaceedit__atlas_1_1services.html#a13782bb5f3054df75536d5a2d53dba00" title="Creates a registry containing every format built into Edit Atlas.">edit_atlas::services::CreateBuiltInFormatRegistry()</a></code> composes the handlers shipped with the application.</li>
 <li><code><a class="el" href="classedit__atlas_1_1media_1_1VideoDecoder.html#a161a0c27f2ddcf54f45e1adbfd995498" title="Opens a supported MOV, MP4, or MXF file and selects its best video stream.">edit_atlas::media::VideoDecoder::Open()</a></code> opens supported MOV, MP4, and MXF inputs behind a frontend-independent decoding interface.</li>
+<li><code><a class="el" href="classedit__atlas_1_1presentation_1_1TimelineDocumentViewModel.html" title="Owns one imported timeline and its frontend-neutral MVVM presentation state.">edit_atlas::presentation::TimelineDocumentViewModel</a></code> exposes shared timeline state and commands to graphical frontends.</li>
+<li><code><a class="el" href="classedit__atlas_1_1presentation_1_1TimelineTemplateViewModel.html" title="Owns reusable-template catalog and selection state for desktop frontends.">edit_atlas::presentation::TimelineTemplateViewModel</a></code> exposes reusable filter and projection templates without owning dialogs.</li>
+<li><code><a class="el" href="classedit__atlas_1_1presentation_1_1SupportBundleViewModel.html" title="Owns asynchronous diagnostic-bundle export state for desktop frontends.">edit_atlas::presentation::SupportBundleViewModel</a></code> exposes asynchronous diagnostic export state and structured results.</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md7"></a>
+<h1><a class="anchor" id="autotoc_md9"></a>
 API stability</h1>
 <p>Format identifiers, option keys, and diagnostic codes are stable integration values. Other APIs currently follow the application version and may evolve before Edit Atlas reaches version 1.0.</p>
-<h1><a class="anchor" id="autotoc_md8"></a>
+<h1><a class="anchor" id="autotoc_md10"></a>
 Source documentation</h1>
 <p>Public declarations use LLVM-style <code>///</code> comments. A declaration's first sentence is its brief summary. Document parameters with <code>\param</code>, return values with <code>\returns</code>, invariants and ownership in the detailed description, and enumeration values or public data members at their declarations.</p>
 <p>Generated documentation is an engineering reference. It does not replace the end-user application manual or describe private implementation details. </p>
