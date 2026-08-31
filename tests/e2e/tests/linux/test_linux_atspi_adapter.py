@@ -226,7 +226,6 @@ def application_session(artifact_directory: Path) -> LinuxApplicationSession:
         tree=None,
         atspi=None,
         keyboard_sender=RecordingKeyboardSender(),
-        key_combo_sender=RecordingKeyboardSender(),
         registry=None,
         process=None,
         artifact_directory=artifact_directory,
@@ -319,90 +318,33 @@ def test_native_file_dialog_keeps_direct_path_entry(tmp_path: Path) -> None:
     ]
 
 
-class BreadcrumbPathField:
-    role_name = "text"
-    children = ()
-    name = ""
-
-    def __init__(self) -> None:
-        self.showing = False
-        self.text = ""
-
-    def set_text_contents(self, value: str) -> bool:
-        self.text = value
-        return True
-
-
-class BreadcrumbRootButton(SuccessfulActionNode):
-    role_name = "push button"
-    children = ()
-
-    def __init__(self) -> None:
-        super().__init__("/", "SetFocus")
-        self.focused = False
-
-    def do_action_named(self, action: str) -> bool:
-        result = super().do_action_named(action)
-        self.focused = True
-        return result
-
-
-def test_quick_file_dialog_navigates_by_typing_the_path(
-    tmp_path: Path,
-) -> None:
-    session = application_session(tmp_path)
+def test_quick_file_dialog_starts_from_visible_descendant() -> None:
+    session = application_session(Path("/tmp"))
     session._process = RunningProcess()
-    field = BreadcrumbPathField()
-    root_button = BreadcrumbRootButton()
-    breadcrumbs = AccessibilityNode(
-        "breadcrumbs", (field, root_button), role_name="page tab list"
+    dialog = AccessibilityNode("quickFileDialog", role_name="dialog")
+    operations: list[tuple[str, str]] = []
+
+    def find_named(root, names, **kwargs):
+        name = next(iter(names))
+        return object() if name == "tests" else None
+
+    class Entry:
+        showing = True
+
+    def activate(entry, name: str) -> None:
+        operations.append(("activate", name))
+        entry.showing = False
+
+    session._find_named = find_named
+    session._file_dialog_entry = lambda found_dialog, name: Entry()
+    session._activate_file_dialog_entry = activate
+
+    session._navigate_file_dialog(
+        dialog,
+        Path("/home/runner/work/edit-atlas/edit-atlas/tests/fixtures"),
     )
-    dialog = AccessibilityNode(
-        "quickFileDialog", (breadcrumbs,), role_name="dialog"
-    )
 
-    def send_enter(key: str) -> None:
-        assert key == "enter"
-        # Qt hides the path field once it accepts the typed location.
-        field.showing = False
-
-    session._keyboard_sender = send_enter
-
-    combos: list[str] = []
-
-    def send_combo(combo: str) -> None:
-        combos.append(combo)
-        field.showing = True
-
-    session._key_combo_sender = send_combo
-
-    assert session._navigate_file_dialog(dialog, tmp_path) is None
-    assert root_button.focused
-    assert combos == ["<Control>l"]
-    assert field.text == str(tmp_path)
-
-
-def test_quick_file_dialog_reports_path_shortcut_failure(
-    tmp_path: Path,
-) -> None:
-    session = application_session(tmp_path)
-    session._process = RunningProcess()
-    session._timeout = 0.01
-    field = BreadcrumbPathField()
-    root_button = BreadcrumbRootButton()
-    breadcrumbs = AccessibilityNode(
-        "breadcrumbs", (field, root_button), role_name="page tab list"
-    )
-    dialog = AccessibilityNode(
-        "quickFileDialog", (breadcrumbs,), role_name="dialog"
-    )
-    session._key_combo_sender = lambda combo: None
-
-    with pytest.raises(
-        ActionNotSupportedError,
-        match="Ctrl\\+L did not reveal the path field",
-    ):
-        session._navigate_file_dialog(dialog, tmp_path)
+    assert operations == [("activate", "tests"), ("activate", "fixtures")]
 
 
 def test_quick_file_dialog_falls_back_when_no_path_field_exists(

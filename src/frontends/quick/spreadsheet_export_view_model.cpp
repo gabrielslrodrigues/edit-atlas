@@ -66,6 +66,28 @@ namespace {
         .arg(timecode.frames(), 2, 10, QChar{u'0'});
 }
 
+[[nodiscard]] QString RenderedVideoFailureText(
+    services::TimelineRenderedVideoExportFailureKind kind) {
+    using services::TimelineRenderedVideoExportFailureKind;
+    switch (kind) {
+    case TimelineRenderedVideoExportFailureKind::kVideoRequired:
+        return SpreadsheetExportViewModel::tr(
+            "Select a matching rendered video for the Initial Frame column.");
+    case TimelineRenderedVideoExportFailureKind::kVideoInspectionFailed:
+        return SpreadsheetExportViewModel::tr(
+            "The rendered video could not be validated. It must be a "
+            "constant-frame-rate MOV, MP4, or MXF file with embedded starting "
+            "timecode, frame rate, and duration matching the imported EDL.");
+    case TimelineRenderedVideoExportFailureKind::kFrameExtractionFailed:
+        return SpreadsheetExportViewModel::tr(
+            "Initial frames could not be extracted from the rendered video.");
+    case TimelineRenderedVideoExportFailureKind::kDocumentExportFailed:
+        return SpreadsheetExportViewModel::tr(
+            "The prepared spreadsheet could not be exported.");
+    }
+    return {};
+}
+
 [[nodiscard]] bool
 HasDiagnosticCode(std::span<const core::Diagnostic> diagnostics,
                   std::string_view code) {
@@ -303,8 +325,15 @@ void SpreadsheetExportViewModel::HandleExportFinished(void) {
             emit exportCancelled();
             return;
         }
-        error_text_ =
+        error_text_ = RenderedVideoFailureText(result->error().kind);
+        const auto diagnostic_text =
             presentation::diagnostic_text::Summary(result->error().diagnostics);
+        if (!diagnostic_text.isEmpty()) {
+            if (!error_text_.isEmpty()) {
+                error_text_ += QStringLiteral("\n\n");
+            }
+            error_text_ += diagnostic_text;
+        }
         if (error_text_.isEmpty()) {
             error_text_ = tr("The spreadsheet could not be exported.");
         }

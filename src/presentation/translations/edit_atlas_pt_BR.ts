@@ -1481,6 +1481,18 @@ Inspecione linhas do tempo editoriais e exporte relatórios estruturados.</trans
         <translation>Selecione um vídeo renderizado correspondente para a coluna Quadro inicial.</translation>
     </message>
     <message>
+        <source>The rendered video could not be validated. It must be a constant-frame-rate MOV, MP4, or MXF file with embedded starting timecode, frame rate, and duration matching the imported EDL.</source>
+        <translation>Não foi possível validar o vídeo renderizado. Ele deve ser um arquivo MOV, MP4 ou MXF com taxa de quadros constante, timecode inicial incorporado, taxa de quadros e duração correspondentes à EDL importada.</translation>
+    </message>
+    <message>
+        <source>Initial frames could not be extracted from the rendered video.</source>
+        <translation>Não foi possível extrair os quadros iniciais do vídeo renderizado.</translation>
+    </message>
+    <message>
+        <source>The prepared spreadsheet could not be exported.</source>
+        <translation>Não foi possível exportar a planilha preparada.</translation>
+    </message>
+    <message>
         <source>The workbook destination could not be read.</source>
         <translation>Não foi possível ler o destino da pasta de trabalho.</translation>
     </message>

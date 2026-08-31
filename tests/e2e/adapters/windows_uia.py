@@ -374,6 +374,42 @@ class WindowsApplicationSession:
                 f"native file chooser {dialog_identifier!r} to accept keyboard input"
             ),
         )
+        self._accept_native_overwrite_confirmation()
+
+    def _accept_native_overwrite_confirmation(self) -> None:
+        """Accept the shell's overwrite prompt before the app confirms it.
+
+        Windows inserts its own ``Confirm Save As`` dialog when an existing
+        path is entered. Edit Atlas deliberately presents a second,
+        application-owned replacement dialog, so E2E must pass through the
+        shell prompt to exercise that application contract.
+        """
+        confirmation = self._current_win32_file_dialog()
+        if confirmation is None or not self._window_exists(confirmation):
+            return
+        yes = self._find_named(
+            ("Yes", "&Yes", "Sim", "&Sim"),
+            root=confirmation,
+            control_types=("Button",),
+        )
+        try:
+            if yes is not None:
+                yes.click_input()
+            else:
+                # The shell confirmation can be an owned system window that
+                # is absent from the process-scoped Win32 tree. Its English
+                # Yes accelerator remains available to the focused prompt.
+                self._keyboard_sender("%y", pause=0)
+        except Exception as error:
+            raise ActionNotSupportedError(
+                "native overwrite confirmation rejected the Yes command"
+            ) from error
+        wait_until(
+            lambda: self._window_exists_while_running(confirmation),
+            lambda present: not present,
+            timeout=self._timeout,
+            description="native overwrite confirmation to close",
+        )
 
     def activate_menu_action(
         self, menu_identifier: str, action_identifier: str

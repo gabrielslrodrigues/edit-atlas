@@ -544,6 +544,65 @@ def test_native_file_dialog_uses_focused_keyboard_input(
     ]
 
 
+def test_native_save_dialog_accepts_shell_overwrite_confirmation(
+    tmp_path: Path,
+) -> None:
+    session = application_session(tmp_path)
+    file_dialog_open = Event()
+    file_dialog_open.set()
+    confirmation_open = Event()
+
+    class FileDialog:
+        @staticmethod
+        def exists() -> bool:
+            return file_dialog_open.is_set()
+
+        @staticmethod
+        def has_focus() -> bool:
+            return True
+
+    yes = Node(
+        "&Yes",
+        "Button",
+        click=lambda: confirmation_open.clear(),
+    )
+
+    class Confirmation(Node):
+        def __init__(self) -> None:
+            super().__init__("Confirm Save As", "Window", children=(yes,))
+
+        @staticmethod
+        def exists() -> bool:
+            return confirmation_open.is_set()
+
+    file_dialog = FileDialog()
+    confirmation = Confirmation()
+
+    class Desktop:
+        @staticmethod
+        def windows(**criteria: Any) -> list[object]:
+            if confirmation_open.is_set():
+                return [confirmation]
+            if file_dialog_open.is_set():
+                return [file_dialog]
+            return []
+
+    session._win32_desktop = Desktop()
+
+    def send_keys(keys: str, **options: Any) -> None:
+        if keys == "{ENTER}":
+            file_dialog_open.clear()
+            confirmation_open.set()
+
+    session._keyboard_sender = send_keys
+
+    session.open_file_dialog(
+        "spreadsheetSaveFileDialog", tmp_path / "existing.xlsx"
+    )
+
+    assert not confirmation_open.is_set()
+
+
 def test_uia_actions_do_not_block_the_driver(tmp_path: Path) -> None:
     session = application_session(tmp_path)
     node = Node("Open", "Button")
