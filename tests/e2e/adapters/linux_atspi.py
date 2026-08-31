@@ -1,14 +1,15 @@
 """Linux desktop automation through dogtail and AT-SPI.
 
 This module uses accessibility actions, selection, and editable-text interfaces.
-Qt Quick's fallback file chooser exposes only "SetFocus" for its file
-delegates, so their accessible bounds provide the pointer target used to open
-an entry with a double-click.
+When Qt Quick exposes only focus actions, accessibility-derived bounds provide
+the pointer input needed to operate the control without fixed coordinates.
 """
 
 from __future__ import annotations
 
 from collections import deque
+import ctypes
+import ctypes.util
 import logging
 import os
 from pathlib import Path
@@ -33,6 +34,57 @@ class ActionNotSupportedError(RuntimeError):
     """Raised when an element exposes no suitable semantic action."""
 
 
+class _X11PointerInput:
+    """Send pointer input through XTest at accessibility-derived bounds."""
+
+    def __init__(self) -> None:
+        x11_name = ctypes.util.find_library("X11")
+        xtst_name = ctypes.util.find_library("Xtst")
+        if x11_name is None or xtst_name is None:
+            raise AccessibilityBackendError(
+                "Linux E2E requires the X11 and XTest runtime libraries"
+            )
+        self._x11 = ctypes.CDLL(x11_name)
+        self._xtst = ctypes.CDLL(xtst_name)
+        self._x11.XOpenDisplay.argtypes = (ctypes.c_char_p,)
+        self._x11.XOpenDisplay.restype = ctypes.c_void_p
+        self._x11.XCloseDisplay.argtypes = (ctypes.c_void_p,)
+        self._x11.XCloseDisplay.restype = ctypes.c_int
+        self._x11.XSync.argtypes = (ctypes.c_void_p, ctypes.c_int)
+        self._x11.XSync.restype = ctypes.c_int
+        self._xtst.XTestFakeMotionEvent.argtypes = (
+            ctypes.c_void_p,
+            ctypes.c_int,
+            ctypes.c_int,
+            ctypes.c_int,
+            ctypes.c_ulong,
+        )
+        self._xtst.XTestFakeMotionEvent.restype = ctypes.c_int
+        self._xtst.XTestFakeButtonEvent.argtypes = (
+            ctypes.c_void_p,
+            ctypes.c_uint,
+            ctypes.c_int,
+            ctypes.c_ulong,
+        )
+        self._xtst.XTestFakeButtonEvent.restype = ctypes.c_int
+
+    def click(self, x: int, y: int) -> None:
+        display = self._x11.XOpenDisplay(None)
+        if not display:
+            raise AccessibilityBackendError("cannot open the X11 display")
+        try:
+            generated = (
+                self._xtst.XTestFakeMotionEvent(display, -1, x, y, 0)
+                and self._xtst.XTestFakeButtonEvent(display, 1, True, 0)
+                and self._xtst.XTestFakeButtonEvent(display, 1, False, 0)
+            )
+            self._x11.XSync(display, False)
+        finally:
+            self._x11.XCloseDisplay(display)
+        if not generated:
+            raise ActionNotSupportedError("XTest rejected pointer input")
+
+
 class LinuxAtspiAdapter:
     """Launch packaged applications and connect to them over AT-SPI."""
 
@@ -50,6 +102,7 @@ class LinuxAtspiAdapter:
         self._tree: Any = None
         self._atspi: Any = None
         self._keyboard_sender: Any = None
+        self._pointer_input: _X11PointerInput | None = None
 
     def preflight(self) -> None:
         missing = [
@@ -98,6 +151,7 @@ class LinuxAtspiAdapter:
         self._tree = tree
         self._atspi = Atspi
         self._keyboard_sender = rawinput.pressKey
+        self._pointer_input = _X11PointerInput()
 
     def launch(
         self,
@@ -139,6 +193,7 @@ class LinuxAtspiAdapter:
             tree=self._tree,
             atspi=self._atspi,
             keyboard_sender=self._keyboard_sender,
+            pointer_click=self._pointer_input.click,
             registry=self._registry,
             process=process,
             artifact_directory=self._artifact_directory,
@@ -158,9 +213,9 @@ class LinuxApplicationSession:
     _IDENTIFIER_SEARCH_LEAVES = ("eventTable",)
     _ACTION_PRIORITY = (
         "click",
+        "toggle",
         "press",
         "activate",
-        "toggle",
         "show menu",
         "open",
     )
@@ -171,6 +226,7 @@ class LinuxApplicationSession:
         tree: Any,
         atspi: Any,
         keyboard_sender: Any,
+        pointer_click: Any,
         registry: ProcessRegistry,
         process: subprocess.Popen[str],
         artifact_directory: Path,
@@ -179,11 +235,14 @@ class LinuxApplicationSession:
         self._tree = tree
         self._atspi = atspi
         self._keyboard_sender = keyboard_sender
+        self._pointer_click = pointer_click
         self._registry = registry
         self._process = process
         self._artifact_directory = artifact_directory
         self._timeout = timeout
         self._application: Any = None
+        self._progress_dialog: Any = None
+        self._frame_extraction_cancel_button: Any = None
         self._action_errors: deque[ActionNotSupportedError] = deque()
         self._action_error_lock = threading.Lock()
 
@@ -204,6 +263,13 @@ class LinuxApplicationSession:
         self.element("mainWindow")
 
     def element(self, identifier: str, *, showing: bool = True) -> Any:
+        if (
+            identifier == "spreadsheetExportProgressDialog"
+            and self._progress_dialog is not None
+            and (not showing or self._is_showing(self._progress_dialog))
+        ):
+            return self._progress_dialog
+
         def find() -> Any | None:
             self._ensure_running()
             try:
@@ -223,17 +289,27 @@ class LinuxApplicationSession:
                 return None
 
         try:
-            return wait_until(
+            node = wait_until(
                 find,
                 lambda value: value is not None,
                 timeout=self._timeout,
                 description=f"accessible identifier {identifier!r}",
             )
+            if identifier == "spreadsheetExportProgressDialog":
+                self._progress_dialog = node
+                self._frame_extraction_cancel_button = self._find_identifier(
+                    node,
+                    "cancelFrameExtractionButton",
+                    showing_only=False,
+                )
+            return node
         except PollTimeoutError as error:
             raise ElementNotFoundError(str(error)) from error
 
     def has_element(self, identifier: str, *, showing: bool = True) -> bool:
         self._ensure_running()
+        if identifier == "replaceSpreadsheetDialog":
+            return self._native_overwrite_button(True) is not None
         try:
             return (
                 self._find_identifier(
@@ -254,6 +330,53 @@ class LinuxApplicationSession:
         )
 
     def activate(self, identifier: str, *, showing: bool = True) -> None:
+        if identifier == "cancelFrameExtractionButton":
+            node = self._frame_extraction_cancel_button
+            if node is None or (showing and not self._is_showing(node)):
+                node = self.element(identifier, showing=showing)
+            self._click_accessible_bounds(
+                node,
+                "frame extraction cancel button",
+            )
+            return
+        if identifier in (
+            "cancelReplaceSpreadsheetButton",
+            "replaceSpreadsheetButton",
+        ):
+            replace = identifier == "replaceSpreadsheetButton"
+            save_dialog = self._file_dialog("spreadsheetSaveFileDialog")
+            button = self._native_overwrite_button(replace)
+            if button is None:
+                raise ElementNotFoundError(
+                    "native overwrite confirmation button is absent"
+                )
+            self._click_accessible_bounds(
+                button, "native overwrite confirmation button"
+            )
+            if not replace:
+                wait_until(
+                    lambda: self._native_overwrite_button(True),
+                    lambda value: value is None,
+                    timeout=self._timeout,
+                    description="native overwrite confirmation to close",
+                )
+                cancel = self._find_named(
+                    save_dialog,
+                    ("Cancel", "&Cancel", "Cancelar", "&Cancelar"),
+                    roles=("push button", "button"),
+                    showing_only=True,
+                )
+                if cancel is None:
+                    raise ElementNotFoundError(
+                        "file chooser cancel button is absent"
+                    )
+                self._click_accessible_bounds(
+                    cancel, "file chooser cancel button"
+                )
+                self._wait_file_dialog_closed(
+                    save_dialog, "spreadsheetSaveFileDialog"
+                )
+            return
         self._activate_node(self.element(identifier, showing=showing))
 
     def focus(self, identifier: str, *, showing: bool = False) -> None:
@@ -329,6 +452,22 @@ class LinuxApplicationSession:
 
     def list_items(self, identifier: str) -> list[str]:
         control = self.element(identifier)
+        if identifier == "eventColumnsList":
+            indexed_items: list[tuple[int, str]] = []
+            for node in self._walk(control):
+                node_identifier = self._node_identifier(node).rsplit(".", 1)[-1]
+                prefix = "eventColumn"
+                suffix = "CheckBox"
+                if not (
+                    node_identifier.startswith(prefix)
+                    and node_identifier.endswith(suffix)
+                ):
+                    continue
+                index = node_identifier[len(prefix) : -len(suffix)]
+                if index.isdigit():
+                    indexed_items.append((int(index), str(node.name)))
+            if indexed_items:
+                return [name for _, name in sorted(indexed_items)]
         return [
             str(node.name)
             for node in self._walk(control)
@@ -337,8 +476,7 @@ class LinuxApplicationSession:
         ]
 
     def is_list_item_checked(self, identifier: str, name: str) -> bool:
-        node = self._list_item(identifier, name)
-        self._scroll_into_view(node)
+        node = self._visible_list_item(identifier, name)
         return bool(node.checked)
 
     def select_list_item(self, identifier: str, name: str) -> None:
@@ -360,8 +498,7 @@ class LinuxApplicationSession:
         self, identifier: str, name: str, checked: bool
     ) -> None:
         control = self.element(identifier)
-        node = self._list_item(identifier, name, control=control)
-        self._scroll_into_view(node)
+        node = self._visible_list_item(identifier, name, control=control)
         if self._is_checked(node) != checked:
             try:
                 actions = node.actions or {}
@@ -398,9 +535,7 @@ class LinuxApplicationSession:
 
     def select_option(self, identifier: str, option: str) -> None:
         control = self.element(identifier)
-        current = self._node_text(control) or str(
-            getattr(control, "name", "")
-        )
+        current = self.selected_option(identifier)
         if self._normalized_name(current) == self._normalized_name(option):
             return
         if str(getattr(control, "role_name", "")).casefold() == "combo box":
@@ -447,14 +582,11 @@ class LinuxApplicationSession:
     ) -> None:
         try:
             interfaces = tuple(control.get_interfaces())
-        except Exception as error:
-            raise ActionNotSupportedError(
-                f"combo box {identifier!r} exposes no accessibility interfaces"
-            ) from error
+        except Exception:
+            interfaces = ()
         if "Value" not in interfaces:
-            raise ActionNotSupportedError(
-                f"combo box {identifier!r} exposes no Value interface"
-            )
+            self._select_combo_box_option_by_bounds(identifier, control, option)
+            return
 
         option_list = self._find_role(control, "list")
         if option_list is None:
@@ -488,8 +620,48 @@ class LinuxApplicationSession:
             description=f"option {option!r} to become selected",
         )
 
+    def _select_combo_box_option_by_bounds(
+        self, identifier: str, control: Any, option: str
+    ) -> None:
+        self._click_accessible_bounds(control, f"combo box {identifier!r}")
+        try:
+            node = wait_until(
+                lambda: self._find_named(
+                    self._application,
+                    (option,),
+                    roles=("list item", "menu item"),
+                    showing_only=True,
+                ),
+                lambda value: value is not None,
+                timeout=self._timeout,
+                description=f"option {option!r} for {identifier!r}",
+            )
+        except PollTimeoutError as error:
+            raise ElementNotFoundError(str(error)) from error
+        self._click_accessible_bounds(node, f"option {option!r}")
+        wait_until(
+            lambda: self.selected_option(identifier),
+            lambda selected: self._normalized_name(selected)
+            == self._normalized_name(option),
+            timeout=self._timeout,
+            description=f"option {option!r} to become selected",
+        )
+
     def selected_option(self, identifier: str) -> str:
         control = self.element(identifier)
+        if str(getattr(control, "role_name", "")).casefold() == "combo box":
+            try:
+                children = tuple(control.children)
+            except Exception:
+                children = ()
+            for node in children:
+                if not self._is_showing(node):
+                    continue
+                value = self._node_text(node) or str(
+                    getattr(node, "name", "")
+                )
+                if value:
+                    return value
         for node in self._walk(control):
             try:
                 if node.selected:
@@ -511,13 +683,14 @@ class LinuxApplicationSession:
 
         button = self._file_dialog_accept_button(dialog)
         button_name = self._normalized_name(str(getattr(button, "name", "")))
-        save_dialog = button_name in ("save", "salvar")
+        save_dialog = button_name in ("save", "salvar", "export", "exportar")
         absolute_path = path.absolute()
         self._navigate_file_dialog(dialog, absolute_path.parent)
 
         if not save_dialog:
             file_entry = self._file_dialog_entry(dialog, absolute_path.name)
             self._activate_file_dialog_entry(file_entry, absolute_path.name)
+            self._activate_file_dialog_accept(dialog)
             self._wait_file_dialog_closed(dialog, dialog_identifier)
             return
 
@@ -539,10 +712,20 @@ class LinuxApplicationSession:
             editor = editors[-1]
         expected_path = absolute_path.name
         try:
+            self._click_accessible_bounds(
+                editor, "native file chooser filename field"
+            )
+            wait_until(
+                lambda: bool(editor.focused),
+                lambda focused: focused,
+                timeout=self._timeout,
+                description="native file chooser filename field to gain focus",
+            )
             result = editor.set_text_contents(expected_path)
-        except Exception:
-            editor.text = expected_path
-            result = True
+        except Exception as error:
+            raise ActionNotSupportedError(
+                "native file chooser rejected filename input"
+            ) from error
         if result is False:
             raise ActionNotSupportedError("native file chooser rejected the path")
         wait_until(
@@ -553,7 +736,36 @@ class LinuxApplicationSession:
         )
 
         self._activate_file_dialog_accept(dialog)
+        showing, confirmation = wait_until(
+            lambda: (
+                self._is_showing(dialog),
+                self._find_named(
+                    self._application,
+                    ("Yes", "&Yes", "Sim", "&Sim"),
+                    roles=("push button", "button"),
+                    showing_only=True,
+                ),
+            ),
+            lambda state: not state[0] or state[1] is not None,
+            timeout=self._timeout,
+            description="file chooser to close or request overwrite confirmation",
+        )
+        if showing and confirmation is not None:
+            return
         self._wait_file_dialog_closed(dialog, dialog_identifier)
+
+    def _native_overwrite_button(self, replace: bool) -> Any | None:
+        names = (
+            ("Yes", "&Yes", "Sim", "&Sim")
+            if replace
+            else ("No", "&No", "Não", "&Não")
+        )
+        return self._find_named(
+            self._application,
+            names,
+            roles=("push button", "button"),
+            showing_only=True,
+        )
 
     def _complete_native_file_dialog(
         self, dialog: Any, dialog_identifier: str, path: str
@@ -617,8 +829,58 @@ class LinuxApplicationSession:
             None,
         )
         if start is None:
+            home = Path.home().resolve()
+            try:
+                directory.relative_to(home)
+            except ValueError:
+                pass
+            else:
+                home_button = self._find_named(
+                    dialog,
+                    ("Home",),
+                    roles=("push button", "button"),
+                    showing_only=True,
+                )
+                if home_button is not None:
+                    self._click_accessible_bounds(
+                        home_button, "file chooser Home location"
+                    )
+                    start = len(
+                        tuple(
+                            component
+                            for component in home.parts
+                            if component not in (home.anchor, "", "/")
+                        )
+                    )
+        if start is None:
+            breadcrumb = next(
+                (
+                    (index, node)
+                    for index in range(len(components) - 1, -1, -1)
+                    if (
+                        node := self._find_named(
+                            dialog,
+                            (components[index],),
+                            roles=("push button", "button"),
+                            showing_only=True,
+                        )
+                    )
+                    is not None
+                ),
+                None,
+            )
+            if breadcrumb is not None:
+                index, node = breadcrumb
+                self._click_accessible_bounds(
+                    node, f"file chooser breadcrumb {components[index]!r}"
+                )
+                start = index + 1
+        if start is None:
             root_button = self._find_named(
-                dialog, ("/",), roles=("push button", "button")
+                dialog,
+                ("/",),
+                roles=("push button", "button"),
+                showing_only=True,
             )
             if root_button is None:
                 raise ElementNotFoundError("file chooser root location is absent")
@@ -630,6 +892,27 @@ class LinuxApplicationSession:
             entry = self._file_dialog_entry(dialog, component)
             self._activate_file_dialog_entry(entry, component)
             try:
+                visible_entry, accept_enabled = wait_until(
+                    lambda: (
+                        self._find_named(
+                            dialog,
+                            (component,),
+                            roles=("list item",),
+                            showing_only=True,
+                        ),
+                        self._sensitive_state(
+                            self._file_dialog_accept_button(dialog)
+                        ),
+                    ),
+                    lambda state: state[0] is None or state[1] is True,
+                    timeout=self._timeout,
+                    description=(
+                        f"file chooser entry {component!r} to be selected "
+                        "or entered"
+                    ),
+                )
+                if visible_entry is not None and accept_enabled:
+                    self._activate_file_dialog_accept(dialog)
                 wait_until(
                     lambda: self._find_named(
                         dialog,
@@ -661,11 +944,16 @@ class LinuxApplicationSession:
             raise ElementNotFoundError(str(error)) from error
 
     def _activate_file_dialog_entry(self, entry: Any, name: str) -> None:
+        self._click_accessible_bounds(entry, f"file chooser entry {name!r}")
+
+    def _click_accessible_bounds(self, node: Any, description: str) -> None:
         try:
-            entry.doubleClick()
+            x = int(node.position[0] + node.size[0] / 2)
+            y = int(node.position[1] + node.size[1] / 2)
+            self._pointer_click(x, y)
         except Exception as error:
             raise ActionNotSupportedError(
-                f"file chooser entry {name!r} rejected accessible-bounds input"
+                f"{description} rejected accessible-bounds input"
             ) from error
 
     def _file_dialog_accept_button(self, dialog: Any) -> Any:
@@ -680,6 +968,10 @@ class LinuxApplicationSession:
                 "&Save",
                 "Salvar",
                 "&Salvar",
+                "Export",
+                "&Export",
+                "Exportar",
+                "&Exportar",
             ),
             roles=("push button", "button"),
         )
@@ -695,7 +987,7 @@ class LinuxApplicationSession:
             timeout=self._timeout,
             description="file chooser accept button to become enabled",
         )
-        self._activate_node(button)
+        self._click_accessible_bounds(button, "file chooser accept button")
 
     def _wait_file_dialog_closed(
         self, dialog: Any, dialog_identifier: str
@@ -1046,6 +1338,84 @@ class LinuxApplicationSession:
             )
         return node
 
+    def _visible_list_item(
+        self, identifier: str, name: str, *, control: Any | None = None
+    ) -> Any:
+        root = self.element(identifier) if control is None else control
+        node = self._list_item(identifier, name, control=root)
+        if self._is_showing(node):
+            return node
+        if identifier != "eventColumnsList":
+            self._scroll_into_view(node)
+            return node
+
+        def find_visible() -> Any | None:
+            current_root = self.element(identifier)
+            target = self._find_named(
+                current_root, (name,), showing_only=False
+            )
+            if target is not None and self._is_showing(target):
+                return target
+
+            target_index = self._event_column_index(target)
+            visible_indices = [
+                index
+                for candidate in self._walk(current_root)
+                if self._is_showing(candidate)
+                if (index := self._event_column_index(candidate)) is not None
+            ]
+            scroll_bar = self._find_role(current_root, "scroll bar")
+            if (
+                target_index is None
+                or not visible_indices
+                or scroll_bar is None
+            ):
+                return None
+            direction = (
+                "Decrease"
+                if target_index < min(visible_indices)
+                else "Increase"
+            )
+            try:
+                actions = scroll_bar.actions or {}
+            except Exception:
+                return None
+            normalized = {
+                self._normalized_action_name(str(action)): str(action)
+                for action in actions
+            }
+            action = normalized.get(direction.casefold())
+            if action is not None:
+                threading.Thread(
+                    target=self._invoke_action,
+                    args=(scroll_bar, action),
+                    daemon=True,
+                ).start()
+            return None
+
+        try:
+            return wait_until(
+                find_visible,
+                lambda value: value is not None,
+                timeout=self._timeout,
+                description=f"list item {name!r} to scroll into view",
+            )
+        except PollTimeoutError as error:
+            raise ActionNotSupportedError(str(error)) from error
+
+    def _event_column_index(self, node: Any | None) -> int | None:
+        if node is None:
+            return None
+        identifier = self._node_identifier(node).rsplit(".", 1)[-1]
+        prefix = "eventColumn"
+        suffix = "CheckBox"
+        if not identifier.startswith(prefix):
+            return None
+        index = identifier[len(prefix) :]
+        if index.endswith(suffix):
+            index = index[: -len(suffix)]
+        return int(index) if index.isdigit() else None
+
     def _scroll_into_view(self, node: Any) -> None:
         if self._is_showing(node):
             return
@@ -1079,7 +1449,8 @@ class LinuxApplicationSession:
                 lines.append(
                     f"{'  ' * depth}{node.role_name!s} name={node.name!r} "
                     f"id={identifier!r} showing={node.showing!r} "
-                    f"sensitive={node.sensitive!r} actions={tuple(node.actions)!r}"
+                    f"sensitive={node.sensitive!r} position={node.position!r} "
+                    f"size={node.size!r} actions={tuple(node.actions)!r}"
                 )
                 children = tuple(node.children)
             except Exception as error:
