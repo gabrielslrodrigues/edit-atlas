@@ -349,6 +349,7 @@ class WindowsApplicationSession:
         return self._combo_display_text(control)
 
     def open_file_dialog(self, dialog_identifier: str, path: Path) -> None:
+        overwrite_expected = path.exists()
         dialog = self._native_file_dialog(dialog_identifier)
         wait_until(
             dialog.has_focus,
@@ -374,7 +375,8 @@ class WindowsApplicationSession:
                 f"native file chooser {dialog_identifier!r} to accept keyboard input"
             ),
         )
-        self._accept_native_overwrite_confirmation()
+        if overwrite_expected:
+            self._accept_native_overwrite_confirmation()
 
     def _accept_native_overwrite_confirmation(self) -> None:
         """Accept the shell's overwrite prompt before the app confirms it.
@@ -384,22 +386,22 @@ class WindowsApplicationSession:
         application-owned replacement dialog, so E2E must pass through the
         shell prompt to exercise that application contract.
         """
-        confirmation = self._current_win32_file_dialog()
-        if confirmation is None or not self._window_exists(confirmation):
-            return
-        yes = self._find_named(
-            ("Yes", "&Yes", "Sim", "&Sim"),
-            root=confirmation,
-            control_types=("Button",),
+        confirmation = wait_until(
+            self._current_native_overwrite_confirmation,
+            lambda value: value is not None,
+            timeout=self._timeout,
+            description="native overwrite confirmation to appear",
+        )
+        yes = wait_until(
+            lambda: self._find_win32_button(
+                confirmation, ("Yes", "&Yes", "Sim", "&Sim")
+            ),
+            lambda value: value is not None,
+            timeout=self._timeout,
+            description="native overwrite confirmation Yes button",
         )
         try:
-            if yes is not None:
-                yes.click_input()
-            else:
-                # The shell confirmation can be an owned system window that
-                # is absent from the process-scoped Win32 tree. Its English
-                # Yes accelerator remains available to the focused prompt.
-                self._keyboard_sender("%y", pause=0)
+            yes.click_input()
         except Exception as error:
             raise ActionNotSupportedError(
                 "native overwrite confirmation rejected the Yes command"
@@ -928,6 +930,50 @@ class WindowsApplicationSession:
         except Exception:
             return None
         return dialogs[-1] if dialogs else None
+
+    def _current_native_overwrite_confirmation(self) -> Any | None:
+        self._ensure_running()
+        try:
+            dialogs = self._win32_desktop.windows(
+                class_name="#32770",
+                visible_only=True,
+            )
+        except Exception:
+            return None
+        expected_titles = {
+            self._normalized_name(title)
+            for title in ("Confirm Save As", "Confirmar Salvar Como")
+        }
+        return next(
+            (
+                dialog
+                for dialog in reversed(dialogs)
+                if self._normalized_name(self._win32_text(dialog))
+                in expected_titles
+            ),
+            None,
+        )
+
+    def _find_win32_button(
+        self, root: Any, names: Sequence[str]
+    ) -> Any | None:
+        candidates = {self._normalized_name(name) for name in names}
+        try:
+            nodes = (root, *root.descendants())
+        except Exception:
+            nodes = (root,)
+        for node in nodes:
+            try:
+                if (
+                    str(node.class_name()).casefold() == "button"
+                    and self._normalized_name(self._win32_text(node))
+                    in candidates
+                    and node.is_visible()
+                ):
+                    return node
+            except Exception:
+                continue
+        return None
 
     def _find_identifier(
         self, identifier: str, *, showing: bool = True

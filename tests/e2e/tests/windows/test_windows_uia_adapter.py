@@ -106,6 +106,12 @@ class Node:
             raise RuntimeError("node is not clickable")
         self._click()
 
+    def window_text(self) -> str:
+        return self.element_info.name
+
+    def class_name(self) -> str:
+        return self.element_info.control_type
+
     def set_focus(self) -> None:
         self.focus_calls += 1
 
@@ -592,12 +598,19 @@ def test_native_save_dialog_accepts_shell_overwrite_confirmation(
     def send_keys(keys: str, **options: Any) -> None:
         if keys == "{ENTER}":
             file_dialog_open.clear()
-            confirmation_open.set()
+
+            def show_confirmation_after_delay() -> None:
+                time.sleep(0.05)
+                confirmation_open.set()
+
+            Thread(target=show_confirmation_after_delay, daemon=True).start()
 
     session._keyboard_sender = send_keys
+    destination = tmp_path / "existing.xlsx"
+    destination.touch()
 
     session.open_file_dialog(
-        "spreadsheetSaveFileDialog", tmp_path / "existing.xlsx"
+        "spreadsheetSaveFileDialog", destination
     )
 
     assert not confirmation_open.is_set()

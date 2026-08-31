@@ -2,8 +2,8 @@
 
 This module uses accessibility actions, selection, and editable-text interfaces.
 Qt Quick's fallback file chooser exposes only "SetFocus" for its file
-delegates, so their accessible bounds select an entry, "SetFocus" claims
-keyboard focus for it, and Enter then invokes its keyboard path.
+delegates, so their accessible bounds provide the pointer target used to open
+an entry with a double-click.
 """
 
 from __future__ import annotations
@@ -626,18 +626,23 @@ class LinuxApplicationSession:
             start = 0
 
         remaining = components[start:]
-        for index, component in enumerate(remaining):
+        for component in remaining:
             entry = self._file_dialog_entry(dialog, component)
             self._activate_file_dialog_entry(entry, component)
-            if index + 1 < len(remaining):
-                self._file_dialog_entry(dialog, remaining[index + 1])
-            else:
+            try:
                 wait_until(
-                    lambda: self._is_showing(entry),
-                    lambda showing: not showing,
+                    lambda: self._find_named(
+                        dialog,
+                        (component,),
+                        roles=("list item",),
+                        showing_only=True,
+                    ),
+                    lambda value: value is None,
                     timeout=self._timeout,
                     description=f"file chooser to enter {component!r}",
                 )
+            except PollTimeoutError as error:
+                raise ActionNotSupportedError(str(error)) from error
 
     def _file_dialog_entry(self, dialog: Any, name: str) -> Any:
         try:
@@ -657,43 +662,10 @@ class LinuxApplicationSession:
 
     def _activate_file_dialog_entry(self, entry: Any, name: str) -> None:
         try:
-            entry.click()
+            entry.doubleClick()
         except Exception as error:
             raise ActionNotSupportedError(
                 f"file chooser entry {name!r} rejected accessible-bounds input"
-            ) from error
-        # A click at the entry's accessible bounds does not guarantee Qt's
-        # fallback file dialog moved its internal keyboard focus onto this
-        # delegate, and Enter is delivered to whatever currently holds that
-        # focus. "SetFocus" is the one action these delegates expose for
-        # exactly this purpose, so claim it explicitly before the keypress.
-        try:
-            entry.do_action_named("SetFocus")
-        except Exception as error:
-            raise ActionNotSupportedError(
-                f"file chooser entry {name!r} rejected keyboard focus"
-            ) from error
-        # The SetFocus request is a D-Bus round trip; Qt may not have
-        # actually processed the focus change by the time it returns. Wait
-        # for the state AT-SPI reports back, rather than assuming the
-        # keypress below already has somewhere correct to land. Nodes that
-        # do not expose a focused state at all are treated as ready.
-        try:
-            wait_until(
-                lambda: bool(getattr(entry, "focused", True)),
-                lambda focused: focused,
-                timeout=self._timeout,
-                description=f"file chooser entry {name!r} to accept keyboard focus",
-            )
-        except PollTimeoutError as error:
-            raise ActionNotSupportedError(
-                f"file chooser entry {name!r} never reported keyboard focus"
-            ) from error
-        try:
-            self._keyboard_sender("enter")
-        except Exception as error:
-            raise ActionNotSupportedError(
-                f"file chooser entry {name!r} rejected Enter input"
             ) from error
 
     def _file_dialog_accept_button(self, dialog: Any) -> Any:
