@@ -11,6 +11,6 @@ var searchData=
   ['probe_8',['probe',['../classedit__atlas_1_1core_1_1Importer.html#afddad9d8fb7c04c7b00327637567816f',1,'edit_atlas::core::Importer::Probe()'],['../classedit__atlas_1_1formats_1_1cmx3600_1_1Cmx3600Importer.html#a3d7b1f8800136a0989974d6b7bd768f2',1,'edit_atlas::formats::cmx3600::Cmx3600Importer::Probe()']]],
   ['probeconfidence_9',['ProbeConfidence',['../namespaceedit__atlas_1_1core.html#a70b087c8400e662b6d4db2628688281f',1,'edit_atlas::core']]],
   ['projection_10',['Projection',['../classedit__atlas_1_1presentation_1_1TimelineEventProjectionModel.html#a43ee414e53152688efec7b37dadcd5a5',1,'edit_atlas::presentation::TimelineEventProjectionModel']]],
-  ['projectionchanged_11',['ProjectionChanged',['../classedit__atlas_1_1presentation_1_1TimelineEventProjectionModel.html#a9fe3f4aedbcc6670f559ceea7430eeb3',1,'edit_atlas::presentation::TimelineEventProjectionModel']]],
+  ['projectionchanged_11',['projectionChanged',['../classedit__atlas_1_1presentation_1_1TimelineEventProjectionModel.html#a9a4abf0b315b3e9a088ec56193d6d601',1,'edit_atlas::presentation::TimelineEventProjectionModel']]],
   ['provenance_12',['provenance',['../structedit__atlas_1_1core_1_1Comment.html#a83cf74683115df2a4f1657050186eb8f',1,'edit_atlas::core::Comment::provenance'],['../structedit__atlas_1_1core_1_1EditEvent.html#ab84e96808a9d93ec62348a726c5c8448',1,'edit_atlas::core::EditEvent::provenance'],['../structedit__atlas_1_1core_1_1TimelineDocument.html#a6dd510c07468fe0889ce2ee207e8296d',1,'edit_atlas::core::TimelineDocument::provenance']]]
 ];

@@ -4,7 +4,7 @@ var searchData=
   ['activeidentifier_1',['ActiveIdentifier',['../classedit__atlas_1_1presentation_1_1TimelineTemplateViewModel.html#aeed91460d548936b5a2bdb0b13fd6d8e',1,'edit_atlas::presentation::TimelineTemplateViewModel']]],
   ['activerow_2',['ActiveRow',['../classedit__atlas_1_1presentation_1_1TimelineTemplateModel.html#a451e17eaa879c1cb12705c701c5dedbd',1,'edit_atlas::presentation::TimelineTemplateModel']]],
   ['activetemplate_3',['ActiveTemplate',['../classedit__atlas_1_1presentation_1_1TimelineTemplateViewModel.html#a4cdd72d45cc896b795282a6e1bbd4960',1,'edit_atlas::presentation::TimelineTemplateViewModel']]],
-  ['activetemplatechanged_4',['ActiveTemplateChanged',['../classedit__atlas_1_1presentation_1_1TimelineTemplateViewModel.html#ab05075cde4246c67298d362a6bf5bf28',1,'edit_atlas::presentation::TimelineTemplateViewModel']]],
+  ['activetemplatechanged_4',['activeTemplateChanged',['../classedit__atlas_1_1presentation_1_1TimelineTemplateViewModel.html#afb2c5c13e2debb58debb603d546c716c',1,'edit_atlas::presentation::TimelineTemplateViewModel']]],
   ['addcondition_5',['AddCondition',['../classedit__atlas_1_1presentation_1_1TimelineFilterModel.html#acc814be1f8f58bcceef5ea7236f0c1c8',1,'edit_atlas::presentation::TimelineFilterModel']]],
   ['an_20edl_6',['Convert an EDL',['../md_docs_2cli.html#autotoc_md28',1,'']]],
   ['and_20automation_7',['and automation',['../qt_widgets_frontend.html#autotoc_md24',1,'Accessibility and automation'],['../qt_quick_frontend.html#autotoc_md16',1,'Accessibility and automation']]],

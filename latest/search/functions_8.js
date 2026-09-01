@@ -7,7 +7,7 @@ var searchData=
   ['importers_4',['importers',['../classedit__atlas_1_1core_1_1FormatRegistry.html#a6ee39b6ff8e869e722386b587b2c9c6e',1,'edit_atlas::core::FormatRegistry']]],
   ['importersforextension_5',['ImportersForExtension',['../classedit__atlas_1_1core_1_1FormatRegistry.html#a93cffdd2a64e76fdee629c63490fbc14',1,'edit_atlas::core::FormatRegistry']]],
   ['importfailure_6',['ImportFailure',['../classedit__atlas_1_1presentation_1_1TimelineDocumentViewModel.html#a5bc310fa39087dd0db26ebcff8e23fa1',1,'edit_atlas::presentation::TimelineDocumentViewModel']]],
-  ['importfinished_7',['ImportFinished',['../classedit__atlas_1_1presentation_1_1TimelineDocumentWorkflow.html#a278dcd347eb20c505ba004cd48bf8ba0',1,'edit_atlas::presentation::TimelineDocumentWorkflow']]],
+  ['importfinished_7',['importFinished',['../classedit__atlas_1_1presentation_1_1TimelineDocumentWorkflow.html#a92df46f7fb65adbe25152f1b40c3fd5f',1,'edit_atlas::presentation::TimelineDocumentWorkflow']]],
   ['importresult_8',['ImportResult',['../classedit__atlas_1_1presentation_1_1TimelineDocumentWorkflow.html#a27a631477dc4a6221f598482e86d540e',1,'edit_atlas::presentation::TimelineDocumentWorkflow']]],
   ['information_9',['Information',['../classedit__atlas_1_1media_1_1VideoDecoder.html#aac41d7e90a2403250b89d30d3645d57c',1,'edit_atlas::media::VideoDecoder']]],
   ['initializeapplicationlogging_10',['InitializeApplicationLogging',['../namespaceedit__atlas_1_1support.html#a57375ce28cc6e47f336418a64c9152a6',1,'edit_atlas::support']]],

@@ -14,7 +14,7 @@ var classedit__atlas_1_1presentation_1_1TimelineEventProjectionModel =
     [ "MoveDown", "classedit__atlas_1_1presentation_1_1TimelineEventProjectionModel.html#af1aea1ddba22f074c2df5668f33d6d1b", null ],
     [ "MoveUp", "classedit__atlas_1_1presentation_1_1TimelineEventProjectionModel.html#aeea88ac9430a54566f447d2e9e6622a5", null ],
     [ "Projection", "classedit__atlas_1_1presentation_1_1TimelineEventProjectionModel.html#a43ee414e53152688efec7b37dadcd5a5", null ],
-    [ "ProjectionChanged", "classedit__atlas_1_1presentation_1_1TimelineEventProjectionModel.html#a9fe3f4aedbcc6670f559ceea7430eeb3", null ],
+    [ "projectionChanged", "classedit__atlas_1_1presentation_1_1TimelineEventProjectionModel.html#a9a4abf0b315b3e9a088ec56193d6d601", null ],
     [ "Retranslate", "classedit__atlas_1_1presentation_1_1TimelineEventProjectionModel.html#a5bc949b35d9747c773f69f842bef1ebe", null ],
     [ "roleNames", "classedit__atlas_1_1presentation_1_1TimelineEventProjectionModel.html#ae34e999a71165f48ff9c3b82aeecd1ff", null ],
     [ "rowCount", "classedit__atlas_1_1presentation_1_1TimelineEventProjectionModel.html#a81b18e3dc59ac94faf032255ec67e25d", null ],
