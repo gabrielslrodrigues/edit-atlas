@@ -83,10 +83,16 @@ ViewModel commands. Add behavior according to ownership:
 - synchronous filesystem and format workflows belong in application services;
 - domain and format behavior must remain independent from Qt.
 
-`resources/styles/edit_atlas.qss` owns visual Widget rules and selectors.
-`application_style.cpp` owns non-visual application style behavior, including
-the Fusion base style, Widget animation settings, minimum interface font size,
-and semantic `QPalette` roles. Individual widgets continue to own their layout,
+`resources/styles/edit_atlas.qss` owns visual Widget rules and selectors. It
+is a template rather than a finished stylesheet: it names shared appearance
+tokens such as `@window@` and `@border@`, never literal colors, so light and
+dark differ only by the palette substituted into it. Colors are owned by
+`edit_atlas::presentation`, which both frontends read, so a new color is added
+there and then referenced here. `application_style.cpp` substitutes the
+palette, derives the semantic `QPalette` roles from the same table, and owns
+non-visual application style behavior including the Fusion base style, Widget
+animation settings, and minimum interface font size. An appearance change
+reapplies both without restarting. Individual widgets continue to own their layout,
 content, and interaction. Do not use QSS to encode state transitions or
 application behavior.
 

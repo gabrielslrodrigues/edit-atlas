@@ -152,10 +152,21 @@ state.
 
 The primary Qt Quick frontend compiles its application QML into
 `EditAtlas::QuickFrontend`. `EditAtlas::QuickStyle` provides the separate
-`EditAtlasStyle` QML module: shared design tokens, light and dark theme colors,
-surfaces, icons, and template-based Qt Quick Controls. The custom style uses
-Basic as its fallback, so controls can be introduced incrementally without
-depending on platform-native styles.
+`EditAtlasStyle` QML module: shared design tokens, surfaces, icons, and
+template-based Qt Quick Controls. The custom style uses Basic as its fallback,
+so controls can be introduced incrementally without depending on
+platform-native styles.
+
+Theme colors are not owned by either frontend. `EditAtlas::Presentation` owns
+the appearance preference and the light and dark palettes, because both
+graphical frontends present the same colors and neither can depend on the
+other's styling. `EditAtlas::QuickStyle` therefore depends on
+`EditAtlas::Presentation` and exposes that palette to QML as `Appearance`,
+which `Atlas.Theme` reads; the Qt Widgets frontend builds its `QPalette` and
+stylesheet from the same table. The palette is expressed as `#rrggbb` strings
+so the shared boundary stays Qt Core only, and so QML and Qt Style Sheets can
+consume it without conversion. The dependency direction is unchanged: a
+frontend depends on presentation, and nothing inward depends on a frontend.
 
 Toolkit-specific contributor workflows and conventions are defined in the
 [Qt Quick](api/qt-quick-frontend.md) and

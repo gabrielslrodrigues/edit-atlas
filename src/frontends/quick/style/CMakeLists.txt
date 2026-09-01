@@ -19,6 +19,9 @@ qt_add_qml_module(
     edit_atlas_quick_style
     URI EditAtlasStyle
     VERSION 1.0
+    SOURCES
+        appearance_style.cpp
+        include/edit_atlas/frontends/quick/style/appearance_style.hpp
     QML_FILES
         Button.qml
         CheckBox.qml
@@ -38,8 +41,19 @@ qt_add_qml_module(
         ToolButton.qml
 )
 
+target_include_directories(
+    edit_atlas_quick_style
+    PUBLIC
+        "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
+    # Generated QML type registration includes headers by file name alone.
+    PRIVATE
+        "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/edit_atlas/frontends/quick/style>"
+)
+
 target_link_libraries(
     edit_atlas_quick_style
+    PUBLIC
+        EditAtlas::Presentation
     PRIVATE
         Qt6::Quick
         Qt6::QuickControls2

@@ -2,21 +2,27 @@ pragma Singleton
 
 import QtQuick
 
+// Colors come from edit_atlas::presentation, so both frontends present the
+// same palette and a change reaches every binding through `Appearance`.
 QtObject {
-    property bool dark: true
-
-    readonly property color accent: dark ? "#7aa2ff" : "#315fcb"
-    readonly property color accentHovered: dark ? "#91b2ff" : "#254fae"
-    readonly property color accentPressed: dark ? "#638ce8" : "#1d4193"
-    readonly property color border: dark ? "#3b424d" : "#c9ced6"
-    readonly property color control: dark ? "#262b33" : "#ffffff"
-    readonly property color controlHovered: dark ? "#303741" : "#f1f3f6"
-    readonly property color controlPressed: dark ? "#1f242b" : "#e4e7ec"
-    readonly property color disabled: dark ? "#555c66" : "#9aa1ac"
-    readonly property color focus: dark ? "#90b4ff" : "#315fcb"
-    readonly property color onAccent: dark ? "#101319" : "#ffffff"
-    readonly property color surface: dark ? "#1d2128" : "#ffffff"
-    readonly property color textPrimary: dark ? "#f0f2f5" : "#20242b"
-    readonly property color textSecondary: dark ? "#aeb5bf" : "#626a75"
-    readonly property color window: dark ? "#14171c" : "#f4f5f7"
+    readonly property color accent: Appearance.palette.accent
+    readonly property color accentHovered: Appearance.palette.accentHovered
+    readonly property color accentPressed: Appearance.palette.accentPressed
+    readonly property color border: Appearance.palette.border
+    readonly property color control: Appearance.palette.control
+    readonly property color controlHovered: Appearance.palette.controlHovered
+    readonly property color controlPressed: Appearance.palette.controlPressed
+    readonly property color danger: Appearance.palette.danger
+    readonly property color disabled: Appearance.palette.disabled
+    readonly property color focus: Appearance.palette.focus
+    readonly property color onAccent: Appearance.palette.onAccent
+    readonly property color surface: Appearance.palette.surface
+    readonly property color surfaceAlternate:
+        Appearance.palette.surfaceAlternate
+    readonly property color textPrimary: Appearance.palette.textPrimary
+    readonly property color textSecondary: Appearance.palette.textSecondary
+    readonly property color tooltipSurface: Appearance.palette.tooltipSurface
+    readonly property color tooltipText: Appearance.palette.tooltipText
+    readonly property color warning: Appearance.palette.warning
+    readonly property color window: Appearance.palette.window
 }

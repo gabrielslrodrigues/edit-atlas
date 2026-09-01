@@ -24,9 +24,10 @@ because only one of those modal scopes is active at a time.
 
 | Area | Identifiers |
 | --- | --- |
-| Window and menus | `mainWindow`, `applicationMenuBar`, `fileMenu`, `recentFilesMenu`, `helpMenu`, `languageSelector` |
+| Window and menus | `mainWindow`, `applicationMenuBar`, `fileMenu`, `recentFilesMenu`, `helpMenu`, `languageSelector`, `appearanceSelector` |
 | File actions | `openDocumentAction`, `rememberRecentFilesAction`, `exportAction`, `exitAction`, `recentFileActionN` |
 | Help actions | `exportDiagnosticLogsAction`, `aboutAction` |
+| Appearance actions | `systemAppearanceAction`, `lightAppearanceAction`, `darkAppearanceAction` |
 | Document state | `applicationShell`, `documentStack`, `emptyOpenButton`, `loadingLabel`, `timelineTitleLabel`, `timelineSummary`, `failureDescriptionLabel`, `failureOpenButton` |
 | Results | `filterResultLabel`, `eventTable`, `diagnosticsTree`, `timelineExportButton` |
 | Templates | `templateSelector`, `templatePrimaryButton`, `templateActionsButton`, `templateActionsMenu`, `saveTemplateAction`, `editExportColumnsAction`, `renameTemplateAction`, `duplicateTemplateAction`, `deleteTemplateAction` |

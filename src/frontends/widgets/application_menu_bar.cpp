@@ -35,10 +35,18 @@ namespace {
 } // namespace
 
 ApplicationMenuBar::ApplicationMenuBar(
-    presentation::ApplicationLanguage initial_language, QWidget *parent)
+    presentation::ApplicationLanguage initial_language,
+    const QString &initial_appearance_code, QWidget *parent)
     : QMenuBar{parent} {
     BuildUi(initial_language);
+    SetAppearance(initial_appearance_code);
     RetranslateUi();
+}
+
+void ApplicationMenuBar::SetAppearance(const QString &code) {
+    system_appearance_action_->setChecked(code == QStringLiteral("system"));
+    light_appearance_action_->setChecked(code == QStringLiteral("light"));
+    dark_appearance_action_->setChecked(code == QStringLiteral("dark"));
 }
 
 void ApplicationMenuBar::RememberRecentFile(const QString &path) {
@@ -63,6 +71,10 @@ void ApplicationMenuBar::RetranslateUi(void) {
         tr("Create a local support bundle containing diagnostic logs."));
     about_action_->setText(tr("&About Edit Atlas"));
     language_menu_->setTitle(tr("&Language"));
+    appearance_menu_->setTitle(tr("&Appearance"));
+    system_appearance_action_->setText(tr("&System"));
+    light_appearance_action_->setText(tr("&Light"));
+    dark_appearance_action_->setText(tr("&Dark"));
     UpdateRecentFilesMenu();
 }
 
@@ -149,6 +161,26 @@ void ApplicationMenuBar::BuildUi(
                 emit languageSelected(language);
             });
 
+    appearance_menu_ = addMenu(QString{});
+    system_appearance_action_ = appearance_menu_->addAction(QString{});
+    light_appearance_action_ = appearance_menu_->addAction(QString{});
+    dark_appearance_action_ = appearance_menu_->addAction(QString{});
+    auto *appearance_group = new QActionGroup{this};
+    appearance_group->setExclusive(true);
+    for (auto *const action :
+         {system_appearance_action_, light_appearance_action_,
+          dark_appearance_action_}) {
+        action->setCheckable(true);
+        appearance_group->addAction(action);
+    }
+    system_appearance_action_->setData(QStringLiteral("system"));
+    light_appearance_action_->setData(QStringLiteral("light"));
+    dark_appearance_action_->setData(QStringLiteral("dark"));
+    connect(appearance_group, &QActionGroup::triggered, this,
+            [this](const QAction *action) {
+                emit appearanceSelected(action->data().toString());
+            });
+
     SetAutomationIdentifier(*this, u"applicationMenuBar");
     SetAutomationIdentifier(*file_menu_, u"fileMenuPopup");
     SetAutomationIdentifier(*file_menu_->menuAction(), u"fileMenu");
@@ -170,6 +202,15 @@ void ApplicationMenuBar::BuildUi(
     SetAutomationIdentifier(*brazilian_portuguese_action_,
                             u"brazilianPortugueseLanguageAction");
     SetAutomationIdentifier(*english_action_, u"englishLanguageAction");
+    SetAutomationIdentifier(*appearance_menu_, u"appearanceMenuPopup");
+    SetAutomationIdentifier(*appearance_menu_->menuAction(),
+                            u"appearanceSelector");
+    SetAutomationIdentifier(*system_appearance_action_,
+                            u"systemAppearanceAction");
+    SetAutomationIdentifier(*light_appearance_action_,
+                            u"lightAppearanceAction");
+    SetAutomationIdentifier(*dark_appearance_action_,
+                            u"darkAppearanceAction");
 
     SetLanguage(initial_language);
     UpdateActions();

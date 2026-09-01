@@ -66,7 +66,9 @@ before changing a workflow.
 - Empty parameter lists are written `(void)`, not `()`.
 - Namespaces are snake case under `edit_atlas::<layer>`; types and
   functions are PascalCase; leaf types are `final`; source and header
-  filenames are snake case.
+  filenames are snake case. A type registered as a creatable QML type is the
+  exception and must not be `final`, because Qt's registration derives from
+  it; MSVC rejects this while Clang does not notice.
 - Qt signals are the exception to function naming: they use Qt's lower camel
   case, as `documentChanged` or `exportFinished`, including property-notify
   signals. This is what `Q_PROPERTY NOTIFY` and QML handler resolution

@@ -239,6 +239,14 @@ on first launch. The
 **Language** menu switches between Brazilian Portuguese and English and
 remembers the choice for subsequent launches.
 
+The **Appearance** menu selects System, Light, or Dark and remembers the
+choice for subsequent launches. New profiles follow the system, and while
+System is selected the interface tracks the operating system as it changes,
+without restarting. Window decorations, native dialogs, and menus follow the
+platform color scheme, which some desktop environments control themselves; on
+those systems the application content changes while the surrounding chrome may
+not.
+
 Spreadsheet export can follow the active interface language or explicitly use
 English or Brazilian Portuguese. The selected language changes workbook sheet
 names, headings, generated labels, and document properties. Imported titles,

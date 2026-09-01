@@ -4,6 +4,12 @@ This file records user-facing Edit Atlas changes beginning with version 0.2.0.
 
 ## [Unreleased]
 
+### Added
+
+- A System, Light, and Dark appearance preference shared by both desktop
+  frontends, defaulting to following the operating system and applied without
+  restarting the application.
+
 ### Changed
 
 - The production desktop application now uses the redesigned Qt Quick

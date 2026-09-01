@@ -1,4 +1,5 @@
 import EditAtlas.Frontends.Quick
+import EditAtlasStyle as Atlas
 import QtQuick
 import QtTest
 
@@ -66,6 +67,7 @@ TestCase {
             "fileMenu",
             "recentFilesMenu",
             "languageSelector",
+            "appearanceSelector",
             "helpMenu",
             "openDocumentAction",
             "rememberRecentFilesAction",
@@ -203,6 +205,56 @@ TestCase {
 
         testApplicationShell.languageCode = "en"
         tryCompare(english, "checked", true)
+    }
+
+    function test_appearanceSelectionUsesStableIdentifiers() {
+        const system = findObject("systemAppearanceAction")
+        const light = findObject("lightAppearanceAction")
+        const dark = findObject("darkAppearanceAction")
+        verify(system !== null)
+        verify(light !== null)
+        verify(dark !== null)
+
+        const initial = Atlas.Appearance.appearanceCode
+
+        Atlas.Appearance.appearanceCode = "dark"
+        tryCompare(dark, "checked", true)
+        compare(light.checked, false)
+        compare(system.checked, false)
+
+        light.triggered()
+        tryCompare(light, "checked", true)
+        compare(Atlas.Appearance.appearanceCode, "light")
+
+        Atlas.Appearance.appearanceCode = initial
+    }
+
+    function test_paletteExposesEveryColorToQml() {
+        // A palette member reading as undefined means QML has no type
+        // information for the value type, which leaves every theme color
+        // invalid rather than wrong.
+        const palette = Atlas.Appearance.palette
+        const names = ["accent", "border", "control", "surface",
+                       "textPrimary", "window"]
+        for (const name of names) {
+            verify(palette[name] !== undefined, name + " is undefined")
+            compare(palette[name].length, 7, name + " is not #rrggbb")
+        }
+    }
+
+    function test_themeFollowsTheSelectedAppearance() {
+        Atlas.Appearance.appearanceCode = "dark"
+        const darkWindow = Atlas.Theme.window.toString()
+        compare(darkWindow,
+                Qt.color(Atlas.Appearance.palette.window).toString())
+
+        Atlas.Appearance.appearanceCode = "light"
+        tryVerify(() => Atlas.Theme.window.toString() !== darkWindow)
+        compare(Atlas.Theme.window.toString(),
+                Qt.color(Atlas.Appearance.palette.window).toString())
+
+        Atlas.Appearance.appearanceCode = "dark"
+        tryVerify(() => Atlas.Theme.window.toString() === darkWindow)
     }
 
     function test_recentFilesAccessibilityActionUpdatesApplicationState() {

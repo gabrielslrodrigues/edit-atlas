@@ -1,5 +1,7 @@
 #include <edit_atlas/frontends/widgets/application_menu_bar.hpp>
 #include <edit_atlas/frontends/widgets/application_style.hpp>
+
+#include <edit_atlas/presentation/appearance.hpp>
 #include <edit_atlas/frontends/widgets/spreadsheet_export_options_dialog.hpp>
 #include <edit_atlas/frontends/widgets/timeline_document_view.hpp>
 #include <edit_atlas/presentation/diagnostic_text.hpp>
@@ -11,7 +13,9 @@
 
 #include <edit_atlas/services/timeline_video_inspection_service.hpp>
 
+#include <QColor>
 #include <QCoreApplication>
+#include <QPalette>
 #include <QString>
 #include <QTranslator>
 
@@ -125,10 +129,41 @@ TEST(ApplicationTest, LoadsBrazilianPortugueseTranslations) {
                              "incorporado legível."));
 }
 
-TEST(ApplicationStyleTest, LoadsEmbeddedStyleSheet) {
-    const auto style_sheet = LoadApplicationStyleSheet();
-    ASSERT_FALSE(style_sheet.isEmpty());
-    EXPECT_TRUE(style_sheet.contains(QStringLiteral("QMainWindow")));
+TEST(ApplicationStyleTest, ResolvesEveryStyleSheetTokenFromThePalette) {
+    for (const auto resolved : {presentation::ResolvedAppearance::kLight,
+                                presentation::ResolvedAppearance::kDark}) {
+        const auto &palette = presentation::AppearancePaletteFor(resolved);
+        const auto style_sheet = LoadApplicationStyleSheet(palette);
+        ASSERT_FALSE(style_sheet.isEmpty());
+        EXPECT_TRUE(style_sheet.contains(QStringLiteral("QMainWindow")));
+
+        // An unresolved token would render as a literal, so the stylesheet
+        // must name no token the palette did not supply.
+        EXPECT_FALSE(style_sheet.contains(QLatin1Char('@')))
+            << style_sheet.toStdString();
+        EXPECT_TRUE(style_sheet.contains(palette.window));
+        EXPECT_TRUE(style_sheet.contains(palette.border));
+    }
+}
+
+TEST(ApplicationStyleTest, StyleSheetsDifferBetweenAppearances) {
+    const auto light = LoadApplicationStyleSheet(
+        presentation::AppearancePaletteFor(
+            presentation::ResolvedAppearance::kLight));
+    const auto dark = LoadApplicationStyleSheet(
+        presentation::AppearancePaletteFor(
+            presentation::ResolvedAppearance::kDark));
+    EXPECT_NE(light, dark);
+}
+
+TEST(ApplicationStyleTest, BuildsAWidgetPaletteFromTheSharedPalette) {
+    const auto &shared = presentation::AppearancePaletteFor(
+        presentation::ResolvedAppearance::kDark);
+    const auto palette = BuildApplicationPalette(shared);
+    EXPECT_EQ(palette.color(QPalette::Window), QColor{shared.window});
+    EXPECT_EQ(palette.color(QPalette::Highlight), QColor{shared.accent});
+    EXPECT_EQ(palette.color(QPalette::Disabled, QPalette::Text),
+              QColor{shared.disabled});
 }
 
 } // namespace

@@ -33,15 +33,18 @@ MainWindow::MainWindow(const core::FormatRegistry &registry,
                        presentation::ApplicationLanguage initial_language,
                        std::filesystem::path log_directory,
                        support::DiagnosticEnvironment diagnostic_environment,
+                       presentation::AppearanceController &appearance,
                        QWidget *parent)
-    : QMainWindow{parent}, translator_{translator},
+    : QMainWindow{parent}, translator_{translator}, appearance_{appearance},
       language_{initial_language} {
     SetAutomationIdentifier(*this, u"mainWindow");
     resize(1100, 700);
     setMinimumSize(760, 500);
     setAcceptDrops(true);
 
-    application_menu_bar_ = new ApplicationMenuBar{language_, this};
+    application_menu_bar_ = new ApplicationMenuBar{
+        language_, presentation::AppearanceCode(appearance_.Appearance()),
+        this};
     setMenuBar(application_menu_bar_);
     timeline_document_view_ = new TimelineDocumentView{this};
     setCentralWidget(timeline_document_view_);
@@ -62,6 +65,17 @@ MainWindow::MainWindow(const core::FormatRegistry &registry,
             &QWidget::close);
     connect(application_menu_bar_, &ApplicationMenuBar::languageSelected, this,
             &MainWindow::ChangeLanguage);
+    connect(application_menu_bar_, &ApplicationMenuBar::appearanceSelected,
+            this, [this](const QString &code) {
+                appearance_.SetAppearance(
+                    presentation::AppearanceFromCode(code));
+            });
+    connect(&appearance_,
+            &presentation::AppearanceController::appearanceChanged, this,
+            [this](void) {
+                application_menu_bar_->SetAppearance(
+                    presentation::AppearanceCode(appearance_.Appearance()));
+            });
 
     connect(timeline_document_controller_,
             &TimelineDocumentController::busyChanged, this,

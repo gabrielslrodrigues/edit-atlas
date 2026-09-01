@@ -11,6 +11,7 @@ set_target_properties(
 target_sources(
     edit_atlas_presentation
     PRIVATE
+        appearance.cpp
         application_state.cpp
         desktop_integration.cpp
         diagnostic_model.cpp
@@ -26,6 +27,7 @@ target_sources(
         timeline_template_model.cpp
         timeline_template_view_model.cpp
         translation.cpp
+        include/edit_atlas/presentation/appearance.hpp
         include/edit_atlas/presentation/application_state.hpp
         include/edit_atlas/presentation/desktop_integration.hpp
         include/edit_atlas/presentation/diagnostic_model.hpp
