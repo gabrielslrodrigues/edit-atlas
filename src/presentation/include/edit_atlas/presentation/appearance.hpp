@@ -88,6 +88,16 @@ struct AppearancePalette final {
     QString tooltipText;
 };
 
+/// Returns the stable, nonlocalized code identifying an appearance.
+///
+/// These are the values persisted in settings and the ones frontends use to
+/// select an appearance, so the vocabulary is the same everywhere.
+[[nodiscard]] QString AppearanceCode(ApplicationAppearance appearance);
+
+/// Returns the appearance a code identifies, or following the system when the
+/// code is unrecognized.
+[[nodiscard]] ApplicationAppearance AppearanceFromCode(const QString &code);
+
 /// Returns the shared palette of a resolved appearance.
 [[nodiscard]] const AppearancePalette &
 AppearancePaletteFor(ResolvedAppearance appearance);

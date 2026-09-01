@@ -104,6 +104,18 @@ TEST_F(AppearanceTest, ExposesThePaletteOfThePresentedAppearance) {
               AppearancePaletteFor(ResolvedAppearance::kLight).window);
 }
 
+TEST_F(AppearanceTest, RoundTripsEveryAppearanceThroughItsCode) {
+    for (const auto appearance :
+         {ApplicationAppearance::kSystem, ApplicationAppearance::kLight,
+          ApplicationAppearance::kDark}) {
+        EXPECT_EQ(AppearanceFromCode(AppearanceCode(appearance)), appearance);
+    }
+    EXPECT_EQ(AppearanceCode(ApplicationAppearance::kSystem),
+              QStringLiteral("system"));
+    EXPECT_EQ(AppearanceFromCode(QStringLiteral("solarized")),
+              ApplicationAppearance::kSystem);
+}
+
 TEST_F(AppearanceTest, PalettesDifferAndEveryColorIsComplete) {
     const auto &dark = AppearancePaletteFor(ResolvedAppearance::kDark);
     const auto &light = AppearancePaletteFor(ResolvedAppearance::kLight);

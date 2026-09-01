@@ -3,6 +3,7 @@
 #include <edit_atlas/presentation/appearance.hpp>
 
 #include <QObject>
+#include <QString>
 
 namespace edit_atlas::frontends::quick::style {
 
@@ -15,14 +16,12 @@ AppearanceStyle::AppearanceStyle(QObject *parent) : QObject{parent} {
             this, &AppearanceStyle::paletteChanged);
 }
 
-presentation::ApplicationAppearance
-AppearanceStyle::Appearance(void) const {
-    return controller_.Appearance();
+QString AppearanceStyle::AppearanceCode(void) const {
+    return presentation::AppearanceCode(controller_.Appearance());
 }
 
-void AppearanceStyle::SetAppearance(
-    presentation::ApplicationAppearance appearance) {
-    controller_.SetAppearance(appearance);
+void AppearanceStyle::SetAppearanceCode(const QString &code) {
+    controller_.SetAppearance(presentation::AppearanceFromCode(code));
 }
 
 presentation::AppearancePalette AppearanceStyle::Palette(void) const {

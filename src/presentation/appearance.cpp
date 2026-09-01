@@ -67,36 +67,17 @@ const AppearancePalette kLightPalette{
 
 ApplicationAppearance ConfiguredApplicationAppearance(void) {
     const QSettings settings;
-    const auto value =
+    return AppearanceFromCode(
         settings
             .value(QString::fromLatin1(kAppearanceKey),
                    QString::fromLatin1(kSystemValue))
-            .toString();
-    if (value == QString::fromLatin1(kLightValue)) {
-        return ApplicationAppearance::kLight;
-    }
-    if (value == QString::fromLatin1(kDarkValue)) {
-        return ApplicationAppearance::kDark;
-    }
-    return ApplicationAppearance::kSystem;
+            .toString());
 }
 
 void SaveApplicationAppearance(ApplicationAppearance appearance) {
     QSettings settings;
-    switch (appearance) {
-    case ApplicationAppearance::kLight:
-        settings.setValue(QString::fromLatin1(kAppearanceKey),
-                          QString::fromLatin1(kLightValue));
-        return;
-    case ApplicationAppearance::kDark:
-        settings.setValue(QString::fromLatin1(kAppearanceKey),
-                          QString::fromLatin1(kDarkValue));
-        return;
-    case ApplicationAppearance::kSystem:
-        settings.setValue(QString::fromLatin1(kAppearanceKey),
-                          QString::fromLatin1(kSystemValue));
-        return;
-    }
+    settings.setValue(QString::fromLatin1(kAppearanceKey),
+                      AppearanceCode(appearance));
 }
 
 bool SystemPrefersDarkAppearance(void) {
@@ -153,6 +134,28 @@ ResolvedAppearance ResolveAppearance(ApplicationAppearance appearance) {
 }
 
 } // namespace
+
+QString AppearanceCode(ApplicationAppearance appearance) {
+    switch (appearance) {
+    case ApplicationAppearance::kLight:
+        return QString::fromLatin1(kLightValue);
+    case ApplicationAppearance::kDark:
+        return QString::fromLatin1(kDarkValue);
+    case ApplicationAppearance::kSystem:
+        break;
+    }
+    return QString::fromLatin1(kSystemValue);
+}
+
+ApplicationAppearance AppearanceFromCode(const QString &code) {
+    if (code == QString::fromLatin1(kLightValue)) {
+        return ApplicationAppearance::kLight;
+    }
+    if (code == QString::fromLatin1(kDarkValue)) {
+        return ApplicationAppearance::kDark;
+    }
+    return ApplicationAppearance::kSystem;
+}
 
 const AppearancePalette &AppearancePaletteFor(ResolvedAppearance appearance) {
     switch (appearance) {

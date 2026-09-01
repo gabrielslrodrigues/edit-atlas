@@ -244,6 +244,35 @@ ApplicationWindow {
         }
 
         Menu {
+            objectName: "appearanceSelector"
+            title: qsTr("&Appearance")
+
+            MenuItem {
+                checkable: true
+                checked: Atlas.Appearance.appearanceCode === "system"
+                objectName: "systemAppearanceAction"
+                text: qsTr("&System")
+                onTriggered: Atlas.Appearance.appearanceCode = "system"
+            }
+
+            MenuItem {
+                checkable: true
+                checked: Atlas.Appearance.appearanceCode === "light"
+                objectName: "lightAppearanceAction"
+                text: qsTr("&Light")
+                onTriggered: Atlas.Appearance.appearanceCode = "light"
+            }
+
+            MenuItem {
+                checkable: true
+                checked: Atlas.Appearance.appearanceCode === "dark"
+                objectName: "darkAppearanceAction"
+                text: qsTr("&Dark")
+                onTriggered: Atlas.Appearance.appearanceCode = "dark"
+            }
+        }
+
+        Menu {
             objectName: "helpMenu"
             title: qsTr("&Help")
 
