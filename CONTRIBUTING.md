@@ -138,6 +138,23 @@ developer profile.
   `uv` version is bounded.
 - GitHub Actions are pinned to an exact released tag for first-party
   `actions/*` entries and to a full commit SHA for third-party actions.
+- The bundled interface typeface is pinned to a release and verified by
+  checksum. Updating it means replacing the faces below, updating these
+  checksums, and confirming the notices still describe what ships:
+
+  | File | Release | SHA-256 |
+  | --- | --- | --- |
+  | `Inter-Regular.ttf` | Inter 4.1 | `40d692fce188e4471e2b3cba937be967878f631ad3ebbbdcd587687c7ebe0c82` |
+  | `Inter-Medium.ttf` | Inter 4.1 | `97ad806f526e41546d46365bb3a393145f75b7b1568913db74549ad8b8dba872` |
+  | `Inter-SemiBold.ttf` | Inter 4.1 | `78a843fade9d4612a5567302fb595b56976eb5fcebf4fea5a5912d638bafcde3` |
+  | `LICENSE.txt` | Inter 4.1 | `262481e844521b326f5ecd053e59b98c8b2da78c8ee1bdbb6e8174305e54935a` |
+
+  Faces come from `extras/ttf/` in the official release archive and are
+  embedded unmodified. Only upright text weights are bundled: no italics,
+  which the interface never uses, and no `InterDisplay` variants, which would
+  double the payload for sizes the interface does not set. Subsetting a face
+  makes it a Modified Version under the Open Font License, so a subset would
+  need its own review even though Inter reserves no font name.
 
 ## Text and formatting
 

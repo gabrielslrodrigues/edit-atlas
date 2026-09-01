@@ -45,6 +45,24 @@ source archive controlled by the Edit Atlas project.
 Support for a codec or container does not grant a patent license. Commercial
 distribution must separately review the codecs enabled for each target market.
 
+## Inter
+
+Edit Atlas embeds the Inter typeface in its graphical frontends as the
+interface font. Inter is Copyright (c) 2016 The Inter Project Authors
+(https://github.com/rsms/inter) and is used under the SIL Open Font License,
+Version 1.1, which permits bundling with and selling alongside software
+provided the copyright notice and license accompany every copy.
+
+Three unmodified upright faces are embedded, Regular, Medium, and SemiBold,
+taken from the official Inter 4.1 release. No face is modified or renamed, and
+no italic or display variant is included. Binary distributions install the
+complete license text as `licenses/Inter-LICENSE.txt`, and the source tree
+keeps it beside the faces in `src/frontends/resources/fonts`.
+
+The pinned release and the checksum of each embedded face are recorded under
+Dependencies and versions in [CONTRIBUTING.md](CONTRIBUTING.md), which is also
+where the procedure for updating the bundled typography lives.
+
 ## Other third-party libraries
 
 Edit Atlas also dynamically links to spdlog and fmt under the MIT License,
