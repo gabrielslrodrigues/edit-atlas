@@ -15,5 +15,6 @@ var dir_4c780f93a5f1e7ec9efb48e56a355902 =
     [ "timeline_filter_model.hpp", "timeline__filter__model_8hpp_source.html", null ],
     [ "timeline_template_model.hpp", "timeline__template__model_8hpp_source.html", null ],
     [ "timeline_template_view_model.hpp", "timeline__template__view__model_8hpp_source.html", null ],
-    [ "translation.hpp", "translation_8hpp_source.html", null ]
+    [ "translation.hpp", "translation_8hpp_source.html", null ],
+    [ "typography.hpp", "typography_8hpp_source.html", null ]
 ];

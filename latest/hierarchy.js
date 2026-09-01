@@ -1,6 +1,7 @@
 var hierarchy =
 [
     [ "edit_atlas::presentation::AppearancePalette", "structedit__atlas_1_1presentation_1_1AppearancePalette.html", null ],
+    [ "edit_atlas::presentation::ApplicationTypography", "structedit__atlas_1_1presentation_1_1ApplicationTypography.html", null ],
     [ "edit_atlas::core::Comment", "structedit__atlas_1_1core_1_1Comment.html", null ],
     [ "edit_atlas::media::DecodedVideoFrame", "structedit__atlas_1_1media_1_1DecodedVideoFrame.html", null ],
     [ "edit_atlas::core::Diagnostic", "structedit__atlas_1_1core_1_1Diagnostic.html", null ],

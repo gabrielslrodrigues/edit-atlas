@@ -50,6 +50,7 @@ var annotated_dup =
       [ "presentation", null, [
         [ "AppearanceController", "classedit__atlas_1_1presentation_1_1AppearanceController.html", "classedit__atlas_1_1presentation_1_1AppearanceController" ],
         [ "AppearancePalette", "structedit__atlas_1_1presentation_1_1AppearancePalette.html", "structedit__atlas_1_1presentation_1_1AppearancePalette" ],
+        [ "ApplicationTypography", "structedit__atlas_1_1presentation_1_1ApplicationTypography.html", "structedit__atlas_1_1presentation_1_1ApplicationTypography" ],
         [ "DiagnosticModel", "classedit__atlas_1_1presentation_1_1DiagnosticModel.html", "classedit__atlas_1_1presentation_1_1DiagnosticModel" ],
         [ "SupportBundleViewModel", "classedit__atlas_1_1presentation_1_1SupportBundleViewModel.html", "classedit__atlas_1_1presentation_1_1SupportBundleViewModel" ],
         [ "SupportBundleWorkflow", "classedit__atlas_1_1presentation_1_1SupportBundleWorkflow.html", "classedit__atlas_1_1presentation_1_1SupportBundleWorkflow" ],

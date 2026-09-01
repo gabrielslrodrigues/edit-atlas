@@ -11,11 +11,11 @@
 <!-- Node0 -->
 <g id="Node000000" class="node">
 <title>Node0</title>
-<g id="a_Node000000"><a xlink:href="structedit__atlas_1_1services_1_1TimelineRenderedVideoExportReceipt.html" target="_top" xlink:title="Successful document export and optional rendered&#45;video details.">
+<g id="a_Node000000"><a xlink:href="structedit__atlas_1_1services_1_1TimelineRenderedVideoExportFailure.html" target="_top" xlink:title="Failure from rendered&#45;video preparation or document export.">
 <polygon fill="white" stroke="#666666" points="171,-41 0,-41 0,0 171,0 171,-41"/>
 <text text-anchor="start" x="8" y="-29" font-family="Helvetica,sans-Serif" font-size="10.00">edit_atlas::services</text>
 <text text-anchor="start" x="8" y="-18" font-family="Helvetica,sans-Serif" font-size="10.00">::TimelineRenderedVideoExport</text>
-<text text-anchor="middle" x="85.5" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">Receipt</text>
+<text text-anchor="middle" x="85.5" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">Failure</text>
 </a>
 </g>
 </g>

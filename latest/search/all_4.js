@@ -16,7 +16,7 @@ var searchData=
   ['edit_5ftype_13',['edit_type',['../structedit__atlas_1_1services_1_1TimelineEditTypeFilterCondition.html#ac50e7b28376b683b93a68f77389aa93b',1,'edit_atlas::services::TimelineEditTypeFilterCondition::edit_type'],['../structedit__atlas_1_1core_1_1EditEvent.html#aadf9b26bd90797d922b1e83a02c99117',1,'edit_atlas::core::EditEvent::edit_type']]],
   ['editevent_14',['EditEvent',['../structedit__atlas_1_1core_1_1EditEvent.html',1,'edit_atlas::core']]],
   ['edittype_15',['EditType',['../namespaceedit__atlas_1_1core.html#ad0fa137faa3ebab8379d383b0e43cdeb',1,'edit_atlas::core']]],
-  ['edittypenames_16',['edittypenames',['../classedit__atlas_1_1presentation_1_1TimelineFilterModel.html#a60488e701a0fcda73d4a3c0345f5b9e8',1,'edit_atlas::presentation::TimelineFilterModel::editTypeNames'],['../classedit__atlas_1_1presentation_1_1TimelineFilterModel.html#ae874ade6990db734e0cba085ca8617df',1,'edit_atlas::presentation::TimelineFilterModel::EditTypeNames(void) const']]],
+  ['edittypenames_16',['edittypenames',['../classedit__atlas_1_1presentation_1_1TimelineFilterModel.html#ae874ade6990db734e0cba085ca8617df',1,'edit_atlas::presentation::TimelineFilterModel::EditTypeNames(void) const'],['../classedit__atlas_1_1presentation_1_1TimelineFilterModel.html#a60488e701a0fcda73d4a3c0345f5b9e8',1,'edit_atlas::presentation::TimelineFilterModel::editTypeNames']]],
   ['edl_17',['Convert an EDL',['../md_docs_2cli.html#autotoc_md28',1,'']]],
   ['encoding_18',['Privacy and encoding',['../md_docs_2cli.html#autotoc_md34',1,'']]],
   ['end_5fexclusive_19',['end_exclusive',['../classedit__atlas_1_1core_1_1TimecodeRange.html#a396c7054fbee3ebd552ef5b167c47ee0',1,'edit_atlas::core::TimecodeRange']]],
