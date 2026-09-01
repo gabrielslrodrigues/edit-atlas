@@ -30,6 +30,7 @@ def test_startup_import_failure_recovery_and_preferences_persist(
 
     app.switch_language("English")
     app.session.wait_text_contains("emptyOpenButton", "Open Timeline")
+    app.switch_appearance("Dark")
     app.set_recent_files_enabled(True)
     app.open_timeline(fixture_directory / "mixed_tracks.edl", frame_rate="24 fps")
 
@@ -56,6 +57,8 @@ def test_startup_import_failure_recovery_and_preferences_persist(
     app.session.activate("recentFilesMenu")
     app.session.element("recentFileAction0")
     app.session.wait_name_contains("recentFileAction0", "mixed_tracks.edl")
+    assert app.selected_appearance("Dark")
+    assert not app.selected_appearance("System")
 
 
 def test_filter_and_template_workflow_persists(

@@ -42,6 +42,25 @@ class EditAtlasApplication:
             "languageSelector", actions[language]
         )
 
+    def switch_appearance(self, appearance: str) -> None:
+        actions = {
+            "System": "systemAppearanceAction",
+            "Light": "lightAppearanceAction",
+            "Dark": "darkAppearanceAction",
+        }
+        self._session.activate_menu_action(
+            "appearanceSelector", actions[appearance]
+        )
+
+    def selected_appearance(self, appearance: str) -> bool:
+        actions = {
+            "System": "systemAppearanceAction",
+            "Light": "lightAppearanceAction",
+            "Dark": "darkAppearanceAction",
+        }
+        self._open_menu("appearanceSelector")
+        return self._session.is_checked(actions[appearance])
+
     def set_recent_files_enabled(self, enabled: bool) -> None:
         self._open_menu("fileMenu")
         self._session.set_checked("rememberRecentFilesAction", enabled)
