@@ -3,8 +3,9 @@ set -euo pipefail
 
 script_directory="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 repository_root="$(cd -- "${script_directory}/../.." && pwd)"
-e2e_root="${repository_root}/build/e2e"
-virtual_environment="${e2e_root}/venv"
+e2e_root="${EDIT_ATLAS_E2E_ROOT:-${repository_root}/build/e2e}"
+media_fixture_directory="${EDIT_ATLAS_E2E_MEDIA_FIXTURE_DIR:-${e2e_root}/media-fixtures}"
+virtual_environment="${EDIT_ATLAS_E2E_VIRTUAL_ENVIRONMENT:-${e2e_root}/venv}"
 
 if ! command -v uv >/dev/null 2>&1; then
   echo "uv is required to run the Linux E2E suite" >&2
@@ -28,11 +29,12 @@ exec uv run --locked --project "${script_directory}" python -m pytest \
   "${script_directory}/tests/test_packaged_gui.py" \
   "${script_directory}/tests/linux" \
   --fixture-dir "${repository_root}/tests/fixtures/cmx3600" \
-  --media-fixture-dir "${e2e_root}/media-fixtures" \
+  --media-fixture-dir "${media_fixture_directory}" \
   --output-dir "${e2e_root}/output" \
   --state-root "${e2e_root}/state" \
   --artifact-dir "${e2e_root}/artifacts" \
   --locale "pt_BR.UTF-8" \
+  -o "cache_dir=${e2e_root}/pytest-cache" \
   --junitxml "${e2e_root}/reports/junit.xml" \
   --html "${e2e_root}/reports/report.html" \
   --self-contained-html \
