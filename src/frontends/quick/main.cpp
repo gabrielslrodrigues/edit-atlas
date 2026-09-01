@@ -41,7 +41,6 @@ int main(int argc, char *argv[]) {
         QString::fromStdString(std::string{edit_atlas::core::Version()}));
     QCoreApplication::setOrganizationName(QStringLiteral("Edit Atlas"));
     edit_atlas::presentation::ConfigureApplicationState();
-    edit_atlas::presentation::ApplyApplicationTypography();
     QGuiApplication::setDesktopFileName(QStringLiteral("edit-atlas"));
     QGuiApplication::setWindowIcon(
         QIcon{QStringLiteral(":/icons/edit_atlas.png")});
@@ -60,6 +59,7 @@ int main(int argc, char *argv[]) {
     if (!logging_result.has_value()) {
         SPDLOG_WARN("Persistent logging is unavailable");
     }
+    edit_atlas::presentation::ApplyApplicationTypography();
 
     const auto version = std::string{edit_atlas::core::Version()};
     SPDLOG_INFO("Starting Edit Atlas {} (Qt Quick frontend)", version);

@@ -38,20 +38,6 @@ int main(int argc, char *argv[]) {
     QCoreApplication::setOrganizationName(QStringLiteral("Edit Atlas"));
     edit_atlas::presentation::ConfigureApplicationState();
 
-    // The appearance is a persisted preference, so it can only be read once
-    // settings are configured, which is why styling happens here rather than
-    // with the other application-wide setup above.
-    edit_atlas::presentation::AppearanceController appearance;
-    edit_atlas::frontends::widgets::ApplyApplicationStyle(
-        application, appearance.Palette());
-    QObject::connect(
-        &appearance,
-        &edit_atlas::presentation::AppearanceController::
-            resolvedAppearanceChanged,
-        &application, [&application, &appearance](void) {
-            edit_atlas::frontends::widgets::ApplyApplicationAppearance(
-                application, appearance.Palette());
-        });
     QGuiApplication::setDesktopFileName(QStringLiteral("edit-atlas"));
     QApplication::setWindowIcon(
         QIcon{QStringLiteral(":/icons/edit_atlas.png")});
@@ -70,6 +56,21 @@ int main(int argc, char *argv[]) {
     if (!logging_result.has_value()) {
         SPDLOG_WARN("Persistent logging is unavailable");
     }
+
+    // Appearance is a persisted preference, so read it after settings are
+    // configured. Apply styling after logging is initialized so typography
+    // resolution is recorded in diagnostic logs.
+    edit_atlas::presentation::AppearanceController appearance;
+    edit_atlas::frontends::widgets::ApplyApplicationStyle(
+        application, appearance.Palette());
+    QObject::connect(
+        &appearance,
+        &edit_atlas::presentation::AppearanceController::
+            resolvedAppearanceChanged,
+        &application, [&application, &appearance](void) {
+            edit_atlas::frontends::widgets::ApplyApplicationAppearance(
+                application, appearance.Palette());
+        });
 
     const auto version = std::string{edit_atlas::core::Version()};
     SPDLOG_INFO("Starting Edit Atlas {}", version);
