@@ -26,6 +26,11 @@ target_link_libraries(
         Qt6::Test
 )
 
+target_precompile_headers(
+    edit_atlas_quick_frontend_integration_tests
+    PRIVATE <gtest/gtest.h>
+)
+
 target_compile_features(
     edit_atlas_quick_frontend_integration_tests
     PRIVATE cxx_std_23
