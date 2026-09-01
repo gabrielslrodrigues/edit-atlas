@@ -19,7 +19,6 @@
 #include <QQmlApplicationEngine>
 #include <QQuickStyle>
 #include <QString>
-#include <QStyleHints>
 #include <QTranslator>
 #include <QVariant>
 #include <QVariantMap>
@@ -36,7 +35,6 @@ int main(int argc, char *argv[]) {
     QQuickStyle::setStyle(QStringLiteral("EditAtlasStyle"));
 
     QGuiApplication application{argc, argv};
-    application.styleHints()->setColorScheme(Qt::ColorScheme::Dark);
     QCoreApplication::setApplicationName(QStringLiteral("Edit Atlas"));
     QCoreApplication::setApplicationVersion(
         QString::fromStdString(std::string{edit_atlas::core::Version()}));

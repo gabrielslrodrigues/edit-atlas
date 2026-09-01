@@ -83,7 +83,9 @@ Follow these rules when changing the Qt Quick interface:
 - use `Atlas.DesignTokens` for dimensions, spacing, typography, radii, icons,
   and animation durations instead of introducing unrelated literals;
 - use `Atlas.Theme` and the application palette for colors instead of embedding
-  colors in application views;
+  colors in application views; `Atlas.Theme` presents the shared palette owned
+  by `edit_atlas::presentation`, so a new color is added there rather than in
+  the style module;
 - keep view state declarative and expose reusable commands or state through a
   ViewModel rather than calling services from QML;
 - keep dialogs, focus transitions, and native file-selection behavior in the
