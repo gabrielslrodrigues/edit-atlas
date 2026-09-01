@@ -30,19 +30,23 @@ on:
       tag:
         description: Candidate tag derived from the manifest
         value: ${{ jobs.candidate.outputs.tag }}
+      frontend:
+        description: Frontend whose packages the candidate contains
+        value: ${{ jobs.candidate.outputs.frontend }}
 
 permissions:
   contents: read
 
 jobs:
   candidate:
-    name: Resolve candidate version
+    name: Resolve candidate version and frontend
     runs-on: ubuntu-24.04
     permissions:
       contents: read
     outputs:
       version: ${{ steps.resolve.outputs.version }}
       tag: ${{ steps.resolve.outputs.tag }}
+      frontend: ${{ steps.frontends.outputs.production }}
 
     steps:
       - name: Check out source
@@ -51,6 +55,13 @@ jobs:
       - name: Resolve the candidate version
         id: resolve
         run: ./scripts/ci/resolve-release-candidate.sh "$GITHUB_OUTPUT"
+
+      # A release publishes the frontend production ships, which is a build
+      # option rather than a fixed toolkit, so it is derived here instead of
+      # being named in an artifact pattern below.
+      - name: Resolve the production frontend
+        id: frontends
+        run: ./scripts/ci/resolve-frontends.sh "$GITHUB_OUTPUT"
 
   qt-source:
     name: Prepare Qt corresponding source
@@ -137,7 +148,7 @@ jobs:
       - name: Download candidate packages
         uses: actions/download-artifact@v8
         with:
-          pattern: quick-frontend-*-packages
+          pattern: ${{ needs.candidate.outputs.frontend }}-frontend-*-packages
           path: build/release-artifacts
           merge-multiple: true
 

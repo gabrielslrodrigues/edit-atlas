@@ -4,9 +4,8 @@ on:
   workflow_call:
     inputs:
       frontend:
-        description: Packaged graphical frontend to exercise; defaults to production
-        required: false
-        default: quick
+        description: Packaged graphical frontend to exercise
+        required: true
         type: string
 
 permissions:

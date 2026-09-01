@@ -198,4 +198,4 @@ jobs:
         uses: ./.github/actions/delete-workflow-artifacts
         with:
           pattern: >-
-            ^(?:(widgets|quick)-frontend-.*-(packages|stage)|edit-atlas-e2e-media-fixtures)$
+            ^(?:[a-z]+-frontend-.*-(packages|stage)|edit-atlas-e2e-media-fixtures)$

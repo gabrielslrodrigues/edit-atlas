@@ -166,7 +166,17 @@ so a third supported frontend needs no workflow change either.
 They reuse the packages the run already produced and the same reusable
 workflow, selected through its `frontend` input, so scenarios, strictness,
 and artifacts match the merge-path jobs. Job names and result artifacts carry
-the frontend.
+the frontend. That input is required: no caller can inherit a frontend by
+omission.
+
+The release path derives the frontend the same way. `release-candidate.yml`
+resolves it once, assembles that frontend's packages, and exposes it to its
+callers, so a tagged release publishes and end-to-end tests whatever
+production ships rather than a toolkit named in an artifact pattern.
+
+Building and verifying packages is deliberately not derived: those jobs cover
+every supported frontend, because a frontend that is not shipped today is
+still expected to compile, install, and launch.
 
 These jobs are deliberately outside the gate. A job that does not run on
 pull requests would leave a required context unreported on every one of

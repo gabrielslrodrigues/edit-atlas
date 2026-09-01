@@ -100,6 +100,8 @@ jobs:
     needs: candidate
     if: always() && needs.candidate.result == 'success'
     uses: ./.github/workflows/packaged-e2e.yml
+    with:
+      frontend: ${{ needs.candidate.outputs.frontend }}
     permissions:
       contents: read
 
@@ -151,7 +153,7 @@ jobs:
         uses: ./.github/actions/delete-workflow-artifacts
         with:
           pattern: >-
-            ^(?:(widgets|quick)-frontend-.*-(packages|stage)|edit-atlas-e2e-media-fixtures|edit-atlas-(qt|ffmpeg)-source|edit-atlas-release-assets)$
+            ^(?:[a-z]+-frontend-.*-(packages|stage)|edit-atlas-e2e-media-fixtures|edit-atlas-(qt|ffmpeg)-source|edit-atlas-release-assets)$
 
   publish-documentation:
     name: Publish versioned documentation
