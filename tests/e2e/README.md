@@ -84,6 +84,12 @@ directory, isolated state root, locale, operation timeout, and artifact
 directory as explicit pytest options. Additional pytest arguments may follow
 the CLI option.
 
+Menus are stateful. Activating a menu title opens it, and activating an open
+menu closes it, so a helper that reads several items from one menu must read
+them in a single opening. `EditAtlasApplication._open_menu` accepts a member
+item to probe and leaves an already-open menu alone, which is what keeps a
+second read from closing the menu it needs.
+
 Required scenarios are intentionally strict. A run fails if no tests are
 collected or if a required test is deselected, skipped, or unexpectedly
 xfails/xpasses. Teardown terminates registered processes and removes the

@@ -57,8 +57,7 @@ def test_startup_import_failure_recovery_and_preferences_persist(
     app.session.activate("recentFilesMenu")
     app.session.element("recentFileAction0")
     app.session.wait_name_contains("recentFileAction0", "mixed_tracks.edl")
-    assert app.selected_appearance("Dark")
-    assert not app.selected_appearance("System")
+    assert app.selected_appearance() == "Dark"
 
 
 def test_filter_and_template_workflow_persists(

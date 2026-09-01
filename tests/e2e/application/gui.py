@@ -42,24 +42,28 @@ class EditAtlasApplication:
             "languageSelector", actions[language]
         )
 
+    APPEARANCE_ACTIONS = {
+        "System": "systemAppearanceAction",
+        "Light": "lightAppearanceAction",
+        "Dark": "darkAppearanceAction",
+    }
+
     def switch_appearance(self, appearance: str) -> None:
-        actions = {
-            "System": "systemAppearanceAction",
-            "Light": "lightAppearanceAction",
-            "Dark": "darkAppearanceAction",
-        }
         self._session.activate_menu_action(
-            "appearanceSelector", actions[appearance]
+            "appearanceSelector", self.APPEARANCE_ACTIONS[appearance]
         )
 
-    def selected_appearance(self, appearance: str) -> bool:
-        actions = {
-            "System": "systemAppearanceAction",
-            "Light": "lightAppearanceAction",
-            "Dark": "darkAppearanceAction",
-        }
-        self._open_menu("appearanceSelector")
-        return self._session.is_checked(actions[appearance])
+    def selected_appearance(self) -> str:
+        self._open_menu(
+            "appearanceSelector", member=self.APPEARANCE_ACTIONS["System"]
+        )
+        selected = [
+            name
+            for name, identifier in self.APPEARANCE_ACTIONS.items()
+            if self._session.is_checked(identifier)
+        ]
+        assert len(selected) == 1, f"expected one appearance, got {selected}"
+        return selected[0]
 
     def set_recent_files_enabled(self, enabled: bool) -> None:
         self._open_menu("fileMenu")
@@ -316,7 +320,14 @@ class EditAtlasApplication:
                 "templateActionsButton", identifier
             )
 
-    def _open_menu(self, identifier: str) -> None:
+    def _open_menu(
+        self, identifier: str, *, member: str | None = None
+    ) -> None:
+        # Activating an open menu closes it, so reopening one to read a second
+        # item loses both. Callers that read several items pass a member to
+        # probe, and an already-open menu is then left alone.
+        if member is not None and self._session.has_element(member):
+            return
         self._session.activate(identifier)
 
     def _launch(self) -> DesktopSession:
