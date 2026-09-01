@@ -13,6 +13,8 @@ triggers and permissions.
 | `build-and-package.yml` | Reusable only | Build and test every supported triplet, package Widgets and Quick, and create universal macOS packages |
 | `package-verification.yml` | Reusable only | Install and verify both frontend packages on every supported clean verification system |
 | `packaged-e2e.yml` | Reusable only | Install the Qt Quick production package and run CLI and graphical E2E on Linux and Windows; retain the disabled macOS implementation |
+| `release-candidate.yml` | Reusable only | Resolve the candidate version, generate corresponding source, build and package every triplet, then assemble and verify the release assets |
+| `release-dry-run.yml` | Manual dispatch | Rehearse a release by running the candidate pipeline and publishing nothing |
 | `release.yml` | Version tags | Validate the tag, create the protected draft, prepare corresponding source, reuse package and E2E validation, publish release assets, and publish versioned documentation |
 | `documentation.yml` | `master`, pull requests, manual dispatch, reusable call | Validate documentation, publish `/latest/`, and publish release documentation under `/vX.Y.Z/` |
 
@@ -23,9 +25,14 @@ build-and-package.yml ─┬─> package-verification.yml ─┐
                        └─> packaged-e2e.yml ─────────┤
                                                     └─> completion
 
-ci.yml ───────> completion ─> artifact cleanup
-release.yml ──> completion ─> release publication ─> documentation.yml
-       └──────> corresponding source ──────────┘
+ci.yml ──────────────> completion ─> artifact cleanup
+
+release-candidate.yml: corresponding source + build-and-package.yml
+                       ─> assemble ─> verify ─> assets
+
+release-dry-run.yml ─> release-candidate.yml ─> inspectable assets
+release.yml ─────────> release-candidate.yml ─> completion
+                       ─> release publication ─> documentation.yml
 ```
 
 Package verification and packaged E2E consume the same artifacts concurrently.
@@ -94,6 +101,51 @@ protected `edit-atlas-release` environment, and only its publication job can
 write release contents. Versioned documentation runs only after the draft has
 been successfully published. Pull-request and branch workflows therefore
 cannot create releases or publish versioned documentation.
+
+## Release dry run
+
+Tag-only jobs generate the Qt and FFmpeg corresponding-source archives and
+assemble the final asset set. Creating a production version tag is not an
+acceptable way to test them, so `release-dry-run.yml` rehearses a release on
+demand and publishes nothing.
+
+The rehearsal is faithful because both paths call the same pipeline.
+`release-candidate.yml` owns everything that produces and validates a
+candidate: resolving the version, generating both source archives, building
+and packaging every triplet, assembling the assets, and verifying them. A
+tagged release calls it and then publishes what it produced; the dry run
+calls it and stops. There is no second copy of that graph to drift from, and
+the dry run exercises the same jobs a release does.
+
+Publication capability is split by structure rather than by condition.
+`release-candidate.yml` declares no environment and no job that writes
+repository contents, and a reusable workflow can hold no more permission than
+its caller grants, so a dry run cannot create a release, write a tag, or
+publish documentation regardless of how its jobs are edited later. Only
+`release.yml` holds `contents: write` and the protected
+`edit-atlas-release` environment, and it is reachable only by pushing a
+`v*` tag.
+
+Dispatch the dry run from the Actions interface against the branch to
+validate. The candidate version comes from the `version-string` in
+`vcpkg.json`, the same single source CMake reads, and the candidate tag is
+synthesized from it. No tag needs to exist, and an existing tag of the same
+name is reported but never touched. The reusable build workflow checks out
+the dispatched ref, so validating an arbitrary commit means pointing a
+branch at it first.
+
+`verify-release-assets.sh` runs in both paths. It requires the exact
+expected asset set, rejects a filename carrying another version, checks that
+the notices name Qt and FFmpeg, confirms both source archives are readable,
+and verifies every checksum against the file beside it. A tagged release
+therefore fails before publishing rather than after, and the bytes it
+uploads are the bytes that were verified, because publication downloads the
+assembled artifact instead of rebuilding it.
+
+The dry run keeps its assets as `edit-atlas-release-dry-run-candidate` for
+inspection and deletes the transfer artifacts. It does not run package
+verification or packaged E2E: ordinary CI covers both on the same commit, so
+repeating them would double a costly dispatch without adding signal.
 
 ## Required status checks
 

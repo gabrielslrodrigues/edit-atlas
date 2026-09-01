@@ -1,0 +1,46 @@
+name: Release dry run
+
+# Rehearses a release without publishing one. It calls the same candidate
+# pipeline a tagged release calls, and grants it nothing beyond read access
+# and the artifact permissions Actions requires, so no job in this run can
+# create a release, write a tag, or publish documentation.
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-dry-run-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  candidate:
+    name: Release candidate
+    uses: ./.github/workflows/release-candidate.yml
+    with:
+      asset_artifact_name: edit-atlas-release-dry-run-candidate
+    permissions:
+      actions: write
+      contents: read
+      packages: write
+
+  cleanup-artifacts:
+    name: Remove transient workflow artifacts
+    needs: candidate
+    if: always()
+    runs-on: ubuntu-24.04
+    permissions:
+      actions: write
+      contents: read
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v7.0.1
+
+      - name: Delete transfer artifacts
+        uses: ./.github/actions/delete-workflow-artifacts
+        with:
+          pattern: >-
+            ^(?:(widgets|quick)-frontend-.*-(packages|stage)|edit-atlas-e2e-media-fixtures|edit-atlas-(qt|ffmpeg)-source)$
