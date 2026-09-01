@@ -27,6 +27,7 @@ target_sources(
         timeline_template_model.cpp
         timeline_template_view_model.cpp
         translation.cpp
+        typography.cpp
         include/edit_atlas/presentation/appearance.hpp
         include/edit_atlas/presentation/application_state.hpp
         include/edit_atlas/presentation/desktop_integration.hpp
@@ -43,6 +44,7 @@ target_sources(
         include/edit_atlas/presentation/timeline_template_model.hpp
         include/edit_atlas/presentation/timeline_template_view_model.hpp
         include/edit_atlas/presentation/translation.hpp
+        include/edit_atlas/presentation/typography.hpp
 )
 
 target_include_directories(
