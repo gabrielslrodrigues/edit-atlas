@@ -179,6 +179,13 @@ def test_filtered_spreadsheet_and_private_support_bundle(
     ):
         assert label in summary
     assert any(name.startswith("logs/") for name in bundle.entry_names())
+
+    # The bundled faces are embedded in the executable, so nothing outside the
+    # process can observe them directly. The installed application reports the
+    # family it resolved, which is what proves registration succeeded here
+    # rather than only in a test that supplies its own font resource.
+    assert "Interface typeface: Inter" in bundle.log_text()
+
     bundle.assert_private({"mixed_tracks.edl", destination.name})
 
 

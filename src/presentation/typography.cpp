@@ -8,6 +8,8 @@
 #include <QStringList>
 #include <Qt>
 
+#include <spdlog/spdlog.h>
+
 namespace edit_atlas::presentation {
 namespace {
 
@@ -78,6 +80,16 @@ void ApplyApplicationTypography(void) {
     font.setPointSizeF(kTypography.bodyPointSize);
     font.setWeight(static_cast<QFont::Weight>(kTypography.bodyWeight));
     QGuiApplication::setFont(font);
+
+    // Reported like the other resolved runtime facts, so a support bundle
+    // says whether the bundled family was applied or the platform one is in
+    // use. Nothing else observes typography from outside the process.
+    if (family.isEmpty()) {
+        SPDLOG_WARN("Interface typeface: platform default "
+                    "(bundled family unavailable)");
+    } else {
+        SPDLOG_INFO("Interface typeface: {}", family.toStdString());
+    }
 }
 
 QString ResolvedTypographyFamily(void) {
