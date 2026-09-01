@@ -92,7 +92,9 @@ cmake --workflow --preset create-quick-package-x64-windows
 
 The generic `create-package-` workflows continue to follow the project's
 current default frontend, which is Qt Quick. The explicit Widgets workflows
-remain available for secondary-frontend validation and emergency rollback.
+remain available for secondary-frontend validation and emergency rollback,
+and the daily scheduled CI run exercises the Widgets package through packaged
+end-to-end testing so that rollback path is verified rather than assumed.
 
 The universal macOS package is assembled by CI from independently built and
 staged ARM64 and x64 application bundles. This avoids relying on a universal

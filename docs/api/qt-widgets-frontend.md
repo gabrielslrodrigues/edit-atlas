@@ -134,9 +134,14 @@ real application shell, persistent-state integration, and accessibility
 contract. Package verification installs and launches the Widgets artifacts on
 every supported platform even though production releases select Qt Quick.
 
-The semantic pytest E2E façade retains Widgets support. A rollback must select
-the Widgets package for packaged E2E and pass every required platform gate
-before a release tag is created.
+The semantic pytest E2E façade retains Widgets support, and the daily
+scheduled CI run exercises it: packaged E2E installs the package of every
+frontend that is not the production one — currently Widgets — and drives the
+platform suites on Linux and Windows. A failure opens or updates a
+tracking issue rather than resting in a workflow run list. A rollback must
+select the Widgets package for packaged E2E and pass every required platform
+gate before a release tag is created, and the scheduled run is the standing
+evidence that the path still works.
 
 ## Deployment, licensing, and maintenance
 
