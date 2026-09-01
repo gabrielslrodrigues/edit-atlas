@@ -39,25 +39,45 @@ Q_ENUM_NS(ResolvedAppearance)
 /// Both frontends read this table; neither owns a palette of its own.
 struct AppearancePalette final {
     Q_GADGET
+    /// Primary interactive color, used for selection and emphasis.
     Q_PROPERTY(QString accent MEMBER accent CONSTANT)
+    /// Accent under a hovered pointer.
     Q_PROPERTY(QString accentHovered MEMBER accentHovered CONSTANT)
+    /// Accent while a control is pressed.
     Q_PROPERTY(QString accentPressed MEMBER accentPressed CONSTANT)
+    /// Text and icons drawn on an accent-filled surface.
     Q_PROPERTY(QString onAccent MEMBER onAccent CONSTANT)
+    /// Application window background.
     Q_PROPERTY(QString window MEMBER window CONSTANT)
+    /// Raised panel and view background.
     Q_PROPERTY(QString surface MEMBER surface CONSTANT)
+    /// Secondary surface, for alternating or nested panels.
     Q_PROPERTY(QString surfaceAlternate MEMBER surfaceAlternate CONSTANT)
+    /// Control background, such as a button or a text field.
     Q_PROPERTY(QString control MEMBER control CONSTANT)
+    /// Control background under a hovered pointer.
     Q_PROPERTY(QString controlHovered MEMBER controlHovered CONSTANT)
+    /// Control background while pressed.
     Q_PROPERTY(QString controlPressed MEMBER controlPressed CONSTANT)
+    /// Separator and control outline.
     Q_PROPERTY(QString border MEMBER border CONSTANT)
+    /// Outline of the control holding keyboard focus.
     Q_PROPERTY(QString focus MEMBER focus CONSTANT)
+    /// Text and outlines of a control that cannot be used.
     Q_PROPERTY(QString disabled MEMBER disabled CONSTANT)
+    /// Body and heading text.
     Q_PROPERTY(QString textPrimary MEMBER textPrimary CONSTANT)
+    /// Supporting text, such as descriptions and captions.
     Q_PROPERTY(QString textSecondary MEMBER textSecondary CONSTANT)
+    /// Text drawn on an inverted surface.
     Q_PROPERTY(QString textInverted MEMBER textInverted CONSTANT)
+    /// Text reporting a recoverable condition.
     Q_PROPERTY(QString warning MEMBER warning CONSTANT)
+    /// Text reporting a failure.
     Q_PROPERTY(QString danger MEMBER danger CONSTANT)
+    /// Tooltip background.
     Q_PROPERTY(QString tooltipSurface MEMBER tooltipSurface CONSTANT)
+    /// Tooltip text.
     Q_PROPERTY(QString tooltipText MEMBER tooltipText CONSTANT)
 
   public:
@@ -111,15 +131,22 @@ AppearancePaletteFor(ResolvedAppearance appearance);
 /// restarting the application.
 class AppearanceController final : public QObject {
     Q_OBJECT
+    /// Appearance the user selected.
     Q_PROPERTY(edit_atlas::presentation::ApplicationAppearance appearance READ
                    Appearance WRITE SetAppearance NOTIFY appearanceChanged)
+    /// Appearance currently presented.
     Q_PROPERTY(edit_atlas::presentation::ResolvedAppearance resolvedAppearance
                    READ ResolvedAppearanceValue NOTIFY
                        resolvedAppearanceChanged)
+    /// Palette of the presented appearance.
     Q_PROPERTY(edit_atlas::presentation::AppearancePalette palette READ Palette
                    NOTIFY resolvedAppearanceChanged)
 
   public:
+    /// Constructs a controller from the persisted preference.
+    ///
+    /// Requests the platform color scheme the preference implies, and follows
+    /// the platform from then on while the preference is to follow it.
     explicit AppearanceController(QObject *parent = nullptr);
     ~AppearanceController(void) override = default;
 
