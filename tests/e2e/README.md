@@ -26,6 +26,47 @@ present a control differently, such as shared projection movement buttons
 versus per-row actions, the façade resolves the available identifier before
 performing the same user operation. Test scenarios remain frontend-neutral.
 
+## Provisioned environments
+
+Packaged E2E provisioning has one semantic contract on every platform, exposed
+through `provision-linux.sh`, `provision-windows.ps1`, and
+`provision-macos.sh`. A provisioner owns the complete environment lifecycle:
+
+1. create or prepare the platform's isolated execution environment;
+2. install host requirements inside that environment through the matching
+   script under `scripts/ci`, without copying its dependency list;
+3. install the package under test inside the environment rather than on the
+   developer machine;
+4. generate rendered-video fixtures through the matching
+   `generate-media-fixtures` entry point, or verify the recorded generator
+   digest before accepting fixtures supplied by the host;
+5. invoke the existing platform `run-*` entry point without changing its
+   scenarios, strictness, identifiers, or artifact layout;
+6. make `build/e2e/reports`, `build/e2e/artifacts`,
+   `build/e2e/crash-dumps`, and `build/e2e/output` available to the host; and
+7. dispose of the environment, including the installed package and isolated
+   test state.
+
+Command syntax is platform-native, but inputs have the same meaning: the
+package under test, the matching fixture-generator executable or a validated
+fixture directory, an artifact destination, and optional pytest arguments.
+Provisioners reject a missing or ambiguous package and propagate the suite's
+exit status. They never fall back to installing a package on the host.
+
+The isolation mechanism is necessarily platform-specific:
+
+| Platform | Required environment | Implementation status |
+| --- | --- | --- |
+| Linux | Disposable OCI container with Xvfb and a session D-Bus | Tracked by #163 |
+| Windows | Virtual machine with an automatically logged-on interactive desktop | Tracked by #165; host dependencies are tracked by #164 |
+| macOS | Persistent host or virtual machine on Apple hardware, with Accessibility approval for its interactive test user | Tracked by #166 |
+
+Until those implementations land, each provisioning command exits immediately
+with the missing mechanism and documentation reference. This is intentional:
+partial host setup would violate the isolation contract. The lower-level
+`run-linux.sh`, `run-windows.ps1`, and `run-macos.sh` commands remain available
+for already prepared environments and keep their existing interfaces.
+
 ## Running packaged tests
 
 The entry points use uv and the committed lockfile to create a pinned Python
