@@ -15,7 +15,8 @@ services, and frontend adapters. See [Architecture](docs/architecture.md) for
 the dependency direction and extension points. Desktop contributors should
 also read the [Qt Quick](docs/api/qt-quick-frontend.md) and
 [Qt Widgets](docs/api/qt-widgets-frontend.md) frontend guides. See
-[CHANGELOG.md](CHANGELOG.md) for release highlights.
+[CHANGELOG.md](CHANGELOG.md) for release highlights, and
+[CONTRIBUTING.md](CONTRIBUTING.md) for the conventions changes follow.
 
 ## Common requirements
 
@@ -381,9 +382,8 @@ Release-tag documentation is published under the matching `/vX.Y.Z/` path;
 the [documentation version index](https://gabrielslrodrigues.github.io/edit-atlas/versions.html)
 lists the available releases.
 
-Public declarations use LLVM-style `///` comments. The first sentence is a
-brief summary; follow it with parameter, return-value, ownership, lifetime, and
-invariant details where they form part of the contract. Generated HTML, warning
+Public declarations use LLVM-style `///` comments, described under Code
+conventions in [CONTRIBUTING.md](CONTRIBUTING.md). Generated HTML, warning
 logs, and downloaded theme files must not be committed.
 
 ## Create installers
