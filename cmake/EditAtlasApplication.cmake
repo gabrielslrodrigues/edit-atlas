@@ -28,6 +28,21 @@ function(edit_atlas_add_application_icon_resource target)
         FILES
             "${edit_atlas_resource_directory}/icons/edit_atlas.png"
     )
+    # Bundled interface typography, shared by both graphical frontends and
+    # registered at startup by the presentation layer. Faces are the upright
+    # text weights the interface hierarchy uses; nothing else is embedded.
+    qt_add_resources(
+        "${target}"
+        "${target}_fonts"
+        PREFIX
+            "/"
+        BASE
+            "${edit_atlas_resource_directory}"
+        FILES
+            "${edit_atlas_resource_directory}/fonts/Inter-Regular.ttf"
+            "${edit_atlas_resource_directory}/fonts/Inter-Medium.ttf"
+            "${edit_atlas_resource_directory}/fonts/Inter-SemiBold.ttf"
+    )
     set_target_properties(
         "${target}"
         PROPERTIES EDIT_ATLAS_HAS_ICON_RESOURCE TRUE
