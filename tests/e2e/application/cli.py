@@ -33,6 +33,25 @@ class InstalledCli:
     def executable(self) -> Path:
         return self._executable
 
+    def installed_license_directory(self) -> Path | None:
+        """Locates the licensing material installed beside the application.
+
+        The layout differs per platform: a macOS bundle keeps it under
+        `Contents/Resources`, while Linux and Windows follow the data
+        directory. Returns None when no candidate exists, so a test can
+        report a missing directory rather than an attribute error.
+        """
+        prefix = self._executable.parent.parent
+        candidates = (
+            prefix / "share" / "licenses" / "edit-atlas",
+            prefix / "Resources" / "licenses",
+            self._executable.parent / "licenses",
+        )
+        for candidate in candidates:
+            if candidate.is_dir():
+                return candidate
+        return None
+
     def invoke(self, arguments: Iterable[str | os.PathLike[str]]) -> CommandResult:
         command = (self._executable, *arguments)
         environment = os.environ.copy()

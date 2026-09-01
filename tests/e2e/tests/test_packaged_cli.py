@@ -14,6 +14,38 @@ def test_installed_cli_reports_its_version(installed_cli: InstalledCli) -> None:
     assert result.standard_error == ""
 
 
+def test_installed_package_ships_licensing_material(
+    installed_cli: InstalledCli,
+) -> None:
+    # Package verification checks staged and extracted trees; this checks what
+    # an installed package actually put on the machine, which is what the
+    # licenses have to accompany.
+    directory = installed_cli.installed_license_directory()
+    assert directory is not None, "no installed license directory was found"
+
+    required = {
+        "LICENSE",
+        "THIRD_PARTY_NOTICES.md",
+        "Inter-LICENSE.txt",
+        "FFMPEG_SOURCE_OFFER.md",
+        "QT_SOURCE_OFFER.md",
+    }
+    installed = {path.name for path in directory.iterdir() if path.is_file()}
+    assert required <= installed, f"missing {sorted(required - installed)}"
+
+    notices = (directory / "THIRD_PARTY_NOTICES.md").read_text(
+        encoding="utf-8"
+    )
+    for dependency in ("Qt", "FFmpeg", "Inter"):
+        assert dependency in notices, f"{dependency} is not described"
+
+    font_license = (directory / "Inter-LICENSE.txt").read_text(
+        encoding="utf-8"
+    )
+    assert "SIL OPEN FONT LICENSE" in font_license
+    assert "The Inter Project Authors" in font_license
+
+
 def test_installed_cli_converts_and_inspects_workbook(
     installed_cli: InstalledCli,
     fixture_directory: Path,
