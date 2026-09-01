@@ -103,11 +103,11 @@ TEST_F(ApplicationShellViewModelTest, SharesPersistentDesktopPreferences) {
     ApplicationShellViewModel shell{
         registry, translator, presentation::ApplicationLanguage::kEnglish};
     QSignalSpy remember_changed{
-        &shell, &ApplicationShellViewModel::RememberRecentFilesChanged};
+        &shell, &ApplicationShellViewModel::rememberRecentFilesChanged};
     QSignalSpy recent_files_changed{
-        &shell, &ApplicationShellViewModel::RecentFilesChanged};
+        &shell, &ApplicationShellViewModel::recentFilesChanged};
     QSignalSpy language_changed{&shell,
-                                &ApplicationShellViewModel::LanguageChanged};
+                                &ApplicationShellViewModel::languageChanged};
 
     shell.SetRememberRecentFiles(true);
     presentation::RecordRecentFile("/shared/example.edl");
@@ -140,10 +140,10 @@ TEST_F(ApplicationShellViewModelTest,
     QSignalSpy frame_rate_required{
         &shell, &ApplicationShellViewModel::frameRateRequired};
     QSignalSpy document_state_changed{
-        &shell, &ApplicationShellViewModel::DocumentStateChanged};
+        &shell, &ApplicationShellViewModel::documentStateChanged};
     shell.SetRememberRecentFiles(true);
     QSignalSpy recent_files_changed{
-        &shell, &ApplicationShellViewModel::RecentFilesChanged};
+        &shell, &ApplicationShellViewModel::recentFilesChanged};
 
     const auto fixture = FixturePath();
     shell.OpenUrl(QUrl::fromLocalFile(PathText(fixture)));
@@ -199,7 +199,7 @@ TEST_F(ApplicationShellViewModelTest, IgnoresUnsupportedOpenRequests) {
     ApplicationShellViewModel shell{
         registry, translator, presentation::ApplicationLanguage::kEnglish};
     QSignalSpy document_state_changed{
-        &shell, &ApplicationShellViewModel::DocumentStateChanged};
+        &shell, &ApplicationShellViewModel::documentStateChanged};
 
     shell.OpenUrl(QUrl{QStringLiteral("https://example.com/timeline.edl")});
     shell.OpenPath(QString{});

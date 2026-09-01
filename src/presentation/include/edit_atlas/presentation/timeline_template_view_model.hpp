@@ -118,15 +118,15 @@ class TimelineTemplateViewModel final : public QObject {
 
   signals:
     /// Reports that the loaded template catalog changed.
-    void TemplatesChanged(void);
+    void templatesChanged(void);
     /// Reports a change to the active template.
-    void ActiveTemplateChanged(void);
+    void activeTemplateChanged(void);
     /// Reports a change to the current filter or its validity.
-    void FilterStateChanged(void);
+    void filterStateChanged(void);
     /// Reports a change to the current ordered export fields.
-    void EventProjectionChanged(void);
+    void eventProjectionChanged(void);
     /// Reports a change to `IsModified()`.
-    void ModifiedChanged(void);
+    void modifiedChanged(void);
 
   private:
     [[nodiscard]] TimelineTemplateCommandResult

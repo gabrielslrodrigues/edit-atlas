@@ -154,7 +154,7 @@ TEST(TimelineDocumentWorkflowTest, ReportsBusyUntilAsynchronousWorkFinishes) {
     source.write("blocking");
     source.close();
     TimelineDocumentWorkflow workflow{registry};
-    QSignalSpy finished{&workflow, &TimelineDocumentWorkflow::ImportFinished};
+    QSignalSpy finished{&workflow, &TimelineDocumentWorkflow::importFinished};
 
     workflow.Import(services::TimelineDocumentImportRequest{
         .path = FilesystemPath(source.fileName()),
@@ -190,7 +190,7 @@ TEST(TimelineDocumentWorkflowTest,
     auto registry = services::CreateBuiltInFormatRegistry();
     ASSERT_TRUE(registry.has_value());
     TimelineDocumentWorkflow workflow{*registry};
-    QSignalSpy imported{&workflow, &TimelineDocumentWorkflow::ImportFinished};
+    QSignalSpy imported{&workflow, &TimelineDocumentWorkflow::importFinished};
 
     workflow.Import(services::TimelineDocumentImportRequest{
         .path = FixturePath("mixed_tracks.edl"),
@@ -231,7 +231,7 @@ TEST(TimelineDocumentWorkflowTest,
     QTemporaryDir output;
     ASSERT_TRUE(output.isValid());
     const auto destination = FilesystemPath(output.path()) / "report.xlsx";
-    QSignalSpy exported{&workflow, &TimelineDocumentWorkflow::ExportFinished};
+    QSignalSpy exported{&workflow, &TimelineDocumentWorkflow::exportFinished};
     workflow.Export(services::TimelineDocumentExportRequest{
         .path = destination,
         .format_identifier =
@@ -283,7 +283,7 @@ TEST(TimelineDocumentWorkflowTest,
     auto registry = services::CreateBuiltInFormatRegistry();
     ASSERT_TRUE(registry.has_value());
     TimelineDocumentWorkflow workflow{*registry};
-    QSignalSpy finished{&workflow, &TimelineDocumentWorkflow::ImportFinished};
+    QSignalSpy finished{&workflow, &TimelineDocumentWorkflow::importFinished};
 
     workflow.Import(services::TimelineDocumentImportRequest{
         .path = FixturePath("malformed.edl"),
@@ -341,7 +341,7 @@ TEST(TimelineDocumentWorkflowTest, RecoversAfterAnExportFailure) {
     QTemporaryDir output;
     ASSERT_TRUE(output.isValid());
     TimelineDocumentWorkflow workflow{*registry};
-    QSignalSpy finished{&workflow, &TimelineDocumentWorkflow::ExportFinished};
+    QSignalSpy finished{&workflow, &TimelineDocumentWorkflow::exportFinished};
     workflow.Export(services::TimelineDocumentExportRequest{
         .path = FilesystemPath(output.path()) / "invalid.xlsx",
         .format_identifier = std::string{formats::xlsx::kFormatIdentifier},
@@ -382,7 +382,7 @@ TEST(TimelineDocumentWorkflowTest, RecoversAfterAnImportFailure) {
     auto registry = services::CreateBuiltInFormatRegistry();
     ASSERT_TRUE(registry.has_value());
     TimelineDocumentWorkflow workflow{*registry};
-    QSignalSpy finished{&workflow, &TimelineDocumentWorkflow::ImportFinished};
+    QSignalSpy finished{&workflow, &TimelineDocumentWorkflow::importFinished};
 
     workflow.Import(services::TimelineDocumentImportRequest{
         .path = FixturePath("missing.edl"),

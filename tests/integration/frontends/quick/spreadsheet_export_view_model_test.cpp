@@ -63,7 +63,7 @@ TEST(SpreadsheetExportViewModelTest,
     EXPECT_FALSE(export_view_model.IsAvailable());
 
     QSignalSpy document_changed{
-        &document, &presentation::TimelineDocumentViewModel::DocumentChanged};
+        &document, &presentation::TimelineDocumentViewModel::documentChanged};
     ASSERT_TRUE(document.Import(ImportRequest()).has_value());
     document_changed.clear();
     ASSERT_TRUE(WaitForSignal(document_changed));
@@ -100,7 +100,7 @@ TEST(SpreadsheetExportViewModelTest,
     presentation::TimelineDocumentViewModel document{*registry};
     SpreadsheetExportViewModel export_view_model{*registry, document};
     QSignalSpy document_changed{
-        &document, &presentation::TimelineDocumentViewModel::DocumentChanged};
+        &document, &presentation::TimelineDocumentViewModel::documentChanged};
     ASSERT_TRUE(document.Import(ImportRequest()).has_value());
     document_changed.clear();
     ASSERT_TRUE(WaitForSignal(document_changed));

@@ -65,16 +65,16 @@ class TimelineDocumentView final : public QWidget {
     void ShowLoading(QString file_name);
 
   signals:
-    void ExportRequested(void);
-    void FilterChanged(void);
-    void OpenRequested(void);
-    void DeleteTemplateRequested(void);
-    void DuplicateTemplateRequested(void);
-    void EditColumnsRequested(void);
-    void RenameTemplateRequested(void);
-    void SaveTemplateRequested(void);
-    void TemplateSelected(const QString &identifier);
-    void UpdateTemplateRequested(void);
+    void exportRequested(void);
+    void filterChanged(void);
+    void openRequested(void);
+    void deleteTemplateRequested(void);
+    void duplicateTemplateRequested(void);
+    void editColumnsRequested(void);
+    void renameTemplateRequested(void);
+    void saveTemplateRequested(void);
+    void templateSelected(const QString &identifier);
+    void updateTemplateRequested(void);
 
   private:
     void BuildUi(void);

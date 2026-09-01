@@ -14,7 +14,7 @@ SupportBundleWorkflow::SupportBundleWorkflow(QObject *parent)
     : QObject{parent} {
     connect(&watcher_,
             &QFutureWatcher<support::CreateSupportBundleResult>::finished, this,
-            &SupportBundleWorkflow::Finished);
+            &SupportBundleWorkflow::finished);
 }
 
 SupportBundleWorkflow::~SupportBundleWorkflow(void) {

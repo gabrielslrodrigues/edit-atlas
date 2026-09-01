@@ -36,7 +36,7 @@ class SupportBundleWorkflow final : public QObject {
 
   signals:
     /// Reports that support-bundle creation finished.
-    void Finished(void);
+    void finished(void);
 
   private:
     QFutureWatcher<support::CreateSupportBundleResult> watcher_;

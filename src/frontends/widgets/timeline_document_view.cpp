@@ -217,7 +217,7 @@ void TimelineDocumentView::BuildUi(void) {
     empty_open_button_ = new QPushButton{empty_page_};
     empty_open_button_->setDefault(true);
     connect(empty_open_button_, &QPushButton::clicked, this,
-            &TimelineDocumentView::OpenRequested);
+            &TimelineDocumentView::openRequested);
     auto *empty_button_layout = new QHBoxLayout;
     empty_button_layout->addStretch(1);
     empty_button_layout->addWidget(empty_open_button_);
@@ -251,7 +251,7 @@ void TimelineDocumentView::BuildUi(void) {
     timeline_header_layout->addWidget(timeline_title_label_, 1);
     timeline_export_button_ = new QPushButton{timeline_page_};
     connect(timeline_export_button_, &QPushButton::clicked, this,
-            &TimelineDocumentView::ExportRequested);
+            &TimelineDocumentView::exportRequested);
     timeline_header_layout->addWidget(timeline_export_button_);
     timeline_layout->addLayout(timeline_header_layout);
     timeline_summary_label_ = new QLabel{timeline_page_};
@@ -259,22 +259,22 @@ void TimelineDocumentView::BuildUi(void) {
     timeline_filter_ = new TimelineFilterWidget{timeline_page_};
     timeline_filter_->setSizePolicy(QSizePolicy::Preferred,
                                     QSizePolicy::Expanding);
-    connect(timeline_filter_, &TimelineFilterWidget::QueryChanged, this,
-            &TimelineDocumentView::FilterChanged);
-    connect(timeline_filter_, &TimelineFilterWidget::TemplateSelected, this,
-            &TimelineDocumentView::TemplateSelected);
-    connect(timeline_filter_, &TimelineFilterWidget::SaveTemplateRequested,
-            this, &TimelineDocumentView::SaveTemplateRequested);
-    connect(timeline_filter_, &TimelineFilterWidget::UpdateTemplateRequested,
-            this, &TimelineDocumentView::UpdateTemplateRequested);
-    connect(timeline_filter_, &TimelineFilterWidget::RenameTemplateRequested,
-            this, &TimelineDocumentView::RenameTemplateRequested);
-    connect(timeline_filter_, &TimelineFilterWidget::DuplicateTemplateRequested,
-            this, &TimelineDocumentView::DuplicateTemplateRequested);
-    connect(timeline_filter_, &TimelineFilterWidget::DeleteTemplateRequested,
-            this, &TimelineDocumentView::DeleteTemplateRequested);
-    connect(timeline_filter_, &TimelineFilterWidget::EditColumnsRequested, this,
-            &TimelineDocumentView::EditColumnsRequested);
+    connect(timeline_filter_, &TimelineFilterWidget::queryChanged, this,
+            &TimelineDocumentView::filterChanged);
+    connect(timeline_filter_, &TimelineFilterWidget::templateSelected, this,
+            &TimelineDocumentView::templateSelected);
+    connect(timeline_filter_, &TimelineFilterWidget::saveTemplateRequested,
+            this, &TimelineDocumentView::saveTemplateRequested);
+    connect(timeline_filter_, &TimelineFilterWidget::updateTemplateRequested,
+            this, &TimelineDocumentView::updateTemplateRequested);
+    connect(timeline_filter_, &TimelineFilterWidget::renameTemplateRequested,
+            this, &TimelineDocumentView::renameTemplateRequested);
+    connect(timeline_filter_, &TimelineFilterWidget::duplicateTemplateRequested,
+            this, &TimelineDocumentView::duplicateTemplateRequested);
+    connect(timeline_filter_, &TimelineFilterWidget::deleteTemplateRequested,
+            this, &TimelineDocumentView::deleteTemplateRequested);
+    connect(timeline_filter_, &TimelineFilterWidget::editColumnsRequested, this,
+            &TimelineDocumentView::editColumnsRequested);
     timeline_layout->addWidget(timeline_filter_, 1);
     auto *results_header = new QFrame{timeline_page_};
     results_header->setObjectName(QStringLiteral("resultsHeader"));
@@ -311,7 +311,7 @@ void TimelineDocumentView::BuildUi(void) {
     failure_layout->addWidget(failure_description_label_);
     failure_open_button_ = new QPushButton{failure_page_};
     connect(failure_open_button_, &QPushButton::clicked, this,
-            &TimelineDocumentView::OpenRequested);
+            &TimelineDocumentView::openRequested);
     auto *retry_layout = new QHBoxLayout;
     retry_layout->addStretch(1);
     retry_layout->addWidget(failure_open_button_);

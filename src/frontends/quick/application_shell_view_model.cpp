@@ -72,24 +72,24 @@ ApplicationShellViewModel::ApplicationShellViewModel(
     event_proxy_model_.setSortRole(presentation::TimelineEventModel::kSortRole);
     event_proxy_model_.setDynamicSortFilter(true);
     connect(&document_view_model_,
-            &presentation::TimelineDocumentViewModel::DocumentStateChanged,
+            &presentation::TimelineDocumentViewModel::documentStateChanged,
             this, &ApplicationShellViewModel::HandleDocumentStateChanged);
     connect(&document_view_model_,
-            &presentation::TimelineDocumentViewModel::ExportStateChanged, this,
+            &presentation::TimelineDocumentViewModel::exportStateChanged, this,
             [this](void) {
-                emit BusyChanged();
-                emit StatusTextChanged();
+                emit busyChanged();
+                emit statusTextChanged();
             });
     connect(&support_bundle_, &SupportBundleViewModel::busyChanged, this,
             [this](void) {
-                emit BusyChanged();
-                emit StatusTextChanged();
+                emit busyChanged();
+                emit statusTextChanged();
             });
     connect(&event_proxy_model_, &QAbstractItemModel::modelReset, this,
-            [this] { emit DocumentPresentationChanged(); });
+            [this] { emit documentPresentationChanged(); });
     connect(&document_view_model_.DiagnosticsModel(),
             &QAbstractItemModel::modelReset, this,
-            [this] { emit DocumentPresentationChanged(); });
+            [this] { emit documentPresentationChanged(); });
 }
 
 ApplicationShellViewModel::DocumentState
@@ -257,8 +257,8 @@ void ApplicationShellViewModel::SetRememberRecentFiles(bool enabled) {
         return;
     }
     presentation::SetRememberRecentFilesEnabled(enabled);
-    emit RememberRecentFilesChanged();
-    emit RecentFilesChanged();
+    emit rememberRecentFilesChanged();
+    emit recentFilesChanged();
 }
 
 QString ApplicationShellViewModel::LanguageCode(void) const {
@@ -282,9 +282,9 @@ void ApplicationShellViewModel::SetLanguageCode(const QString &code) {
     presentation::SaveApplicationLanguage(language_);
     document_view_model_.Retranslate();
     timeline_configuration_.Retranslate();
-    emit LanguageChanged();
-    emit StatusTextChanged();
-    emit DocumentPresentationChanged();
+    emit languageChanged();
+    emit statusTextChanged();
+    emit documentPresentationChanged();
 }
 
 void ApplicationShellViewModel::OpenUrl(const QUrl &url) {
@@ -327,19 +327,19 @@ void ApplicationShellViewModel::ToggleEventSort(int column) {
             ? Qt::DescendingOrder
             : Qt::AscendingOrder;
     event_proxy_model_.sort(column, order);
-    emit EventSortChanged();
+    emit eventSortChanged();
 }
 
 void ApplicationShellViewModel::HandleDocumentStateChanged(void) {
-    emit DocumentStateChanged();
-    emit BusyChanged();
-    emit DocumentPresentationChanged();
-    emit StatusTextChanged();
+    emit documentStateChanged();
+    emit busyChanged();
+    emit documentPresentationChanged();
+    emit statusTextChanged();
 
     if (document_view_model_.DocumentState() ==
         presentation::TimelineDocumentState::kReady) {
         presentation::RecordRecentFile(document_view_model_.SourcePath());
-        emit RecentFilesChanged();
+        emit recentFilesChanged();
         return;
     }
 

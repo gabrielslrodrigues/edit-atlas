@@ -43,7 +43,7 @@ TimelineConfigurationViewModel::TimelineConfigurationViewModel(
     : QObject{parent}, document_view_model_{document_view_model},
       template_view_model_{std::move(template_directory)} {
     connect(&document_view_model_,
-            &presentation::TimelineDocumentViewModel::FilterChanged, this,
+            &presentation::TimelineDocumentViewModel::filterChanged, this,
             [this] {
                 if (synchronizing_template_state_) {
                     return;
@@ -51,29 +51,29 @@ TimelineConfigurationViewModel::TimelineConfigurationViewModel(
                 template_view_model_.SetFilterState(
                     filter_model_.Query(),
                     document_view_model_.FilterError() == nullptr);
-                emit FilterStateChanged();
-                emit TemplateStateChanged();
+                emit filterStateChanged();
+                emit templateStateChanged();
             });
-    connect(&filter_model_, &presentation::TimelineFilterModel::QueryChanged,
+    connect(&filter_model_, &presentation::TimelineFilterModel::queryChanged,
             this, &TimelineConfigurationViewModel::HandleFilterQueryChanged);
     connect(&event_projection_model_,
-            &presentation::TimelineEventProjectionModel::ProjectionChanged,
+            &presentation::TimelineEventProjectionModel::projectionChanged,
             this,
             &TimelineConfigurationViewModel::HandleEventProjectionChanged);
     connect(&template_view_model_,
-            &presentation::TimelineTemplateViewModel::TemplatesChanged, this,
+            &presentation::TimelineTemplateViewModel::templatesChanged, this,
             &TimelineConfigurationViewModel::HandleTemplateStateChanged);
     connect(&template_view_model_,
-            &presentation::TimelineTemplateViewModel::ActiveTemplateChanged,
+            &presentation::TimelineTemplateViewModel::activeTemplateChanged,
             this, &TimelineConfigurationViewModel::HandleTemplateStateChanged);
     connect(&template_view_model_,
-            &presentation::TimelineTemplateViewModel::ModifiedChanged, this,
+            &presentation::TimelineTemplateViewModel::modifiedChanged, this,
             &TimelineConfigurationViewModel::HandleTemplateStateChanged);
     connect(&template_view_model_,
-            &presentation::TimelineTemplateViewModel::FilterStateChanged, this,
+            &presentation::TimelineTemplateViewModel::filterStateChanged, this,
             &TimelineConfigurationViewModel::SynchronizeTemplateState);
     connect(&template_view_model_,
-            &presentation::TimelineTemplateViewModel::EventProjectionChanged,
+            &presentation::TimelineTemplateViewModel::eventProjectionChanged,
             this, &TimelineConfigurationViewModel::SynchronizeTemplateState);
     static_cast<void>(template_view_model_.Load());
     SynchronizeTemplateState();
@@ -200,8 +200,8 @@ void TimelineConfigurationViewModel::Retranslate(void) {
     filter_model_.Retranslate();
     template_view_model_.Retranslate();
     event_projection_model_.Retranslate();
-    emit DisplayTextChanged();
-    emit FilterStateChanged();
+    emit displayTextChanged();
+    emit filterStateChanged();
 }
 
 void TimelineConfigurationViewModel::AddFilterCondition(void) {
@@ -237,7 +237,7 @@ bool TimelineConfigurationViewModel::CreateTemplate(const QString &name) {
     if (!event_projection_model_.IsValid()) {
         template_operation_error_text_ =
             tr("Select at least one event column before saving a template.");
-        emit TemplateOperationErrorChanged();
+        emit templateOperationErrorChanged();
         return false;
     }
     return HandleTemplateCommandResult(
@@ -249,7 +249,7 @@ bool TimelineConfigurationViewModel::UpdateActiveTemplate(void) {
         template_operation_error_text_ =
             tr("Select at least one event column before updating the "
                "template.");
-        emit TemplateOperationErrorChanged();
+        emit templateOperationErrorChanged();
         return false;
     }
     return HandleTemplateCommandResult(template_view_model_.UpdateActive());
@@ -275,7 +275,7 @@ void TimelineConfigurationViewModel::ClearTemplateOperationError(void) {
         return;
     }
     template_operation_error_text_.clear();
-    emit TemplateOperationErrorChanged();
+    emit templateOperationErrorChanged();
 }
 
 void TimelineConfigurationViewModel::SetEventProjectionSelected(int row,
@@ -306,12 +306,12 @@ void TimelineConfigurationViewModel::HandleFilterQueryChanged(void) {
     template_view_model_.SetFilterState(
         std::move(query), document_view_model_.FilterError() == nullptr);
     synchronizing_template_state_ = false;
-    emit FilterStateChanged();
-    emit TemplateStateChanged();
+    emit filterStateChanged();
+    emit templateStateChanged();
 }
 
 void TimelineConfigurationViewModel::HandleTemplateStateChanged(void) {
-    emit TemplateStateChanged();
+    emit templateStateChanged();
 }
 
 void TimelineConfigurationViewModel::HandleEventProjectionChanged(void) {
@@ -325,8 +325,8 @@ void TimelineConfigurationViewModel::HandleEventProjectionChanged(void) {
         static_cast<void>(template_view_model_.SetEventProjection(projection));
         synchronizing_template_state_ = false;
     }
-    emit EventProjectionStateChanged();
-    emit TemplateStateChanged();
+    emit eventProjectionStateChanged();
+    emit templateStateChanged();
 }
 
 void TimelineConfigurationViewModel::SynchronizeTemplateState(void) {
@@ -341,9 +341,9 @@ void TimelineConfigurationViewModel::SynchronizeTemplateState(void) {
     static_cast<void>(document_view_model_.SetEventProjection(
         event_projection_model_.Projection()));
     synchronizing_template_state_ = false;
-    emit FilterStateChanged();
-    emit EventProjectionStateChanged();
-    emit TemplateStateChanged();
+    emit filterStateChanged();
+    emit eventProjectionStateChanged();
+    emit templateStateChanged();
 }
 
 bool TimelineConfigurationViewModel::HandleTemplateCommandResult(
@@ -388,7 +388,7 @@ bool TimelineConfigurationViewModel::HandleTemplateCommandResult(
             break;
         }
     }
-    emit TemplateOperationErrorChanged();
+    emit templateOperationErrorChanged();
     return false;
 }
 

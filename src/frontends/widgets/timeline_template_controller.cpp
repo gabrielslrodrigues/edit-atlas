@@ -69,19 +69,19 @@ TimelineTemplateController::TimelineTemplateController(
     TimelineDocumentView &view, QWidget &window, QObject *parent)
     : QObject{parent}, view_{view}, window_{window},
       view_model_{presentation::ConfiguredTemplateDirectory()} {
-    connect(&view_, &TimelineDocumentView::TemplateSelected, this,
+    connect(&view_, &TimelineDocumentView::templateSelected, this,
             &TimelineTemplateController::ApplyTemplate);
-    connect(&view_, &TimelineDocumentView::SaveTemplateRequested, this,
+    connect(&view_, &TimelineDocumentView::saveTemplateRequested, this,
             &TimelineTemplateController::SaveTemplate);
-    connect(&view_, &TimelineDocumentView::UpdateTemplateRequested, this,
+    connect(&view_, &TimelineDocumentView::updateTemplateRequested, this,
             &TimelineTemplateController::UpdateTemplate);
-    connect(&view_, &TimelineDocumentView::RenameTemplateRequested, this,
+    connect(&view_, &TimelineDocumentView::renameTemplateRequested, this,
             &TimelineTemplateController::RenameTemplate);
-    connect(&view_, &TimelineDocumentView::DuplicateTemplateRequested, this,
+    connect(&view_, &TimelineDocumentView::duplicateTemplateRequested, this,
             &TimelineTemplateController::DuplicateTemplate);
-    connect(&view_, &TimelineDocumentView::DeleteTemplateRequested, this,
+    connect(&view_, &TimelineDocumentView::deleteTemplateRequested, this,
             &TimelineTemplateController::DeleteTemplate);
-    connect(&view_, &TimelineDocumentView::EditColumnsRequested, this,
+    connect(&view_, &TimelineDocumentView::editColumnsRequested, this,
             &TimelineTemplateController::EditExportColumns);
     LoadTemplates();
 }

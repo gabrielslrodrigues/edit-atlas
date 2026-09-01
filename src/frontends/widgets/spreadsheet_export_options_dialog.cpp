@@ -118,7 +118,7 @@ SpreadsheetExportOptionsDialog::SpreadsheetExportOptionsDialog(
     connect(buttons, &QDialogButtonBox::rejected, this, &QDialog::reject);
     layout->addWidget(buttons);
 
-    connect(projection_, &EventProjectionWidget::ProjectionChanged, this,
+    connect(projection_, &EventProjectionWidget::projectionChanged, this,
             &SpreadsheetExportOptionsDialog::UpdateControls);
     connect(video_path_, &QLineEdit::textChanged, this,
             [this](const QString &) { UpdateControls(); });

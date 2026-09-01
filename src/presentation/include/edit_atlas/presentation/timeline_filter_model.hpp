@@ -69,18 +69,18 @@ class TimelineFilterModel final : public QAbstractListModel {
 
     /// Whether every condition or any condition must match.
     Q_PROPERTY(int combination READ Combination WRITE SetCombination NOTIFY
-                   QueryChanged)
+                   queryChanged)
     /// Localized names for the available condition-combination modes.
     Q_PROPERTY(QStringList combinationNames READ CombinationNames NOTIFY
-                   DisplayTextChanged)
+                   displayTextChanged)
     /// Localized names for the available filter fields.
-    Q_PROPERTY(QStringList fieldNames READ FieldNames NOTIFY DisplayTextChanged)
+    Q_PROPERTY(QStringList fieldNames READ FieldNames NOTIFY displayTextChanged)
     /// Localized names for the available track kinds.
     Q_PROPERTY(QStringList trackKindNames READ TrackKindNames NOTIFY
-                   DisplayTextChanged)
+                   displayTextChanged)
     /// Localized names for the available edit types.
     Q_PROPERTY(QStringList editTypeNames READ EditTypeNames NOTIFY
-                   DisplayTextChanged)
+                   displayTextChanged)
 
   public:
     /// Roles used to edit one filter-condition row.
@@ -155,9 +155,9 @@ class TimelineFilterModel final : public QAbstractListModel {
 
   signals:
     /// Reports that the represented filter query changed.
-    void QueryChanged(void);
+    void queryChanged(void);
     /// Reports that localized choice text changed.
-    void DisplayTextChanged(void);
+    void displayTextChanged(void);
 
   private:
     struct ConditionRow final {

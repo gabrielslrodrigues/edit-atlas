@@ -96,7 +96,7 @@ int main(int argc, char *argv[]) {
         {QStringLiteral("applicationShell"), QVariant::fromValue(&shell)}});
     QObject::connect(&shell,
                      &edit_atlas::frontends::quick::ApplicationShellViewModel::
-                         LanguageChanged,
+                         languageChanged,
                      &engine, [&engine](void) { engine.retranslate(); });
     QObject::connect(
         &engine, &QQmlApplicationEngine::objectCreationFailed, &application,

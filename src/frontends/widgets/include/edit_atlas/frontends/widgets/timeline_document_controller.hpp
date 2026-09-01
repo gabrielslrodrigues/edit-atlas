@@ -52,9 +52,9 @@ class TimelineDocumentController final : public QObject {
     void SetLanguage(presentation::ApplicationLanguage language);
 
   signals:
-    void BusyChanged(bool busy);
-    void StatusMessageChanged(const QString &message);
-    void StatusMessageCleared(void);
+    void busyChanged(bool busy);
+    void statusMessageChanged(const QString &message);
+    void statusMessageCleared(void);
 
   private:
     void ApplyFilter(void);

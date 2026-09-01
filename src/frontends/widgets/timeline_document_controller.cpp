@@ -101,17 +101,17 @@ TimelineDocumentController::TimelineDocumentController(
     template_controller_ = new TimelineTemplateController{view_, window_, this};
     view_.SetEventModel(view_model_.EventModel());
     connect(&view_model_,
-            &presentation::TimelineDocumentViewModel::DocumentStateChanged,
+            &presentation::TimelineDocumentViewModel::documentStateChanged,
             this, &TimelineDocumentController::HandleDocumentStateChanged);
     connect(&view_model_,
-            &presentation::TimelineDocumentViewModel::ExportFinished, this,
+            &presentation::TimelineDocumentViewModel::exportFinished, this,
             &TimelineDocumentController::HandleExportFinished);
     connect(&view_model_,
-            &presentation::TimelineDocumentViewModel::FilterChanged, this,
+            &presentation::TimelineDocumentViewModel::filterChanged, this,
             &TimelineDocumentController::HandleFilterChanged);
     connect(&view_model_,
             &presentation::TimelineDocumentViewModel::
-                FrameExtractionProgressChanged,
+                frameExtractionProgressChanged,
             this, [this](qulonglong completed, qulonglong total) {
                 if (export_progress_ == nullptr) {
                     return;
@@ -123,17 +123,17 @@ TimelineDocumentController::TimelineDocumentController(
                         .arg(completed)
                         .arg(total));
             });
-    connect(&menu_bar_, &ApplicationMenuBar::OpenRequested, this,
+    connect(&menu_bar_, &ApplicationMenuBar::openRequested, this,
             [this](void) { OpenTimeline(); });
-    connect(&menu_bar_, &ApplicationMenuBar::OpenPathRequested, this,
+    connect(&menu_bar_, &ApplicationMenuBar::openPathRequested, this,
             [this](const QString &path) { OpenTimeline(path); });
-    connect(&menu_bar_, &ApplicationMenuBar::ExportSpreadsheetRequested, this,
+    connect(&menu_bar_, &ApplicationMenuBar::exportSpreadsheetRequested, this,
             &TimelineDocumentController::ExportSpreadsheet);
-    connect(&view_, &TimelineDocumentView::OpenRequested, this,
+    connect(&view_, &TimelineDocumentView::openRequested, this,
             [this](void) { OpenTimeline(); });
-    connect(&view_, &TimelineDocumentView::ExportRequested, this,
+    connect(&view_, &TimelineDocumentView::exportRequested, this,
             &TimelineDocumentController::ExportSpreadsheet);
-    connect(&view_, &TimelineDocumentView::FilterChanged, this,
+    connect(&view_, &TimelineDocumentView::filterChanged, this,
             &TimelineDocumentController::ApplyFilter);
 }
 
@@ -256,8 +256,8 @@ void TimelineDocumentController::ExportSpreadsheet(void) {
                                 video_path)},
         .replace_existing = replace_existing,
     };
-    emit BusyChanged(true);
-    emit StatusMessageChanged(
+    emit busyChanged(true);
+    emit statusMessageChanged(
         tr("Exporting %1…").arg(QFileInfo{destination}.fileName()));
     if (!video_path.isEmpty()) {
         export_progress_ = new QProgressDialog{tr("Validating rendered video…"),
@@ -278,8 +278,8 @@ void TimelineDocumentController::ExportSpreadsheet(void) {
     }
     const auto export_result = view_model_.Export(std::move(request));
     if (!export_result.has_value()) {
-        emit BusyChanged(false);
-        emit StatusMessageCleared();
+        emit busyChanged(false);
+        emit statusMessageCleared();
         if (export_progress_ != nullptr) {
             export_progress_->close();
             export_progress_->deleteLater();
@@ -339,7 +339,7 @@ void TimelineDocumentController::SetLanguage(
     HandleFilterChanged();
     if (view_model_.ExportState() ==
         presentation::TimelineExportState::kExporting) {
-        emit StatusMessageChanged(tr("Exporting spreadsheet…"));
+        emit statusMessageChanged(tr("Exporting spreadsheet…"));
     }
 }
 
@@ -351,8 +351,8 @@ void TimelineDocumentController::ClearTimeline(void) {
 }
 
 void TimelineDocumentController::HandleExportFinished(void) {
-    emit BusyChanged(false);
-    emit StatusMessageCleared();
+    emit busyChanged(false);
+    emit statusMessageCleared();
     if (export_progress_ != nullptr) {
         export_progress_->close();
         export_progress_->deleteLater();
@@ -451,7 +451,7 @@ void TimelineDocumentController::HandleDocumentStateChanged(void) {
         presentation::TimelineDocumentState::kImporting) {
         return;
     }
-    emit BusyChanged(false);
+    emit busyChanged(false);
 
     if (view_model_.DocumentState() ==
             presentation::TimelineDocumentState::kImportFailed &&
@@ -644,7 +644,7 @@ void TimelineDocumentController::StartImport(
     }
     requested_frame_rate_ = std::move(frame_rate);
     ClearTimeline();
-    emit BusyChanged(true);
+    emit busyChanged(true);
     view_.ShowLoading(QFileInfo{path}.fileName());
 }
 

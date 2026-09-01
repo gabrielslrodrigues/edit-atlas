@@ -61,14 +61,14 @@ class TimelineDocumentWorkflow final : public QObject {
 
   signals:
     /// Reports completion of an ordinary document export.
-    void ExportFinished(void);
+    void exportFinished(void);
     /// Reports extracted and total event-frame counts.
-    void FrameExtractionProgressChanged(qulonglong completed_events,
+    void frameExtractionProgressChanged(qulonglong completed_events,
                                         qulonglong total_events);
     /// Reports completion of a document import.
-    void ImportFinished(void);
+    void importFinished(void);
     /// Reports completion of rendered-video preparation and export.
-    void RenderedVideoExportFinished(void);
+    void renderedVideoExportFinished(void);
 
   private:
     services::TimelineDocumentExportService export_service_;

@@ -58,14 +58,14 @@ class TimelineFilterWidget final : public QWidget {
     void RetranslateUi(void);
 
   signals:
-    void QueryChanged(void);
-    void DeleteTemplateRequested(void);
-    void DuplicateTemplateRequested(void);
-    void EditColumnsRequested(void);
-    void RenameTemplateRequested(void);
-    void SaveTemplateRequested(void);
-    void TemplateSelected(const QString &identifier);
-    void UpdateTemplateRequested(void);
+    void queryChanged(void);
+    void deleteTemplateRequested(void);
+    void duplicateTemplateRequested(void);
+    void editColumnsRequested(void);
+    void renameTemplateRequested(void);
+    void saveTemplateRequested(void);
+    void templateSelected(const QString &identifier);
+    void updateTemplateRequested(void);
 
   private:
     struct ConditionRow final {

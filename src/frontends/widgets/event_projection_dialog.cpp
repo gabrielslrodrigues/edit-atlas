@@ -33,7 +33,7 @@ EventProjectionDialog::EventProjectionDialog(
 
     connect(buttons, &QDialogButtonBox::accepted, this, &QDialog::accept);
     connect(buttons, &QDialogButtonBox::rejected, this, &QDialog::reject);
-    connect(projection_, &EventProjectionWidget::ValidityChanged, save_,
+    connect(projection_, &EventProjectionWidget::validityChanged, save_,
             &QPushButton::setEnabled);
     save_->setEnabled(!projection_->Projection().empty());
     layout->addWidget(buttons);

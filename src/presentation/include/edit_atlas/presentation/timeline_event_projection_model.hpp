@@ -21,9 +21,9 @@ class TimelineEventProjectionModel final : public QAbstractListModel {
     Q_OBJECT
 
     /// Number of event fields included in the export projection.
-    Q_PROPERTY(int selectedCount READ SelectedCount NOTIFY ProjectionChanged)
+    Q_PROPERTY(int selectedCount READ SelectedCount NOTIFY projectionChanged)
     /// Whether the export projection contains at least one event field.
-    Q_PROPERTY(bool valid READ IsValid NOTIFY ProjectionChanged)
+    Q_PROPERTY(bool valid READ IsValid NOTIFY projectionChanged)
 
   public:
     /// Roles describing one available timeline event field.
@@ -86,7 +86,7 @@ class TimelineEventProjectionModel final : public QAbstractListModel {
 
   signals:
     /// Reports that selection or ordering changed.
-    void ProjectionChanged(void);
+    void projectionChanged(void);
 
   private:
     struct FieldRow final {

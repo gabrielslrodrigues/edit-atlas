@@ -96,7 +96,7 @@ void ApplicationMenuBar::BuildUi(
     open_action_ = file_menu_->addAction(QString{});
     open_action_->setShortcut(QKeySequence::Open);
     connect(open_action_, &QAction::triggered, this,
-            &ApplicationMenuBar::OpenRequested);
+            &ApplicationMenuBar::openRequested);
 
     recent_files_menu_ = file_menu_->addMenu(QString{});
 
@@ -110,22 +110,22 @@ void ApplicationMenuBar::BuildUi(
     file_menu_->addSeparator();
     export_action_ = file_menu_->addAction(QString{});
     connect(export_action_, &QAction::triggered, this,
-            &ApplicationMenuBar::ExportSpreadsheetRequested);
+            &ApplicationMenuBar::exportSpreadsheetRequested);
 
     file_menu_->addSeparator();
     exit_action_ = file_menu_->addAction(QString{});
     exit_action_->setShortcut(QKeySequence::Quit);
     connect(exit_action_, &QAction::triggered, this,
-            &ApplicationMenuBar::ExitRequested);
+            &ApplicationMenuBar::exitRequested);
 
     help_menu_ = addMenu(QString{});
     export_logs_action_ = help_menu_->addAction(QString{});
     connect(export_logs_action_, &QAction::triggered, this,
-            &ApplicationMenuBar::ExportDiagnosticLogsRequested);
+            &ApplicationMenuBar::exportDiagnosticLogsRequested);
     help_menu_->addSeparator();
     about_action_ = help_menu_->addAction(QString{});
     connect(about_action_, &QAction::triggered, this,
-            &ApplicationMenuBar::AboutRequested);
+            &ApplicationMenuBar::aboutRequested);
 
     language_menu_ = addMenu(QString{});
     brazilian_portuguese_action_ =
@@ -146,7 +146,7 @@ void ApplicationMenuBar::BuildUi(
                 const auto language =
                     static_cast<presentation::ApplicationLanguage>(
                         action->data().toInt());
-                emit LanguageSelected(language);
+                emit languageSelected(language);
             });
 
     SetAutomationIdentifier(*this, u"applicationMenuBar");
@@ -212,7 +212,7 @@ void ApplicationMenuBar::UpdateRecentFilesMenu(void) {
             *action, QStringLiteral("recentFileAction%1").arg(index));
         action->setToolTip(path_text);
         connect(action, &QAction::triggered, this,
-                [this, path_text](void) { emit OpenPathRequested(path_text); });
+                [this, path_text](void) { emit openPathRequested(path_text); });
         ++index;
     }
 }
