@@ -54,6 +54,19 @@ target_link_libraries(
         spdlog::spdlog
 )
 
+target_precompile_headers(
+    edit_atlas_widgets_frontend
+    PRIVATE
+        <QString>
+        <QWidget>
+        <algorithm>
+        <cstddef>
+        <filesystem>
+        <string>
+        <utility>
+        <vector>
+)
+
 target_compile_features(edit_atlas_widgets_frontend PUBLIC cxx_std_23)
 edit_atlas_set_project_warnings(edit_atlas_widgets_frontend)
 

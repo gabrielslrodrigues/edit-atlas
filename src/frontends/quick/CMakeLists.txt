@@ -118,6 +118,18 @@ target_link_libraries(
         Qt6::QuickControls2
 )
 
+target_precompile_headers(
+    edit_atlas_quick_frontend
+    PRIVATE
+        <QObject>
+        <QString>
+        <QUrl>
+        <algorithm>
+        <filesystem>
+        <string>
+        <utility>
+)
+
 target_compile_features(edit_atlas_quick_frontend PUBLIC cxx_std_23)
 edit_atlas_set_project_warnings(edit_atlas_quick_frontend)
 

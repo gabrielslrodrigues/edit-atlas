@@ -69,6 +69,62 @@ PKGs, and immediately deletes the native staging artifacts. Linux and Windows
 packages are uploaded alongside them for concurrent clean-machine package
 verification and packaged E2E consumption.
 
+## Precompiled-header boundaries
+
+Selected C++ targets use private precompiled headers to reduce native CI build
+time. The selection is deliberately narrow: a target must repeatedly parse a
+stable Qt or GoogleTest dependency across enough translation units to recover
+the cost of creating its own PCH. Source files must still include every header
+they use directly.
+
+The evaluation used the Linux `debug-x64-linux` and `release-x64-linux`
+presets with Clang 22.1.6 and Ninja 1.13.2. Dependency installation and CMake
+configuration were excluded. Clean Debug builds were alternated between
+otherwise identical trees at four parallel jobs, matching the CPU count of the
+hosted Linux runner. Release used the same clean-build method. Times are wall
+clock seconds:
+
+| Configuration | PCH disabled | PCH enabled | Improvement |
+| --- | ---: | ---: | ---: |
+| Debug clean build, median of 3 | 88.58 s | 62.70 s | 29.2% |
+| Release clean build | 96.35 s | 69.03 s | 28.4% |
+
+Representative one-source Debug rebuilds were also measured three times on a
+24-core developer system. Median presentation, Widgets, Quick, and
+presentation-test rebuilds improved from 2.74, 2.65, 2.65, and 2.54 seconds to
+1.31, 0.90, 1.15, and 1.45 seconds respectively. These local results confirm
+that PCH generation does not trade CI savings for slower ordinary edits; the
+four-core clean measurements above are the primary selection criterion.
+
+PCHs are enabled for these target groups:
+
+- shared presentation, for its repeated Qt Core and common standard-library
+  parsing;
+- the Widgets frontend library, for repeated Qt Widgets and common
+  standard-library parsing;
+- the Quick frontend library, for repeated Qt QML-facing and common
+  standard-library parsing;
+- the four largest GoogleTest executables: core unit tests, presentation unit
+  tests, services integration tests, and Quick frontend integration tests.
+
+The GoogleTest targets each compile their own PCH; none reuse a PCH from a
+target with a different compile context. Ninja action timings for the selected
+targets fell between 29% and 64%. Smaller test executables, thin application
+executables, and the small Quick style target do not contain enough C++ source
+files to justify another PCH. Core, formats, media, services, storage, support,
+and the CLI remain PCH-free.
+
+CMake's standard switch provides the self-contained-source control build:
+
+```sh
+cmake --preset debug-x64-linux \
+  -DCMAKE_DISABLE_PRECOMPILE_HEADERS=ON
+cmake --build --preset debug-x64-linux
+```
+
+The evaluation completed clean Debug and Release builds with that switch, so
+PCH availability does not replace direct includes.
+
 ## Artifact lifecycle
 
 Application packages and native macOS stages are inter-job transfer artifacts,

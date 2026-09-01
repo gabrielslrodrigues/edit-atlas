@@ -65,5 +65,19 @@ target_link_libraries(
         spdlog::spdlog
 )
 
+target_precompile_headers(
+    edit_atlas_presentation
+    PRIVATE
+        <QObject>
+        <QString>
+        <QtGlobal>
+        <algorithm>
+        <filesystem>
+        <optional>
+        <string>
+        <utility>
+        <vector>
+)
+
 target_compile_features(edit_atlas_presentation PUBLIC cxx_std_23)
 edit_atlas_set_project_warnings(edit_atlas_presentation)
