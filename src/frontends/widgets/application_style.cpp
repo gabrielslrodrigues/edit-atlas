@@ -1,5 +1,7 @@
 #include <edit_atlas/frontends/widgets/application_style.hpp>
 
+#include <edit_atlas/presentation/appearance.hpp>
+
 #include <QApplication>
 #include <QColor>
 #include <QDebug>
@@ -15,6 +17,9 @@
 #include <QStyleOption>
 #include <QWidget>
 #include <Qt>
+
+#include <utility>
+#include <vector>
 
 static void InitializeApplicationStyleResources(void) {
     Q_INIT_RESOURCE(edit_atlas_widgets_frontend_style);
@@ -44,9 +49,28 @@ class ResponsiveStyle final : public QProxyStyle {
     }
 };
 
+std::vector<std::pair<QString, QString>>
+StyleSheetTokens(const presentation::AppearancePalette &p) {
+    return {
+        {QStringLiteral("accent"), p.accent},
+        {QStringLiteral("border"), p.border},
+        {QStringLiteral("control"), p.control},
+        {QStringLiteral("controlPressed"), p.controlPressed},
+        {QStringLiteral("danger"), p.danger},
+        {QStringLiteral("disabled"), p.disabled},
+        {QStringLiteral("focus"), p.focus},
+        {QStringLiteral("surface"), p.surface},
+        {QStringLiteral("surfaceAlternate"), p.surfaceAlternate},
+        {QStringLiteral("textSecondary"), p.textSecondary},
+        {QStringLiteral("warning"), p.warning},
+        {QStringLiteral("window"), p.window},
+    };
+}
+
 } // namespace
 
-QString LoadApplicationStyleSheet(void) {
+QString
+LoadApplicationStyleSheet(const presentation::AppearancePalette &palette) {
     static const bool resources_initialized = [](void) {
         ::InitializeApplicationStyleResources();
         return true;
@@ -60,10 +84,46 @@ QString LoadApplicationStyleSheet(void) {
                    << style_sheet.errorString();
         return {};
     }
-    return QString::fromUtf8(style_sheet.readAll());
+
+    auto contents = QString::fromUtf8(style_sheet.readAll());
+    for (const auto &[token, color] : StyleSheetTokens(palette)) {
+        contents.replace(u'@' + token + u'@', color);
+    }
+    return contents;
 }
 
-void ApplyApplicationStyle(QApplication &application) {
+QPalette BuildApplicationPalette(const presentation::AppearancePalette &p) {
+    QPalette palette;
+    palette.setColor(QPalette::Window, QColor{p.window});
+    palette.setColor(QPalette::WindowText, QColor{p.textPrimary});
+    palette.setColor(QPalette::Base, QColor{p.surface});
+    palette.setColor(QPalette::AlternateBase, QColor{p.surfaceAlternate});
+    palette.setColor(QPalette::ToolTipBase, QColor{p.tooltipSurface});
+    palette.setColor(QPalette::ToolTipText, QColor{p.tooltipText});
+    palette.setColor(QPalette::Text, QColor{p.textPrimary});
+    palette.setColor(QPalette::Button, QColor{p.control});
+    palette.setColor(QPalette::ButtonText, QColor{p.textPrimary});
+    palette.setColor(QPalette::BrightText, QColor{p.textInverted});
+    palette.setColor(QPalette::Highlight, QColor{p.accent});
+    palette.setColor(QPalette::HighlightedText, QColor{p.onAccent});
+    palette.setColor(QPalette::PlaceholderText, QColor{p.textSecondary});
+    palette.setColor(QPalette::Disabled, QPalette::Text, QColor{p.disabled});
+    palette.setColor(QPalette::Disabled, QPalette::ButtonText,
+                     QColor{p.disabled});
+    palette.setColor(QPalette::Disabled, QPalette::WindowText,
+                     QColor{p.disabled});
+    return palette;
+}
+
+void ApplyApplicationAppearance(
+    QApplication &application,
+    const presentation::AppearancePalette &palette) {
+    application.setPalette(BuildApplicationPalette(palette));
+    application.setStyleSheet(LoadApplicationStyleSheet(palette));
+}
+
+void ApplyApplicationStyle(QApplication &application,
+                           const presentation::AppearancePalette &palette) {
     QApplication::setEffectEnabled(Qt::UI_AnimateCombo, false);
     QApplication::setEffectEnabled(Qt::UI_AnimateTooltip, false);
     QApplication::setEffectEnabled(Qt::UI_FadeTooltip, false);
@@ -75,23 +135,7 @@ void ApplyApplicationStyle(QApplication &application) {
         application.setFont(interface_font);
     }
 
-    QPalette palette;
-    palette.setColor(QPalette::Window, QColor{24, 26, 31});
-    palette.setColor(QPalette::WindowText, QColor{232, 234, 237});
-    palette.setColor(QPalette::Base, QColor{18, 20, 24});
-    palette.setColor(QPalette::AlternateBase, QColor{31, 34, 40});
-    palette.setColor(QPalette::ToolTipBase, QColor{38, 41, 48});
-    palette.setColor(QPalette::ToolTipText, QColor{242, 243, 245});
-    palette.setColor(QPalette::Text, QColor{232, 234, 237});
-    palette.setColor(QPalette::Button, QColor{37, 40, 47});
-    palette.setColor(QPalette::ButtonText, QColor{232, 234, 237});
-    palette.setColor(QPalette::BrightText, QColor{255, 255, 255});
-    palette.setColor(QPalette::Highlight, QColor{112, 122, 255});
-    palette.setColor(QPalette::HighlightedText, QColor{255, 255, 255});
-    palette.setColor(QPalette::PlaceholderText, QColor{139, 145, 156});
-    application.setPalette(palette);
-
-    application.setStyleSheet(LoadApplicationStyleSheet());
+    ApplyApplicationAppearance(application, palette);
 }
 
 } // namespace edit_atlas::frontends::widgets

@@ -3,6 +3,7 @@
 
 #include <edit_atlas/core/format_registry.hpp>
 
+#include <edit_atlas/presentation/appearance.hpp>
 #include <edit_atlas/presentation/translation.hpp>
 
 #include <edit_atlas/support/support_bundle.hpp>
@@ -34,6 +35,7 @@ class MainWindow final : public QMainWindow {
                         presentation::ApplicationLanguage initial_language,
                         std::filesystem::path log_directory,
                         support::DiagnosticEnvironment diagnostic_environment,
+                        presentation::AppearanceController &appearance,
                         QWidget *parent = nullptr);
     ~MainWindow(void) override = default;
 
@@ -53,6 +55,7 @@ class MainWindow final : public QMainWindow {
     void ShowAboutDialog(void);
 
     QTranslator &translator_;
+    presentation::AppearanceController &appearance_;
     presentation::ApplicationLanguage language_;
     ApplicationMenuBar *application_menu_bar_ = nullptr;
     TimelineDocumentView *timeline_document_view_ = nullptr;

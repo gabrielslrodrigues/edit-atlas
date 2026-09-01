@@ -2,6 +2,7 @@
 
 #include <edit_atlas/frontends/widgets/application_style.hpp>
 #include <edit_atlas/frontends/widgets/main_window.hpp>
+#include <edit_atlas/presentation/appearance.hpp>
 #include <edit_atlas/presentation/application_state.hpp>
 #include <edit_atlas/presentation/diagnostic_support.hpp>
 #include <edit_atlas/presentation/translation.hpp>
@@ -18,6 +19,7 @@
 #include <QCoreApplication>
 #include <QGuiApplication>
 #include <QIcon>
+#include <QObject>
 #include <QString>
 #include <QTranslator>
 
@@ -30,12 +32,26 @@
 int main(int argc, char *argv[]) {
     QApplication application{argc, argv};
     edit_atlas::frontends::widgets::InstallApplicationAccessibility();
-    edit_atlas::frontends::widgets::ApplyApplicationStyle(application);
     QCoreApplication::setApplicationName(QStringLiteral("Edit Atlas"));
     QCoreApplication::setApplicationVersion(
         QString::fromStdString(std::string{edit_atlas::core::Version()}));
     QCoreApplication::setOrganizationName(QStringLiteral("Edit Atlas"));
     edit_atlas::presentation::ConfigureApplicationState();
+
+    // The appearance is a persisted preference, so it can only be read once
+    // settings are configured, which is why styling happens here rather than
+    // with the other application-wide setup above.
+    edit_atlas::presentation::AppearanceController appearance;
+    edit_atlas::frontends::widgets::ApplyApplicationStyle(
+        application, appearance.Palette());
+    QObject::connect(
+        &appearance,
+        &edit_atlas::presentation::AppearanceController::
+            resolvedAppearanceChanged,
+        &application, [&application, &appearance](void) {
+            edit_atlas::frontends::widgets::ApplyApplicationAppearance(
+                application, appearance.Palette());
+        });
     QGuiApplication::setDesktopFileName(QStringLiteral("edit-atlas"));
     QApplication::setWindowIcon(
         QIcon{QStringLiteral(":/icons/edit_atlas.png")});
@@ -83,7 +99,12 @@ int main(int argc, char *argv[]) {
     edit_atlas::presentation::LogDiagnosticEnvironment(diagnostic_environment);
 
     edit_atlas::frontends::widgets::MainWindow window{
-        registry, translator, language, log_directory, diagnostic_environment,
+        registry,
+        translator,
+        language,
+        log_directory,
+        diagnostic_environment,
+        appearance,
     };
     window.show();
     return application.exec();

@@ -4,6 +4,7 @@
 #include <edit_atlas/frontends/widgets/timeline_document_view.hpp>
 #include <edit_atlas/presentation/timeline_event_model.hpp>
 #include <edit_atlas/presentation/timeline_filter_model.hpp>
+#include <edit_atlas/presentation/appearance.hpp>
 #include <edit_atlas/presentation/translation.hpp>
 
 #include "event_projection_dialog.hpp"
@@ -187,9 +188,13 @@ TEST(AccessibilityContractTest,
     auto registry = services::CreateBuiltInFormatRegistry();
     ASSERT_TRUE(registry.has_value());
     QTranslator translator;
-    MainWindow window{*registry, translator,
+    presentation::AppearanceController appearance;
+    MainWindow window{*registry,
+                      translator,
                       presentation::ApplicationLanguage::kEnglish,
-                      std::filesystem::path{}, DiagnosticEnvironment()};
+                      std::filesystem::path{},
+                      DiagnosticEnvironment(),
+                      appearance};
 
     constexpr std::array required_identifiers{
         "mainWindow",
@@ -198,6 +203,7 @@ TEST(AccessibilityContractTest,
         "recentFilesMenuPopup",
         "helpMenuPopup",
         "languageMenuPopup",
+        "appearanceMenuPopup",
         "applicationShell",
         "documentStack",
         "emptyOpenButton",
@@ -530,9 +536,13 @@ TEST(AccessibilityContractTest, PersistsLanguageWithoutChangingIdentifiers) {
     QTranslator translator;
     ASSERT_TRUE(presentation::SetApplicationLanguage(
         translator, presentation::ApplicationLanguage::kBrazilianPortuguese));
-    MainWindow window{*registry, translator,
+    presentation::AppearanceController appearance;
+    MainWindow window{*registry,
+                      translator,
                       presentation::ApplicationLanguage::kBrazilianPortuguese,
-                      std::filesystem::path{}, DiagnosticEnvironment()};
+                      std::filesystem::path{},
+                      DiagnosticEnvironment(),
+                      appearance};
     auto *selector =
         window.findChild<QAction *>(QStringLiteral("languageSelector"));
     auto *english =
@@ -556,13 +566,62 @@ TEST(AccessibilityContractTest, PersistsLanguageWithoutChangingIdentifiers) {
     EXPECT_EQ(window.windowTitle(), QStringLiteral("Edit Atlas"));
 }
 
+TEST(AccessibilityContractTest, SelectsAnAppearanceThroughStableIdentifiers) {
+    QSettings settings;
+    settings.clear();
+    auto registry = services::CreateBuiltInFormatRegistry();
+    ASSERT_TRUE(registry.has_value());
+    QTranslator translator;
+    presentation::AppearanceController appearance;
+    MainWindow window{*registry,
+                      translator,
+                      presentation::ApplicationLanguage::kEnglish,
+                      std::filesystem::path{},
+                      DiagnosticEnvironment(),
+                      appearance};
+
+    auto *selector =
+        window.findChild<QAction *>(QStringLiteral("appearanceSelector"));
+    auto *dark =
+        window.findChild<QAction *>(QStringLiteral("darkAppearanceAction"));
+    auto *light =
+        window.findChild<QAction *>(QStringLiteral("lightAppearanceAction"));
+    auto *system =
+        window.findChild<QAction *>(QStringLiteral("systemAppearanceAction"));
+    ASSERT_NE(selector, nullptr);
+    ASSERT_NE(dark, nullptr);
+    ASSERT_NE(light, nullptr);
+    ASSERT_NE(system, nullptr);
+    EXPECT_TRUE(system->isChecked());
+
+    const auto identifiers = AccessibleIdentifiers(window);
+    dark->trigger();
+
+    EXPECT_EQ(appearance.Appearance(),
+              presentation::ApplicationAppearance::kDark);
+    EXPECT_EQ(appearance.ResolvedAppearanceValue(),
+              presentation::ResolvedAppearance::kDark);
+    EXPECT_TRUE(dark->isChecked());
+    EXPECT_FALSE(light->isChecked());
+    EXPECT_EQ(AccessibleIdentifiers(window), identifiers);
+
+    light->trigger();
+    EXPECT_EQ(appearance.Appearance(),
+              presentation::ApplicationAppearance::kLight);
+    EXPECT_TRUE(light->isChecked());
+}
+
 TEST(AccessibilityContractTest, AcceptsOnlyLocalFilesForDragAndDrop) {
     auto registry = services::CreateBuiltInFormatRegistry();
     ASSERT_TRUE(registry.has_value());
     QTranslator translator;
-    MainWindow window{*registry, translator,
+    presentation::AppearanceController appearance;
+    MainWindow window{*registry,
+                      translator,
                       presentation::ApplicationLanguage::kEnglish,
-                      std::filesystem::path{}, DiagnosticEnvironment()};
+                      std::filesystem::path{},
+                      DiagnosticEnvironment(),
+                      appearance};
 
     QMimeData remote_data;
     remote_data.setUrls(

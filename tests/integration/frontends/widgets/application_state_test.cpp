@@ -1,4 +1,5 @@
 #include <edit_atlas/frontends/widgets/application_menu_bar.hpp>
+#include <edit_atlas/presentation/appearance.hpp>
 #include <edit_atlas/presentation/application_state.hpp>
 #include <edit_atlas/presentation/diagnostic_support.hpp>
 #include <edit_atlas/presentation/translation.hpp>
@@ -81,7 +82,10 @@ TEST(ApplicationStateTest, RoutesEveryPersistentStoreBelowTheOverride) {
 TEST(ApplicationStateTest, IsolatesRecentFilesAndTimelineTemplates) {
     QSettings settings;
     settings.clear();
-    ApplicationMenuBar menu{presentation::ApplicationLanguage::kEnglish};
+    ApplicationMenuBar menu{
+        presentation::ApplicationLanguage::kEnglish,
+        presentation::AppearanceCode(
+            presentation::ApplicationAppearance::kSystem)};
     auto *remember =
         menu.findChild<QAction *>(QStringLiteral("rememberRecentFilesAction"));
     ASSERT_NE(remember, nullptr);

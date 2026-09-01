@@ -12,14 +12,15 @@ class QWidget;
 
 namespace edit_atlas::frontends::widgets {
 
-/// Owns application actions, language selection, and recent-file settings.
+/// Owns application actions, language and appearance selection, and
+/// recent-file settings.
 class ApplicationMenuBar final : public QMenuBar {
     Q_OBJECT
 
   public:
     explicit ApplicationMenuBar(
         presentation::ApplicationLanguage initial_language,
-        QWidget *parent = nullptr);
+        const QString &initial_appearance_code, QWidget *parent = nullptr);
     ~ApplicationMenuBar(void) override = default;
 
     ApplicationMenuBar(const ApplicationMenuBar &) = delete;
@@ -32,10 +33,12 @@ class ApplicationMenuBar final : public QMenuBar {
     void SetBusy(bool busy);
     void SetDocumentAvailable(bool available);
     void SetExportAvailable(bool available);
+    void SetAppearance(const QString &code);
     void SetLanguage(presentation::ApplicationLanguage language);
 
   signals:
     void aboutRequested(void);
+    void appearanceSelected(const QString &code);
     void exitRequested(void);
     void exportDiagnosticLogsRequested(void);
     void exportSpreadsheetRequested(void);
@@ -61,6 +64,10 @@ class ApplicationMenuBar final : public QMenuBar {
     QMenu *help_menu_ = nullptr;
     QAction *export_logs_action_ = nullptr;
     QAction *about_action_ = nullptr;
+    QMenu *appearance_menu_ = nullptr;
+    QAction *system_appearance_action_ = nullptr;
+    QAction *light_appearance_action_ = nullptr;
+    QAction *dark_appearance_action_ = nullptr;
     QMenu *language_menu_ = nullptr;
     QAction *brazilian_portuguese_action_ = nullptr;
     QAction *english_action_ = nullptr;
