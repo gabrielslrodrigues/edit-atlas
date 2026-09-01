@@ -236,6 +236,13 @@ function(
                     \"${edit_atlas_runtime_install_pluginsdir}\"
                 )
                 ${edit_atlas_linux_qml_deployment}
+                # Compiler runtimes are excluded by default because they
+                # sit in system library directories, but they are present
+                # only on machines with that compiler installed. A package
+                # built with Clang links Clang's OpenMP runtime, which no
+                # target system provides, so such runtimes are deployed
+                # alongside the other bundled libraries. Nothing is added
+                # when the toolchain links none of them.
                 qt_deploy_runtime_dependencies(
                     EXECUTABLE \"$<TARGET_FILE:${target}>\"
                     ${edit_atlas_linux_additional_modules}
@@ -243,6 +250,9 @@ function(
                     LIB_DIR \"${edit_atlas_runtime_install_libdir}\"
                     PLUGINS_DIR \"${edit_atlas_runtime_install_pluginsdir}\"
                     INCLUDE_PLUGINS qwayland qxcb
+                    POST_INCLUDE_REGEXES
+                        \"^.*/libomp\\\\.so.*\"
+                        \"^.*/libgomp\\\\.so.*\"
                 )
                 ${edit_atlas_linux_qml_dependency_deployment}"
         )
