@@ -10,6 +10,7 @@ target_sources(
         timeline_event_model_test.cpp
         timeline_filter_model_test.cpp
         timeline_template_model_test.cpp
+        typography_test.cpp
 )
 
 target_link_libraries(

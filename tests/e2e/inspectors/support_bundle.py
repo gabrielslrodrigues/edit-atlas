@@ -32,6 +32,15 @@ class SupportBundle:
         with ZipFile(self.path) as archive:
             return archive.read("environment.txt").decode("utf-8")
 
+    def log_text(self) -> str:
+        """Returns the concatenated text of every bundled log."""
+        with ZipFile(self.path) as archive:
+            return "\n".join(
+                archive.read(name).decode("utf-8", errors="replace")
+                for name in sorted(archive.namelist())
+                if name.startswith("logs/")
+            )
+
     def assert_private(self, forbidden_names: set[str] | None = None) -> None:
         names = self.entry_names()
         permitted = {"environment.txt"}

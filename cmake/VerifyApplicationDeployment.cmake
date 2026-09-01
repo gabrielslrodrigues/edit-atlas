@@ -676,6 +676,10 @@ foreach(
     )
 endforeach()
 edit_atlas_require_deployed_file(
+    "the Inter Open Font License text"
+    "*Inter-LICENSE.txt"
+)
+edit_atlas_require_deployed_file(
     "the FFmpeg corresponding source offer"
     "*FFMPEG_SOURCE_OFFER.md"
 )

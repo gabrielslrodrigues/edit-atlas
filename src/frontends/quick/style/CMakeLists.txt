@@ -21,7 +21,9 @@ qt_add_qml_module(
     VERSION 1.0
     SOURCES
         appearance_style.cpp
+        typography_style.cpp
         include/edit_atlas/frontends/quick/style/appearance_style.hpp
+        include/edit_atlas/frontends/quick/style/typography_style.hpp
     QML_FILES
         Button.qml
         CheckBox.qml

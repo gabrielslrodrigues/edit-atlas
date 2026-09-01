@@ -12,7 +12,7 @@ QLabel#templateStatusLabel {
 }
 
 QLabel#filterSectionTitle {
-  font-weight: 600;
+  font-weight: @headingWeight@;
 }
 
 QFrame#templatePanel {

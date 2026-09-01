@@ -273,6 +273,16 @@ install(
     COMPONENT Runtime
 )
 
+# The Open Font License requires its text to accompany every copy of the
+# embedded faces, so it installs with the other notices rather than only
+# living in the source tree.
+install(
+    FILES "${CMAKE_CURRENT_SOURCE_DIR}/src/frontends/resources/fonts/LICENSE.txt"
+    DESTINATION "${edit_atlas_license_install_dir}"
+    COMPONENT Runtime
+    RENAME "Inter-LICENSE.txt"
+)
+
 file(
     GLOB edit_atlas_vcpkg_copyrights
     LIST_DIRECTORIES FALSE

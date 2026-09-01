@@ -68,7 +68,7 @@ T.Dialog {
         color: Theme.textPrimary
         elide: Text.ElideRight
         font.pointSize: DesignTokens.headingPointSize
-        font.weight: Font.DemiBold
+        font.weight: DesignTokens.headingWeight
         leftPadding: DesignTokens.spacingMedium
         rightPadding: DesignTokens.spacingMedium
         text: control.title

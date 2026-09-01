@@ -3,6 +3,7 @@
 #include <edit_atlas/presentation/application_state.hpp>
 #include <edit_atlas/presentation/diagnostic_support.hpp>
 #include <edit_atlas/presentation/translation.hpp>
+#include <edit_atlas/presentation/typography.hpp>
 
 #include <edit_atlas/core/version.hpp>
 
@@ -58,6 +59,7 @@ int main(int argc, char *argv[]) {
     if (!logging_result.has_value()) {
         SPDLOG_WARN("Persistent logging is unavailable");
     }
+    edit_atlas::presentation::ApplyApplicationTypography();
 
     const auto version = std::string{edit_atlas::core::Version()};
     SPDLOG_INFO("Starting Edit Atlas {} (Qt Quick frontend)", version);
