@@ -4,9 +4,8 @@ on:
   workflow_call:
     inputs:
       frontend:
-        description: Packaged graphical frontend to exercise; defaults to production
-        required: false
-        default: quick
+        description: Packaged graphical frontend to exercise
+        required: true
         type: string
 
 permissions:
@@ -14,7 +13,7 @@ permissions:
 
 jobs:
   linux:
-    name: Linux / Production frontend
+    name: Linux / ${{ inputs.frontend }} frontend
     runs-on: ubuntu-24.04
     timeout-minutes: 30
 
@@ -127,7 +126,7 @@ jobs:
     # GitHub-hosted macOS runners cannot grant Accessibility permission to the
     # test process non-interactively. Keep the implementation visible until a
     # pre-authorized interactive runner is available.
-    name: macOS / Production frontend (experimental, disabled)
+    name: macOS / ${{ inputs.frontend }} frontend (experimental, disabled)
     if: false
     continue-on-error: true
     runs-on: macos-15
@@ -222,7 +221,7 @@ jobs:
           retention-days: 7
 
   windows:
-    name: Windows / Production frontend
+    name: Windows / ${{ inputs.frontend }} frontend
     runs-on: windows-2022
     timeout-minutes: 30
 

@@ -10,6 +10,12 @@ on:
   schedule:
     - cron: "17 7 * * *"
   workflow_dispatch:
+    inputs:
+      other_frontend_e2e:
+        description: Also run packaged E2E against the frontends production does not ship
+        required: false
+        default: false
+        type: boolean
 
 permissions:
   contents: read
@@ -19,6 +25,27 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  # Which frontend ships is a build option, so CI derives it instead of
+  # assuming it. Everything else in the supported list is exercised on the
+  # schedule, however many there are, which keeps any frontend from being
+  # tested twice in one run when the default changes.
+  frontends:
+    name: Resolve frontends
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    outputs:
+      production: ${{ steps.resolve.outputs.production }}
+      others: ${{ steps.resolve.outputs.others }}
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v7.0.1
+
+      - name: Resolve the production frontend and the others
+        id: resolve
+        run: ./scripts/ci/resolve-frontends.sh "$GITHUB_OUTPUT"
+
   packages:
     name: Build and package
     uses: ./.github/workflows/build-and-package.yml
@@ -37,11 +64,76 @@ jobs:
 
   packaged-e2e:
     name: Packaged E2E
-    needs: packages
+    needs:
+      - frontends
+      - packages
     if: always() && needs.packages.result == 'success'
     uses: ./.github/workflows/packaged-e2e.yml
+    with:
+      frontend: ${{ needs.frontends.outputs.production }}
     permissions:
       contents: read
+
+  # Every frontend production does not ship is verified on the daily
+  # schedule, and on a manual run that opts in. Merge-path runs never execute
+  # them, so pull requests are not slowed by a frontend nobody installs. They
+  # are deliberately absent from the gate below: a job that does not run on
+  # pull requests would leave the gate unsatisfied on every one.
+  packaged-e2e-others:
+    name: Packaged E2E (${{ matrix.frontend }})
+    needs:
+      - frontends
+      - packages
+    if: >-
+      always() && needs.packages.result == 'success' &&
+      needs.frontends.outputs.others != '[]' &&
+      (github.event_name == 'schedule' || inputs.other_frontend_e2e)
+    strategy:
+      fail-fast: false
+      matrix:
+        frontend: ${{ fromJSON(needs.frontends.outputs.others) }}
+    uses: ./.github/workflows/packaged-e2e.yml
+    with:
+      frontend: ${{ matrix.frontend }}
+    permissions:
+      contents: read
+
+  # A red nightly run nobody opens is not a signal. Scheduled outcomes are
+  # recorded on a tracking issue that stays open until a later run passes.
+  frontend-e2e-signal:
+    name: Report scheduled frontend E2E outcomes
+    needs:
+      - frontends
+      - packaged-e2e-others
+    if: >-
+      always() && github.event_name == 'schedule' &&
+      needs['packaged-e2e-others'].result != 'skipped'
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      issues: write
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v7.0.1
+
+      - name: Download scheduled frontend E2E results
+        if: needs['packaged-e2e-others'].result != 'success'
+        uses: actions/download-artifact@v8
+        with:
+          # Not merged: each platform writes reports/junit.xml, so merging
+          # would collide. The per-artifact directory names the platform.
+          pattern: '*-packaged-e2e-results-*'
+          path: build/e2e/frontend-results
+
+      - name: Record the outcome
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: >-
+          ./scripts/ci/report-frontend-e2e-status.sh
+          "${{ needs['packaged-e2e-others'].result }}"
+          "${{ needs.frontends.outputs.others }}"
+          build/e2e/frontend-results
 
   gate:
     # The single context `master` requires. Adding a job that must pass before
@@ -90,6 +182,8 @@ jobs:
       - packages
       - package-verification
       - packaged-e2e
+      - packaged-e2e-others
+      - frontend-e2e-signal
     if: always()
     runs-on: ubuntu-24.04
     permissions:
@@ -104,4 +198,4 @@ jobs:
         uses: ./.github/actions/delete-workflow-artifacts
         with:
           pattern: >-
-            ^(?:(widgets|quick)-frontend-.*-(packages|stage)|edit-atlas-e2e-media-fixtures)$
+            ^(?:[a-z]+-frontend-.*-(packages|stage)|edit-atlas-e2e-media-fixtures)$
