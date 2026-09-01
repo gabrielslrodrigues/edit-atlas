@@ -1,0 +1,174 @@
+name: Release candidate
+
+# Produces and validates the assets a release publishes, and nothing else.
+# This workflow holds no publishing capability: it declares no environment and
+# no job that writes repository contents, and a reusable workflow can never
+# hold more permission than its caller grants. Publication lives only in the
+# tagged caller.
+
+on:
+  workflow_call:
+    inputs:
+      asset_artifact_name:
+        description: Artifact name for the assembled, verified assets
+        required: true
+        type: string
+      artifact_retention_days:
+        description: Retention for transient staged bundles and packages
+        required: false
+        default: 3
+        type: number
+      asset_retention_days:
+        description: Retention for the assembled assets
+        required: false
+        default: 7
+        type: number
+    outputs:
+      version:
+        description: Candidate version derived from the manifest
+        value: ${{ jobs.candidate.outputs.version }}
+      tag:
+        description: Candidate tag derived from the manifest
+        value: ${{ jobs.candidate.outputs.tag }}
+
+permissions:
+  contents: read
+
+jobs:
+  candidate:
+    name: Resolve candidate version
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    outputs:
+      version: ${{ steps.resolve.outputs.version }}
+      tag: ${{ steps.resolve.outputs.tag }}
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v7.0.1
+
+      - name: Resolve the candidate version
+        id: resolve
+        run: ./scripts/ci/resolve-release-candidate.sh "$GITHUB_OUTPUT"
+
+  qt-source:
+    name: Prepare Qt corresponding source
+    needs: candidate
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: read
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v7.0.1
+        with:
+          submodules: recursive
+
+      - name: Prepare Qt corresponding source archive
+        run: >-
+          ./scripts/ci/prepare-qt-source-archive.sh
+          "${{ needs.candidate.outputs.tag }}"
+          build/qt-source
+
+      - name: Upload Qt corresponding source
+        uses: actions/upload-artifact@v7
+        with:
+          name: edit-atlas-qt-source
+          path: build/qt-source
+          if-no-files-found: error
+          retention-days: ${{ inputs.artifact_retention_days }}
+
+  ffmpeg-source:
+    name: Prepare FFmpeg corresponding source
+    needs: candidate
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: read
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v7.0.1
+        with:
+          submodules: recursive
+
+      - name: Prepare FFmpeg corresponding source archive
+        run: >-
+          ./scripts/ci/prepare-ffmpeg-source-archive.sh
+          "${{ needs.candidate.outputs.tag }}"
+          build/ffmpeg-source
+
+      - name: Upload FFmpeg corresponding source
+        uses: actions/upload-artifact@v7
+        with:
+          name: edit-atlas-ffmpeg-source
+          path: build/ffmpeg-source
+          if-no-files-found: error
+          retention-days: ${{ inputs.artifact_retention_days }}
+
+  packages:
+    name: Build and package
+    needs: candidate
+    uses: ./.github/workflows/build-and-package.yml
+    with:
+      artifact_retention_days: ${{ inputs.artifact_retention_days }}
+    permissions:
+      actions: write
+      contents: read
+      packages: write
+
+  assets:
+    name: Assemble and verify assets
+    needs:
+      - candidate
+      - packages
+      - qt-source
+      - ffmpeg-source
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v7.0.1
+
+      - name: Download candidate packages
+        uses: actions/download-artifact@v8
+        with:
+          pattern: quick-frontend-*-packages
+          path: build/release-artifacts
+          merge-multiple: true
+
+      - name: Download Qt corresponding source
+        uses: actions/download-artifact@v8
+        with:
+          name: edit-atlas-qt-source
+          path: build/release-artifacts
+
+      - name: Download FFmpeg corresponding source
+        uses: actions/download-artifact@v8
+        with:
+          name: edit-atlas-ffmpeg-source
+          path: build/release-artifacts
+
+      - name: Prepare release assets
+        run: >-
+          ./scripts/ci/prepare-release-assets.sh
+          build/release-artifacts
+          build/release-assets
+
+      - name: Verify release assets
+        run: >-
+          ./scripts/ci/verify-release-assets.sh
+          build/release-assets
+          "${{ needs.candidate.outputs.tag }}"
+
+      - name: Upload verified assets
+        uses: actions/upload-artifact@v7
+        with:
+          name: ${{ inputs.asset_artifact_name }}
+          path: build/release-assets
+          if-no-files-found: error
+          retention-days: ${{ inputs.asset_retention_days }}

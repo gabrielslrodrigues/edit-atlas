@@ -76,68 +76,12 @@ jobs:
               --generate-notes
           fi
 
-  prepare-qt-source:
-    name: Prepare Qt corresponding source
+  candidate:
+    name: Release candidate
     needs: create-release
-    runs-on: ubuntu-24.04
-    timeout-minutes: 15
-    permissions:
-      contents: read
-
-    steps:
-      - name: Check out tagged source
-        uses: actions/checkout@v7.0.1
-        with:
-          submodules: recursive
-
-      - name: Prepare Qt corresponding source archive
-        run: >-
-          ./scripts/ci/prepare-qt-source-archive.sh
-          "$GITHUB_REF_NAME"
-          build/qt-source
-
-      - name: Upload Qt corresponding source
-        uses: actions/upload-artifact@v7
-        with:
-          name: edit-atlas-qt-source
-          path: build/qt-source
-          if-no-files-found: error
-          retention-days: 3
-
-  prepare-ffmpeg-source:
-    name: Prepare FFmpeg corresponding source
-    needs: create-release
-    runs-on: ubuntu-24.04
-    timeout-minutes: 15
-    permissions:
-      contents: read
-
-    steps:
-      - name: Check out tagged source
-        uses: actions/checkout@v7.0.1
-        with:
-          submodules: recursive
-
-      - name: Prepare FFmpeg corresponding source archive
-        run: >-
-          ./scripts/ci/prepare-ffmpeg-source-archive.sh
-          "$GITHUB_REF_NAME"
-          build/ffmpeg-source
-
-      - name: Upload FFmpeg corresponding source
-        uses: actions/upload-artifact@v7
-        with:
-          name: edit-atlas-ffmpeg-source
-          path: build/ffmpeg-source
-          if-no-files-found: error
-          retention-days: 3
-
-  packages:
-    name: Build and package
-    needs: create-release
-    uses: ./.github/workflows/build-and-package.yml
+    uses: ./.github/workflows/release-candidate.yml
     with:
-      artifact_retention_days: 3
+      asset_artifact_name: edit-atlas-release-assets
     permissions:
       actions: write
       contents: read
@@ -145,16 +89,16 @@ jobs:
 
   package-verification:
     name: Verify packages
-    needs: packages
-    if: always() && needs.packages.result == 'success'
+    needs: candidate
+    if: always() && needs.candidate.result == 'success'
     uses: ./.github/workflows/package-verification.yml
     permissions:
       contents: read
 
   packaged-e2e:
     name: Packaged E2E
-    needs: packages
-    if: always() && needs.packages.result == 'success'
+    needs: candidate
+    if: always() && needs.candidate.result == 'success'
     uses: ./.github/workflows/packaged-e2e.yml
     permissions:
       contents: read
@@ -163,19 +107,15 @@ jobs:
     name: Publish release assets
     needs:
       - create-release
-      - packages
+      - candidate
       - package-verification
       - packaged-e2e
-      - prepare-ffmpeg-source
-      - prepare-qt-source
     if: >-
       always() &&
       needs['create-release'].result == 'success' &&
-      needs.packages.result == 'success' &&
+      needs.candidate.result == 'success' &&
       needs['package-verification'].result == 'success' &&
-      needs['packaged-e2e'].result == 'success' &&
-      needs['prepare-ffmpeg-source'].result == 'success' &&
-      needs['prepare-qt-source'].result == 'success'
+      needs['packaged-e2e'].result == 'success'
     runs-on: ubuntu-24.04
     permissions:
       actions: write
@@ -187,30 +127,13 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Download release packages
+      # The candidate pipeline assembled and verified these assets, so the
+      # bytes published here are the bytes that were checked.
+      - name: Download verified release assets
         uses: actions/download-artifact@v8
         with:
-          pattern: quick-frontend-*-packages
-          path: build/release-artifacts
-          merge-multiple: true
-
-      - name: Download Qt corresponding source
-        uses: actions/download-artifact@v8
-        with:
-          name: edit-atlas-qt-source
-          path: build/release-artifacts
-
-      - name: Download FFmpeg corresponding source
-        uses: actions/download-artifact@v8
-        with:
-          name: edit-atlas-ffmpeg-source
-          path: build/release-artifacts
-
-      - name: Prepare release assets
-        run: >-
-          ./scripts/ci/prepare-release-assets.sh
-          build/release-artifacts
-          build/release-assets
+          name: edit-atlas-release-assets
+          path: build/release-assets
 
       - name: Upload assets and publish draft release
         env:
@@ -228,7 +151,7 @@ jobs:
         uses: ./.github/actions/delete-workflow-artifacts
         with:
           pattern: >-
-            ^(?:(widgets|quick)-frontend-.*-(packages|stage)|edit-atlas-e2e-media-fixtures|edit-atlas-(qt|ffmpeg)-source)$
+            ^(?:(widgets|quick)-frontend-.*-(packages|stage)|edit-atlas-e2e-media-fixtures|edit-atlas-(qt|ffmpeg)-source|edit-atlas-release-assets)$
 
   publish-documentation:
     name: Publish versioned documentation
