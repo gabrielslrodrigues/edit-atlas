@@ -148,7 +148,7 @@ Tests</h1>
 <div class="fragment"><div class="line">ctest --preset debug-x64-linux --label-regex &#39;^unit$&#39;</div>
 <div class="line">ctest --preset debug-x64-linux --label-regex &#39;^integration$&#39;</div>
 </div><!-- fragment --><p>The <code>edit_atlas_widgets_frontend_tests</code> GoogleTest target covers isolated frontend behavior. <code>edit_atlas_widgets_frontend_integration_tests</code> covers the real application shell, persistent-state integration, and accessibility contract. Package verification installs and launches the Widgets artifacts on every supported platform even though production releases select Qt Quick.</p>
-<p>The semantic pytest E2E façade retains Widgets support. A rollback must select the Widgets package for packaged E2E and pass every required platform gate before a release tag is created.</p>
+<p>The semantic pytest E2E façade retains Widgets support, and the daily scheduled CI run exercises it: packaged E2E installs the package of every frontend that is not the production one — currently Widgets — and drives the platform suites on Linux and Windows. A failure opens or updates a tracking issue rather than resting in a workflow run list. A rollback must select the Widgets package for packaged E2E and pass every required platform gate before a release tag is created, and the scheduled run is the standing evidence that the path still works.</p>
 <h1><a class="anchor" id="autotoc_md26"></a>
 Deployment, licensing, and maintenance</h1>
 <p>Widgets packages dynamically deploy Qt Widgets, Qt Concurrent, Qt GUI, Qt Core, platform plugins, and the shared non-Qt runtime. They receive the same notices, corresponding-source material, private runtime boundaries, and clean-installation verification as Qt Quick packages.</p>
