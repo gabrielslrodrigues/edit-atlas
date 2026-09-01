@@ -19,7 +19,7 @@ namespace {
 TEST(TimelineFilterModelTest, EditsAStablePresentationIndependentQuery) {
     TimelineFilterModel model;
     auto query_change_count = 0;
-    QObject::connect(&model, &TimelineFilterModel::QueryChanged,
+    QObject::connect(&model, &TimelineFilterModel::queryChanged,
                      [&query_change_count] { ++query_change_count; });
 
     ASSERT_EQ(model.rowCount(), 1);

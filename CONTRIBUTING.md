@@ -67,6 +67,13 @@ before changing a workflow.
 - Namespaces are snake case under `edit_atlas::<layer>`; types and
   functions are PascalCase; leaf types are `final`; source and header
   filenames are snake case.
+- Qt signals are the exception to function naming: they use Qt's lower camel
+  case, as `documentChanged` or `exportFinished`, including property-notify
+  signals. This is what `Q_PROPERTY NOTIFY` and QML handler resolution
+  expect, and it keeps project signals indistinguishable in style from Qt's
+  own. Commands, accessors, slots, and private handlers stay PascalCase, so
+  `HandleExportFinished` is a slot and `exportFinished` is the signal it
+  reacts to.
 - Public declarations carry LLVM-style `///` comments. The first sentence
   is the brief summary; follow it with parameter, return-value, ownership,
   lifetime, and invariant details where they form part of the contract.

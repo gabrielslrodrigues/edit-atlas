@@ -72,7 +72,7 @@ TEST(TimelineTemplateViewModelTest, CreatesUpdatesAndRestoresTemplateState) {
     TimelineTemplateViewModel view_model{directory.path()};
     ASSERT_TRUE(view_model.Load().has_value());
     QSignalSpy modified{&view_model,
-                        &TimelineTemplateViewModel::ModifiedChanged};
+                        &TimelineTemplateViewModel::modifiedChanged};
 
     const auto filter = AudioFilter();
     view_model.SetFilterState(filter, true);

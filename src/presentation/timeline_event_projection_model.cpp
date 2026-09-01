@@ -139,7 +139,7 @@ bool TimelineEventProjectionModel::setData(const QModelIndex &index,
     }
     row.selected = selected;
     emit dataChanged(index, index, {kSelectedRole});
-    emit ProjectionChanged();
+    emit projectionChanged();
     return true;
 }
 
@@ -190,7 +190,7 @@ void TimelineEventProjectionModel::Move(int source_row, int destination_row) {
                         static_cast<std::ptrdiff_t>(destination + 1));
     }
     endMoveRows();
-    emit ProjectionChanged();
+    emit projectionChanged();
 }
 
 bool TimelineEventProjectionModel::SetProjection(
@@ -211,7 +211,7 @@ bool TimelineEventProjectionModel::SetProjection(
         }
     }
     endResetModel();
-    emit ProjectionChanged();
+    emit projectionChanged();
     return true;
 }
 

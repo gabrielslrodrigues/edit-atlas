@@ -33,8 +33,8 @@ class EventProjectionWidget final : public QWidget {
 
   signals:
     /// Emitted whenever selection or ordering changes.
-    void ProjectionChanged(void);
-    void ValidityChanged(bool valid);
+    void projectionChanged(void);
+    void validityChanged(bool valid);
 
   private:
     void MoveCurrentColumn(int offset);

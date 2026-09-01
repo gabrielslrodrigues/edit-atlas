@@ -36,9 +36,9 @@ class SupportBundleController final : public QObject {
     void SetInteractionsEnabled(bool enabled);
 
   signals:
-    void BusyChanged(bool busy);
-    void StatusMessageChanged(const QString &message);
-    void StatusMessageCleared(void);
+    void busyChanged(bool busy);
+    void statusMessageChanged(const QString &message);
+    void statusMessageCleared(void);
 
   private:
     void HandleBusyChanged(void);

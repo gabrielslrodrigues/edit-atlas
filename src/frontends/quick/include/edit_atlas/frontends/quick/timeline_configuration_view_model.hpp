@@ -27,34 +27,34 @@ class TimelineConfigurationViewModel final : public QObject {
     Q_PROPERTY(QAbstractItemModel *eventProjectionModel READ
                    EventProjectionModel CONSTANT)
     Q_PROPERTY(int activeTemplateRow READ ActiveTemplateRow NOTIFY
-                   TemplateStateChanged)
+                   templateStateChanged)
     Q_PROPERTY(bool hasActiveTemplate READ HasActiveTemplate NOTIFY
-                   TemplateStateChanged)
+                   templateStateChanged)
     Q_PROPERTY(bool templateModified READ IsTemplateModified NOTIFY
-                   TemplateStateChanged)
+                   templateStateChanged)
     Q_PROPERTY(QString activeTemplateName READ ActiveTemplateName NOTIFY
-                   TemplateStateChanged)
+                   templateStateChanged)
     Q_PROPERTY(
         QString templateOperationErrorText READ TemplateOperationErrorText
-            NOTIFY TemplateOperationErrorChanged)
-    Q_PROPERTY(bool filterValid READ IsFilterValid NOTIFY FilterStateChanged)
+            NOTIFY templateOperationErrorChanged)
+    Q_PROPERTY(bool filterValid READ IsFilterValid NOTIFY filterStateChanged)
     Q_PROPERTY(
-        QString filterErrorText READ FilterErrorText NOTIFY FilterStateChanged)
+        QString filterErrorText READ FilterErrorText NOTIFY filterStateChanged)
     Q_PROPERTY(bool eventProjectionValid READ IsEventProjectionValid NOTIFY
-                   EventProjectionStateChanged)
+                   eventProjectionStateChanged)
     Q_PROPERTY(
         int eventProjectionSelectedCount READ EventProjectionSelectedCount
-            NOTIFY EventProjectionStateChanged)
+            NOTIFY eventProjectionStateChanged)
     Q_PROPERTY(int filterCombination READ FilterCombination WRITE
-                   SetFilterCombination NOTIFY FilterStateChanged)
+                   SetFilterCombination NOTIFY filterStateChanged)
     Q_PROPERTY(QStringList filterCombinationNames READ FilterCombinationNames
-                   NOTIFY DisplayTextChanged)
+                   NOTIFY displayTextChanged)
     Q_PROPERTY(QStringList filterFieldNames READ FilterFieldNames NOTIFY
-                   DisplayTextChanged)
+                   displayTextChanged)
     Q_PROPERTY(QStringList filterTrackKindNames READ FilterTrackKindNames NOTIFY
-                   DisplayTextChanged)
+                   displayTextChanged)
     Q_PROPERTY(QStringList filterEditTypeNames READ FilterEditTypeNames NOTIFY
-                   DisplayTextChanged)
+                   displayTextChanged)
     Q_PROPERTY(int textFilterEditor READ TextFilterEditor CONSTANT)
     Q_PROPERTY(int trackKindFilterEditor READ TrackKindFilterEditor CONSTANT)
     Q_PROPERTY(int editTypeFilterEditor READ EditTypeFilterEditor CONSTANT)
@@ -160,15 +160,15 @@ class TimelineConfigurationViewModel final : public QObject {
 
   signals:
     /// Reports a change to the editable filter or its validity.
-    void FilterStateChanged(void);
+    void filterStateChanged(void);
     /// Reports a change to saved-template selection or modified state.
-    void TemplateStateChanged(void);
+    void templateStateChanged(void);
     /// Reports a change to event-column ordering, selection, or validity.
-    void EventProjectionStateChanged(void);
+    void eventProjectionStateChanged(void);
     /// Reports that localized choice text changed.
-    void DisplayTextChanged(void);
+    void displayTextChanged(void);
     /// Reports a change to the latest template-operation error.
-    void TemplateOperationErrorChanged(void);
+    void templateOperationErrorChanged(void);
 
   private:
     void HandleFilterQueryChanged(void);

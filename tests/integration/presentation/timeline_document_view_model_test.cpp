@@ -61,7 +61,7 @@ TEST(TimelineDocumentViewModelTest, ImportsFiltersAndClearsTimelineState) {
     ASSERT_TRUE(registry.has_value());
     TimelineDocumentViewModel view_model{*registry};
     QSignalSpy imported{&view_model,
-                        &TimelineDocumentViewModel::DocumentStateChanged};
+                        &TimelineDocumentViewModel::documentStateChanged};
 
     ASSERT_TRUE(view_model.Import(ImportRequest()).has_value());
     EXPECT_EQ(view_model.DocumentState(), TimelineDocumentState::kImporting);
@@ -127,7 +127,7 @@ TEST(TimelineDocumentViewModelTest, ExportsTheFilteredProjectedTimeline) {
     ASSERT_TRUE(registry.has_value());
     TimelineDocumentViewModel view_model{*registry};
     QSignalSpy document_changed{&view_model,
-                                &TimelineDocumentViewModel::DocumentChanged};
+                                &TimelineDocumentViewModel::documentChanged};
     ASSERT_TRUE(view_model.Import(ImportRequest()).has_value());
     document_changed.clear();
     ASSERT_TRUE(WaitForSignal(document_changed));
@@ -151,7 +151,7 @@ TEST(TimelineDocumentViewModelTest, ExportsTheFilteredProjectedTimeline) {
     ASSERT_TRUE(output.isValid());
     const auto destination = FilesystemPath(output.path()) / "filtered.xlsx";
     QSignalSpy exported{&view_model,
-                        &TimelineDocumentViewModel::ExportFinished};
+                        &TimelineDocumentViewModel::exportFinished};
     ASSERT_TRUE(view_model
                     .Export(TimelineExportRequest{
                         .path = destination,
@@ -202,7 +202,7 @@ TEST(TimelineDocumentViewModelTest, RetainsImportFailureForTheFrontend) {
     ASSERT_TRUE(registry.has_value());
     TimelineDocumentViewModel view_model{*registry};
     QSignalSpy changed{&view_model,
-                       &TimelineDocumentViewModel::DocumentChanged};
+                       &TimelineDocumentViewModel::documentChanged};
     const auto missing = FixturePath("missing.edl");
 
     ASSERT_TRUE(view_model

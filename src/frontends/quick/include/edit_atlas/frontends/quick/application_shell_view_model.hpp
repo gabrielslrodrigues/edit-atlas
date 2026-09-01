@@ -34,19 +34,19 @@ class ApplicationShellViewModel final : public QObject {
     QML_UNCREATABLE("Provided by the Edit Atlas application")
 
     Q_PROPERTY(DocumentState documentState READ CurrentDocumentState NOTIFY
-                   DocumentStateChanged)
-    Q_PROPERTY(bool empty READ IsEmpty NOTIFY DocumentStateChanged)
-    Q_PROPERTY(bool busy READ IsBusy NOTIFY BusyChanged)
+                   documentStateChanged)
+    Q_PROPERTY(bool empty READ IsEmpty NOTIFY documentStateChanged)
+    Q_PROPERTY(bool busy READ IsBusy NOTIFY busyChanged)
     Q_PROPERTY(QString sourceFileName READ SourceFileName NOTIFY
-                   DocumentPresentationChanged)
+                   documentPresentationChanged)
     Q_PROPERTY(qulonglong eventCount READ EventCount NOTIFY
-                   DocumentPresentationChanged)
+                   documentPresentationChanged)
     Q_PROPERTY(qulonglong visibleEventCount READ VisibleEventCount NOTIFY
-                   DocumentPresentationChanged)
+                   documentPresentationChanged)
     Q_PROPERTY(QString timelineTitle READ TimelineTitle NOTIFY
-                   DocumentPresentationChanged)
+                   documentPresentationChanged)
     Q_PROPERTY(QString timelineSummaryText READ TimelineSummaryText NOTIFY
-                   DocumentPresentationChanged)
+                   documentPresentationChanged)
     Q_PROPERTY(QAbstractItemModel *eventModel READ EventModel CONSTANT)
     Q_PROPERTY(
         QAbstractItemModel *diagnosticsModel READ DiagnosticsModel CONSTANT)
@@ -59,20 +59,20 @@ class ApplicationShellViewModel final : public QObject {
     Q_PROPERTY(
         SupportBundleViewModel *supportBundle READ SupportBundle CONSTANT)
     Q_PROPERTY(int diagnosticCount READ DiagnosticCount NOTIFY
-                   DocumentPresentationChanged)
-    Q_PROPERTY(int eventSortColumn READ EventSortColumn NOTIFY EventSortChanged)
+                   documentPresentationChanged)
+    Q_PROPERTY(int eventSortColumn READ EventSortColumn NOTIFY eventSortChanged)
     Q_PROPERTY(
-        bool eventSortAscending READ EventSortAscending NOTIFY EventSortChanged)
-    Q_PROPERTY(QString statusText READ StatusText NOTIFY StatusTextChanged)
+        bool eventSortAscending READ EventSortAscending NOTIFY eventSortChanged)
+    Q_PROPERTY(QString statusText READ StatusText NOTIFY statusTextChanged)
     Q_PROPERTY(
-        QString errorText READ ErrorText NOTIFY DocumentPresentationChanged)
+        QString errorText READ ErrorText NOTIFY documentPresentationChanged)
     Q_PROPERTY(QStringList importFilePatterns READ ImportFilePatterns CONSTANT)
     Q_PROPERTY(
-        QStringList recentFiles READ RecentFiles NOTIFY RecentFilesChanged)
+        QStringList recentFiles READ RecentFiles NOTIFY recentFilesChanged)
     Q_PROPERTY(bool rememberRecentFiles READ RememberRecentFiles WRITE
-                   SetRememberRecentFiles NOTIFY RememberRecentFilesChanged)
+                   SetRememberRecentFiles NOTIFY rememberRecentFilesChanged)
     Q_PROPERTY(QString languageCode READ LanguageCode WRITE SetLanguageCode
-                   NOTIFY LanguageChanged)
+                   NOTIFY languageChanged)
 
   public:
     /// Document states rendered by the QML shell.
@@ -170,23 +170,23 @@ class ApplicationShellViewModel final : public QObject {
 
   signals:
     /// Reports a change to the shell document state.
-    void DocumentStateChanged(void);
+    void documentStateChanged(void);
     /// Reports a change to operation availability.
-    void BusyChanged(void);
+    void busyChanged(void);
     /// Reports changed source, event-count, or failure presentation.
-    void DocumentPresentationChanged(void);
+    void documentPresentationChanged(void);
     /// Reports that the localized status text changed.
-    void StatusTextChanged(void);
+    void statusTextChanged(void);
     /// Reports a change to recent-file history.
-    void RecentFilesChanged(void);
+    void recentFilesChanged(void);
     /// Reports a change to the recent-file preference.
-    void RememberRecentFilesChanged(void);
+    void rememberRecentFilesChanged(void);
     /// Reports an installed interface-language change.
-    void LanguageChanged(void);
+    void languageChanged(void);
     /// Requests an explicit frame rate for a non-drop-frame EDL.
     void frameRateRequired(void);
     /// Reports a change to the event sorting column or direction.
-    void EventSortChanged(void);
+    void eventSortChanged(void);
 
   private:
     void HandleDocumentStateChanged(void);

@@ -58,8 +58,8 @@ TEST(SupportBundleViewModelTest, ExportsAndRetainsTheCompletedReceipt) {
     WriteFile(logs / "edit-atlas.log", "test log");
     const auto destination = directory / "diagnostics.zip";
     SupportBundleViewModel view_model{logs, Environment()};
-    QSignalSpy busy_changed{&view_model, &SupportBundleViewModel::BusyChanged};
-    QSignalSpy finished{&view_model, &SupportBundleViewModel::ExportFinished};
+    QSignalSpy busy_changed{&view_model, &SupportBundleViewModel::busyChanged};
+    QSignalSpy finished{&view_model, &SupportBundleViewModel::exportFinished};
 
     ASSERT_TRUE(view_model.Export(destination, false).has_value());
     EXPECT_TRUE(view_model.IsBusy());
@@ -86,7 +86,7 @@ TEST(SupportBundleViewModelTest, RetainsStructuredExportFailure) {
     const auto destination = directory / "existing.zip";
     WriteFile(destination, "preserve me");
     SupportBundleViewModel view_model{directory / "logs", Environment()};
-    QSignalSpy finished{&view_model, &SupportBundleViewModel::ExportFinished};
+    QSignalSpy finished{&view_model, &SupportBundleViewModel::exportFinished};
 
     ASSERT_TRUE(view_model.Export(destination, false).has_value());
     ASSERT_TRUE(WaitForSignal(finished));

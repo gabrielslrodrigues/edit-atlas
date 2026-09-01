@@ -57,9 +57,9 @@ class SupportBundleViewModel final : public QObject {
 
   signals:
     /// Reports a change to `IsBusy()`.
-    void BusyChanged(void);
+    void busyChanged(void);
     /// Reports that a completed result is available.
-    void ExportFinished(void);
+    void exportFinished(void);
 
   private:
     void HandleFinished(void);

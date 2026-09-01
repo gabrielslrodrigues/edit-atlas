@@ -436,7 +436,7 @@ TEST(AccessibilityContractTest,
     view.ShowTimeline(document, QStringLiteral("timeline.edl"), {});
     view.resize(700, 360);
     view.show();
-    QSignalSpy changed{&view, &TimelineDocumentView::FilterChanged};
+    QSignalSpy changed{&view, &TimelineDocumentView::filterChanged};
     view.SetFilterQuery(services::TimelineFilterQuery{
         .combination = services::TimelineFilterCombination::kAny,
         .conditions =

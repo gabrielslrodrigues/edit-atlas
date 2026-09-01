@@ -53,34 +53,34 @@ MainWindow::MainWindow(const core::FormatRegistry &registry,
         std::move(log_directory), std::move(diagnostic_environment), *this};
 
     connect(application_menu_bar_,
-            &ApplicationMenuBar::ExportDiagnosticLogsRequested,
+            &ApplicationMenuBar::exportDiagnosticLogsRequested,
             support_bundle_controller_,
             &SupportBundleController::ExportDiagnosticLogs);
-    connect(application_menu_bar_, &ApplicationMenuBar::AboutRequested, this,
+    connect(application_menu_bar_, &ApplicationMenuBar::aboutRequested, this,
             &MainWindow::ShowAboutDialog);
-    connect(application_menu_bar_, &ApplicationMenuBar::ExitRequested, this,
+    connect(application_menu_bar_, &ApplicationMenuBar::exitRequested, this,
             &QWidget::close);
-    connect(application_menu_bar_, &ApplicationMenuBar::LanguageSelected, this,
+    connect(application_menu_bar_, &ApplicationMenuBar::languageSelected, this,
             &MainWindow::ChangeLanguage);
 
     connect(timeline_document_controller_,
-            &TimelineDocumentController::BusyChanged, this,
+            &TimelineDocumentController::busyChanged, this,
             &MainWindow::SetBusy);
-    connect(support_bundle_controller_, &SupportBundleController::BusyChanged,
+    connect(support_bundle_controller_, &SupportBundleController::busyChanged,
             this, &MainWindow::SetBusy);
     connect(
         timeline_document_controller_,
-        &TimelineDocumentController::StatusMessageChanged, this,
+        &TimelineDocumentController::statusMessageChanged, this,
         [this](const QString &message) { statusBar()->showMessage(message); });
     connect(
         support_bundle_controller_,
-        &SupportBundleController::StatusMessageChanged, this,
+        &SupportBundleController::statusMessageChanged, this,
         [this](const QString &message) { statusBar()->showMessage(message); });
     connect(timeline_document_controller_,
-            &TimelineDocumentController::StatusMessageCleared, statusBar(),
+            &TimelineDocumentController::statusMessageCleared, statusBar(),
             &QStatusBar::clearMessage);
     connect(support_bundle_controller_,
-            &SupportBundleController::StatusMessageCleared, statusBar(),
+            &SupportBundleController::statusMessageCleared, statusBar(),
             &QStatusBar::clearMessage);
 
     RetranslateUi();

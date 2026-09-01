@@ -24,14 +24,14 @@ TimelineDocumentWorkflow::TimelineDocumentWorkflow(
       rendered_video_export_service_{registry} {
     connect(&export_watcher_,
             &QFutureWatcher<services::TimelineDocumentExportResult>::finished,
-            this, &TimelineDocumentWorkflow::ExportFinished);
+            this, &TimelineDocumentWorkflow::exportFinished);
     connect(&import_watcher_,
             &QFutureWatcher<services::TimelineDocumentImportResult>::finished,
-            this, &TimelineDocumentWorkflow::ImportFinished);
+            this, &TimelineDocumentWorkflow::importFinished);
     connect(
         &rendered_video_export_watcher_,
         &QFutureWatcher<services::TimelineRenderedVideoExportResult>::finished,
-        this, &TimelineDocumentWorkflow::RenderedVideoExportFinished);
+        this, &TimelineDocumentWorkflow::renderedVideoExportFinished);
 }
 
 TimelineDocumentWorkflow::~TimelineDocumentWorkflow(void) {
@@ -81,7 +81,7 @@ void TimelineDocumentWorkflow::ExportWithRenderedVideo(
                         self,
                         [self, progress](void) {
                             if (self != nullptr) {
-                                emit self->FrameExtractionProgressChanged(
+                                emit self->frameExtractionProgressChanged(
                                     static_cast<qulonglong>(
                                         progress.completed_events),
                                     static_cast<qulonglong>(

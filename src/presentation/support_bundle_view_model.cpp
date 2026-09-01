@@ -20,7 +20,7 @@ SupportBundleViewModel::SupportBundleViewModel(
     support::DiagnosticEnvironment diagnostic_environment, QObject *parent)
     : QObject{parent}, log_directory_{std::move(log_directory)},
       diagnostic_environment_{std::move(diagnostic_environment)}, workflow_{} {
-    connect(&workflow_, &SupportBundleWorkflow::Finished, this,
+    connect(&workflow_, &SupportBundleWorkflow::finished, this,
             &SupportBundleViewModel::HandleFinished);
 }
 
@@ -35,7 +35,7 @@ SupportBundleViewModel::Export(std::filesystem::path destination,
     spdlog::default_logger()->flush();
     result_.reset();
     busy_ = true;
-    emit BusyChanged();
+    emit busyChanged();
     workflow_.Create(support::SupportBundleRequest{
         .path = std::move(destination),
         .log_directory = log_directory_,
@@ -57,7 +57,7 @@ SupportBundleViewModel::Result(void) const noexcept {
 void SupportBundleViewModel::HandleFinished(void) {
     result_ = workflow_.Result();
     busy_ = false;
-    emit BusyChanged();
+    emit busyChanged();
 
     if (!result_->has_value()) {
         SPDLOG_ERROR("Diagnostic support bundle export failed at stage {}: {}",
@@ -67,7 +67,7 @@ void SupportBundleViewModel::HandleFinished(void) {
         SPDLOG_INFO("Diagnostic support bundle exported with {} log file(s)",
                     result_->value().log_file_count);
     }
-    emit ExportFinished();
+    emit exportFinished();
 }
 
 } // namespace edit_atlas::presentation

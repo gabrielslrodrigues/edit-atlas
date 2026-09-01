@@ -32,16 +32,16 @@ TimelineDocumentViewModel::TimelineDocumentViewModel(
     : QObject{parent}, workflow_{registry}, event_model_{},
       event_projection_{core::DefaultTimelineEventProjection().begin(),
                         core::DefaultTimelineEventProjection().end()} {
-    connect(&workflow_, &TimelineDocumentWorkflow::ImportFinished, this,
+    connect(&workflow_, &TimelineDocumentWorkflow::importFinished, this,
             &TimelineDocumentViewModel::HandleImportFinished);
-    connect(&workflow_, &TimelineDocumentWorkflow::RenderedVideoExportFinished,
+    connect(&workflow_, &TimelineDocumentWorkflow::renderedVideoExportFinished,
             this, &TimelineDocumentViewModel::HandleExportFinished);
     connect(&workflow_,
-            &TimelineDocumentWorkflow::FrameExtractionProgressChanged, this,
+            &TimelineDocumentWorkflow::frameExtractionProgressChanged, this,
             [this](qulonglong completed, qulonglong total) {
                 extracted_frame_count_ = completed;
                 total_frame_count_ = total;
-                emit FrameExtractionProgressChanged(completed, total);
+                emit frameExtractionProgressChanged(completed, total);
             });
 }
 
@@ -87,7 +87,7 @@ TimelineDocumentCommandResult TimelineDocumentViewModel::SetEventProjection(
         return {};
     }
     event_projection_ = std::move(projection);
-    emit EventProjectionChanged();
+    emit eventProjectionChanged();
     return {};
 }
 
@@ -239,7 +239,7 @@ void TimelineDocumentViewModel::ApplyFilter(void) {
         event_selection_.clear();
         filter_error_.reset();
         event_model_.SetEventSelection({});
-        emit FilterChanged();
+        emit filterChanged();
         return;
     }
 
@@ -252,7 +252,7 @@ void TimelineDocumentViewModel::ApplyFilter(void) {
         filter_error_.reset();
     }
     event_model_.SetEventSelection(event_selection_);
-    emit FilterChanged();
+    emit filterChanged();
 }
 
 void TimelineDocumentViewModel::HandleImportFinished(void) {
@@ -265,7 +265,7 @@ void TimelineDocumentViewModel::HandleImportFinished(void) {
         import_failure_ = std::move(result.error());
         diagnostics_model_.SetDiagnostics(import_failure_->diagnostics);
         SetDocumentState(TimelineDocumentState::kImportFailed);
-        emit DocumentChanged();
+        emit documentChanged();
         return;
     }
 
@@ -279,7 +279,7 @@ void TimelineDocumentViewModel::HandleImportFinished(void) {
     event_model_.SetDocument(&*document_);
     ApplyFilter();
     SetDocumentState(TimelineDocumentState::kReady);
-    emit DocumentChanged();
+    emit documentChanged();
 }
 
 void TimelineDocumentViewModel::HandleExportFinished(void) {
@@ -294,7 +294,7 @@ void TimelineDocumentViewModel::HandleExportFinished(void) {
                     export_result_->value().document_export.diagnostics.size());
     }
     SetExportState(TimelineExportState::kIdle);
-    emit ExportFinished();
+    emit exportFinished();
 }
 
 void TimelineDocumentViewModel::ResetDocument(void) {
@@ -310,8 +310,8 @@ void TimelineDocumentViewModel::ResetDocument(void) {
     total_frame_count_ = 0;
     event_model_.SetDocument(nullptr);
     diagnostics_model_.SetDiagnostics({});
-    emit FilterChanged();
-    emit DocumentChanged();
+    emit filterChanged();
+    emit documentChanged();
 }
 
 void TimelineDocumentViewModel::SetDocumentState(TimelineDocumentState state) {
@@ -319,7 +319,7 @@ void TimelineDocumentViewModel::SetDocumentState(TimelineDocumentState state) {
         return;
     }
     document_state_ = state;
-    emit DocumentStateChanged();
+    emit documentStateChanged();
 }
 
 void TimelineDocumentViewModel::SetExportState(TimelineExportState state) {
@@ -327,7 +327,7 @@ void TimelineDocumentViewModel::SetExportState(TimelineExportState state) {
         return;
     }
     export_state_ = state;
-    emit ExportStateChanged();
+    emit exportStateChanged();
 }
 
 } // namespace edit_atlas::presentation

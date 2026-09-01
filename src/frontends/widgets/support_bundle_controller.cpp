@@ -47,9 +47,9 @@ SupportBundleController::SupportBundleController(
     support::DiagnosticEnvironment diagnostic_environment, QWidget &window)
     : QObject{&window}, window_{window},
       view_model_{std::move(log_directory), std::move(diagnostic_environment)} {
-    connect(&view_model_, &presentation::SupportBundleViewModel::BusyChanged,
+    connect(&view_model_, &presentation::SupportBundleViewModel::busyChanged,
             this, &SupportBundleController::HandleBusyChanged);
-    connect(&view_model_, &presentation::SupportBundleViewModel::ExportFinished,
+    connect(&view_model_, &presentation::SupportBundleViewModel::exportFinished,
             this, &SupportBundleController::HandleFinished);
 }
 
@@ -141,7 +141,7 @@ bool SupportBundleController::IsBusy(void) const noexcept {
 
 void SupportBundleController::RetranslateUi(void) {
     if (IsBusy()) {
-        emit StatusMessageChanged(tr("Creating diagnostic support bundle…"));
+        emit statusMessageChanged(tr("Creating diagnostic support bundle…"));
     }
 }
 
@@ -151,11 +151,11 @@ void SupportBundleController::SetInteractionsEnabled(bool enabled) {
 
 void SupportBundleController::HandleBusyChanged(void) {
     const bool busy = view_model_.IsBusy();
-    emit BusyChanged(busy);
+    emit busyChanged(busy);
     if (busy) {
-        emit StatusMessageChanged(tr("Creating diagnostic support bundle…"));
+        emit statusMessageChanged(tr("Creating diagnostic support bundle…"));
     } else {
-        emit StatusMessageCleared();
+        emit statusMessageCleared();
     }
 }
 

@@ -46,14 +46,14 @@ void TimelineFilterWidget::SetModel(presentation::TimelineFilterModel &model) {
         disconnect(model_, nullptr, this, nullptr);
     }
     model_ = &model;
-    connect(model_, &presentation::TimelineFilterModel::QueryChanged, this,
+    connect(model_, &presentation::TimelineFilterModel::queryChanged, this,
             [this](void) {
                 const QSignalBlocker blocker{combination_};
                 combination_->setCurrentIndex(
                     combination_->findData(model_->Combination()));
-                emit QueryChanged();
+                emit queryChanged();
             });
-    connect(model_, &presentation::TimelineFilterModel::DisplayTextChanged,
+    connect(model_, &presentation::TimelineFilterModel::displayTextChanged,
             this, [this](void) {
                 SynchronizeCombination();
                 for (auto &row : rows_) {
@@ -498,26 +498,26 @@ void TimelineFilterWidget::BuildUi(void) {
             &TimelineFilterWidget::Clear);
     connect(
         template_selector_, &QComboBox::currentIndexChanged, this, [this](int) {
-            emit TemplateSelected(template_selector_->currentData().toString());
+            emit templateSelected(template_selector_->currentData().toString());
         });
     connect(template_primary_button_, &QPushButton::clicked, this,
             [this](void) {
                 if (has_active_template_ && template_modified_) {
-                    emit UpdateTemplateRequested();
+                    emit updateTemplateRequested();
                 } else {
-                    emit SaveTemplateRequested();
+                    emit saveTemplateRequested();
                 }
             });
     connect(save_template_action_, &QAction::triggered, this,
-            &TimelineFilterWidget::SaveTemplateRequested);
+            &TimelineFilterWidget::saveTemplateRequested);
     connect(edit_columns_action_, &QAction::triggered, this,
-            &TimelineFilterWidget::EditColumnsRequested);
+            &TimelineFilterWidget::editColumnsRequested);
     connect(rename_template_action_, &QAction::triggered, this,
-            &TimelineFilterWidget::RenameTemplateRequested);
+            &TimelineFilterWidget::renameTemplateRequested);
     connect(duplicate_template_action_, &QAction::triggered, this,
-            &TimelineFilterWidget::DuplicateTemplateRequested);
+            &TimelineFilterWidget::duplicateTemplateRequested);
     connect(delete_template_action_, &QAction::triggered, this,
-            &TimelineFilterWidget::DeleteTemplateRequested);
+            &TimelineFilterWidget::deleteTemplateRequested);
 }
 
 void TimelineFilterWidget::PopulateEditTypes(ConditionRow &row) {

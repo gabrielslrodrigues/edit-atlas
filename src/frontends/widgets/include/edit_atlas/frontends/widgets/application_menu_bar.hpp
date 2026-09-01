@@ -35,13 +35,13 @@ class ApplicationMenuBar final : public QMenuBar {
     void SetLanguage(presentation::ApplicationLanguage language);
 
   signals:
-    void AboutRequested(void);
-    void ExitRequested(void);
-    void ExportDiagnosticLogsRequested(void);
-    void ExportSpreadsheetRequested(void);
-    void LanguageSelected(presentation::ApplicationLanguage language);
-    void OpenPathRequested(const QString &path);
-    void OpenRequested(void);
+    void aboutRequested(void);
+    void exitRequested(void);
+    void exportDiagnosticLogsRequested(void);
+    void exportSpreadsheetRequested(void);
+    void languageSelected(presentation::ApplicationLanguage language);
+    void openPathRequested(const QString &path);
+    void openRequested(void);
 
   private:
     void BuildUi(presentation::ApplicationLanguage initial_language);

@@ -163,19 +163,19 @@ class TimelineDocumentViewModel final : public QObject {
 
   signals:
     /// Reports a change to the active document, failure, or source context.
-    void DocumentChanged(void);
+    void documentChanged(void);
     /// Reports a change to `DocumentState()`.
-    void DocumentStateChanged(void);
+    void documentStateChanged(void);
     /// Reports that an export result is available.
-    void ExportFinished(void);
+    void exportFinished(void);
     /// Reports a change to `ExportState()`.
-    void ExportStateChanged(void);
+    void exportStateChanged(void);
     /// Reports a change to the query, selection, or filter error.
-    void FilterChanged(void);
+    void filterChanged(void);
     /// Reports a change to the ordered export fields.
-    void EventProjectionChanged(void);
+    void eventProjectionChanged(void);
     /// Reports extracted and total distinct event-frame counts.
-    void FrameExtractionProgressChanged(qulonglong completed_events,
+    void frameExtractionProgressChanged(qulonglong completed_events,
                                         qulonglong total_events);
 
   private:

@@ -60,9 +60,9 @@ SupportBundleViewModel::SupportBundleViewModel(
     : QObject{parent},
       view_model_{presentation::ConfiguredLogDirectory(),
                   presentation::CreateDiagnosticEnvironment(registry)} {
-    connect(&view_model_, &presentation::SupportBundleViewModel::BusyChanged,
+    connect(&view_model_, &presentation::SupportBundleViewModel::busyChanged,
             this, &SupportBundleViewModel::busyChanged);
-    connect(&view_model_, &presentation::SupportBundleViewModel::ExportFinished,
+    connect(&view_model_, &presentation::SupportBundleViewModel::exportFinished,
             this, &SupportBundleViewModel::HandleFinished);
 }
 

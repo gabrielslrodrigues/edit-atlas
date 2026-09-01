@@ -42,11 +42,11 @@ TimelineTemplateViewModel::TimelineTemplateViewModel(
     std::filesystem::path directory, QObject *parent)
     : QObject{parent}, service_{std::move(directory)},
       event_projection_{DefaultEventProjection()} {
-    connect(this, &TimelineTemplateViewModel::TemplatesChanged, this,
+    connect(this, &TimelineTemplateViewModel::templatesChanged, this,
             &TimelineTemplateViewModel::RefreshTemplateModel);
-    connect(this, &TimelineTemplateViewModel::ActiveTemplateChanged, this,
+    connect(this, &TimelineTemplateViewModel::activeTemplateChanged, this,
             &TimelineTemplateViewModel::RefreshTemplateModel);
-    connect(this, &TimelineTemplateViewModel::ModifiedChanged, this,
+    connect(this, &TimelineTemplateViewModel::modifiedChanged, this,
             &TimelineTemplateViewModel::RefreshTemplateModel);
     RefreshTemplateModel();
 }
@@ -61,7 +61,7 @@ services::TimelineTemplateLoadResult TimelineTemplateViewModel::Load(void) {
         service_.Find(*active_identifier_) == nullptr) {
         SetActiveIdentifier(std::nullopt);
     }
-    emit TemplatesChanged();
+    emit templatesChanged();
     RefreshModified();
     return result;
 }
@@ -83,10 +83,10 @@ void TimelineTemplateViewModel::SelectNoTemplate(void) {
     if (filter_ != services::TimelineFilterQuery{}) {
         filter_ = {};
         filter_valid_ = true;
-        emit FilterStateChanged();
+        emit filterStateChanged();
     } else if (!filter_valid_) {
         filter_valid_ = true;
-        emit FilterStateChanged();
+        emit filterStateChanged();
     }
     RefreshModified();
 }
@@ -109,10 +109,10 @@ void TimelineTemplateViewModel::RestoreForTimeline(void) {
     filter_valid_ = true;
     event_projection_ = default_projection;
     if (filter_changed) {
-        emit FilterStateChanged();
+        emit filterStateChanged();
     }
     if (projection_changed) {
-        emit EventProjectionChanged();
+        emit eventProjectionChanged();
     }
     RefreshModified();
 }
@@ -124,7 +124,7 @@ void TimelineTemplateViewModel::SetFilterState(
     }
     filter_ = std::move(filter);
     filter_valid_ = valid;
-    emit FilterStateChanged();
+    emit filterStateChanged();
     RefreshModified();
 }
 
@@ -138,7 +138,7 @@ TimelineTemplateCommandResult TimelineTemplateViewModel::SetEventProjection(
         return {};
     }
     event_projection_ = std::move(projection);
-    emit EventProjectionChanged();
+    emit eventProjectionChanged();
     RefreshModified();
     return {};
 }
@@ -154,7 +154,7 @@ TimelineTemplateViewModel::Create(std::string name) {
         return std::unexpected{ServiceFailure(std::move(result.error()))};
     }
     SetActiveIdentifier(result->identifier);
-    emit TemplatesChanged();
+    emit templatesChanged();
     RefreshModified();
     return {};
 }
@@ -173,7 +173,7 @@ TimelineTemplateCommandResult TimelineTemplateViewModel::UpdateActive(void) {
     if (!result.has_value()) {
         return std::unexpected{ServiceFailure(std::move(result.error()))};
     }
-    emit TemplatesChanged();
+    emit templatesChanged();
     RefreshModified();
     return {};
 }
@@ -188,7 +188,7 @@ TimelineTemplateViewModel::RenameActive(std::string name) {
     if (!result.has_value()) {
         return std::unexpected{ServiceFailure(std::move(result.error()))};
     }
-    emit TemplatesChanged();
+    emit templatesChanged();
     RefreshModified();
     return {};
 }
@@ -204,7 +204,7 @@ TimelineTemplateViewModel::DuplicateActive(std::string name) {
         return std::unexpected{ServiceFailure(std::move(result.error()))};
     }
     SetActiveIdentifier(result->identifier);
-    emit TemplatesChanged();
+    emit templatesChanged();
     RefreshModified();
     return {};
 }
@@ -219,7 +219,7 @@ TimelineTemplateCommandResult TimelineTemplateViewModel::RemoveActive(void) {
         return std::unexpected{ServiceFailure(std::move(result.error()))};
     }
     SelectNoTemplate();
-    emit TemplatesChanged();
+    emit templatesChanged();
     return {};
 }
 
@@ -300,10 +300,10 @@ void TimelineTemplateViewModel::ApplyTemplate(
     filter_valid_ = true;
     event_projection_ = value.event_projection;
     if (filter_changed) {
-        emit FilterStateChanged();
+        emit filterStateChanged();
     }
     if (projection_changed) {
-        emit EventProjectionChanged();
+        emit eventProjectionChanged();
     }
     RefreshModified();
 }
@@ -317,7 +317,7 @@ void TimelineTemplateViewModel::RefreshModified(void) {
         return;
     }
     modified_ = modified;
-    emit ModifiedChanged();
+    emit modifiedChanged();
 }
 
 void TimelineTemplateViewModel::RefreshTemplateModel(void) {
@@ -335,7 +335,7 @@ void TimelineTemplateViewModel::SetActiveIdentifier(
         return;
     }
     active_identifier_ = std::move(identifier);
-    emit ActiveTemplateChanged();
+    emit activeTemplateChanged();
 }
 
 } // namespace edit_atlas::presentation

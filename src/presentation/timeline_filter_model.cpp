@@ -282,7 +282,7 @@ bool TimelineFilterModel::setData(const QModelIndex &index,
     }
     emit dataChanged(index, index);
     if (Query() != previous_query) {
-        emit QueryChanged();
+        emit queryChanged();
     }
     return true;
 }
@@ -321,7 +321,7 @@ void TimelineFilterModel::RemoveCondition(int row) {
     rows_.erase(rows_.begin() + static_cast<std::ptrdiff_t>(row));
     endRemoveRows();
     if (Query() != previous_query) {
-        emit QueryChanged();
+        emit queryChanged();
     }
 }
 
@@ -336,7 +336,7 @@ void TimelineFilterModel::Clear(void) {
     rows_.assign(1, ConditionRow{});
     endResetModel();
     if (Query() != previous_query) {
-        emit QueryChanged();
+        emit queryChanged();
     }
 }
 
@@ -391,7 +391,7 @@ void TimelineFilterModel::SetQuery(
     }
     endResetModel();
     if (Query() != previous_query) {
-        emit QueryChanged();
+        emit queryChanged();
     }
 }
 
@@ -470,7 +470,7 @@ void TimelineFilterModel::SetCombination(int combination) {
     }
     combination_ =
         static_cast<services::TimelineFilterCombination>(combination);
-    emit QueryChanged();
+    emit queryChanged();
 }
 
 QStringList TimelineFilterModel::CombinationNames(void) const {
@@ -495,6 +495,6 @@ QStringList TimelineFilterModel::EditTypeNames(void) const {
     return {tr("Cut"), tr("Dissolve"), tr("Wipe"), tr("Key"), tr("Other")};
 }
 
-void TimelineFilterModel::Retranslate(void) { emit DisplayTextChanged(); }
+void TimelineFilterModel::Retranslate(void) { emit displayTextChanged(); }
 
 } // namespace edit_atlas::presentation

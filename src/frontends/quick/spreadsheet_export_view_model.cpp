@@ -109,7 +109,7 @@ SpreadsheetExportViewModel::SpreadsheetExportViewModel(
         exporter_identifier_ = exporters.front()->descriptor().identifier;
     }
     connect(&document_view_model_,
-            &presentation::TimelineDocumentViewModel::DocumentStateChanged,
+            &presentation::TimelineDocumentViewModel::documentStateChanged,
             this, [this](void) {
                 if (document_view_model_.DocumentState() ==
                     presentation::TimelineDocumentState::kImporting) {
@@ -119,26 +119,26 @@ SpreadsheetExportViewModel::SpreadsheetExportViewModel(
                 emit suggestedDestinationChanged();
             });
     connect(&document_view_model_,
-            &presentation::TimelineDocumentViewModel::FilterChanged, this,
+            &presentation::TimelineDocumentViewModel::filterChanged, this,
             &SpreadsheetExportViewModel::availabilityChanged);
     connect(&document_view_model_,
-            &presentation::TimelineDocumentViewModel::EventProjectionChanged,
+            &presentation::TimelineDocumentViewModel::eventProjectionChanged,
             this, [this](void) {
                 emit availabilityChanged();
                 emit renderedVideoRequirementChanged();
             });
     connect(&document_view_model_,
-            &presentation::TimelineDocumentViewModel::ExportStateChanged, this,
+            &presentation::TimelineDocumentViewModel::exportStateChanged, this,
             [this](void) {
                 emit busyChanged();
                 emit availabilityChanged();
             });
     connect(&document_view_model_,
             &presentation::TimelineDocumentViewModel::
-                FrameExtractionProgressChanged,
+                frameExtractionProgressChanged,
             this, [this](qulonglong, qulonglong) { emit progressChanged(); });
     connect(&document_view_model_,
-            &presentation::TimelineDocumentViewModel::ExportFinished, this,
+            &presentation::TimelineDocumentViewModel::exportFinished, this,
             &SpreadsheetExportViewModel::HandleExportFinished);
 }
 
