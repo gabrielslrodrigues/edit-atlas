@@ -60,7 +60,7 @@ Dialog {
                 Layout.fillWidth: true
                 color: Atlas.Theme.textPrimary
                 font.pointSize: Atlas.DesignTokens.titlePointSize
-                font.weight: Font.DemiBold
+                font.weight: Atlas.DesignTokens.titleWeight
                 horizontalAlignment: Text.AlignHCenter
                 text: qsTr("Edit Atlas %1")
                           .arg(root.information.applicationVersion)

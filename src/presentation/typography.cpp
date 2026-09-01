@@ -1,6 +1,7 @@
 #include <edit_atlas/presentation/typography.hpp>
 
 #include <QCoreApplication>
+#include <QFont>
 #include <QFontDatabase>
 #include <QGuiApplication>
 #include <QString>
@@ -60,6 +61,24 @@ QStringList BundledTypographyResourcePaths(void) {
 }
 
 bool RegisterBundledTypography(void) { return RegisterOnce(); }
+
+void ApplyApplicationTypography(void) {
+    if (qobject_cast<QGuiApplication *>(QCoreApplication::instance()) ==
+        nullptr) {
+        return;
+    }
+
+    auto font = QGuiApplication::font();
+    const auto family = ResolvedTypographyFamily();
+    if (!family.isEmpty()) {
+        font.setFamily(family);
+    }
+    // Point sizing is preserved rather than replaced by pixels so
+    // device-independent scaling and high-DPI behavior are unchanged.
+    font.setPointSizeF(kTypography.bodyPointSize);
+    font.setWeight(static_cast<QFont::Weight>(kTypography.bodyWeight));
+    QGuiApplication::setFont(font);
+}
 
 QString ResolvedTypographyFamily(void) {
     return RegisterOnce() ? kTypography.family : QString{};

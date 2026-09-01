@@ -3,9 +3,14 @@ pragma Singleton
 import QtQuick
 
 QtObject {
-    readonly property int bodyPointSize: 12
-    readonly property int headingPointSize: 14
-    readonly property int titlePointSize: 22
+    // Typography comes from edit_atlas::presentation so both frontends
+    // render the same hierarchy; only dimensions below are Quick's own.
+    readonly property int bodyPointSize: Typography.bodyPointSize
+    readonly property int headingPointSize: Typography.headingPointSize
+    readonly property int titlePointSize: Typography.titlePointSize
+    readonly property int bodyWeight: Typography.bodyWeight
+    readonly property int headingWeight: Typography.headingWeight
+    readonly property int titleWeight: Typography.titleWeight
 
     readonly property int spacingExtraSmall: 4
     readonly property int spacingSmall: 8

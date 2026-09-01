@@ -45,6 +45,13 @@ struct ApplicationTypography final {
 /// result instead of failing.
 [[nodiscard]] bool RegisterBundledTypography(void);
 
+/// Registers the bundled faces and applies the shared typography.
+///
+/// Sets the application font family and body point size, leaving the platform
+/// family in place when the bundled one is unavailable. Both frontends call
+/// this so neither derives a font of its own.
+void ApplyApplicationTypography(void);
+
 /// Returns the family a frontend should apply.
 ///
 /// This is the bundled family once registration has succeeded, and an empty

@@ -314,7 +314,7 @@ ApplicationWindow {
                 Label {
                     color: Atlas.Theme.textPrimary
                     font.pointSize: Atlas.DesignTokens.headingPointSize
-                    font.weight: Font.DemiBold
+                    font.weight: Atlas.DesignTokens.headingWeight
                     text: qsTr("Edit Atlas")
                 }
 
@@ -408,7 +408,7 @@ ApplicationWindow {
                         Layout.alignment: Qt.AlignHCenter
                         color: Atlas.Theme.textPrimary
                         font.pointSize: Atlas.DesignTokens.titlePointSize
-                        font.weight: Font.DemiBold
+                        font.weight: Atlas.DesignTokens.titleWeight
                         text: qsTr("Open an editorial timeline")
                     }
 
@@ -474,7 +474,7 @@ ApplicationWindow {
                             color: Atlas.Theme.textPrimary
                             elide: Text.ElideMiddle
                             font.pointSize: Atlas.DesignTokens.titlePointSize
-                            font.weight: Font.DemiBold
+                            font.weight: Atlas.DesignTokens.titleWeight
                             Accessible.id: objectName
                             objectName: "timelineTitleLabel"
                             text: applicationShell.timelineTitle
@@ -558,7 +558,7 @@ ApplicationWindow {
                             Layout.fillWidth: true
                             color: Atlas.Theme.textPrimary
                             font.pointSize: Atlas.DesignTokens.titlePointSize
-                            font.weight: Font.DemiBold
+                            font.weight: Atlas.DesignTokens.titleWeight
                             text: qsTr("Could not open %1")
                                       .arg(applicationShell.sourceFileName)
                             wrapMode: Text.WordWrap

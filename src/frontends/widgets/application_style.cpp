@@ -1,6 +1,7 @@
 #include <edit_atlas/frontends/widgets/application_style.hpp>
 
 #include <edit_atlas/presentation/appearance.hpp>
+#include <edit_atlas/presentation/typography.hpp>
 
 #include <QApplication>
 #include <QColor>
@@ -64,6 +65,15 @@ StyleSheetTokens(const presentation::AppearancePalette &p) {
         {QStringLiteral("textSecondary"), p.textSecondary},
         {QStringLiteral("warning"), p.warning},
         {QStringLiteral("window"), p.window},
+        {QStringLiteral("bodyWeight"),
+         QString::number(presentation::ApplicationTypographyPolicy()
+                             .bodyWeight)},
+        {QStringLiteral("headingWeight"),
+         QString::number(presentation::ApplicationTypographyPolicy()
+                             .headingWeight)},
+        {QStringLiteral("titleWeight"),
+         QString::number(presentation::ApplicationTypographyPolicy()
+                             .titleWeight)},
     };
 }
 
@@ -129,11 +139,9 @@ void ApplyApplicationStyle(QApplication &application,
     QApplication::setEffectEnabled(Qt::UI_FadeTooltip, false);
     application.setStyle(new ResponsiveStyle);
 
-    auto interface_font = application.font();
-    if (interface_font.pointSizeF() < 12.0) {
-        interface_font.setPointSizeF(12.0);
-        application.setFont(interface_font);
-    }
+    // Family, size, and weight come from the shared policy, which also
+    // registers the bundled faces and falls back to the platform family.
+    presentation::ApplyApplicationTypography();
 
     ApplyApplicationAppearance(application, palette);
 }

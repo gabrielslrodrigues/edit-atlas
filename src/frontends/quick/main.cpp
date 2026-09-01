@@ -3,6 +3,7 @@
 #include <edit_atlas/presentation/application_state.hpp>
 #include <edit_atlas/presentation/diagnostic_support.hpp>
 #include <edit_atlas/presentation/translation.hpp>
+#include <edit_atlas/presentation/typography.hpp>
 
 #include <edit_atlas/core/version.hpp>
 
@@ -40,6 +41,7 @@ int main(int argc, char *argv[]) {
         QString::fromStdString(std::string{edit_atlas::core::Version()}));
     QCoreApplication::setOrganizationName(QStringLiteral("Edit Atlas"));
     edit_atlas::presentation::ConfigureApplicationState();
+    edit_atlas::presentation::ApplyApplicationTypography();
     QGuiApplication::setDesktopFileName(QStringLiteral("edit-atlas"));
     QGuiApplication::setWindowIcon(
         QIcon{QStringLiteral(":/icons/edit_atlas.png")});
