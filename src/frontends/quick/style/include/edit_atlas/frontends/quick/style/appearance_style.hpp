@@ -14,7 +14,10 @@ namespace edit_atlas::frontends::quick::style {
 /// `edit_atlas::presentation` is Qt Core only and carries no QML macros, so
 /// the registration lives here. Without it QML knows the property's type name
 /// but nothing about its members, and every color reads as undefined.
-struct AppearancePaletteForeign final {
+// Not `final`: QML type registration derives from a registered creatable
+// type, so marking one final fails to compile under MSVC. The application's
+// other QML types avoid this by being QML_UNCREATABLE.
+struct AppearancePaletteForeign {
     Q_GADGET
     QML_FOREIGN(edit_atlas::presentation::AppearancePalette)
     QML_VALUE_TYPE(appearancePalette)
@@ -25,7 +28,7 @@ struct AppearancePaletteForeign final {
 /// The style module owns no palette of its own: this forwards the one in
 /// `edit_atlas::presentation`, so both frontends present the same colors and
 /// a change reaches every binding through the property system.
-class AppearanceStyle final : public QObject {
+class AppearanceStyle : public QObject {
     Q_OBJECT
     QML_NAMED_ELEMENT(Appearance)
     QML_SINGLETON
