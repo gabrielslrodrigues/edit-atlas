@@ -3,6 +3,7 @@ add_executable(edit_atlas_presentation_tests)
 target_sources(
     edit_atlas_presentation_tests
     PRIVATE
+        appearance_test.cpp
         diagnostic_model_test.cpp
         test_main.cpp
         timeline_event_projection_model_test.cpp
