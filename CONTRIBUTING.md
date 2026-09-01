@@ -1,0 +1,159 @@
+# Contributing to Edit Atlas
+
+This file records the conventions this repository actually follows. They
+apply to every contributor and every coding agent working here, and they
+take precedence over a tool's or an agent's default behaviour. Where a
+default conflicts with a rule below, follow the rule and say so rather than
+applying the default silently.
+
+Building, running, and testing are covered by [README.md](README.md), and
+the canonical design documents live under [docs/](docs). This file does not
+restate either; it states how changes are shaped, named, and reviewed.
+
+## Branches
+
+Branch names are `<type>/<issue-number>-<slug>`, using the same type
+vocabulary as commits: `feat/79-rendered-video-export-input`,
+`fix/160-quick-accessibility-e2e`, `chore/174-aggregate-ci-check`.
+
+A standalone issue branches from `master`. An epic branches from `master`
+and its child issues branch from the epic, so the epic accumulates its
+children and merges to `master` once.
+
+## Commits
+
+A commit written by hand is exactly one Conventional Commit subject line. No
+body, no trailers, no attribution or session links, however large or subtle
+the change. The explanation belongs in the pull request, which is where it
+is read.
+
+```text
+fix(e2e): enter repeated file chooser path components
+```
+
+Squash-merge commits are the exception, and GitHub composes them: the
+subject is the pull-request title followed by `(#N)`, and the body is the
+pull-request description. Merging a child pull request into an epic produces
+the same shape.
+
+## Pull requests
+
+A description opens with `## Summary`, states what changed and how it was
+verified, and closes its issue with `Closes #N`.
+
+Do not hard-wrap it. GitHub renders a single newline inside a paragraph as a
+line break, so text wrapped at a column width arrives as ragged short lines.
+Write each paragraph and each bullet as one line, however long. This is the
+opposite of the rule for Markdown committed to the repository, which does
+wrap.
+
+## Continuous integration
+
+`master` is gated by a single required status check rather than a list of
+job names, so a renamed or re-matrixed job never needs a ruleset edit.
+
+[docs/continuous-integration.md](docs/continuous-integration.md) is
+canonical for that gate, for how a job is made mandatory, and for workflow
+ownership, triggers, the release path, and the artifact lifecycle. Read it
+before changing a workflow.
+
+## Code conventions
+
+### C++
+
+- Headers use include guards derived from the header's path, in the form
+  `EDIT_ATLAS_<PATH>_HPP_`, and never `#pragma once`.
+- Empty parameter lists are written `(void)`, not `()`.
+- Namespaces are snake case under `edit_atlas::<layer>`; types and
+  functions are PascalCase; leaf types are `final`; source and header
+  filenames are snake case.
+- Public declarations carry LLVM-style `///` comments. The first sentence
+  is the brief summary; follow it with parameter, return-value, ownership,
+  lifetime, and invariant details where they form part of the contract.
+- Formatting comes from `.clang-format`: LLVM-based, four-space indent,
+  80-column limit, no tabs. There is no separate lint step beyond
+  `all_qmllint` and compiler warnings under
+  `EDIT_ATLAS_WARNINGS_AS_ERRORS`.
+
+### QML
+
+- One component per file, named in PascalCase, four-space indent.
+- User-visible text uses `qsTr()`; the Widgets and other `QObject` code uses
+  `tr()`. English is the source language and Brazilian Portuguese is the
+  default for a new profile. Never persist translated text or use it as a
+  format key, template value, or automation identifier.
+- Accessibility identifiers are a stable automation contract, not
+  decoration. See
+  [docs/accessibility-automation.md](docs/accessibility-automation.md)
+  before adding or renaming one.
+
+### Shell and PowerShell
+
+- Shell scripts begin with `#!/usr/bin/env bash` and `set -euo pipefail`,
+  indent with two spaces, and validate their argument count before doing
+  anything.
+- Every script has a PowerShell counterpart where the workflow it serves
+  runs on Windows.
+
+### Python
+
+Python appears only in `tests/e2e`. It follows the same 80-column habit as
+the C++ sources and uses four-space indentation.
+
+## Tests
+
+Every C++ test carries a `unit` or `integration` CTest label. The end-to-end
+suites are deliberately not registered with CTest; see
+[tests/e2e/README.md](tests/e2e/README.md) before touching them.
+
+pytest runs under `--strict-config --strict-markers` with
+`xfail_strict = true`, and a required suite fails when it collects nothing.
+
+Native integration tests must set `EDIT_ATLAS_TEST_STATE_ROOT` before
+constructing application services, and must never point it at a real
+developer profile.
+
+## Dependencies and versions
+
+- The `version-string` in `vcpkg.json` is the single project version source;
+  CMake reads it, and release tags are validated against it.
+- The `builtin-baseline` in `vcpkg.json` must equal the checked-out vcpkg
+  submodule commit. The corresponding-source scripts enforce this, because
+  the archives a release publishes must match the ports it built from.
+- Do not propose replacing the vcpkg binary cache backend described in
+  [docs/packaging.md](docs/packaging.md) with the GitHub Actions cache. That
+  backend produced ABI mismatches here that cost significant rebuild time,
+  and the decision against it stands.
+- Python end-to-end dependencies are pinned to exact versions with platform
+  markers, the interpreter is constrained to a single minor version, and the
+  `uv` version is bounded.
+- GitHub Actions are pinned to an exact released tag for first-party
+  `actions/*` entries and to a full commit SHA for third-party actions.
+
+## Text and formatting
+
+`.editorconfig` sets UTF-8, LF line endings, a final newline, trimmed
+trailing whitespace, and space indentation for every file in the
+repository. Only the indent width varies: four columns for authored source
+— C++, CMake, QML, Python — and two for scripts and data or markup formats
+— shell, PowerShell, JSON, YAML, and Markdown.
+
+Markdown committed here wraps at roughly 80 columns. Text destined for a web
+form — issue and pull-request bodies, review comments — does not wrap at
+all.
+
+## Agent configuration
+
+Coding-agent configuration is tracked when it is shared intent and ignored
+when it is machine state.
+
+Track what you would review in a pull request: project settings, subagent
+and command definitions, and hook scripts. They change how everyone's tools
+behave and belong under review like any other configuration.
+
+Ignore anything per-machine or per-session: `*.local.json` settings,
+caches, transcripts, logs, and anything holding a token or a path under a
+developer's home directory.
+
+[AGENTS.md](AGENTS.md) is the entry point agents read. It points here rather
+than restating any of it.
