@@ -1,7 +1,5 @@
 var searchData=
 [
-  ['decodedvideoframe_0',['DecodedVideoFrame',['../structedit__atlas_1_1media_1_1DecodedVideoFrame.html',1,'edit_atlas::media']]],
-  ['diagnostic_1',['Diagnostic',['../structedit__atlas_1_1core_1_1Diagnostic.html',1,'edit_atlas::core']]],
-  ['diagnosticenvironment_2',['DiagnosticEnvironment',['../structedit__atlas_1_1support_1_1DiagnosticEnvironment.html',1,'edit_atlas::support']]],
-  ['diagnosticmodel_3',['DiagnosticModel',['../classedit__atlas_1_1presentation_1_1DiagnosticModel.html',1,'edit_atlas::presentation']]]
+  ['cmx3600importer_0',['Cmx3600Importer',['../classedit__atlas_1_1formats_1_1cmx3600_1_1Cmx3600Importer.html',1,'edit_atlas::formats::cmx3600']]],
+  ['comment_1',['Comment',['../structedit__atlas_1_1core_1_1Comment.html',1,'edit_atlas::core']]]
 ];

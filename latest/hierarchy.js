@@ -1,5 +1,6 @@
 var hierarchy =
 [
+    [ "edit_atlas::presentation::AppearancePalette", "structedit__atlas_1_1presentation_1_1AppearancePalette.html", null ],
     [ "edit_atlas::core::Comment", "structedit__atlas_1_1core_1_1Comment.html", null ],
     [ "edit_atlas::media::DecodedVideoFrame", "structedit__atlas_1_1media_1_1DecodedVideoFrame.html", null ],
     [ "edit_atlas::core::Diagnostic", "structedit__atlas_1_1core_1_1Diagnostic.html", null ],
@@ -34,6 +35,7 @@ var hierarchy =
       [ "edit_atlas::presentation::TimelineEventModel", "classedit__atlas_1_1presentation_1_1TimelineEventModel.html", null ]
     ] ],
     [ "QObject", null, [
+      [ "edit_atlas::presentation::AppearanceController", "classedit__atlas_1_1presentation_1_1AppearanceController.html", null ],
       [ "edit_atlas::presentation::SupportBundleViewModel", "classedit__atlas_1_1presentation_1_1SupportBundleViewModel.html", null ],
       [ "edit_atlas::presentation::SupportBundleWorkflow", "classedit__atlas_1_1presentation_1_1SupportBundleWorkflow.html", null ],
       [ "edit_atlas::presentation::TimelineDocumentViewModel", "classedit__atlas_1_1presentation_1_1TimelineDocumentViewModel.html", null ],

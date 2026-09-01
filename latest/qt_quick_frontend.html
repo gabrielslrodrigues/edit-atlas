@@ -129,7 +129,7 @@ QML and design-system conventions</h1>
 <ul>
 <li>import <code>EditAtlasStyle as Atlas</code> and use its controls where the style module provides a project component;</li>
 <li>use <code>Atlas.DesignTokens</code> for dimensions, spacing, typography, radii, icons, and animation durations instead of introducing unrelated literals;</li>
-<li>use <code>Atlas.Theme</code> and the application palette for colors instead of embedding colors in application views;</li>
+<li>use <code>Atlas.Theme</code> and the application palette for colors instead of embedding colors in application views; <code>Atlas.Theme</code> presents the shared palette owned by <code>edit_atlas::presentation</code>, so a new color is added there rather than in the style module;</li>
 <li>keep view state declarative and expose reusable commands or state through a ViewModel rather than calling services from QML;</li>
 <li>keep dialogs, focus transitions, and native file-selection behavior in the concrete View layer;</li>
 <li>add QML files through <code>qt_add_qml_module</code> so compilation, type registration, linting, deployment, and translation discovery remain reproducible;</li>

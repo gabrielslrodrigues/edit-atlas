@@ -1,5 +1,6 @@
 var searchData=
 [
-  ['logginginitializationfailure_0',['LoggingInitializationFailure',['../structedit__atlas_1_1support_1_1LoggingInitializationFailure.html',1,'edit_atlas::support']]],
-  ['loggingoptions_1',['LoggingOptions',['../structedit__atlas_1_1support_1_1LoggingOptions.html',1,'edit_atlas::support']]]
+  ['importer_0',['Importer',['../classedit__atlas_1_1core_1_1Importer.html',1,'edit_atlas::core']]],
+  ['importrequest_1',['ImportRequest',['../structedit__atlas_1_1core_1_1ImportRequest.html',1,'edit_atlas::core']]],
+  ['importresult_2',['ImportResult',['../structedit__atlas_1_1core_1_1ImportResult.html',1,'edit_atlas::core']]]
 ];

@@ -1,5 +1,6 @@
 var dir_4c780f93a5f1e7ec9efb48e56a355902 =
 [
+    [ "appearance.hpp", "appearance_8hpp_source.html", null ],
     [ "application_state.hpp", "application__state_8hpp_source.html", null ],
     [ "desktop_integration.hpp", "desktop__integration_8hpp_source.html", null ],
     [ "diagnostic_model.hpp", "diagnostic__model_8hpp_source.html", null ],
