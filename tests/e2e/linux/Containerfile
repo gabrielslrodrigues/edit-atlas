@@ -1,0 +1,36 @@
+# Defaults to the minimum supported Debian-based system, which is what the
+# packaged suite must keep working on. Override it to match a host that builds
+# packages against a newer userspace; see tests/e2e/README.md.
+# Declared before any stage so the FROM below can consume it.
+ARG EDIT_ATLAS_E2E_BASE_IMAGE=docker.io/library/ubuntu:24.04@sha256:1e0a86e57d247923571b75e0aaf48a1449cf8c543d51fb3e07a4a7d7bfa79316
+
+FROM ghcr.io/astral-sh/uv:0.12.3@sha256:dfd1e6972e100ca2fbf1f391effc3dd4aa57f319bf03c3e321e0a3f3341ed5af AS uv
+
+FROM ${EDIT_ATLAS_E2E_BASE_IMAGE}
+
+COPY --from=uv /uv /uvx /usr/local/bin/
+COPY scripts/ci/install-ubuntu-dependencies.sh /tmp/
+RUN /tmp/install-ubuntu-dependencies.sh --e2e \
+    && rm /tmp/install-ubuntu-dependencies.sh
+
+COPY tests/e2e/pyproject.toml tests/e2e/uv.lock /opt/edit-atlas-e2e/
+# The suite runs as the invoking host user, not root. When the base image's
+# system Python falls outside the range the project pins, uv fetches a managed
+# interpreter, which defaults to root's home and is unreadable by that user, so
+# managed interpreters go somewhere shared and everything is left traversable.
+RUN UV_PROJECT_ENVIRONMENT=/opt/edit-atlas-e2e-venv \
+    UV_PYTHON_INSTALL_DIR=/opt/edit-atlas-e2e-python \
+    uv sync \
+      --locked \
+      --no-cache \
+      --no-install-project \
+      --project /opt/edit-atlas-e2e \
+    && chmod -R a+rX \
+      /opt/edit-atlas-e2e-venv \
+      /opt/edit-atlas-e2e \
+      /opt/edit-atlas-e2e-python
+
+COPY tests/e2e/linux/run-provisioned.sh /opt/edit-atlas/
+ENV EDIT_ATLAS_E2E_VIRTUAL_ENVIRONMENT=/opt/edit-atlas-e2e-venv \
+    PYTHONDONTWRITEBYTECODE=1
+ENTRYPOINT ["/opt/edit-atlas/run-provisioned.sh"]

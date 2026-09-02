@@ -21,25 +21,11 @@ jobs:
       - name: Check out source
         uses: actions/checkout@v7.0.1
 
+      # The same profile the provisioned container installs, so the hosted
+      # runner and a local containerized run cannot drift apart.
       - name: Install desktop automation dependencies
         run: |
-          sudo apt-get update
-          sudo apt-get install \
-            --yes \
-            --no-install-recommends \
-            at-spi2-core \
-            build-essential \
-            dbus-x11 \
-            gir1.2-atspi-2.0 \
-            gir1.2-gtk-3.0 \
-            libcairo2-dev \
-            libgirepository1.0-dev \
-            locales \
-            pkg-config \
-            python3-dev \
-            x11-apps \
-            xauth \
-            xvfb
+          ./scripts/ci/install-ubuntu-dependencies.sh --e2e
           sudo locale-gen pt_BR.UTF-8
 
       - name: Install uv

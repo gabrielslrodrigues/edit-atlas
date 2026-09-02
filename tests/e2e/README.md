@@ -145,18 +145,75 @@ selection, and editable-text interfaces. Where Qt Quick exposes only focus
 actions, it sends pointer input at accessibility-reported bounds. It never uses
 fixed coordinates, image matching, or fixed sleeps.
 
-On Ubuntu 24.04, install the native accessibility and Python build
-dependencies used by the pinned PyGObject package:
+The preferred local entry point builds a disposable Ubuntu 24.04 image, installs
+the generated DEB inside it, generates or validates the media fixtures, and
+runs the suite at the same `1440x1000x24` screen geometry used by CI. The
+repository is mounted read-only, while reports and artifacts are written as
+the invoking host user. Podman is selected when both supported runtimes are
+available:
 
 ```sh
-sudo apt-get install \
-  at-spi2-core dbus-x11 gir1.2-atspi-2.0 gir1.2-gtk-3.0 \
-  libgirepository1.0-dev libcairo2-dev pkg-config python3-dev xauth \
-  x11-apps xvfb
+tests/e2e/provision-linux.sh \
+  --package /path/to/edit-atlas.deb \
+  --fixture-generator \
+    build/debug-x64-linux/tests/integration/media/edit_atlas_e2e_media_fixture_generator
 ```
 
-After installing the generated DEB, run the complete required Linux suite in a
-deterministic desktop session:
+Select Docker explicitly when needed:
+
+```sh
+tests/e2e/provision-linux.sh \
+  --runtime docker \
+  --package /path/to/edit-atlas.deb \
+  --media-fixture-dir build/e2e/media-fixtures
+```
+
+`--artifact-dir` selects a host output directory; it defaults to
+`build/e2e`. Inside the container the sources, results, and fixtures are
+placed beneath one home directory at fixed paths, mirroring CI, where the
+checkout sits under the runner's home. File dialogs open at the home
+directory, so a layout that puts the sources in an unrelated subtree would
+exercise navigation the required CI runs never reach.
+
+`--base-image` overrides the pinned base. The default is Ubuntu 24.04, the
+minimum supported Debian-based system, so the required runs keep verifying
+that floor. Override it to match a host that builds packages against a newer
+userspace, which is what makes a locally built package testable:
+
+```sh
+tests/e2e/provision-linux.sh \
+  --base-image docker.io/library/ubuntu:26.04 \
+  --package build/release-quick-x64-linux/edit-atlas-0.3.0-linux-x86_64.deb \
+  --fixture-generator \
+    build/debug-x64-linux/tests/integration/media/edit_atlas_e2e_media_fixture_generator
+```
+
+Images are tagged per base, so an overridden run never reuses the default's
+layers. The image is rebuilt through the container runtime's layer cache
+when its pinned base, dependency script, or container entry point changes.
+Native packages are declared only by
+`scripts/ci/install-ubuntu-dependencies.sh --e2e`. The generated DEB and uv's
+committed lockfile provide the application and Python dependency closures. The
+locked Python environment is part of the runner image, so an ordinary E2E run
+does not reconstruct it or write a virtual environment onto the host.
+
+The DEB must target amd64 and be compatible with the image's pinned Ubuntu
+24.04 userspace. A package built on a distribution with a newer glibc installs
+successfully, because its declared `libc6` dependency is satisfied, and then
+fails to load its own bundled Qt and FFmpeg libraries. The provisioner
+smoke-tests the installed package and reports that as an incompatible input
+rather than rebuilding the application or letting it surface as unexplained
+failures across the suite. Use the package produced by the compatible CI build
+when validating CI behavior locally.
+
+`--fixture-generator` runs the generator on the host rather than in the
+container, because it is a build-tree binary linked against the host's
+toolchain and vcpkg libraries. The fixtures it writes are ordinary data and are
+mounted in read-only, so fixture generation is unaffected by the host and image
+having different userspaces.
+
+For an already prepared native environment, install the generated DEB and run
+the lower-level entry point in a deterministic desktop session:
 
 ```sh
 dbus-run-session -- xvfb-run --auto-servernum \
