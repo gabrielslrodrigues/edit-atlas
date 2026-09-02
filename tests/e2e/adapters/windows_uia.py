@@ -693,6 +693,16 @@ class WindowsApplicationSession:
             except (ActionNotSupportedError, PollTimeoutError):
                 pass
 
+        # A control inside a scroll area can sit outside its viewport, where
+        # a click at its reported bounds lands on whatever is painted there
+        # and the popup never opens. UIA's SetFocus scrolls it into view, as
+        # keyboard navigation would. Value and Toggle patterns need no such
+        # help, which is why only pointer input hit this.
+        try:
+            control.set_focus()
+        except Exception:
+            pass
+
         self._click_accessible_node(control, identifier)
         target = wait_until(
             lambda: self._reveal_combo_option(control, option),
