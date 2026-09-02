@@ -112,6 +112,19 @@ install -d -o "${host_uid}" -g "${host_gid}" \
   "${runtime_directory}"
 chmod 0700 "${runtime_directory}"
 
+# The suite runs as the invoking host user so artifacts are not root-owned,
+# and D-Bus refuses to start for a user with no password-database entry. A
+# host uid that happens to exist in the base image works by accident, which
+# is why an entry is created whenever it is absent rather than assumed.
+if ! getent group "${host_gid}" >/dev/null 2>&1; then
+  echo "edit-atlas-e2e:x:${host_gid}:" >>/etc/group
+fi
+if ! getent passwd "${host_uid}" >/dev/null 2>&1; then
+  printf '%s:x:%s:%s:Edit Atlas E2E:%s:/usr/sbin/nologin\n' \
+    "edit-atlas-e2e" "${host_uid}" "${host_gid}" "${home_directory}" \
+    >>/etc/passwd
+fi
+
 run_as_host=(
   setpriv
   --reuid="${host_uid}"
