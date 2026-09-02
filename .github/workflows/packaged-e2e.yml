@@ -201,13 +201,6 @@ jobs:
       - name: Check out source
         uses: actions/checkout@v7.0.1
 
-      # The same script the local disposable environment runs, so the hosted
-      # runner and a Windows Sandbox prepare themselves from one dependency
-      # contract rather than from an action a sandbox cannot call.
-      - name: Install packaged E2E dependencies
-        shell: pwsh
-        run: ./scripts/ci/install-windows-dependencies.ps1
-
       - name: Download Windows package
         uses: actions/download-artifact@v8
         with:
@@ -220,109 +213,27 @@ jobs:
           name: edit-atlas-e2e-media-fixtures
           path: build/e2e/media-fixtures
 
-      - name: Install generated MSI
+      # The harness a Windows Sandbox runs, invoked directly because a hosted
+      # runner is already a disposable VM. Dependency installation, MSI
+      # installation, crash configuration, suite invocation, cleanup, and exit
+      # status therefore behave identically on both sides; only the OS image
+      # differs, which this epic accepts for Windows.
+      - name: Run packaged CLI and desktop E2E tests
         shell: pwsh
-        env:
-          EDIT_ATLAS_FRONTEND: ${{ inputs.frontend }}
         run: |
-          $packageDirectory = Join-Path `
-            "build/packages" "$env:EDIT_ATLAS_FRONTEND/x64-windows"
           $packages = @(
-            Get-ChildItem $packageDirectory -Recurse -File -Filter *.msi
+            Get-ChildItem build/packages -Recurse -File -Filter *.msi
           )
           if ($packages.Count -ne 1) {
             throw "Expected exactly one MSI; found $($packages.Count)."
           }
-          $installer = $packages[0].FullName
-          $installRoot = Join-Path $env:GITHUB_WORKSPACE "build/e2e/install"
-          $installLog = Join-Path $env:GITHUB_WORKSPACE "build/e2e/msi-install.log"
-          New-Item -ItemType Directory -Force (Split-Path $installLog) |
-            Out-Null
-          "EDIT_ATLAS_E2E_MSI=$installer" | Out-File `
-            -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
-          "EDIT_ATLAS_E2E_INSTALL_ROOT=$installRoot" | Out-File `
-            -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
-          $process = Start-Process `
-            -FilePath msiexec.exe `
-            -ArgumentList @(
-              "/i", "`"$installer`"", "/qn", "/norestart", "/L*V",
-              "`"$installLog`"", "INSTALL_ROOT=`"$installRoot`""
-            ) `
-            -PassThru `
-            -Wait
-          if ($process.ExitCode -notin @(0, 3010)) {
-            throw "MSI installation failed with exit code $($process.ExitCode)."
-          }
-
-      - name: Configure Windows crash dumps
-        shell: pwsh
-        run: |
-          $dumpDirectory = Join-Path `
-            $env:GITHUB_WORKSPACE "build/e2e/crash-dumps"
-          New-Item -ItemType Directory -Force $dumpDirectory | Out-Null
-          $registryRoot = `
-            "HKCU:\Software\Microsoft\Windows\Windows Error Reporting\LocalDumps"
-          foreach ($executable in @("edit-atlas.exe", "edit-atlas-cli.exe")) {
-            $registryPath = Join-Path $registryRoot $executable
-            New-Item -Path $registryPath -Force | Out-Null
-            New-ItemProperty `
-              -Path $registryPath `
-              -Name DumpFolder `
-              -PropertyType ExpandString `
-              -Value $dumpDirectory `
-              -Force | Out-Null
-            New-ItemProperty `
-              -Path $registryPath `
-              -Name DumpType `
-              -PropertyType DWord `
-              -Value 2 `
-              -Force | Out-Null
-            New-ItemProperty `
-              -Path $registryPath `
-              -Name DumpCount `
-              -PropertyType DWord `
-              -Value 5 `
-              -Force | Out-Null
-          }
-
-      - name: Run packaged CLI and desktop E2E tests
-        shell: pwsh
-        run: |
-          tests/e2e/run-windows.ps1 `
-            -App "$env:EDIT_ATLAS_E2E_INSTALL_ROOT/bin/edit-atlas.exe" `
-            -Cli "$env:EDIT_ATLAS_E2E_INSTALL_ROOT/bin/edit-atlas-cli.exe"
-
-      - name: Remove installed package and test state
-        if: always()
-        shell: pwsh
-        run: |
-          Get-Process -Name edit-atlas -ErrorAction SilentlyContinue |
-            Stop-Process -Force -ErrorAction SilentlyContinue
-          if ($env:EDIT_ATLAS_E2E_MSI) {
-            $uninstallLog = Join-Path `
-              $env:GITHUB_WORKSPACE "build/e2e/msi-uninstall.log"
-            $process = Start-Process `
-              -FilePath msiexec.exe `
-              -ArgumentList @(
-                "/x", "`"$env:EDIT_ATLAS_E2E_MSI`"", "/qn", "/norestart",
-                "/L*V", "`"$uninstallLog`""
-              ) `
-              -PassThru `
-              -Wait
-            if ($process.ExitCode -notin @(0, 3010)) {
-              throw "MSI uninstall failed with exit code $($process.ExitCode)."
-            }
-          }
-          $registryRoot = `
-            "HKCU:\Software\Microsoft\Windows\Windows Error Reporting\LocalDumps"
-          foreach ($executable in @("edit-atlas.exe", "edit-atlas-cli.exe")) {
-            Remove-Item `
-              (Join-Path $registryRoot $executable) `
-              -Recurse `
-              -Force `
-              -ErrorAction SilentlyContinue
-          }
-          Remove-Item build/e2e/state -Recurse -Force -ErrorAction SilentlyContinue
+          tests/e2e/windows/run-provisioned.ps1 `
+            -RepositoryRoot $env:GITHUB_WORKSPACE `
+            -ArtifactRoot (Join-Path $env:GITHUB_WORKSPACE "build/e2e") `
+            -Msi $packages[0].FullName `
+            -MediaFixtureDir (
+              Join-Path $env:GITHUB_WORKSPACE "build/e2e/media-fixtures"
+            )
 
       - name: Upload Windows E2E reports and artifacts
         if: always()
