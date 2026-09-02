@@ -5,7 +5,13 @@ from pathlib import Path
 from threading import Event, Thread
 from typing import Any
 
-from adapters.windows_uia import WindowsApplicationSession
+import pytest
+
+from adapters.windows_uia import (
+    ElementNotFoundError,
+    StartupNotReadyError,
+    WindowsApplicationSession,
+)
 
 
 class ElementInfo:
@@ -124,16 +130,31 @@ class Node:
         return True
 
 
-def application_session(artifact_directory: Path) -> WindowsApplicationSession:
+class EmptyDesktop:
+    """A desktop that exposes no windows for the process under test."""
+
+    @staticmethod
+    def windows(**_: Any) -> list[Any]:
+        return []
+
+
+def application_session(
+    artifact_directory: Path,
+    *,
+    desktop: Any = None,
+    timeout: float = 1.0,
+    startup_timeout: float = 1.0,
+) -> WindowsApplicationSession:
     return WindowsApplicationSession(
         application=None,
-        desktop=None,
+        desktop=desktop,
         win32_desktop=None,
         keyboard_sender=None,
         registry=None,
         process=RunningProcess(),
         artifact_directory=artifact_directory,
-        timeout=1.0,
+        timeout=timeout,
+        startup_timeout=startup_timeout,
     )
 
 
@@ -633,3 +654,41 @@ def test_uia_actions_do_not_block_the_driver(tmp_path: Path) -> None:
         assert started.wait(1.0)
     finally:
         release.set()
+
+
+def test_startup_readiness_uses_the_startup_budget(tmp_path: Path) -> None:
+    # A desktop with no windows models a UIA tree that is not enumerable yet.
+    session = application_session(
+        tmp_path,
+        desktop=EmptyDesktop(),
+        timeout=0.05,
+        startup_timeout=0.4,
+    )
+
+    started = time.monotonic()
+    with pytest.raises(StartupNotReadyError) as failure:
+        session.wait_ready()
+    elapsed = time.monotonic() - started
+
+    assert elapsed >= 0.4
+    assert "did not become automatable within 0.4 seconds" in str(
+        failure.value
+    )
+
+
+def test_element_lookup_uses_the_operation_budget(tmp_path: Path) -> None:
+    session = application_session(
+        tmp_path,
+        desktop=EmptyDesktop(),
+        timeout=0.1,
+        startup_timeout=30.0,
+    )
+
+    started = time.monotonic()
+    with pytest.raises(ElementNotFoundError) as failure:
+        session.element("absentIdentifier")
+    elapsed = time.monotonic() - started
+
+    assert elapsed < 5.0
+    assert not isinstance(failure.value, StartupNotReadyError)
+    assert "absentIdentifier" in str(failure.value)

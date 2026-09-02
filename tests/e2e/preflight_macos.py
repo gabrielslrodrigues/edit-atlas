@@ -9,7 +9,12 @@ from adapters.processes import ProcessRegistry
 
 
 def main() -> int:
-    adapter = MacAxAdapter(ProcessRegistry(), Path("build/e2e/artifacts"), 15.0)
+    adapter = MacAxAdapter(
+        ProcessRegistry(),
+        Path("build/e2e/artifacts"),
+        15.0,
+        startup_timeout=60.0,
+    )
     try:
         adapter.preflight()
     except AccessibilityBackendError as error:

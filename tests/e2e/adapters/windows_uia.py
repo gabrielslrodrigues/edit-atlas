@@ -30,6 +30,10 @@ class ElementNotFoundError(LookupError):
     """Raised when a semantic element is absent after bounded polling."""
 
 
+class StartupNotReadyError(ElementNotFoundError):
+    """Raised when a launched application never becomes automatable."""
+
+
 class ActionNotSupportedError(RuntimeError):
     """Raised when an element exposes no suitable automation action."""
 
@@ -42,12 +46,17 @@ class WindowsUiaAdapter:
         registry: ProcessRegistry,
         artifact_directory: Path,
         timeout: float,
+        *,
+        startup_timeout: float,
     ) -> None:
         if timeout <= 0:
             raise ValueError("timeout must be positive")
+        if startup_timeout <= 0:
+            raise ValueError("startup_timeout must be positive")
         self._registry = registry
         self._artifact_directory = artifact_directory
         self._timeout = timeout
+        self._startup_timeout = startup_timeout
         self._application_class: Any = None
         self._desktop: Any = None
         self._win32_desktop: Any = None
@@ -110,7 +119,7 @@ class WindowsUiaAdapter:
         session = None
         try:
             application = self._application_class(backend="uia").connect(
-                process=process.pid, timeout=self._timeout
+                process=process.pid, timeout=self._startup_timeout
             )
             session = WindowsApplicationSession(
                 application=application,
@@ -121,6 +130,7 @@ class WindowsUiaAdapter:
                 process=process,
                 artifact_directory=self._artifact_directory,
                 timeout=self._timeout,
+                startup_timeout=self._startup_timeout,
             )
             session.wait_ready()
         except BaseException:
@@ -150,6 +160,7 @@ class WindowsApplicationSession:
         process: subprocess.Popen[str],
         artifact_directory: Path,
         timeout: float,
+        startup_timeout: float,
     ) -> None:
         self._application = application
         self._desktop = desktop
@@ -159,18 +170,31 @@ class WindowsApplicationSession:
         self._process = process
         self._artifact_directory = artifact_directory
         self._timeout = timeout
+        self._startup_timeout = startup_timeout
         self._action_errors: deque[ActionNotSupportedError] = deque()
         self._action_error_lock = threading.Lock()
 
     def wait_ready(self) -> None:
-        self.element("mainWindow")
+        try:
+            self.element("mainWindow", timeout=self._startup_timeout)
+        except ElementNotFoundError as error:
+            raise StartupNotReadyError(
+                "the application did not become automatable within "
+                f"{self._startup_timeout:g} seconds: {error}"
+            ) from error
 
-    def element(self, identifier: str, *, showing: bool = True) -> Any:
+    def element(
+        self,
+        identifier: str,
+        *,
+        showing: bool = True,
+        timeout: float | None = None,
+    ) -> Any:
         try:
             return wait_until(
                 lambda: self._find_identifier(identifier, showing=showing),
                 lambda value: value is not None,
-                timeout=self._timeout,
+                timeout=self._timeout if timeout is None else timeout,
                 description=f"accessible identifier {identifier!r}",
             )
         except PollTimeoutError as error:

@@ -121,9 +121,17 @@ tests/e2e/run.ps1 -Cli "C:\Program Files\Edit Atlas\edit-atlas-cli.exe"
 
 The CLI path must refer to the executable installed by the package under test,
 not a build-tree target. The entry points pass the fixture directory, output
-directory, isolated state root, locale, operation timeout, and artifact
-directory as explicit pytest options. Additional pytest arguments may follow
-the CLI option.
+directory, isolated state root, locale, operation and startup timeouts, and
+artifact directory as explicit pytest options. Additional pytest arguments may
+follow the CLI option.
+
+Waits have two budgets. `--operation-timeout` bounds anything done to an
+application already under automation, so a genuine failure reports quickly.
+`--startup-timeout` bounds readiness only: the process starting, the window
+appearing, and the accessibility tree becoming enumerable. The first launch of
+a run pays cold-start costs no later launch pays, so it gets the larger budget
+instead of every wait getting it. A readiness failure reports as
+`StartupNotReadyError`, distinct from a missing element.
 
 Menus are stateful. Activating a menu title opens it, and activating an open
 menu closes it, so a helper that reads several items from one menu must read

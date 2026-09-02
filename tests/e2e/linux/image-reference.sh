@@ -15,10 +15,8 @@ set -euo pipefail
 script_directory="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 repository_root="$(cd -- "${script_directory}/../../.." && pwd)"
 
-#: Inputs that determine the image's contents. Every repository file the
-#: Containerfile copies belongs here, or a change to it would produce the same
-#: tag and a stale published image would be pulled in its place. The check
-#: below enforces that rather than trusting this list to be maintained.
+#: Inputs that determine the image's contents. The checks below keep this
+#: list in step with the Containerfile and the publish workflow.
 image_inputs=(
   "${script_directory}/Containerfile"
   "${script_directory}/run-provisioned.sh"
@@ -40,10 +38,8 @@ for image_input in "${image_inputs[@]}"; do
   fi
 done
 
-# A file baked into the image but absent from the inputs above would not
-# change the tag when it changed, so a stale published image would be pulled
-# instead of a rebuilt one. That is silent and hard to diagnose, so the two
-# lists are compared here.
+# A file copied into the image but missing above would not change the tag, so
+# a stale published image would be pulled with no visible error.
 while read -r copied; do
   [[ -n "${copied}" ]] || continue
   for image_input in "${image_inputs[@]}"; do
@@ -60,9 +56,8 @@ done < <(
   }' "${script_directory}/Containerfile"
 )
 
-# An input that determines the tag but does not trigger the publish workflow
-# names an image that was never built, so those two lists are kept in step
-# here as well.
+# An input that does not trigger the publish workflow names an image that is
+# never built.
 publish_workflow="${repository_root}/.github/workflows/e2e-runner-image.yml"
 publish_paths="$(
   awk '/^ *paths:/ { collecting = 1; next }
