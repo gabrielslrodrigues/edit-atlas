@@ -73,6 +73,7 @@ jobs:
       frontend: ${{ needs.frontends.outputs.production }}
     permissions:
       contents: read
+      packages: read
 
   # Every frontend production does not ship is verified on the daily
   # schedule, and on a manual run that opts in. Merge-path runs never execute
@@ -97,6 +98,7 @@ jobs:
       frontend: ${{ matrix.frontend }}
     permissions:
       contents: read
+      packages: read
 
   # A red nightly run nobody opens is not a signal. Scheduled outcomes are
   # recorded on a tracking issue that stays open until a later run passes.

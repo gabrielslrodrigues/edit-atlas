@@ -104,6 +104,7 @@ jobs:
       frontend: ${{ needs.candidate.outputs.frontend }}
     permissions:
       contents: read
+      packages: read
 
   publish-release:
     name: Publish release assets
