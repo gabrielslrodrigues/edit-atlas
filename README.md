@@ -178,6 +178,9 @@ cmake --build --preset debug-x64-linux
 ```
 
 All presets use project-owned vcpkg triplets that require dynamic Qt linkage.
+Linux presets also pin the compiler to Clang, for the project and for every
+vcpkg port, so a local build matches a CI build; install it with
+`scripts/ci/install-ubuntu-dependencies.sh --build`.
 Release CI builds macOS ARM64 and x64 independently, then combines their
 staged bundles into the universal installer.
 
