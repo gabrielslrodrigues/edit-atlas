@@ -79,8 +79,16 @@ $ProductName = Get-MsiProperty "ProductName"
 if ($ProductName -notlike "Edit Atlas*") {
   throw "The supplied MSI is not an Edit Atlas package: $ProductName"
 }
-# The Template property carries the target platform, as in "x64;1033".
-$Template = Get-MsiProperty "Template"
+
+# The target platform is summary-information property 7, as in "x64;0". It is
+# not a Property table row, so it cannot be read with Get-MsiProperty.
+$Summary = $Installer.GetType().InvokeMember(
+  "SummaryInformation", "GetProperty", $null, $Installer, @($Msi, 0))
+$Template = $Summary.GetType().InvokeMember(
+  "Property", "GetProperty", $null, $Summary, @(7))
+if ([string]::IsNullOrWhiteSpace($Template)) {
+  throw "The supplied MSI declares no target platform: $Msi"
+}
 if ($Template -notlike "x64*") {
   throw "The supplied MSI does not target x64: $Template"
 }
