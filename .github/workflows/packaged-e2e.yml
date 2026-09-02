@@ -215,10 +215,12 @@ jobs:
       - name: Check out source
         uses: actions/checkout@v7.0.1
 
-      - name: Install uv
-        uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
-        with:
-          version: 0.12.3
+      # The same script the local disposable environment runs, so the hosted
+      # runner and a Windows Sandbox prepare themselves from one dependency
+      # contract rather than from an action a sandbox cannot call.
+      - name: Install packaged E2E dependencies
+        shell: pwsh
+        run: ./scripts/ci/install-windows-dependencies.ps1
 
       - name: Download Windows package
         uses: actions/download-artifact@v8
