@@ -156,24 +156,34 @@ provision_arguments+=(
 )
 
 build_arguments=()
-image="edit-atlas-linux-e2e:local"
 if [[ -n "${base_image}" ]]; then
-  # Tagged per base so an overridden image never reuses the default's layers,
-  # and so both can coexist without rebuilding one another.
-  image="edit-atlas-linux-e2e:local-$(
-    printf '%s' "${base_image}" | tr -c '[:alnum:]._-' '-'
-  )"
   build_arguments+=(
     --build-arg "EDIT_ATLAS_E2E_BASE_IMAGE=${base_image}"
   )
 fi
 
-"${container_runtime}" build \
-  --file "${script_directory}/linux/Containerfile" \
-  --platform linux/amd64 \
-  "${build_arguments[@]+"${build_arguments[@]}"}" \
-  --tag "${image}" \
-  "${repository_root}"
+# The reference is derived from the inputs that determine the image, so this
+# checkout asks for the same image CI publishes for it. An override produces
+# its own reference and can never be mistaken for the published default.
+image="$(
+  EDIT_ATLAS_E2E_BASE_IMAGE="${base_image}" \
+    "${script_directory}/linux/image-reference.sh"
+)"
+
+# Published images are pulled rather than rebuilt, so an ordinary run costs a
+# download at most. A build happens only when no published image matches this
+# checkout, which is the case on a branch that changes the runner definition.
+if ! "${container_runtime}" image inspect "${image}" >/dev/null 2>&1; then
+  if ! "${container_runtime}" pull --quiet "${image}" >/dev/null 2>&1; then
+    echo "Building the runner image; none is published for this checkout." >&2
+    "${container_runtime}" build \
+      --file "${script_directory}/linux/Containerfile" \
+      --platform linux/amd64 \
+      "${build_arguments[@]+"${build_arguments[@]}"}" \
+      --tag "${image}" \
+      "${repository_root}"
+  fi
+fi
 
 exec "${container_runtime}" "${container_arguments[@]}" \
   "${image}" \

@@ -16,28 +16,33 @@ jobs:
     name: Linux / ${{ inputs.frontend }} frontend
     runs-on: ubuntu-24.04
     timeout-minutes: 30
+    permissions:
+      contents: read
+      packages: read
 
     steps:
       - name: Check out source
         uses: actions/checkout@v7.0.1
 
-      # The same profile the provisioned container installs, so the hosted
-      # runner and a local containerized run cannot drift apart.
-      - name: Install desktop automation dependencies
-        run: |
-          ./scripts/ci/install-ubuntu-dependencies.sh --e2e
-          sudo locale-gen pt_BR.UTF-8
-
-      - name: Install uv
-        uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
+      # A pull request from a fork receives a token that cannot read the
+      # registry. Logging in is skipped there, and the provisioner builds the
+      # runner image locally, which is its documented fallback rather than a
+      # failure. Once the published package is public the login is redundant
+      # for pulling, and it is kept so a private package also works.
+      - name: Log in to the container registry
+        if: github.event_name != 'pull_request' || !github.event.pull_request.head.repo.fork
+        continue-on-error: true
+        uses: docker/login-action@74a5d142397b4f367a81961eba4e8cd7edddf772
         with:
-          version: 0.12.3
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Download Linux package
         uses: actions/download-artifact@v8
         with:
           name: ${{ inputs.frontend }}-frontend-x64-linux-packages
-          path: build/packages/${{ inputs.frontend }}/x64-linux
+          path: build/packages
 
       - name: Download rendered-video E2E fixtures
         uses: actions/download-artifact@v8
@@ -45,44 +50,36 @@ jobs:
           name: edit-atlas-e2e-media-fixtures
           path: build/e2e/media-fixtures
 
-      - name: Install generated DEB
-        shell: bash
-        env:
-          EDIT_ATLAS_FRONTEND: ${{ inputs.frontend }}
-        run: |
-          package_directory="${GITHUB_WORKSPACE}/build/packages"
-          package_directory+="/${EDIT_ATLAS_FRONTEND}/x64-linux"
-          mapfile -t packages < <(
-            find "$package_directory" -type f -name '*.deb'
-          )
-          if [[ "${#packages[@]}" -ne 1 ]]; then
-            echo "Expected exactly one DEB, found ${#packages[@]}" >&2
-            exit 1
-          fi
-          sudo apt-get install --yes "${packages[0]}"
-
+      # The container shares the host kernel, so a core pattern set here also
+      # governs processes inside it. Setting it on the runner is what keeps
+      # crash collection working now that the suite runs in a container, which
+      # cannot change the pattern itself.
       - name: Configure Linux crash dumps
-        shell: bash
         run: |
           dump_directory="${GITHUB_WORKSPACE}/build/e2e/crash-dumps"
           mkdir -p "$dump_directory"
-          cat /proc/sys/kernel/core_pattern >build/e2e/original-core-pattern
           sudo sysctl -w \
             "kernel.core_pattern=${dump_directory}/core.%e.%p.%t"
 
+      # The provisioner a developer runs, unchanged, consuming the runner image
+      # published for this checkout. Environment differences between a local
+      # run and this one are therefore differences in the image reference,
+      # which both sides derive from the same files. The package and fixtures
+      # are supplied as inputs; nothing is built or packaged here.
       - name: Run packaged CLI and desktop E2E tests
-        shell: bash
-        env:
-          GSETTINGS_BACKEND: memory
         run: |
-          ulimit -c unlimited
-          dbus-run-session -- \
-            xvfb-run \
-            --auto-servernum \
-            --server-args="-screen 0 1440x1000x24 -nolisten tcp" \
-            tests/e2e/run-linux.sh \
-            --app /usr/bin/edit-atlas \
-            --cli /usr/bin/edit-atlas-cli
+          package="$(
+            find build/packages -type f -name '*.deb' -print -quit
+          )"
+          if [[ -z "${package}" ]]; then
+            echo "No Linux package was downloaded." >&2
+            exit 1
+          fi
+          tests/e2e/provision-linux.sh \
+            --runtime docker \
+            --package "${package}" \
+            --media-fixture-dir build/e2e/media-fixtures \
+            --artifact-dir build/e2e
 
       - name: Upload Linux E2E reports and artifacts
         if: always()
@@ -96,17 +93,6 @@ jobs:
             build/e2e/output
           if-no-files-found: ignore
           retention-days: 7
-
-      - name: Remove installed package
-        if: always()
-        run: |
-          if [[ -f build/e2e/original-core-pattern ]]; then
-            sudo sysctl -w \
-              "kernel.core_pattern=$(<build/e2e/original-core-pattern)"
-          fi
-          if dpkg-query --show edit-atlas >/dev/null 2>&1; then
-            sudo apt-get remove --yes edit-atlas
-          fi
 
   macos:
     # GitHub-hosted macOS runners cannot grant Accessibility permission to the

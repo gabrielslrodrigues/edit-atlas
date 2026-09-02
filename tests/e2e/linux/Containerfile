@@ -18,7 +18,12 @@ COPY tests/e2e/pyproject.toml tests/e2e/uv.lock /opt/edit-atlas-e2e/
 # system Python falls outside the range the project pins, uv fetches a managed
 # interpreter, which defaults to root's home and is unreadable by that user, so
 # managed interpreters go somewhere shared and everything is left traversable.
-RUN UV_PROJECT_ENVIRONMENT=/opt/edit-atlas-e2e-venv \
+# The interpreter directory is created up front because uv only populates it
+# when the base image's system Python falls outside the range the project
+# pins: on the pinned Ubuntu base it does not, and the directory would
+# otherwise be absent.
+RUN mkdir -p /opt/edit-atlas-e2e-python \
+    && UV_PROJECT_ENVIRONMENT=/opt/edit-atlas-e2e-venv \
     UV_PYTHON_INSTALL_DIR=/opt/edit-atlas-e2e-python \
     uv sync \
       --locked \

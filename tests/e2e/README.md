@@ -188,8 +188,32 @@ tests/e2e/provision-linux.sh \
     build/debug-x64-linux/tests/integration/media/edit_atlas_e2e_media_fixture_generator
 ```
 
-Images are tagged per base, so an overridden run never reuses the default's
-layers. The image is rebuilt through the container runtime's layer cache
+The runner image is published by `e2e-runner-image.yml` and pulled rather
+than rebuilt. Its tag is derived from the files that determine its contents —
+the `Containerfile`, `install-ubuntu-dependencies.sh`, and the Python project
+and lockfile — so a local run and the CI run ask for the same image whenever
+they run from the same checkout, and changing any of those inputs names a
+different image automatically. Nothing has to be pinned by hand.
+
+A run builds the image only when no published one matches the checkout, which
+happens the first time a branch changes the runner definition, on a
+`--base-image` override, since an override derives its own reference and can
+never be mistaken for the published default, and wherever the registry cannot
+be read, such as a pull request from a fork.
+
+Publication is not restricted to the default branch. A branch that changes the
+image inputs publishes its own image, because the tag is derived from those
+inputs: two branches either produce an identical image, in which case
+publishing is a no-op, or different images under different tags, which cannot
+collide. This is also what exercises the pull path before a change reaches the
+default branch rather than after it.
+
+CI runs this same provisioner rather than a separate path, so a difference
+between a local run and a CI run is a difference in the image reference, which
+both sides compute from the same files. The image contains only the E2E
+environment: the package and fixtures are supplied as inputs, and neither a
+local run nor a CI run builds or packages the application. The image is
+rebuilt through the container runtime's layer cache
 when its pinned base, dependency script, or container entry point changes.
 Native packages are declared only by
 `scripts/ci/install-ubuntu-dependencies.sh --e2e`. The generated DEB and uv's
