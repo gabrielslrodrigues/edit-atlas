@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 from threading import Event, Thread
+from time import monotonic
 
 import pytest
 
@@ -9,6 +10,7 @@ from adapters.linux_atspi import (
     ActionNotSupportedError,
     ElementNotFoundError,
     LinuxApplicationSession,
+    StartupNotReadyError,
 )
 from application.polling import wait_until
 
@@ -233,7 +235,12 @@ class RecordingPointerClick:
         self.positions.append((x, y))
 
 
-def application_session(artifact_directory: Path) -> LinuxApplicationSession:
+def application_session(
+    artifact_directory: Path,
+    *,
+    timeout: float = 1.0,
+    startup_timeout: float = 1.0,
+) -> LinuxApplicationSession:
     return LinuxApplicationSession(
         tree=None,
         atspi=None,
@@ -242,7 +249,8 @@ def application_session(artifact_directory: Path) -> LinuxApplicationSession:
         registry=None,
         process=None,
         artifact_directory=artifact_directory,
-        timeout=1.0,
+        timeout=timeout,
+        startup_timeout=startup_timeout,
     )
 
 
@@ -782,3 +790,61 @@ def test_option_selection_does_not_wait_for_qt_to_hide_the_option_node(
     assert option.invoked.wait(1.0)
     assert option.selected
     assert option.showing
+
+
+def test_startup_readiness_uses_the_startup_budget(tmp_path: Path) -> None:
+    # A session whose tree never yields the application stands in for a
+    # launch whose accessibility provider is still cold.
+    session = application_session(
+        tmp_path, timeout=0.05, startup_timeout=0.4
+    )
+    session._process = RunningProcess()
+
+    started = monotonic()
+    with pytest.raises(StartupNotReadyError) as failure:
+        session.wait_ready()
+    elapsed = monotonic() - started
+
+    # Readiness must spend the startup budget, not the operation one.
+    assert elapsed >= 0.4
+    assert "did not become automatable within 0.4 seconds" in str(
+        failure.value
+    )
+
+
+def test_element_lookup_uses_the_operation_budget(tmp_path: Path) -> None:
+    # The generous startup budget must not slow a genuine lookup failure
+    # inside an application that is already running.
+    session = application_session(
+        tmp_path, timeout=0.1, startup_timeout=30.0
+    )
+    session._process = RunningProcess()
+    session._application = AccessibilityNode("application")
+
+    started = monotonic()
+    with pytest.raises(ElementNotFoundError) as failure:
+        session.element("absentIdentifier")
+    elapsed = monotonic() - started
+
+    assert elapsed < 5.0
+    assert not isinstance(failure.value, StartupNotReadyError)
+    assert "absentIdentifier" in str(failure.value)
+
+
+def test_element_lookup_accepts_a_longer_per_call_budget(
+    tmp_path: Path,
+) -> None:
+    # The per-call budget is what lets readiness reuse this lookup without
+    # changing how long every other lookup waits.
+    session = application_session(
+        tmp_path, timeout=0.05, startup_timeout=1.0
+    )
+    session._process = RunningProcess()
+    session._application = AccessibilityNode("application")
+
+    started = monotonic()
+    with pytest.raises(ElementNotFoundError):
+        session.element("absentIdentifier", timeout=0.3)
+    elapsed = monotonic() - started
+
+    assert elapsed >= 0.3

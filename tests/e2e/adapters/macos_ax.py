@@ -29,6 +29,10 @@ class ElementNotFoundError(LookupError):
     """Raised when a semantic element is absent after bounded polling."""
 
 
+class StartupNotReadyError(ElementNotFoundError):
+    """Raised when a launched application never becomes automatable."""
+
+
 class ActionNotSupportedError(RuntimeError):
     """Raised when an element exposes no suitable AX operation."""
 
@@ -57,12 +61,17 @@ class MacAxAdapter:
         registry: ProcessRegistry,
         artifact_directory: Path,
         timeout: float,
+        *,
+        startup_timeout: float,
     ) -> None:
         if timeout <= 0:
             raise ValueError("timeout must be positive")
+        if startup_timeout <= 0:
+            raise ValueError("startup_timeout must be positive")
         self._registry = registry
         self._artifact_directory = artifact_directory
         self._timeout = timeout
+        self._startup_timeout = startup_timeout
         self._ax: Any = None
 
     def preflight(self) -> None:
@@ -124,6 +133,7 @@ class MacAxAdapter:
             process=process,
             artifact_directory=self._artifact_directory,
             timeout=self._timeout,
+            startup_timeout=self._startup_timeout,
         )
         try:
             session.wait_ready()
@@ -156,12 +166,14 @@ class MacApplicationSession:
         process: subprocess.Popen[str],
         artifact_directory: Path,
         timeout: float,
+        startup_timeout: float,
     ) -> None:
         self._ax = ax
         self._registry = registry
         self._process = process
         self._artifact_directory = artifact_directory
         self._timeout = timeout
+        self._startup_timeout = startup_timeout
         self._application = ax.AXUIElementCreateApplication(process.pid)
         self._system = ax.AXUIElementCreateSystemWide()
         if hasattr(ax, "AXUIElementSetMessagingTimeout"):
@@ -174,17 +186,33 @@ class MacApplicationSession:
         self._action_error_lock = threading.Lock()
 
     def wait_ready(self) -> None:
-        self.element("mainWindow")
-        window = self.element("mainWindow")._raw
+        # Readiness gets the startup budget, and reports as its own failure
+        # so a cold or broken launch is never mistaken for a missing
+        # element in a running application.
+        try:
+            window = self.element(
+                "mainWindow", timeout=self._startup_timeout
+            )._raw
+        except ElementNotFoundError as error:
+            raise StartupNotReadyError(
+                "the application did not become automatable within "
+                f"{self._startup_timeout:g} seconds: {error}"
+            ) from error
         if "AXRaise" in self._action_names(window):
             self._perform_action(window, "AXRaise")
 
-    def element(self, identifier: str, *, showing: bool = True) -> MacElement:
+    def element(
+        self,
+        identifier: str,
+        *,
+        showing: bool = True,
+        timeout: float | None = None,
+    ) -> MacElement:
         try:
             raw = wait_until(
                 lambda: self._find_identifier(identifier, showing=showing),
                 lambda value: value is not None,
-                timeout=self._timeout,
+                timeout=self._timeout if timeout is None else timeout,
                 description=f"accessible identifier {identifier!r}",
             )
         except PollTimeoutError as error:

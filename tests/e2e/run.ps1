@@ -6,6 +6,8 @@ param(
 
   [double] $OperationTimeout = 15.0,
 
+  [double] $StartupTimeout = 60.0,
+
   [Parameter(ValueFromRemainingArguments = $true)]
   [string[]] $PytestArguments
 )
@@ -36,6 +38,7 @@ $Arguments = @(
   "--artifact-dir", $Artifacts,
   "--locale", $Locale,
   "--operation-timeout", $OperationTimeout,
+  "--startup-timeout", $StartupTimeout,
   "--junitxml", (Join-Path $Reports "junit.xml"),
   "--html", (Join-Path $Reports "report.html"),
   "--self-contained-html"

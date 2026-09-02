@@ -30,6 +30,10 @@ class ElementNotFoundError(LookupError):
     """Raised when a semantic element is absent after bounded polling."""
 
 
+class StartupNotReadyError(ElementNotFoundError):
+    """Raised when a launched application never becomes automatable."""
+
+
 class ActionNotSupportedError(RuntimeError):
     """Raised when an element exposes no suitable semantic action."""
 
@@ -93,12 +97,17 @@ class LinuxAtspiAdapter:
         registry: ProcessRegistry,
         artifact_directory: Path,
         timeout: float,
+        *,
+        startup_timeout: float,
     ) -> None:
         if timeout <= 0:
             raise ValueError("timeout must be positive")
+        if startup_timeout <= 0:
+            raise ValueError("startup_timeout must be positive")
         self._registry = registry
         self._artifact_directory = artifact_directory
         self._timeout = timeout
+        self._startup_timeout = startup_timeout
         self._tree: Any = None
         self._atspi: Any = None
         self._keyboard_sender: Any = None
@@ -198,6 +207,7 @@ class LinuxAtspiAdapter:
             process=process,
             artifact_directory=self._artifact_directory,
             timeout=self._timeout,
+            startup_timeout=self._startup_timeout,
         )
         try:
             session.wait_ready()
@@ -232,6 +242,7 @@ class LinuxApplicationSession:
         process: subprocess.Popen[str],
         artifact_directory: Path,
         timeout: float,
+        startup_timeout: float,
     ) -> None:
         self._tree = tree
         self._atspi = atspi
@@ -241,6 +252,7 @@ class LinuxApplicationSession:
         self._process = process
         self._artifact_directory = artifact_directory
         self._timeout = timeout
+        self._startup_timeout = startup_timeout
         self._application: Any = None
         self._progress_dialog: Any = None
         self._frame_extraction_cancel_button: Any = None
@@ -248,6 +260,9 @@ class LinuxApplicationSession:
         self._action_error_lock = threading.Lock()
 
     def wait_ready(self) -> None:
+        # Appearing in the AT-SPI tree and exposing the main window are both
+        # part of one cold start, so both get the startup budget and report
+        # as a startup failure rather than a missing element.
         def find_application() -> Any | None:
             self._ensure_running()
             try:
@@ -255,15 +270,27 @@ class LinuxApplicationSession:
             except Exception:
                 return None
 
-        self._application = wait_until(
-            find_application,
-            lambda value: value is not None,
-            timeout=self._timeout,
-            description="Edit Atlas in the AT-SPI tree",
-        )
-        self.element("mainWindow")
+        try:
+            self._application = wait_until(
+                find_application,
+                lambda value: value is not None,
+                timeout=self._startup_timeout,
+                description="Edit Atlas in the AT-SPI tree",
+            )
+            self.element("mainWindow", timeout=self._startup_timeout)
+        except (ElementNotFoundError, PollTimeoutError) as error:
+            raise StartupNotReadyError(
+                "the application did not become automatable within "
+                f"{self._startup_timeout:g} seconds: {error}"
+            ) from error
 
-    def element(self, identifier: str, *, showing: bool = True) -> Any:
+    def element(
+        self,
+        identifier: str,
+        *,
+        showing: bool = True,
+        timeout: float | None = None,
+    ) -> Any:
         if (
             identifier == "spreadsheetExportProgressDialog"
             and self._progress_dialog is not None
@@ -293,7 +320,7 @@ class LinuxApplicationSession:
             node = wait_until(
                 find,
                 lambda value: value is not None,
-                timeout=self._timeout,
+                timeout=self._timeout if timeout is None else timeout,
                 description=f"accessible identifier {identifier!r}",
             )
             if identifier == "spreadsheetExportProgressDialog":

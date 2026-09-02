@@ -50,6 +50,15 @@ def pytest_addoption(parser: pytest.Parser) -> None:
     group.addoption("--artifact-dir", type=Path, required=True)
     group.addoption("--locale", default="C.UTF-8")
     group.addoption("--operation-timeout", type=float, default=15.0)
+    # Startup is a different wait from an operation inside a running
+    # application: the process has to start, the window has to be created,
+    # and the platform accessibility tree has to become enumerable. The
+    # first launch of a run also pays costs no later launch pays, because
+    # the installer wrote the binaries moments earlier, antivirus scans
+    # them, and the accessibility provider initializes cold. Sizing that
+    # wait separately keeps a genuine element-lookup failure fast to
+    # report.
+    group.addoption("--startup-timeout", type=float, default=60.0)
 
 
 def pytest_collection_finish(session: pytest.Session) -> None:
@@ -229,23 +238,33 @@ def edit_atlas_application(
     test_state_root = state_root / request.node.name
     test_state_root.mkdir(parents=True, exist_ok=True)
     timeout = pytestconfig.getoption("operation_timeout")
+    startup_timeout = pytestconfig.getoption("startup_timeout")
     if sys.platform == "linux":
         from adapters.linux_atspi import LinuxAtspiAdapter
 
         adapter = LinuxAtspiAdapter(
-            process_registry, artifact_directory, timeout
+            process_registry,
+            artifact_directory,
+            timeout,
+            startup_timeout=startup_timeout,
         )
     elif sys.platform == "win32":
         from adapters.windows_uia import WindowsUiaAdapter
 
         adapter = WindowsUiaAdapter(
-            process_registry, artifact_directory, timeout
+            process_registry,
+            artifact_directory,
+            timeout,
+            startup_timeout=startup_timeout,
         )
     elif sys.platform == "darwin":
         from adapters.macos_ax import MacAxAdapter
 
         adapter = MacAxAdapter(
-            process_registry, artifact_directory, timeout
+            process_registry,
+            artifact_directory,
+            timeout,
+            startup_timeout=startup_timeout,
         )
     else:
         raise pytest.UsageError(

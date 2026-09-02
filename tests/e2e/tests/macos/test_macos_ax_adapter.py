@@ -2,9 +2,17 @@ from __future__ import annotations
 
 from pathlib import Path
 from threading import Event
+from time import monotonic
 from typing import Any, Callable
 
-from adapters.macos_ax import MacApplicationSession, MacElement
+import pytest
+
+from adapters.macos_ax import (
+    ElementNotFoundError,
+    MacApplicationSession,
+    MacElement,
+    StartupNotReadyError,
+)
 
 
 class Node:
@@ -106,6 +114,9 @@ def application_session(
     artifact_directory: Path,
     application: Node | None = None,
     system: Node | None = None,
+    *,
+    timeout: float = 1.0,
+    startup_timeout: float = 1.0,
 ) -> tuple[MacApplicationSession, FakeAx]:
     application = application or Node(AXRole="AXApplication")
     system = system or Node(AXRole="AXSystemWide")
@@ -116,7 +127,8 @@ def application_session(
             registry=None,
             process=RunningProcess(),
             artifact_directory=artifact_directory,
-            timeout=1.0,
+            timeout=timeout,
+            startup_timeout=startup_timeout,
         ),
         ax,
     )
@@ -311,3 +323,39 @@ def test_native_save_panel_sets_directory_and_filename(tmp_path: Path) -> None:
 
     assert path_editor.attributes["AXValue"] == str(tmp_path.resolve())
     assert filename_editor.attributes["AXValue"] == destination.name
+
+
+def test_startup_readiness_uses_the_startup_budget(tmp_path: Path) -> None:
+    # An application element with no main window stands in for a launch
+    # whose AX tree has not become usable yet.
+    session, _ = application_session(
+        tmp_path, timeout=0.05, startup_timeout=0.4
+    )
+
+    started = monotonic()
+    with pytest.raises(StartupNotReadyError) as failure:
+        session.wait_ready()
+    elapsed = monotonic() - started
+
+    # Readiness must spend the startup budget, not the operation one.
+    assert elapsed >= 0.4
+    assert "did not become automatable within 0.4 seconds" in str(
+        failure.value
+    )
+
+
+def test_element_lookup_uses_the_operation_budget(tmp_path: Path) -> None:
+    # The generous startup budget must not slow a genuine lookup failure
+    # inside an application that is already running.
+    session, _ = application_session(
+        tmp_path, timeout=0.1, startup_timeout=30.0
+    )
+
+    started = monotonic()
+    with pytest.raises(ElementNotFoundError) as failure:
+        session.element("absentIdentifier")
+    elapsed = monotonic() - started
+
+    assert elapsed < 5.0
+    assert not isinstance(failure.value, StartupNotReadyError)
+    assert "absentIdentifier" in str(failure.value)
