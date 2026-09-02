@@ -175,9 +175,6 @@ class WindowsApplicationSession:
         self._action_error_lock = threading.Lock()
 
     def wait_ready(self) -> None:
-        # Readiness gets the startup budget, and reports as its own failure
-        # so a cold or broken launch is never mistaken for a missing
-        # element in a running application.
         try:
             self.element("mainWindow", timeout=self._startup_timeout)
         except ElementNotFoundError as error:

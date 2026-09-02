@@ -260,9 +260,6 @@ class LinuxApplicationSession:
         self._action_error_lock = threading.Lock()
 
     def wait_ready(self) -> None:
-        # Appearing in the AT-SPI tree and exposing the main window are both
-        # part of one cold start, so both get the startup budget and report
-        # as a startup failure rather than a missing element.
         def find_application() -> Any | None:
             self._ensure_running()
             try:

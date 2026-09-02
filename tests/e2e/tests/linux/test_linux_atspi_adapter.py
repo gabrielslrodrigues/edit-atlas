@@ -793,8 +793,7 @@ def test_option_selection_does_not_wait_for_qt_to_hide_the_option_node(
 
 
 def test_startup_readiness_uses_the_startup_budget(tmp_path: Path) -> None:
-    # A session whose tree never yields the application stands in for a
-    # launch whose accessibility provider is still cold.
+    # A tree that never yields the application models a cold launch.
     session = application_session(
         tmp_path, timeout=0.05, startup_timeout=0.4
     )
@@ -805,7 +804,6 @@ def test_startup_readiness_uses_the_startup_budget(tmp_path: Path) -> None:
         session.wait_ready()
     elapsed = monotonic() - started
 
-    # Readiness must spend the startup budget, not the operation one.
     assert elapsed >= 0.4
     assert "did not become automatable within 0.4 seconds" in str(
         failure.value
@@ -813,8 +811,6 @@ def test_startup_readiness_uses_the_startup_budget(tmp_path: Path) -> None:
 
 
 def test_element_lookup_uses_the_operation_budget(tmp_path: Path) -> None:
-    # The generous startup budget must not slow a genuine lookup failure
-    # inside an application that is already running.
     session = application_session(
         tmp_path, timeout=0.1, startup_timeout=30.0
     )
@@ -834,8 +830,6 @@ def test_element_lookup_uses_the_operation_budget(tmp_path: Path) -> None:
 def test_element_lookup_accepts_a_longer_per_call_budget(
     tmp_path: Path,
 ) -> None:
-    # The per-call budget is what lets readiness reuse this lookup without
-    # changing how long every other lookup waits.
     session = application_session(
         tmp_path, timeout=0.05, startup_timeout=1.0
     )

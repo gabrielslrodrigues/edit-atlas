@@ -125,17 +125,13 @@ directory, isolated state root, locale, operation and startup timeouts, and
 artifact directory as explicit pytest options. Additional pytest arguments may
 follow the CLI option.
 
-Waits have two budgets, because startup and operation are different waits.
-`--operation-timeout` bounds everything done to an application already under
-automation, such as locating an element or observing a state change, so a
-genuine failure reports quickly. `--startup-timeout` bounds readiness only:
-the process starting, the window being created, and the platform
-accessibility tree becoming enumerable. The first launch of a run pays costs
-no later launch pays, since the installer wrote the binaries moments earlier,
-antivirus scans them, and the accessibility provider initializes cold, so
-readiness is given a larger budget rather than raising the operation timeout
-for every wait. A readiness failure reports as such, distinctly from an
-element that is missing from a running application.
+Waits have two budgets. `--operation-timeout` bounds anything done to an
+application already under automation, so a genuine failure reports quickly.
+`--startup-timeout` bounds readiness only: the process starting, the window
+appearing, and the accessibility tree becoming enumerable. The first launch of
+a run pays cold-start costs no later launch pays, so it gets the larger budget
+instead of every wait getting it. A readiness failure reports as
+`StartupNotReadyError`, distinct from a missing element.
 
 Menus are stateful. Activating a menu title opens it, and activating an open
 menu closes it, so a helper that reads several items from one menu must read

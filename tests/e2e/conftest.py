@@ -50,14 +50,6 @@ def pytest_addoption(parser: pytest.Parser) -> None:
     group.addoption("--artifact-dir", type=Path, required=True)
     group.addoption("--locale", default="C.UTF-8")
     group.addoption("--operation-timeout", type=float, default=15.0)
-    # Startup is a different wait from an operation inside a running
-    # application: the process has to start, the window has to be created,
-    # and the platform accessibility tree has to become enumerable. The
-    # first launch of a run also pays costs no later launch pays, because
-    # the installer wrote the binaries moments earlier, antivirus scans
-    # them, and the accessibility provider initializes cold. Sizing that
-    # wait separately keeps a genuine element-lookup failure fast to
-    # report.
     group.addoption("--startup-timeout", type=float, default=60.0)
 
 

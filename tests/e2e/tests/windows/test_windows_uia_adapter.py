@@ -657,8 +657,7 @@ def test_uia_actions_do_not_block_the_driver(tmp_path: Path) -> None:
 
 
 def test_startup_readiness_uses_the_startup_budget(tmp_path: Path) -> None:
-    # An empty desktop stands in for a launch whose UIA tree has not become
-    # enumerable yet, which is what a cold first launch looks like.
+    # A desktop with no windows models a UIA tree that is not enumerable yet.
     session = application_session(
         tmp_path,
         desktop=EmptyDesktop(),
@@ -671,7 +670,6 @@ def test_startup_readiness_uses_the_startup_budget(tmp_path: Path) -> None:
         session.wait_ready()
     elapsed = time.monotonic() - started
 
-    # Readiness must spend the startup budget, not the operation one.
     assert elapsed >= 0.4
     assert "did not become automatable within 0.4 seconds" in str(
         failure.value
@@ -679,8 +677,6 @@ def test_startup_readiness_uses_the_startup_budget(tmp_path: Path) -> None:
 
 
 def test_element_lookup_uses_the_operation_budget(tmp_path: Path) -> None:
-    # The generous startup budget must not slow a genuine lookup failure
-    # inside an application that is already running.
     session = application_session(
         tmp_path,
         desktop=EmptyDesktop(),

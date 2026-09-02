@@ -326,8 +326,7 @@ def test_native_save_panel_sets_directory_and_filename(tmp_path: Path) -> None:
 
 
 def test_startup_readiness_uses_the_startup_budget(tmp_path: Path) -> None:
-    # An application element with no main window stands in for a launch
-    # whose AX tree has not become usable yet.
+    # An application element with no main window models a cold AX tree.
     session, _ = application_session(
         tmp_path, timeout=0.05, startup_timeout=0.4
     )
@@ -337,7 +336,6 @@ def test_startup_readiness_uses_the_startup_budget(tmp_path: Path) -> None:
         session.wait_ready()
     elapsed = monotonic() - started
 
-    # Readiness must spend the startup budget, not the operation one.
     assert elapsed >= 0.4
     assert "did not become automatable within 0.4 seconds" in str(
         failure.value
@@ -345,8 +343,6 @@ def test_startup_readiness_uses_the_startup_budget(tmp_path: Path) -> None:
 
 
 def test_element_lookup_uses_the_operation_budget(tmp_path: Path) -> None:
-    # The generous startup budget must not slow a genuine lookup failure
-    # inside an application that is already running.
     session, _ = application_session(
         tmp_path, timeout=0.1, startup_timeout=30.0
     )
