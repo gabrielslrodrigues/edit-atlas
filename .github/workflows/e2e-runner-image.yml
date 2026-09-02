@@ -21,6 +21,7 @@ on:
       - scripts/ci/install-ubuntu-dependencies.sh
       - tests/e2e/linux/Containerfile
       - tests/e2e/linux/image-reference.sh
+      - tests/e2e/linux/run-provisioned.sh
       - tests/e2e/pyproject.toml
       - tests/e2e/uv.lock
   workflow_call:

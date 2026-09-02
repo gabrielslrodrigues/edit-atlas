@@ -15,9 +15,13 @@ set -euo pipefail
 script_directory="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 repository_root="$(cd -- "${script_directory}/../../.." && pwd)"
 
-#: Inputs that determine the image's contents.
+#: Inputs that determine the image's contents. Every repository file the
+#: Containerfile copies belongs here, or a change to it would produce the same
+#: tag and a stale published image would be pulled in its place. The check
+#: below enforces that rather than trusting this list to be maintained.
 image_inputs=(
   "${script_directory}/Containerfile"
+  "${script_directory}/run-provisioned.sh"
   "${repository_root}/scripts/ci/install-ubuntu-dependencies.sh"
   "${repository_root}/tests/e2e/pyproject.toml"
   "${repository_root}/tests/e2e/uv.lock"
@@ -32,6 +36,45 @@ fi
 for image_input in "${image_inputs[@]}"; do
   if [[ ! -f "${image_input}" ]]; then
     echo "Image input is missing: ${image_input}" >&2
+    exit 1
+  fi
+done
+
+# A file baked into the image but absent from the inputs above would not
+# change the tag when it changed, so a stale published image would be pulled
+# instead of a rebuilt one. That is silent and hard to diagnose, so the two
+# lists are compared here.
+while read -r copied; do
+  [[ -n "${copied}" ]] || continue
+  for image_input in "${image_inputs[@]}"; do
+    if [[ "${image_input#"${repository_root}/"}" == "${copied}" ]]; then
+      continue 2
+    fi
+  done
+  echo "The Containerfile copies ${copied}, which does not determine the" >&2
+  echo "image tag. Add it to image_inputs in $(basename "${BASH_SOURCE[0]}")." >&2
+  exit 1
+done < <(
+  awk '$1 == "COPY" && $2 !~ /^--/ {
+    for (field = 2; field < NF; field++) print $field
+  }' "${script_directory}/Containerfile"
+)
+
+# An input that determines the tag but does not trigger the publish workflow
+# names an image that was never built, so those two lists are kept in step
+# here as well.
+publish_workflow="${repository_root}/.github/workflows/e2e-runner-image.yml"
+publish_paths="$(
+  awk '/^ *paths:/ { collecting = 1; next }
+       collecting && $1 == "-" { print $2; next }
+       collecting { collecting = 0 }' "${publish_workflow}"
+)"
+for image_input in "${image_inputs[@]}"; do
+  relative="${image_input#"${repository_root}/"}"
+  if ! printf '%s\n' "${publish_paths}" | grep -qxF -- "${relative}"; then
+    echo "${relative} determines the image tag but does not trigger" >&2
+    echo "$(basename "${publish_workflow}"), so its image would never be" >&2
+    echo "published. Add it to that workflow's paths." >&2
     exit 1
   fi
 done
