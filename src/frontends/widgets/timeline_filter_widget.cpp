@@ -33,6 +33,13 @@
 
 namespace edit_atlas::frontends::widgets {
 
+namespace {
+
+// Conditions shown before the panel starts scrolling.
+constexpr std::size_t kVisibleConditionRows = 3;
+
+}  // namespace
+
 TimelineFilterWidget::TimelineFilterWidget(QWidget *parent) : QWidget{parent} {
     BuildUi();
     RetranslateUi();
@@ -87,6 +94,7 @@ void TimelineFilterWidget::SetModel(presentation::TimelineFilterModel &model) {
             [this](const QModelIndex &, int first, int) {
                 UpdateAccessibleIdentifiers();
                 UpdateRemoveButtons();
+                UpdateConditionsViewportHeight();
                 if (!rows_.empty()) {
                     conditions_layout_->activate();
                     const auto focus_row =
@@ -315,9 +323,7 @@ void TimelineFilterWidget::AddConditionRow(int model_row) {
     added.remove->setText(tr("Remove"));
     SynchronizeConditionRow(added, model_row);
     conditions_layout_->activate();
-    if (rows_.size() == 1) {
-        conditions_scroll_->setMinimumHeight(widget->sizeHint().height());
-    }
+    UpdateConditionsViewportHeight();
 }
 
 void TimelineFilterWidget::ClearConditionRows(void) {
@@ -327,6 +333,7 @@ void TimelineFilterWidget::ClearConditionRows(void) {
         row.widget->deleteLater();
     }
     rows_.clear();
+    UpdateConditionsViewportHeight();
 }
 
 void TimelineFilterWidget::RebuildConditionRows(void) {
@@ -660,6 +667,22 @@ void TimelineFilterWidget::UpdateConditionEditor(ConditionRow &row,
     row.match_case->setVisible(uses_text_options);
     row.match_whole_word->setVisible(uses_text_options);
     row.regular_expression->setVisible(uses_text_options);
+}
+
+void TimelineFilterWidget::UpdateConditionsViewportHeight(void) {
+    if (rows_.empty()) {
+        conditions_scroll_->setMinimumHeight(0);
+        return;
+    }
+    // Show the conditions rather than a one-row viewport the reader has to
+    // scroll, while staying bounded so a long filter cannot push the event
+    // table off screen.
+    const auto row_height = rows_.front().widget->sizeHint().height();
+    const auto spacing = conditions_layout_->spacing();
+    const auto visible = std::min(rows_.size(), kVisibleConditionRows);
+    const auto rows = static_cast<int>(visible);
+    conditions_scroll_->setMinimumHeight(rows * row_height +
+                                         (rows - 1) * spacing);
 }
 
 void TimelineFilterWidget::UpdateRemoveButtons(void) {

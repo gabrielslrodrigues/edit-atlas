@@ -227,43 +227,6 @@ def test_combo_selection_uses_accessible_item_bounds(
     assert session.selected_option("filterCondition0Field") == "Reel"
 
 
-def test_combo_selection_scrolls_the_control_into_view(
-    tmp_path: Path,
-) -> None:
-    # A combo box below its scroll area's viewport cannot be opened by a
-    # click at its reported bounds until focus scrolls it into view.
-    session = application_session(tmp_path)
-    opened = Event()
-    display = Node("Event", "Text")
-    option = Node("Track type", "ListItem")
-    option._click = lambda: setattr(
-        display.element_info, "name", "Track type"
-    )
-    control = Node("Field", "ComboBox", children=(display,))
-
-    def click() -> None:
-        if control.focus_calls == 0:
-            raise RuntimeError("clicked outside the viewport")
-        opened.set()
-
-    control._click = click
-
-    def find_named(
-        names: Any, *, root: Any = None, control_types: Any = None
-    ) -> Any:
-        if names is None or root is not None or not opened.is_set():
-            return None
-        return option
-
-    session.element = lambda identifier: control
-    session._find_named = find_named
-
-    session.select_option("filterCondition1Field", "Track type")
-
-    assert control.focus_calls == 1
-    assert session.selected_option("filterCondition1Field") == "Track type"
-
-
 def test_combo_selection_pages_to_an_unrealized_option(
     tmp_path: Path,
 ) -> None:

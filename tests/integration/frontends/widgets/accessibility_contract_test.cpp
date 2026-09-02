@@ -36,6 +36,7 @@
 #include <QPoint>
 #include <QPointF>
 #include <QPushButton>
+#include <QRect>
 #include <QScrollArea>
 #include <QScrollBar>
 #include <QSet>
@@ -528,6 +529,52 @@ TEST(AccessibilityContractTest,
     EXPECT_EQ(FindByAccessibleIdentifier<QWidget>(
                   view, QStringLiteral("filterCondition1")),
               nullptr);
+}
+
+TEST(AccessibilityContractTest, ShowsASecondFilterConditionUnscrolled) {
+    TimelineDocumentView view;
+    presentation::TimelineFilterModel filter_model;
+    view.SetFilterModel(filter_model);
+    const auto document = Document();
+    presentation::TimelineEventModel event_model;
+    event_model.SetDocument(&document);
+    view.SetEventModel(event_model);
+    view.ShowTimeline(document, QStringLiteral("timeline.edl"), {});
+    view.resize(700, 360);
+    view.show();
+    view.SetFilterQuery(services::TimelineFilterQuery{
+        .combination = services::TimelineFilterCombination::kAll,
+        .conditions =
+            {
+                services::TimelineTextFilterCondition{
+                    .field = services::TimelineTextFilterField::kComments,
+                    .text = "dialogue",
+                    .match_case = false,
+                    .match_whole_word = false,
+                    .regular_expression = false,
+                },
+                services::TimelineTrackKindFilterCondition{
+                    .track_kind = core::TrackKind::kAudio,
+                },
+            },
+    });
+
+    auto *scroll = FindByAccessibleIdentifier<QScrollArea>(
+        view, QStringLiteral("filterConditionsScrollArea"));
+    ASSERT_NE(scroll, nullptr);
+    auto *second = FindByAccessibleIdentifier<QComboBox>(
+        view, QStringLiteral("filterCondition1Field"));
+    ASSERT_NE(second, nullptr);
+
+    // A viewport sized for one row left the second condition reachable
+    // only by scrolling, which pointer input cannot discover: a click at
+    // the control's reported bounds landed outside the viewport.
+    EXPECT_TRUE(WaitUntil([scroll, second](void) {
+        const QRect row{second->mapTo(scroll->viewport(), QPoint{0, 0}),
+                        second->size()};
+        return scroll->verticalScrollBar()->maximum() == 0 &&
+               scroll->viewport()->rect().contains(row);
+    }));
 }
 
 TEST(AccessibilityContractTest, PersistsLanguageWithoutChangingIdentifiers) {
