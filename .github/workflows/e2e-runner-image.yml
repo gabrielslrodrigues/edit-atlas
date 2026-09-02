@@ -1,0 +1,86 @@
+name: E2E runner image
+
+# Publishes the Linux packaged E2E runner image. The image holds only the
+# pinned Ubuntu environment the suite runs in: it never contains Edit Atlas,
+# and ordinary runs supply the package and fixtures as inputs.
+#
+# Its tag is derived from the inputs that determine its contents, so a run that
+# needs the image asks for a tag that either already exists or is built here
+# once. Ordinary packaged E2E runs never rebuild it.
+
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - .github/workflows/e2e-runner-image.yml
+      - scripts/ci/install-ubuntu-dependencies.sh
+      - tests/e2e/linux/Containerfile
+      - tests/e2e/linux/image-reference.sh
+      - tests/e2e/pyproject.toml
+      - tests/e2e/uv.lock
+  workflow_call:
+    outputs:
+      image:
+        description: Reference of the runner image for this checkout
+        value: ${{ jobs.publish.outputs.image }}
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: e2e-runner-image-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    name: Publish the Linux E2E runner image
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      packages: write
+    outputs:
+      image: ${{ steps.reference.outputs.image }}
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v7.0.1
+
+      - name: Resolve the image reference
+        id: reference
+        run: |
+          image="$(tests/e2e/linux/image-reference.sh)"
+          echo "image=${image}" >> "$GITHUB_OUTPUT"
+          echo "Runner image: ${image}"
+
+      - name: Log in to the container registry
+        uses: docker/login-action@74a5d142397b4f367a81961eba4e8cd7edddf772
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # Rebuilding an existing tag would waste a run and republish identical
+      # contents under the same name, so an image that is already published is
+      # left alone.
+      - name: Check whether the image is already published
+        id: existing
+        run: |
+          if docker manifest inspect "${{ steps.reference.outputs.image }}" \
+            >/dev/null 2>&1; then
+            echo "published=true" >> "$GITHUB_OUTPUT"
+            echo "The runner image is already published."
+          else
+            echo "published=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Build and publish the runner image
+        if: steps.existing.outputs.published != 'true'
+        run: |
+          docker build \
+            --file tests/e2e/linux/Containerfile \
+            --platform linux/amd64 \
+            --tag "${{ steps.reference.outputs.image }}" \
+            .
+          docker push "${{ steps.reference.outputs.image }}"
