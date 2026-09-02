@@ -16,42 +16,33 @@ jobs:
     name: Linux / ${{ inputs.frontend }} frontend
     runs-on: ubuntu-24.04
     timeout-minutes: 30
+    permissions:
+      contents: read
+      packages: read
 
     steps:
       - name: Check out source
         uses: actions/checkout@v7.0.1
 
-      - name: Install desktop automation dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install \
-            --yes \
-            --no-install-recommends \
-            at-spi2-core \
-            build-essential \
-            dbus-x11 \
-            gir1.2-atspi-2.0 \
-            gir1.2-gtk-3.0 \
-            libcairo2-dev \
-            libgirepository1.0-dev \
-            locales \
-            pkg-config \
-            python3-dev \
-            x11-apps \
-            xauth \
-            xvfb
-          sudo locale-gen pt_BR.UTF-8
-
-      - name: Install uv
-        uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
+      # A pull request from a fork receives a token that cannot read the
+      # registry. Logging in is skipped there, and the provisioner builds the
+      # runner image locally, which is its documented fallback rather than a
+      # failure. Once the published package is public the login is redundant
+      # for pulling, and it is kept so a private package also works.
+      - name: Log in to the container registry
+        if: github.event_name != 'pull_request' || !github.event.pull_request.head.repo.fork
+        continue-on-error: true
+        uses: docker/login-action@74a5d142397b4f367a81961eba4e8cd7edddf772
         with:
-          version: 0.12.3
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Download Linux package
         uses: actions/download-artifact@v8
         with:
           name: ${{ inputs.frontend }}-frontend-x64-linux-packages
-          path: build/packages/${{ inputs.frontend }}/x64-linux
+          path: build/packages
 
       - name: Download rendered-video E2E fixtures
         uses: actions/download-artifact@v8
@@ -59,44 +50,36 @@ jobs:
           name: edit-atlas-e2e-media-fixtures
           path: build/e2e/media-fixtures
 
-      - name: Install generated DEB
-        shell: bash
-        env:
-          EDIT_ATLAS_FRONTEND: ${{ inputs.frontend }}
-        run: |
-          package_directory="${GITHUB_WORKSPACE}/build/packages"
-          package_directory+="/${EDIT_ATLAS_FRONTEND}/x64-linux"
-          mapfile -t packages < <(
-            find "$package_directory" -type f -name '*.deb'
-          )
-          if [[ "${#packages[@]}" -ne 1 ]]; then
-            echo "Expected exactly one DEB, found ${#packages[@]}" >&2
-            exit 1
-          fi
-          sudo apt-get install --yes "${packages[0]}"
-
+      # The container shares the host kernel, so a core pattern set here also
+      # governs processes inside it. Setting it on the runner is what keeps
+      # crash collection working now that the suite runs in a container, which
+      # cannot change the pattern itself.
       - name: Configure Linux crash dumps
-        shell: bash
         run: |
           dump_directory="${GITHUB_WORKSPACE}/build/e2e/crash-dumps"
           mkdir -p "$dump_directory"
-          cat /proc/sys/kernel/core_pattern >build/e2e/original-core-pattern
           sudo sysctl -w \
             "kernel.core_pattern=${dump_directory}/core.%e.%p.%t"
 
+      # The provisioner a developer runs, unchanged, consuming the runner image
+      # published for this checkout. Environment differences between a local
+      # run and this one are therefore differences in the image reference,
+      # which both sides derive from the same files. The package and fixtures
+      # are supplied as inputs; nothing is built or packaged here.
       - name: Run packaged CLI and desktop E2E tests
-        shell: bash
-        env:
-          GSETTINGS_BACKEND: memory
         run: |
-          ulimit -c unlimited
-          dbus-run-session -- \
-            xvfb-run \
-            --auto-servernum \
-            --server-args="-screen 0 1440x1000x24 -nolisten tcp" \
-            tests/e2e/run-linux.sh \
-            --app /usr/bin/edit-atlas \
-            --cli /usr/bin/edit-atlas-cli
+          package="$(
+            find build/packages -type f -name '*.deb' -print -quit
+          )"
+          if [[ -z "${package}" ]]; then
+            echo "No Linux package was downloaded." >&2
+            exit 1
+          fi
+          tests/e2e/provision-linux.sh \
+            --runtime docker \
+            --package "${package}" \
+            --media-fixture-dir build/e2e/media-fixtures \
+            --artifact-dir build/e2e
 
       - name: Upload Linux E2E reports and artifacts
         if: always()
@@ -110,17 +93,6 @@ jobs:
             build/e2e/output
           if-no-files-found: ignore
           retention-days: 7
-
-      - name: Remove installed package
-        if: always()
-        run: |
-          if [[ -f build/e2e/original-core-pattern ]]; then
-            sudo sysctl -w \
-              "kernel.core_pattern=$(<build/e2e/original-core-pattern)"
-          fi
-          if dpkg-query --show edit-atlas >/dev/null 2>&1; then
-            sudo apt-get remove --yes edit-atlas
-          fi
 
   macos:
     # GitHub-hosted macOS runners cannot grant Accessibility permission to the
@@ -229,11 +201,6 @@ jobs:
       - name: Check out source
         uses: actions/checkout@v7.0.1
 
-      - name: Install uv
-        uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
-        with:
-          version: 0.12.3
-
       - name: Download Windows package
         uses: actions/download-artifact@v8
         with:
@@ -246,109 +213,27 @@ jobs:
           name: edit-atlas-e2e-media-fixtures
           path: build/e2e/media-fixtures
 
-      - name: Install generated MSI
+      # The harness a Windows Sandbox runs, invoked directly because a hosted
+      # runner is already a disposable VM. Dependency installation, MSI
+      # installation, crash configuration, suite invocation, cleanup, and exit
+      # status therefore behave identically on both sides; only the OS image
+      # differs, which this epic accepts for Windows.
+      - name: Run packaged CLI and desktop E2E tests
         shell: pwsh
-        env:
-          EDIT_ATLAS_FRONTEND: ${{ inputs.frontend }}
         run: |
-          $packageDirectory = Join-Path `
-            "build/packages" "$env:EDIT_ATLAS_FRONTEND/x64-windows"
           $packages = @(
-            Get-ChildItem $packageDirectory -Recurse -File -Filter *.msi
+            Get-ChildItem build/packages -Recurse -File -Filter *.msi
           )
           if ($packages.Count -ne 1) {
             throw "Expected exactly one MSI; found $($packages.Count)."
           }
-          $installer = $packages[0].FullName
-          $installRoot = Join-Path $env:GITHUB_WORKSPACE "build/e2e/install"
-          $installLog = Join-Path $env:GITHUB_WORKSPACE "build/e2e/msi-install.log"
-          New-Item -ItemType Directory -Force (Split-Path $installLog) |
-            Out-Null
-          "EDIT_ATLAS_E2E_MSI=$installer" | Out-File `
-            -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
-          "EDIT_ATLAS_E2E_INSTALL_ROOT=$installRoot" | Out-File `
-            -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
-          $process = Start-Process `
-            -FilePath msiexec.exe `
-            -ArgumentList @(
-              "/i", "`"$installer`"", "/qn", "/norestart", "/L*V",
-              "`"$installLog`"", "INSTALL_ROOT=`"$installRoot`""
-            ) `
-            -PassThru `
-            -Wait
-          if ($process.ExitCode -notin @(0, 3010)) {
-            throw "MSI installation failed with exit code $($process.ExitCode)."
-          }
-
-      - name: Configure Windows crash dumps
-        shell: pwsh
-        run: |
-          $dumpDirectory = Join-Path `
-            $env:GITHUB_WORKSPACE "build/e2e/crash-dumps"
-          New-Item -ItemType Directory -Force $dumpDirectory | Out-Null
-          $registryRoot = `
-            "HKCU:\Software\Microsoft\Windows\Windows Error Reporting\LocalDumps"
-          foreach ($executable in @("edit-atlas.exe", "edit-atlas-cli.exe")) {
-            $registryPath = Join-Path $registryRoot $executable
-            New-Item -Path $registryPath -Force | Out-Null
-            New-ItemProperty `
-              -Path $registryPath `
-              -Name DumpFolder `
-              -PropertyType ExpandString `
-              -Value $dumpDirectory `
-              -Force | Out-Null
-            New-ItemProperty `
-              -Path $registryPath `
-              -Name DumpType `
-              -PropertyType DWord `
-              -Value 2 `
-              -Force | Out-Null
-            New-ItemProperty `
-              -Path $registryPath `
-              -Name DumpCount `
-              -PropertyType DWord `
-              -Value 5 `
-              -Force | Out-Null
-          }
-
-      - name: Run packaged CLI and desktop E2E tests
-        shell: pwsh
-        run: |
-          tests/e2e/run-windows.ps1 `
-            -App "$env:EDIT_ATLAS_E2E_INSTALL_ROOT/bin/edit-atlas.exe" `
-            -Cli "$env:EDIT_ATLAS_E2E_INSTALL_ROOT/bin/edit-atlas-cli.exe"
-
-      - name: Remove installed package and test state
-        if: always()
-        shell: pwsh
-        run: |
-          Get-Process -Name edit-atlas -ErrorAction SilentlyContinue |
-            Stop-Process -Force -ErrorAction SilentlyContinue
-          if ($env:EDIT_ATLAS_E2E_MSI) {
-            $uninstallLog = Join-Path `
-              $env:GITHUB_WORKSPACE "build/e2e/msi-uninstall.log"
-            $process = Start-Process `
-              -FilePath msiexec.exe `
-              -ArgumentList @(
-                "/x", "`"$env:EDIT_ATLAS_E2E_MSI`"", "/qn", "/norestart",
-                "/L*V", "`"$uninstallLog`""
-              ) `
-              -PassThru `
-              -Wait
-            if ($process.ExitCode -notin @(0, 3010)) {
-              throw "MSI uninstall failed with exit code $($process.ExitCode)."
-            }
-          }
-          $registryRoot = `
-            "HKCU:\Software\Microsoft\Windows\Windows Error Reporting\LocalDumps"
-          foreach ($executable in @("edit-atlas.exe", "edit-atlas-cli.exe")) {
-            Remove-Item `
-              (Join-Path $registryRoot $executable) `
-              -Recurse `
-              -Force `
-              -ErrorAction SilentlyContinue
-          }
-          Remove-Item build/e2e/state -Recurse -Force -ErrorAction SilentlyContinue
+          tests/e2e/windows/run-provisioned.ps1 `
+            -RepositoryRoot $env:GITHUB_WORKSPACE `
+            -ArtifactRoot (Join-Path $env:GITHUB_WORKSPACE "build/e2e") `
+            -Msi $packages[0].FullName `
+            -MediaFixtureDir (
+              Join-Path $env:GITHUB_WORKSPACE "build/e2e/media-fixtures"
+            )
 
       - name: Upload Windows E2E reports and artifacts
         if: always()

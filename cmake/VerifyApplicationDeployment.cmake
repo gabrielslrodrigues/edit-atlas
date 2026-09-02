@@ -153,6 +153,27 @@ if(LINUX)
         "${edit_atlas_cli_dependencies}"
     )
 
+    # Every library the application needs must be bundled or genuinely
+    # supplied by the target system. A compiler runtime such as Clang's
+    # OpenMP library sits in a system directory on the build host and is
+    # absent everywhere else, so it resolves during the build and then fails
+    # to load on a user's machine. Checked for both frontends, because the
+    # equivalent QML-plugin check below runs only for Qt Quick.
+    file(
+        GET_RUNTIME_DEPENDENCIES
+        EXECUTABLES "${EDIT_ATLAS_EXECUTABLE}"
+        DIRECTORIES "${edit_atlas_private_runtime_directory}"
+        RESOLVED_DEPENDENCIES_VAR edit_atlas_application_resolved
+        UNRESOLVED_DEPENDENCIES_VAR edit_atlas_application_unresolved
+    )
+    if(edit_atlas_application_unresolved)
+        message(
+            FATAL_ERROR
+            "The staged application has unresolved runtime dependencies: "
+            "${edit_atlas_application_unresolved}"
+        )
+    endif()
+
     if(EDIT_ATLAS_VERIFY_PRIVATE_RUNTIME_BOUNDARY)
         get_filename_component(
             edit_atlas_public_runtime_directory

@@ -6,13 +6,16 @@ param(
 
   [double] $OperationTimeout = 15.0,
 
+  [double] $StartupTimeout = 60.0,
+
   [Parameter(ValueFromRemainingArguments = $true)]
   [string[]] $PytestArguments
 )
 
 $ErrorActionPreference = "Stop"
 $ScriptDirectory = Split-Path -Parent $MyInvocation.MyCommand.Path
-$RepositoryRoot = (Resolve-Path (Join-Path $ScriptDirectory "../..")).Path
+$RepositoryRoot =
+  (Resolve-Path (Join-Path $ScriptDirectory "../..")).ProviderPath
 $E2eRoot = Join-Path $RepositoryRoot "build/e2e"
 $VirtualEnvironment = Join-Path $E2eRoot "venv"
 
@@ -36,6 +39,7 @@ $Arguments = @(
   "--artifact-dir", $Artifacts,
   "--locale", $Locale,
   "--operation-timeout", $OperationTimeout,
+  "--startup-timeout", $StartupTimeout,
   "--junitxml", (Join-Path $Reports "junit.xml"),
   "--html", (Join-Path $Reports "report.html"),
   "--self-contained-html"
