@@ -57,13 +57,13 @@ The isolation mechanism is necessarily platform-specific:
 
 | Platform | Required environment | Implementation status |
 | --- | --- | --- |
-| Linux | Disposable OCI container with Xvfb and a session D-Bus | Tracked by #163 |
-| Windows | Virtual machine with an automatically logged-on interactive desktop | Tracked by #165; host dependencies are tracked by #164 |
+| Linux | Disposable OCI container with Xvfb and a session D-Bus | Implemented by `provision-linux.sh` |
+| Windows | Disposable interactive desktop, locally through Windows Sandbox | Dependencies installed; execution tracked by #165 |
 | macOS | Persistent host or virtual machine on Apple hardware, with Accessibility approval for its interactive test user | Tracked by #166 |
 
-Until those implementations land, each provisioning command exits immediately
-with the missing mechanism and documentation reference. This is intentional:
-partial host setup would violate the isolation contract. The lower-level
+Where an implementation has not landed, the provisioning command exits
+immediately with the missing mechanism and a documentation reference. This is
+intentional: partial host setup would violate the isolation contract. The lower-level
 `run-linux.sh`, `run-windows.ps1`, and `run-macos.sh` commands remain available
 for already prepared environments and keep their existing interfaces.
 
@@ -238,6 +238,30 @@ pywinauto's UIA backend. It uses UIA Invoke, Toggle, Selection, Value, and
 ExpandCollapse patterns and native file-dialog controls. It does not use
 pointer coordinates, image matching, synthesized keyboard input, or fixed
 sleeps.
+
+Install the project-owned dependencies first. The script is idempotent, and
+is the same one the hosted CI job runs, so a local environment and CI prepare
+themselves from one contract:
+
+```powershell
+scripts/ci/install-windows-dependencies.ps1
+```
+
+It installs only what is needed to install the MSI and execute the suite,
+which today is `uv` at the version `tests/e2e/pyproject.toml` requires. Python
+itself is provisioned by uv from the committed lockfile.
+
+Four things remain environmental rather than installed, and are reported by
+the script rather than provided by it:
+
+- Windows, with PowerShell 7 or later.
+- An interactive desktop session. UI Automation drives a real desktop, so a
+  service, a session-isolated context, or a Server Core container cannot run
+  the GUI suite.
+- The build toolchain, when packages are produced on the same machine. The
+  compiler, Windows SDK, and CMake come from the selected image or from the
+  build workflow's own actions; this script installs no build tooling.
+- A generated MSI and rendered-video fixtures, which are produced elsewhere.
 
 Install the MSI into a private directory, then run the complete required suite
 from an interactive PowerShell desktop session:
