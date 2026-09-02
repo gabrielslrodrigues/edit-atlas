@@ -3,10 +3,13 @@
 Interactions in this module use UIA control patterns, except for Windows'
 native file chooser. Its blocking modal UIA provider exposes neither its
 filename field nor accept button, so the adapter types into the field that the
-operating system focuses when the chooser opens. Qt combo controls and items
-use pointer input derived from their accessible bounds because Qt does not
-commit desktop ExpandCollapse or SelectionItem actions. Explicit coordinates
-and image matching are absent.
+operating system focuses when the chooser opens. A combo box is selected
+through its items' patterns when the provider exposes them while collapsed,
+and otherwise by pointer input at the accessible bounds of an item in its
+popup, because Qt does not commit desktop ExpandCollapse or SelectionItem
+actions. A native popup realizes only the items in its viewport, so it is
+paged like any virtualized list. Explicit coordinates and image matching are
+absent.
 """
 
 from __future__ import annotations
@@ -314,9 +317,7 @@ class WindowsApplicationSession:
             return
 
         if control_type == "ComboBox":
-            self._select_combo_option_by_accessible_click(
-                control, identifier, option
-            )
+            self._select_combo_option(control, identifier, option)
             return
 
         options = self._option_nodes(control)
@@ -637,7 +638,12 @@ class WindowsApplicationSession:
         )
 
     def _select_option_node(
-        self, control: Any, target: Any, option: str
+        self,
+        control: Any,
+        target: Any,
+        option: str,
+        *,
+        timeout: float | None = None,
     ) -> bool:
         invoke = self._pattern(target, "iface_invoke")
         if invoke is not None:
@@ -645,7 +651,7 @@ class WindowsApplicationSession:
             wait_until(
                 completed.is_set,
                 lambda value: value,
-                timeout=self._timeout,
+                timeout=self._timeout if timeout is None else timeout,
                 description=f"menu option {option!r} invocation to complete",
             )
             self._ensure_running()
@@ -653,7 +659,9 @@ class WindowsApplicationSession:
         selection = self._pattern(target, "iface_selection_item")
         if selection is not None:
             self._execute_pattern(selection.Select, target)
-            self._wait_selected_option_for(control, target, option)
+            self._wait_selected_option_for(
+                control, target, option, timeout=timeout
+            )
             return True
         toggle = self._pattern(target, "iface_toggle")
         if toggle is not None:
@@ -661,26 +669,36 @@ class WindowsApplicationSession:
             return True
         return False
 
-    def _select_combo_option_by_accessible_click(
+    def _select_combo_option(
         self, control: Any, identifier: str, option: str
     ) -> None:
+        # A provider that exposes its items while collapsed can be selected
+        # without the popup, which no scroll position can then affect. Qt
+        # Quick's in-scene popup is such a provider. Qt does not always
+        # commit the action, so a selection that does not take effect falls
+        # through to the popup rather than failing.
+        direct = self._named_node(self._option_nodes(control), option)
+        if direct is not None:
+            # A committed selection is observable at once, so this is bounded
+            # briefly: the cost of the attempt is paid before every fallback.
+            budget = min(2.0, self._timeout)
+            try:
+                if self._select_option_node(
+                    control, direct, option, timeout=budget
+                ):
+                    self._wait_selected_option_for(
+                        control, direct, option, timeout=budget
+                    )
+                    return
+            except (ActionNotSupportedError, PollTimeoutError):
+                pass
+
         self._click_accessible_node(control, identifier)
-
-        def find_option() -> Any | None:
-            target = self._find_named(
-                (option,), root=control, control_types=("ListItem",)
-            )
-            if target is not None:
-                return target
-            return self._find_named(
-                (option,), control_types=("ListItem",)
-            )
-
         target = wait_until(
-            find_option,
+            lambda: self._reveal_combo_option(control, option),
             lambda value: value is not None,
             timeout=self._timeout,
-            description=f"showing combo box option {option!r} for {identifier!r}",
+            description=f"combo box option {option!r} for {identifier!r}",
         )
         try:
             target.click_input()
@@ -689,6 +707,45 @@ class WindowsApplicationSession:
                 f"combo box option {option!r} could not be clicked: {error}"
             ) from error
         self._wait_selected_option_for(control, target, option)
+
+    def _reveal_combo_option(self, control: Any, option: str) -> Any | None:
+        target = self._find_combo_option(control, option)
+        if target is not None:
+            return target
+
+        # A native combo popup is a separate window that realizes only the
+        # items inside its viewport, so an option below the fold is absent
+        # from the UIA tree however long the wait. Page it the way a
+        # virtualized list is paged instead of depending on where the
+        # control sits on screen.
+        popup = self._combo_popup_list(control)
+        if popup is None:
+            return None
+        for _ in range(self._MAX_LIST_PAGES):
+            if not self._page_list(popup, "down"):
+                return None
+            target = self._find_combo_option(control, option)
+            if target is not None:
+                return target
+        return None
+
+    def _find_combo_option(self, control: Any, option: str) -> Any | None:
+        for root in (control, None):
+            target = self._find_named(
+                (option,), root=root, control_types=("ListItem",)
+            )
+            if target is not None:
+                return target
+        return None
+
+    def _combo_popup_list(self, control: Any) -> Any | None:
+        for root in (control, None):
+            popup = self._find_named(
+                None, root=root, control_types=("List",)
+            )
+            if popup is not None:
+                return popup
+        return None
 
     @staticmethod
     def _click_accessible_node(node: Any, description: str) -> None:
@@ -700,7 +757,12 @@ class WindowsApplicationSession:
             ) from error
 
     def _wait_selected_option_for(
-        self, control: Any, target: Any, expected: str
+        self,
+        control: Any,
+        target: Any,
+        expected: str,
+        *,
+        timeout: float | None = None,
     ) -> None:
         selection = self._pattern(target, "iface_selection_item")
 
@@ -719,7 +781,7 @@ class WindowsApplicationSession:
             lambda state: self._normalized_name(state[0])
             == self._normalized_name(expected)
             or state[1],
-            timeout=self._timeout,
+            timeout=self._timeout if timeout is None else timeout,
             description=f"option {expected!r} to become selected",
         )
 
@@ -1039,12 +1101,16 @@ class WindowsApplicationSession:
 
     def _find_named(
         self,
-        names: Sequence[str],
+        names: Sequence[str] | None,
         *,
         root: Any | None = None,
         control_types: Sequence[str] | None = None,
     ) -> Any | None:
-        candidates = {self._normalized_name(name) for name in names}
+        candidates = (
+            None
+            if names is None
+            else {self._normalized_name(name) for name in names}
+        )
         valid_types = None if control_types is None else set(control_types)
         roots = (root,) if root is not None else tuple(reversed(self._windows()))
         for candidate_root in roots:
@@ -1097,12 +1163,16 @@ class WindowsApplicationSession:
     def _named_node_matches(
         self,
         node: Any,
-        candidates: set[str],
+        candidates: set[str] | None,
         valid_types: set[str] | None,
     ) -> bool:
         try:
             return (
-                self._normalized_name(self._node_name(node)) in candidates
+                (
+                    candidates is None
+                    or self._normalized_name(self._node_name(node))
+                    in candidates
+                )
                 and (
                     valid_types is None
                     or self._control_type(node) in valid_types
