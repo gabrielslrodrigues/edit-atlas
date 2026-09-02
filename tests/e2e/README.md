@@ -59,14 +59,14 @@ The isolation mechanism is necessarily platform-specific:
 | --- | --- | --- |
 | Linux | Disposable OCI container with Xvfb and a session D-Bus | Implemented by `provision-linux.sh` |
 | Windows | Disposable interactive desktop, locally through Windows Sandbox | Implemented by `provision-windows.ps1` |
-| macOS | Persistent host or virtual machine on Apple hardware, with Accessibility approval for its interactive test user | Tracked by #166 |
+| macOS | Persistent host or virtual machine on Apple hardware, with Accessibility approval for its interactive test user | Boundary defined; no runner provided |
 
-Where an implementation has not landed, which is macOS alone, the provisioning
-command exits immediately with the missing mechanism and a documentation
-reference. This is intentional: partial host setup would violate the isolation
-contract. The lower-level `run-linux.sh`, `run-windows.ps1`, and
-`run-macos.sh` commands remain available for already prepared environments and
-keep their existing interfaces.
+Where no environment is available, which is macOS alone, the provisioning
+command exits immediately with the missing requirement and a documentation
+reference, without changing the host. This is intentional: partial host setup
+would violate the isolation contract. The lower-level `run-linux.sh`,
+`run-windows.ps1`, and `run-macos.sh` commands remain available for already
+prepared environments and keep their existing interfaces.
 
 ## Running packaged tests
 
@@ -390,17 +390,45 @@ macOS requires the process driving the Accessibility API to be approved under
 to the interactive user's protected privacy database and cannot be granted
 reliably to a test process on a fresh, non-interactive GitHub-hosted runner.
 
+The host must therefore be Apple hardware, either a persistent machine or a
+virtual machine, logged into an Aqua session as a test user who has granted
+that approval. `provision-macos.sh` exists for symmetry with the other
+platforms and fails immediately with this requirement, changing nothing,
+because a partially prepared host would install the package outside any
+isolation.
+
+Approval is recorded against a specific executable, by path and code-signature
+identity, and it is the Python interpreter driving the suite that needs it, not
+Edit Atlas. That is why the automation executable must be pinned: anything
+that replaces the interpreter binary revokes the approval in practice, and the
+suite then fails its preflight rather than running untrusted. In particular it
+is invalidated by a uv-managed Python upgrade, a lockfile change that resolves
+a different interpreter, recreating the virtual environment at another path,
+re-signing or replacing the binary, and, in some cases, a macOS upgrade. Each
+requires re-approval by the interactive user before the suite can run again.
+
 The CI workflow contains the scheduled/manual-only
 `e2e-macos-package` job so the intended package dependency and experimental,
 non-blocking status remain explicit. A constant-false guard keeps the job
 skipped. The complete installation, test, artifact-upload, and teardown steps
 remain in the job so it can be enabled without reconstructing the workflow.
-Enabling it requires:
 
-- a persistent interactive macOS runner whose test user has granted
-  Accessibility permission to the pinned automation executable;
-- confirmation that the runner remains trusted after dependency or executable
-  updates.
+The guard may be removed once, and only once, all of the following hold, since
+removing it earlier would make a required check depend on an environment that
+cannot satisfy it:
+
+- a runner on Apple hardware is registered to this repository and stays
+  logged into an Aqua session across reboots;
+- its test user has granted Accessibility approval to the pinned automation
+  executable, and that approval survives the dependency updates listed above,
+  or the runner's setup re-grants it deliberately;
+- the packaged suite has passed on that runner by hand, against a generated
+  universal PKG, so the packaged AX path is known to work rather than assumed;
+- crash-report collection and package removal have been confirmed on it, so a
+  failure leaves diagnosable artifacts and no installed package.
+
+Until then the job stays disabled and macOS makes no execution or parity
+claim: the package-verification jobs are what cover macOS in CI.
 
 After installing the universal PKG, run the complete suite from that trusted
 interactive session:
