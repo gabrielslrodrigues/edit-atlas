@@ -17,9 +17,27 @@ param(
 
 $ErrorActionPreference = "Stop"
 $ScriptDirectory = Split-Path -Parent $MyInvocation.MyCommand.Path
-$RepositoryRoot = (Resolve-Path (Join-Path $ScriptDirectory "../..")).Path
-$E2eRoot = Join-Path $RepositoryRoot "build/e2e"
-$VirtualEnvironment = Join-Path $E2eRoot "venv"
+$RepositoryRoot = [IO.Path]::GetFullPath(
+  (Resolve-Path (Join-Path $ScriptDirectory "../..")).ProviderPath
+)
+
+# A provisioned environment maps the repository read-only, so the writable
+# roots are overridable, using the same variables as run-linux.sh.
+$E2eRoot = if ($env:EDIT_ATLAS_E2E_ROOT) {
+  $env:EDIT_ATLAS_E2E_ROOT
+} else {
+  Join-Path $RepositoryRoot "build/e2e"
+}
+$MediaFixtureDirectory = if ($env:EDIT_ATLAS_E2E_MEDIA_FIXTURE_DIR) {
+  $env:EDIT_ATLAS_E2E_MEDIA_FIXTURE_DIR
+} else {
+  Join-Path $E2eRoot "media-fixtures"
+}
+$VirtualEnvironment = if ($env:EDIT_ATLAS_E2E_VIRTUAL_ENVIRONMENT) {
+  $env:EDIT_ATLAS_E2E_VIRTUAL_ENVIRONMENT
+} else {
+  Join-Path $E2eRoot "venv"
+}
 
 if (-not (Get-Command uv -ErrorAction SilentlyContinue)) {
   throw "uv is required to run the Windows E2E suite"
@@ -42,13 +60,14 @@ $Arguments = @(
   "--app", $App,
   "--cli", $Cli,
   "--fixture-dir", (Join-Path $RepositoryRoot "tests/fixtures/cmx3600"),
-  "--media-fixture-dir", (Join-Path $E2eRoot "media-fixtures"),
+  "--media-fixture-dir", $MediaFixtureDirectory,
   "--output-dir", $Output,
   "--state-root", (Join-Path $E2eRoot "state"),
   "--artifact-dir", $Artifacts,
   "--locale", $Locale,
   "--operation-timeout", $OperationTimeout,
   "--startup-timeout", $StartupTimeout,
+  "-o", "cache_dir=$(Join-Path $E2eRoot 'pytest-cache')",
   "--junitxml", (Join-Path $Reports "junit.xml"),
   "--html", (Join-Path $Reports "report.html"),
   "--self-contained-html"

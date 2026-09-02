@@ -58,14 +58,15 @@ The isolation mechanism is necessarily platform-specific:
 | Platform | Required environment | Implementation status |
 | --- | --- | --- |
 | Linux | Disposable OCI container with Xvfb and a session D-Bus | Implemented by `provision-linux.sh` |
-| Windows | Disposable interactive desktop, locally through Windows Sandbox | Dependencies installed; execution tracked by #165 |
+| Windows | Disposable interactive desktop, locally through Windows Sandbox | Implemented by `provision-windows.ps1` |
 | macOS | Persistent host or virtual machine on Apple hardware, with Accessibility approval for its interactive test user | Tracked by #166 |
 
-Where an implementation has not landed, the provisioning command exits
-immediately with the missing mechanism and a documentation reference. This is
-intentional: partial host setup would violate the isolation contract. The lower-level
-`run-linux.sh`, `run-windows.ps1`, and `run-macos.sh` commands remain available
-for already prepared environments and keep their existing interfaces.
+Where an implementation has not landed, which is macOS alone, the provisioning
+command exits immediately with the missing mechanism and a documentation
+reference. This is intentional: partial host setup would violate the isolation
+contract. The lower-level `run-linux.sh`, `run-windows.ps1`, and
+`run-macos.sh` commands remain available for already prepared environments and
+keep their existing interfaces.
 
 ## Running packaged tests
 
@@ -295,8 +296,68 @@ the script rather than provided by it:
   build workflow's own actions; this script installs no build tooling.
 - A generated MSI and rendered-video fixtures, which are produced elsewhere.
 
-Install the MSI into a private directory, then run the complete required suite
-from an interactive PowerShell desktop session:
+The preferred local entry point is a Windows Sandbox, which installs no
+package and no dependency on the developer host:
+
+```powershell
+tests/e2e/provision-windows.ps1 `
+  -Msi "build\release-quick-x64-windows\edit-atlas-0.3.0-win64.msi" `
+  -FixtureGenerator "build\debug-x64-windows\tests\integration\media\edit_atlas_e2e_media_fixture_generator.exe"
+```
+
+`-MediaFixtureDir` supplies an already generated fixture directory instead of
+generating one. `-ArtifactDir` selects the host output directory, defaulting
+to `build/e2e`. Fixtures are generated on the host, as on Linux, because the
+generator is a build-tree binary linked against the host's toolchain.
+
+The sandbox maps the repository, the MSI's directory, and the fixtures
+read-only, and the artifact directory writable, so reports and artifacts
+arrive on the host. Windows Sandbox reports no exit status to its host, so the
+suite's status is written to `sandbox-exit-code.txt` in that directory and the
+launcher waits for it, then exits with it. `-TimeoutMinutes` bounds that wait.
+
+Windows Sandbox requires Windows 10 1903 or newer, in a Pro, Enterprise, or
+Education edition, with hardware virtualization enabled in firmware and the
+`Containers-DisposableClientVM` feature enabled. The `WindowsSandbox.exe`
+command-line launcher this entry point uses is present from Windows 11 24H2
+onward. Windows permits one sandbox instance at a time.
+
+Home editions have no Windows Sandbox and cannot enable it, and no Hyper-V
+either, so they have no isolated interactive desktop at all.
+`-AllowHostInstall` runs the same harness directly on the host instead,
+trading isolation for the ability to run locally what CI runs. It is never
+selected automatically:
+
+```powershell
+tests/e2e/provision-windows.ps1 `
+  -Msi "C:\packages\edit-atlas-0.3.0-win64.msi" `
+  -MediaFixtureDir C:\edit-atlas-e2e\media-fixtures `
+  -ArtifactDir C:\edit-atlas-e2e `
+  -AllowHostInstall
+```
+
+It refuses before changing anything when the session is not elevated, since
+the package installs per-machine, and when Edit Atlas is already installed,
+because this package shares that installation's upgrade code: installing here
+would replace it and the run's cleanup would then remove it. Uninstall it
+first. Afterwards the package and its crash-dump settings are gone, while uv
+and the artifacts remain, and no Edit Atlas stays installed.
+
+The artifact directory must be a local path. Windows Installer cannot install
+to a network path and a sandbox cannot map one, which a checkout reached over
+`\\wsl.localhost` runs into; the repository itself may stay there.
+
+The sandbox image is built from the host's own Windows build, so it cannot
+match the hosted CI runner exactly. That is accepted deliberately: Windows
+parity is a parity of dependency provisioning, MSI installation, crash
+configuration, suite invocation, artifact layout, cleanup, and exit status —
+all of which live in `tests/e2e/windows/run-provisioned.ps1`, the harness the
+sandbox and the CI job both invoke — and not a parity of OS images. Only
+Linux gets exact userspace parity, through its pinned runner image.
+
+To run against an already prepared disposable environment, install the MSI
+into a private directory and run the suite directly from an interactive
+PowerShell desktop session:
 
 ```powershell
 tests/e2e/run-windows.ps1 `
@@ -308,9 +369,10 @@ Both paths must point to executables installed by the MSI. The runner performs
 an explicit UIA backend preflight and treats a missing backend as an error.
 Tests run serially with bounded state polling. UIA-tree dumps, application
 logs, PNG screenshots on failure, generated workbooks, the support bundle, and
-pytest reports are written below `build/e2e`. CI additionally enables Windows
+pytest reports are written below `build/e2e`. The harness enables Windows
 Error Reporting full dumps for the packaged GUI and CLI and retains crashes
-under `build/e2e/crash-dumps` with the other failure artifacts.
+under `build/e2e/crash-dumps` with the other failure artifacts, so a sandbox
+run and a CI run collect crashes identically.
 
 ### macOS desktop tests
 

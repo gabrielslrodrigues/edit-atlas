@@ -14,7 +14,8 @@ param(
 
 $ErrorActionPreference = "Stop"
 $ScriptDirectory = Split-Path -Parent $MyInvocation.MyCommand.Path
-$RepositoryRoot = (Resolve-Path (Join-Path $ScriptDirectory "../..")).Path
+$RepositoryRoot =
+  (Resolve-Path (Join-Path $ScriptDirectory "../..")).ProviderPath
 $E2eRoot = Join-Path $RepositoryRoot "build/e2e"
 $VirtualEnvironment = Join-Path $E2eRoot "venv"
 
