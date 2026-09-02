@@ -95,6 +95,7 @@ class TimelineFilterWidget final : public QWidget {
     void SynchronizeConditionRow(ConditionRow &row, int model_row);
     void UpdateAccessibleIdentifiers(void);
     void UpdateConditionEditor(ConditionRow &row, int model_row);
+    void UpdateConditionsViewportHeight(void);
     void UpdateRemoveButtons(void);
     void UpdateTemplateControls(void);
 

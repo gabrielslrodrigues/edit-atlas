@@ -268,9 +268,18 @@ native core files for crashed packaged executables to
 
 The required Windows suite drives the GUI installed by the generated MSI with
 pywinauto's UIA backend. It uses UIA Invoke, Toggle, Selection, Value, and
-ExpandCollapse patterns and native file-dialog controls. It does not use
-pointer coordinates, image matching, synthesized keyboard input, or fixed
-sleeps.
+ExpandCollapse patterns and native file-dialog controls. It uses no pointer
+coordinates, no image matching, and no fixed sleeps. Pointer input is used
+only at bounds an element reports, and keyboard paging only where a
+scrollable control exposes no Scroll pattern, which is how a virtualized list
+or a native combo popup reveals content outside its viewport.
+
+A combo box is selected through its items' patterns when the provider exposes
+them while collapsed. Otherwise its popup is opened and paged until the
+requested option is realized, because a native popup realizes only the items
+inside its viewport; an option below the fold is absent from the UIA tree
+however long the wait, which is what made selection depend on where the
+control sat on screen.
 
 Install the project-owned dependencies first. The script is idempotent, and
 is the same one the hosted CI job runs, so a local environment and CI prepare

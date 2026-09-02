@@ -227,6 +227,76 @@ def test_combo_selection_uses_accessible_item_bounds(
     assert session.selected_option("filterCondition0Field") == "Reel"
 
 
+def test_combo_selection_pages_to_an_unrealized_option(
+    tmp_path: Path,
+) -> None:
+    # A native combo popup realizes only the items in its viewport, so the
+    # option below the fold is absent from the tree until the popup is paged.
+    session = application_session(tmp_path)
+    opened = Event()
+    display = Node("Event", "Text")
+    control = Node("Field", "ComboBox", children=(display,), click=opened.set)
+    option = Node("Track type", "ListItem")
+    option._click = lambda: setattr(
+        display.element_info, "name", "Track type"
+    )
+
+    class Popup(Node):
+        def __init__(self) -> None:
+            super().__init__("", "List")
+            self.pages = 0
+
+        def scroll(self, direction: str, amount: str) -> None:
+            assert (direction, amount) == ("down", "page")
+            self.pages += 1
+
+    popup = Popup()
+
+    def find_named(
+        names: Any, *, root: Any = None, control_types: Any = None
+    ) -> Any:
+        if control_types == ("List",):
+            return popup if root is None else None
+        if names is None:
+            return None
+        realized = popup.pages > 0
+        matches = "track type" in {str(name).lower() for name in names}
+        return option if realized and matches and root is None else None
+
+    session.element = lambda identifier: control
+    session._find_named = find_named
+
+    session.select_option("filterCondition1Field", "Track type")
+
+    assert opened.is_set()
+    assert popup.pages == 1
+    assert session.selected_option("filterCondition1Field") == "Track type"
+
+
+def test_combo_selection_prefers_items_exposed_while_collapsed(
+    tmp_path: Path,
+) -> None:
+    # Qt Quick's in-scene popup exposes its delegates without opening, so no
+    # pointer input and no paging should be needed.
+    session = application_session(tmp_path)
+    opened = Event()
+    display = Node("Event", "Text")
+    option = Node("Track type", "ListItem")
+    option.iface_selection_item = SelectionPattern(
+        lambda: setattr(display.element_info, "name", "Track type")
+    )
+    control = Node(
+        "Field", "ComboBox", children=(display, option), click=opened.set
+    )
+    session.element = lambda identifier: control
+
+    session.select_option("filterCondition0Field", "Track type")
+
+    assert not opened.is_set()
+    assert option.iface_selection_item.CurrentIsSelected
+    assert session.selected_option("filterCondition0Field") == "Track type"
+
+
 def test_combo_selection_uses_uia_range_value_without_input_simulation(
     tmp_path: Path,
 ) -> None:
