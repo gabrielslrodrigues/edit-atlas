@@ -9,9 +9,13 @@ name: E2E runner image
 # once. Ordinary packaged E2E runs never rebuild it.
 
 on:
+  # Published from any branch that changes the image inputs, not only from
+  # the default branch. The tag is derived from those inputs, so two branches
+  # either produce the same image, in which case publishing is a no-op, or
+  # different images under different tags, which cannot collide. Publishing
+  # here is also what exercises the pull path before a change reaches the
+  # default branch, rather than after.
   push:
-    branches:
-      - master
     paths:
       - .github/workflows/e2e-runner-image.yml
       - scripts/ci/install-ubuntu-dependencies.sh

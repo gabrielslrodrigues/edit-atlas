@@ -24,7 +24,14 @@ jobs:
       - name: Check out source
         uses: actions/checkout@v7.0.1
 
+      # A pull request from a fork receives a token that cannot read the
+      # registry. Logging in is skipped there, and the provisioner builds the
+      # runner image locally, which is its documented fallback rather than a
+      # failure. Once the published package is public the login is redundant
+      # for pulling, and it is kept so a private package also works.
       - name: Log in to the container registry
+        if: github.event_name != 'pull_request' || !github.event.pull_request.head.repo.fork
+        continue-on-error: true
         uses: docker/login-action@74a5d142397b4f367a81961eba4e8cd7edddf772
         with:
           registry: ghcr.io

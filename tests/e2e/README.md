@@ -196,9 +196,17 @@ they run from the same checkout, and changing any of those inputs names a
 different image automatically. Nothing has to be pinned by hand.
 
 A run builds the image only when no published one matches the checkout, which
-happens on a branch that changes the runner definition and on a `--base-image`
-override, since an override derives its own reference and can never be
-mistaken for the published default.
+happens the first time a branch changes the runner definition, on a
+`--base-image` override, since an override derives its own reference and can
+never be mistaken for the published default, and wherever the registry cannot
+be read, such as a pull request from a fork.
+
+Publication is not restricted to the default branch. A branch that changes the
+image inputs publishes its own image, because the tag is derived from those
+inputs: two branches either produce an identical image, in which case
+publishing is a no-op, or different images under different tags, which cannot
+collide. This is also what exercises the pull path before a change reaches the
+default branch rather than after it.
 
 CI runs this same provisioner rather than a separate path, so a difference
 between a local run and a CI run is a difference in the image reference, which
