@@ -195,6 +195,43 @@ class ValueComboBoxNode:
         return ("Accessible", "Value")
 
 
+class ActionComboBoxNode:
+    role_name = "combo box"
+
+    def __init__(self) -> None:
+        self.actions = {"Press": 0}
+        self.name = "23.976 fps"
+        self.showing = True
+        self.selected = False
+        self.opened = Event()
+
+    def do_action_named(self, action: str) -> bool:
+        assert action in self.actions
+        self.opened.set()
+        return True
+
+    @staticmethod
+    def get_interfaces() -> tuple[str, ...]:
+        return ("Accessible",)
+
+
+class ActionComboOptionNode:
+    role_name = "list item"
+    name = "24 fps"
+
+    def __init__(self, control: ActionComboBoxNode) -> None:
+        self.actions = {"Press": 0}
+        self.showing = True
+        self.selected = False
+        self._control = control
+
+    def do_action_named(self, action: str) -> bool:
+        assert action in self.actions
+        self.selected = True
+        self._control.name = self.name
+        return True
+
+
 class BoundsComboBoxNode:
     role_name = "combo box"
     name = "23.976 fps"
@@ -751,7 +788,24 @@ def test_combo_option_selection_uses_accessible_value(tmp_path: Path) -> None:
     assert control.name == "Reel"
 
 
-def test_combo_without_value_interface_uses_accessible_bounds(
+def test_combo_option_selection_prefers_accessible_actions(
+    tmp_path: Path,
+) -> None:
+    session = application_session(tmp_path)
+    session._process = RunningProcess()
+    control = ActionComboBoxNode()
+    option = ActionComboOptionNode(control)
+    session.element = lambda identifier: control
+    session._find_named = lambda *args, **kwargs: option
+
+    session.select_option("frameRateSelector", "24 fps")
+
+    assert control.opened.wait(1.0)
+    assert option.selected
+    assert session._pointer_click.positions == []
+
+
+def test_combo_without_an_action_falls_back_to_accessible_bounds(
     tmp_path: Path,
 ) -> None:
     session = application_session(tmp_path)

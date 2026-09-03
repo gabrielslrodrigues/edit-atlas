@@ -1,8 +1,9 @@
 """Linux desktop automation through dogtail and AT-SPI.
 
 This module uses accessibility actions, selection, and editable-text interfaces.
-When Qt Quick exposes only focus actions, accessibility-derived bounds provide
-the pointer input needed to operate the control without fixed coordinates.
+Pointer input derived from accessible bounds is a fallback for controls that
+expose no action of their own, which now means Qt's built-in file chooser
+rather than anything this project owns.
 """
 
 from __future__ import annotations
@@ -357,10 +358,7 @@ class LinuxApplicationSession:
             node = self._frame_extraction_cancel_button
             if node is None or (showing and not self._is_showing(node)):
                 node = self.element(identifier, showing=showing)
-            self._click_accessible_bounds(
-                node,
-                "frame extraction cancel button",
-            )
+            self._invoke_or_click(node, "frame extraction cancel button")
             return
         self._activate_node(self.element(identifier, showing=showing))
 
@@ -570,7 +568,9 @@ class LinuxApplicationSession:
         except Exception:
             interfaces = ()
         if "Value" not in interfaces:
-            self._select_combo_box_option_by_bounds(identifier, control, option)
+            self._select_combo_box_option_through_popup(
+                identifier, control, option
+            )
             return
 
         option_list = self._find_role(control, "list")
@@ -605,10 +605,10 @@ class LinuxApplicationSession:
             description=f"option {option!r} to become selected",
         )
 
-    def _select_combo_box_option_by_bounds(
+    def _select_combo_box_option_through_popup(
         self, identifier: str, control: Any, option: str
     ) -> None:
-        self._click_accessible_bounds(control, f"combo box {identifier!r}")
+        self._invoke_or_click(control, f"combo box {identifier!r}")
         try:
             node = wait_until(
                 lambda: self._find_named(
@@ -623,7 +623,7 @@ class LinuxApplicationSession:
             )
         except PollTimeoutError as error:
             raise ElementNotFoundError(str(error)) from error
-        self._click_accessible_bounds(node, f"option {option!r}")
+        self._invoke_or_click(node, f"option {option!r}")
         wait_until(
             lambda: self.selected_option(identifier),
             lambda selected: self._normalized_name(selected)
@@ -931,6 +931,18 @@ class LinuxApplicationSession:
 
     def _activate_file_dialog_entry(self, entry: Any, name: str) -> None:
         self._click_accessible_bounds(entry, f"file chooser entry {name!r}")
+
+    def _invoke_or_click(self, node: Any, description: str) -> None:
+        """Act through the node's own action, or its bounds when it has none.
+
+        Bounds-derived input depends on stable geometry, so a layout defect
+        turns into automation flakiness rather than surfacing as a layout
+        defect. It is kept only for controls this project does not own.
+        """
+        try:
+            self._activate_node(node)
+        except ActionNotSupportedError:
+            self._click_accessible_bounds(node, description)
 
     def _click_accessible_bounds(self, node: Any, description: str) -> None:
         try:

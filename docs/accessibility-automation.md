@@ -20,6 +20,55 @@ Identifiers are unique within a simultaneously displayed window or dialog.
 Common modal controls such as `closeDialogButton` may be reused across dialogs
 because only one of those modal scopes is active at a time.
 
+## Invocable actions
+
+An identifier lets automation find a control; an action lets it operate one.
+Assistive technology and the platform adapters both prefer actions, because
+pointer input derived from accessible bounds depends on stable geometry, so a
+layout defect becomes automation flakiness instead of surfacing as a layout
+defect.
+
+Qt Quick decides the two halves separately, and they can disagree. The
+advertised action list comes from the item's accessible role: `Button`,
+`MenuItem`, and `Link` advertise a press action, checkable roles advertise
+press and toggle, and roles such as `ListItem` advertise none. What the
+invocation *does* comes from elsewhere: an `Accessible.on…Action` handler, an
+`accessible…Action()` method — which every `AbstractButton` provides — or the
+role-specific default for checkable and value-based roles. So a control can
+advertise an action nothing implements, or implement one nothing advertises.
+
+Every control this project owns is therefore driven by an action:
+
+- Controls derived from `AbstractButton` — the styled buttons, tool buttons,
+  check boxes, menu items, and menu bar items — keep the press action Qt both
+  advertises and implements for their role. They declare no handler, which
+  would only duplicate the advertised action.
+- A combo box declares its own press action to open and close its popup: the
+  `ComboBox` role advertises none and the control is not a button.
+- A combo box option declares a press action that emits the delegate's
+  `clicked` signal, which is what selects the option and closes the popup. The
+  delegate is an `ItemDelegate` and implements a press action, but its
+  `ListItem` role stops Qt advertising it, so AT-SPI never offers it.
+- An event projection row declares a toggle action for including and
+  excluding the column, for the same reason.
+- A timeline column header declares a press action that sorts the column. It
+  is a plain item with the `Button` role, so the advertised press action would
+  otherwise be inert.
+
+Two cases stay pointer driven, and both are deliberate:
+
+- Qt's built-in file chooser delegates, which this project does not own and
+  which expose no action.
+- The event projection drag handle, whose `Button` role has no press
+  behaviour to offer: reordering is a drag, and its keyboard equivalent
+  belongs to the row rather than the handle.
+
+The adapters keep bounds-derived input as a fallback for a project control
+whose action is unexpectedly absent, so a regression in the declarations above
+shows up as a passing test with a slower path rather than a broken suite. Qt
+Quick Test asserts the effect of the declared actions, which is what
+distinguishes an implemented action from an advertised one.
+
 ## Persistent application surface
 
 | Area | Identifiers |

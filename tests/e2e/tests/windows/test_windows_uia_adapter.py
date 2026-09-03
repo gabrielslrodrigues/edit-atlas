@@ -64,6 +64,16 @@ class ExpandCollapsePattern:
         self.CurrentExpandCollapseState = 1
 
 
+class InertExpandCollapsePattern:
+    """Accepts Expand without opening, as Qt's provider does for Qt Quick."""
+
+    def __init__(self) -> None:
+        self.CurrentExpandCollapseState = 0
+
+    def Expand(self) -> None:
+        return None
+
+
 class SelectionPattern:
     def __init__(self, select: Any) -> None:
         self.CurrentIsSelected = False
@@ -271,6 +281,38 @@ def test_combo_selection_pages_to_an_unrealized_option(
     assert opened.is_set()
     assert popup.pages == 1
     assert session.selected_option("filterCondition1Field") == "Track type"
+
+
+def test_combo_popup_opens_through_invoke_when_expand_does_nothing(
+    tmp_path: Path,
+) -> None:
+    # Qt offers an ExpandCollapse provider for every combo box, but fulfils
+    # Expand with a ShowMenu action a Qt Quick item cannot declare, so taking
+    # that pattern accepts the request and opens nothing.
+    session = application_session(tmp_path)
+    clicked = Event()
+    opened = Event()
+    display = Node("Event", "Text")
+    control = Node(
+        "Field", "ComboBox", children=(display,), click=clicked.set
+    )
+    control.iface_expand_collapse = InertExpandCollapsePattern()
+    control.iface_invoke = InvokePattern(opened.set)
+    option = Node("Reel", "ListItem")
+    option._click = lambda: setattr(display.element_info, "name", "Reel")
+    session.element = lambda identifier: control
+    session._find_named = (
+        lambda *args, root=None, **kwargs: option
+        if opened.is_set() and root is None
+        else None
+    )
+
+    session.select_option("filterCondition0Field", "Reel")
+
+    assert opened.is_set()
+    assert not clicked.is_set()
+    assert control.iface_expand_collapse.CurrentExpandCollapseState == 0
+    assert session.selected_option("filterCondition0Field") == "Reel"
 
 
 def test_combo_selection_prefers_items_exposed_while_collapsed(

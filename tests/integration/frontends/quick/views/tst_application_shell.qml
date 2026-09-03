@@ -11,6 +11,7 @@ TestCase {
 
     property var applicationWindow: null
     property var temporaryFilterPanel: null
+    property var temporaryTimelineTable: null
 
     Component {
         id: applicationComponent
@@ -18,6 +19,14 @@ TestCase {
         Main {
             applicationShell: testApplicationShell
             visible: true
+        }
+    }
+
+    Component {
+        id: timelineTableComponent
+
+        TimelineTable {
+            applicationShell: testApplicationShell
         }
     }
 
@@ -47,6 +56,30 @@ TestCase {
             temporaryFilterPanel.destroy()
             temporaryFilterPanel = null
         }
+        if (temporaryTimelineTable !== null) {
+            temporaryTimelineTable.destroy()
+            temporaryTimelineTable = null
+        }
+    }
+
+    // The column headers carry no identifier of their own, so they are
+    // reached through the header view that owns them. Searching the item tree
+    // instead finds delegates the view has stopped using, which are still
+    // children of it and still answer for their column, but acting on one has
+    // no effect.
+    function findHeaderView(item) {
+        const children = item.children === undefined ? [] : item.children
+        for (let index = 0; index < children.length; ++index) {
+            const child = children[index]
+            if (child.itemAtCell !== undefined) {
+                return child
+            }
+            const found = findHeaderView(child)
+            if (found !== null) {
+                return found
+            }
+        }
+        return null
     }
 
     function findObject(identifier) {
@@ -267,6 +300,57 @@ TestCase {
 
         action.Accessible.pressAction()
         tryCompare(testApplicationShell, "rememberRecentFiles", original)
+    }
+
+    function test_comboBoxAccessibilityActionsOpenAndSelect() {
+        const dialog = findObject("frameRateDialog")
+        const selector = findObject("frameRateSelector")
+        verify(dialog !== null)
+        verify(selector !== null)
+
+        dialog.open()
+        tryCompare(dialog, "visible", true)
+        selector.currentIndex = 0
+        compare(selector.popup.visible, false)
+
+        // Neither the ComboBox role nor the ListItem role its options declare
+        // advertises an action, so both of these are the project's own.
+        selector.Accessible.pressAction()
+        tryCompare(selector.popup, "visible", true)
+        tryVerify(() => selector.popup.contentItem.itemAtIndex(1) !== null)
+
+        const option = selector.popup.contentItem.itemAtIndex(1)
+        option.Accessible.pressAction()
+        tryCompare(selector, "currentIndex", 1)
+        tryCompare(selector.popup, "visible", false)
+
+        dialog.close()
+        tryCompare(dialog, "visible", false)
+    }
+
+    function test_columnHeaderAccessibilityActionSortsTheColumn() {
+        temporaryTimelineTable = timelineTableComponent.createObject(
+            applicationWindow.contentItem,
+            {
+                "height": applicationWindow.height,
+                "width": applicationWindow.width
+            })
+        verify(temporaryTimelineTable !== null)
+        const headerView = findHeaderView(temporaryTimelineTable)
+        verify(headerView !== null)
+        tryVerify(() => headerView.itemAtCell(0, 0) !== null)
+        const header = headerView.itemAtCell(0, 0)
+
+        // A plain Item advertises the Button role's press action whether or
+        // not anything implements it, so this asserts the effect rather than
+        // the action being offered.
+        header.Accessible.pressAction()
+        tryCompare(testApplicationShell, "eventSortColumn", header.column)
+        const ascending = testApplicationShell.eventSortAscending
+
+        header.Accessible.pressAction()
+        tryCompare(testApplicationShell, "eventSortAscending", !ascending)
+        compare(testApplicationShell.eventSortColumn, header.column)
     }
 
     function test_aboutDialogCanBeCancelled() {

@@ -150,9 +150,17 @@ retained for inspection.
 
 The required Linux suite drives the installed GUI with dogtail over AT-SPI in
 an X11 and D-Bus session. It uses semantic accessibility identifiers, actions,
-selection, and editable-text interfaces. Where Qt Quick exposes only focus
-actions, it sends pointer input at accessibility-reported bounds. It never uses
-fixed coordinates, image matching, or fixed sleeps.
+selection, and editable-text interfaces. It never uses fixed coordinates,
+image matching, or fixed sleeps.
+
+Every control this project owns is driven through its own accessible action.
+Pointer input at accessibility-reported bounds remains only for Qt's built-in
+file chooser, whose delegates expose no action, and as the fallback each
+project control takes when its action is unexpectedly absent. AT-SPI
+advertises only the actions an item reports, so a Qt Quick item whose declared
+role suppresses the action Qt implements for it must declare that action
+itself; see
+[docs/accessibility-automation.md](../../docs/accessibility-automation.md).
 
 The preferred local entry point builds a disposable Ubuntu 24.04 image, installs
 the generated DEB inside it, generates or validates the media fixtures, and
@@ -270,9 +278,23 @@ The required Windows suite drives the GUI installed by the generated MSI with
 pywinauto's UIA backend. It uses UIA Invoke, Toggle, Selection, Value, and
 ExpandCollapse patterns and native file-dialog controls. It uses no pointer
 coordinates, no image matching, and no fixed sleeps. Pointer input is used
-only at bounds an element reports, and keyboard paging only where a
-scrollable control exposes no Scroll pattern, which is how a virtualized list
-or a native combo popup reveals content outside its viewport.
+only at bounds an element reports, for native dialogs and as a fallback, and
+keyboard paging only where a scrollable control exposes no Scroll pattern,
+which is how a virtualized list or a native combo popup reveals content
+outside its viewport.
+
+Qt exposes an Invoke provider for every Quick item, so a pattern is always
+offered here even when the item implements nothing behind it. Whether the
+invocation does anything is decided in QML, which is why the actions this
+project declares are documented with the controls rather than with the
+adapters.
+
+Offered is not the same as implemented, and a combo box is the case that
+proves it: Qt offers an ExpandCollapse provider for every one of them, but
+fulfils Expand with a ShowMenu action that no Qt Quick item can declare, so
+the call is accepted and the popup stays closed. The combo path therefore
+opens the popup through Invoke rather than through the pattern order the
+other controls use.
 
 A combo box is selected through its items' patterns when the provider exposes
 them while collapsed. Otherwise its popup is opened and paged until the

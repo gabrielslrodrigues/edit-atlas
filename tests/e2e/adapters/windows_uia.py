@@ -448,11 +448,11 @@ class WindowsApplicationSession:
     ) -> None:
         menu = self.element(menu_identifier)
         # A prior interaction with this same menu (e.g. toggling one of its
-        # own checkable items) may have left it open. Clicking the menu bar
+        # own checkable items) may have left it open. Pressing the menu bar
         # item again would toggle it closed instead of opening it, so only
-        # click when the target action is not already showing.
+        # act when the target action is not already showing.
         if not self.has_element(action_identifier):
-            self._click_accessible_node(menu, menu_identifier)
+            self._invoke_or_click(menu, menu_identifier)
             expand = self._pattern(menu, "iface_expand_collapse")
             if expand is not None:
                 wait_until(
@@ -462,7 +462,7 @@ class WindowsApplicationSession:
                     description=f"{menu_identifier!r} menu to open",
                 )
         action = self.element(action_identifier)
-        self._click_accessible_node(action, action_identifier)
+        self._invoke_or_click(action, action_identifier)
 
     @staticmethod
     def _expand_collapse_state(expand: Any) -> int:
@@ -693,20 +693,30 @@ class WindowsApplicationSession:
             except (ActionNotSupportedError, PollTimeoutError):
                 pass
 
-        self._click_accessible_node(control, identifier)
+        self._open_combo_popup(control, identifier)
         target = wait_until(
             lambda: self._reveal_combo_option(control, option),
             lambda value: value is not None,
             timeout=self._timeout,
             description=f"combo box option {option!r} for {identifier!r}",
         )
-        try:
-            target.click_input()
-        except Exception as error:
-            raise ActionNotSupportedError(
-                f"combo box option {option!r} could not be clicked: {error}"
-            ) from error
+        if not self._select_option_node(control, target, option):
+            self._click_accessible_node(target, f"combo box option {option!r}")
         self._wait_selected_option_for(control, target, option)
+
+    def _open_combo_popup(self, control: Any, identifier: str) -> None:
+        """Open a combo box popup through the control's own press action.
+
+        Qt offers an ExpandCollapse provider for every combo box but fulfils
+        Expand with a ShowMenu action, which a Qt Quick item cannot declare,
+        so that pattern accepts the request and opens nothing. Invoke reaches
+        the press action the control does declare, which is why this does not
+        go through the pattern order the other controls use.
+        """
+        if self._pattern(control, "iface_invoke") is not None:
+            self._invoke(control)
+            return
+        self._invoke_or_click(control, identifier)
 
     def _reveal_combo_option(self, control: Any, option: str) -> Any | None:
         target = self._find_combo_option(control, option)
@@ -746,6 +756,18 @@ class WindowsApplicationSession:
             if popup is not None:
                 return popup
         return None
+
+    def _invoke_or_click(self, node: Any, description: str) -> None:
+        """Act through the node's own pattern, or its bounds when it has none.
+
+        Bounds-derived input depends on stable geometry, so a layout defect
+        turns into automation flakiness rather than surfacing as a layout
+        defect. It is kept only for controls this project does not own.
+        """
+        try:
+            self._activate_node(node)
+        except ActionNotSupportedError:
+            self._click_accessible_node(node, description)
 
     @staticmethod
     def _click_accessible_node(node: Any, description: str) -> None:
