@@ -8,6 +8,15 @@ T.ComboBox {
 
     Accessible.id: objectName
     Accessible.role: Accessible.ComboBox
+    // The ComboBox role advertises no action, and T.ComboBox is not a button,
+    // so without this the popup opens only under pointer input.
+    Accessible.onPressAction: {
+        if (control.popup.visible) {
+            control.popup.close()
+        } else {
+            control.popup.open()
+        }
+    }
     bottomPadding: DesignTokens.spacingSmall
     leftPadding: DesignTokens.spacingMedium
     rightPadding: DesignTokens.spacingExtraLarge
@@ -29,6 +38,11 @@ T.ComboBox {
         Accessible.role: Accessible.ListItem
         Accessible.selectable: true
         Accessible.selected: control.currentIndex === index
+        // ItemDelegate implements a press action, but the ListItem role stops
+        // Qt advertising it, so assistive technology never sees one. Emitting
+        // clicked() is what the pointer path does: ComboBox selects the
+        // option and closes the popup.
+        Accessible.onPressAction: option.clicked()
         bottomPadding: DesignTokens.spacingSmall
         highlighted: control.highlightedIndex === index
         hoverEnabled: control.hoverEnabled

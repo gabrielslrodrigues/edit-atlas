@@ -36,6 +36,11 @@ Atlas.Surface {
                 Accessible.description: qsTr("Sort timeline events by %1")
                                             .arg(display)
                 Accessible.role: Accessible.Button
+                // A plain Item advertises the Button role's press action
+                // without implementing it, so assistive technology would see
+                // an action that silently does nothing.
+                Accessible.onPressAction: root.applicationShell.ToggleEventSort(
+                                              headerButton.column)
                 activeFocusOnTab: true
                 border.color: activeFocus
                               ? Atlas.Theme.focus : Atlas.Theme.border
