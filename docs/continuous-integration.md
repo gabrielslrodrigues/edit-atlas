@@ -250,9 +250,13 @@ A pass with no open issue records nothing, and a cancelled run records
 nothing. The issue is found again by its exact title, so that title is a
 lookup key: changing it orphans whatever a previous run raised.
 
-The schedule holds its own concurrency lane. It shared one with the ref
-until a merge to `master` cancelled a nightly partway through, which left a
-tracking issue open long after the run that would have closed it.
+Each kind of trigger holds its own concurrency lane, keyed by event and ref.
+Superseding still applies within a lane, so a new push to a branch cancels
+the run for the commit it replaced, which is what you want when only the tip
+matters. Across lanes nothing is cancelled: a merge to `master` no longer
+cancels a nightly partway through, which used to leave a tracking issue open
+long after the run that would have closed it, and a deliberate dispatch no
+longer cancels the merge-path run for the same commit.
 
 ## Required status checks
 

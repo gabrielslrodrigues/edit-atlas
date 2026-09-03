@@ -20,12 +20,13 @@ on:
 permissions:
   contents: read
 
-# The schedule gets its own lane. Sharing one with the ref meant a merge to
-# master cancelled a nightly in flight, which is how a tracking issue outlived
-# the run that would have closed it.
+# Each kind of trigger gets its own lane, so superseding still works within a
+# lane while unrelated runs stop shooting each other: a merge to master used
+# to cancel a nightly in flight, which is how a tracking issue outlived the
+# run that would have closed it, and a deliberate dispatch used to cancel the
+# merge-path run for the same commit.
 concurrency:
-  group: >-
-    ci-${{ github.event_name == 'schedule' && 'schedule' || github.ref }}
+  group: ci-${{ github.event_name }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
