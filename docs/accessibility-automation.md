@@ -55,13 +55,17 @@ Every control this project owns is therefore driven by an action:
   is a plain item with the `Button` role, so the advertised press action would
   otherwise be inert.
 
-Two cases stay pointer driven, and both are deliberate:
+Three cases stay pointer driven, and all three are deliberate:
 
 - Qt's built-in file chooser delegates, which this project does not own and
   which expose no action.
 - The event projection drag handle, whose `Button` role has no press
   behaviour to offer: reordering is a drag, and its keyboard equivalent
   belongs to the row rather than the handle.
+- Menu actions on Windows. Qt fulfils a menu item's press action with
+  `QAction::trigger`, which runs the action and leaves the menu open, where a
+  click both triggers and dismisses it. An open menu grabs input from
+  everything after it, so the complete interaction is the pointer one.
 
 The adapters keep bounds-derived input as a fallback for a project control
 whose action is unexpectedly absent, so a regression in the declarations above

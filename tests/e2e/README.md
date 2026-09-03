@@ -289,12 +289,21 @@ invocation does anything is decided in QML, which is why the actions this
 project declares are documented with the controls rather than with the
 adapters.
 
-Offered is not the same as implemented, and a combo box is the case that
-proves it: Qt offers an ExpandCollapse provider for every one of them, but
-fulfils Expand with a ShowMenu action that no Qt Quick item can declare, so
-the call is accepted and the popup stays closed. The combo path therefore
-opens the popup through Invoke rather than through the pattern order the
-other controls use.
+Offered is not the same as implemented, and this is where the merge-path
+suites disagree, because the two toolkits implement different halves. Qt
+offers an ExpandCollapse provider for every combo box but fulfils Expand with
+a ShowMenu action no Qt Quick item can declare, so on Quick that call is
+accepted and the popup stays closed. Windows offers an Invoke provider for
+anything with an action interface at all, so on Widgets a popup item accepts
+Invoke and selects nothing, because it names only its toggle action, and a
+menu item accepts Invoke and triggers without dismissing the menu, because Qt
+fulfils its press action with `QAction::trigger`.
+
+An accepted pattern is therefore not a performed action. The combo path opens
+the popup through Invoke, then treats the selection itself as the verdict and
+clicks the option when a pattern was accepted without committing. A menu
+action is clicked outright: the click both triggers and dismisses, and a menu
+left open grabs input from everything after it.
 
 A combo box is selected through its items' patterns when the provider exposes
 them while collapsed. Otherwise its popup is opened and paged until the

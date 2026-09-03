@@ -448,9 +448,9 @@ class WindowsApplicationSession:
     ) -> None:
         menu = self.element(menu_identifier)
         # A prior interaction with this same menu (e.g. toggling one of its
-        # own checkable items) may have left it open. Pressing the menu bar
-        # item again would toggle it closed instead of opening it, so only
-        # act when the target action is not already showing.
+        # own checkable items) may have left it open. Acting on the menu bar
+        # item again would close it instead of opening it, so only act when
+        # the target action is not already showing.
         if not self.has_element(action_identifier):
             self._invoke_or_click(menu, menu_identifier)
             expand = self._pattern(menu, "iface_expand_collapse")
@@ -462,7 +462,11 @@ class WindowsApplicationSession:
                     description=f"{menu_identifier!r} menu to open",
                 )
         action = self.element(action_identifier)
-        self._invoke_or_click(action, action_identifier)
+        # Pointer input on purpose. Qt Widgets fulfils a menu item's press
+        # action with QAction::trigger, which runs the action but leaves the
+        # menu open, and an open menu grabs input from everything after it. A
+        # click both triggers and dismisses, which is the whole interaction.
+        self._click_accessible_node(action, action_identifier)
 
     @staticmethod
     def _expand_collapse_state(expand: Any) -> int:
@@ -700,7 +704,25 @@ class WindowsApplicationSession:
             timeout=self._timeout,
             description=f"combo box option {option!r} for {identifier!r}",
         )
-        if not self._select_option_node(control, target, option):
+        # Windows offers an Invoke provider for anything with an action
+        # interface, whether or not the element implements the press action
+        # behind it: a Qt Widgets popup item names only its toggle action, so
+        # invoking it is accepted and selects nothing. The pattern is tried
+        # first and the selection is what decides, with a click as the
+        # fallback, because that is what commits on every provider seen here.
+        budget = min(2.0, self._timeout)
+        committed = False
+        try:
+            if self._select_option_node(
+                control, target, option, timeout=budget
+            ):
+                self._wait_selected_option_for(
+                    control, target, option, timeout=budget
+                )
+                committed = True
+        except (ActionNotSupportedError, PollTimeoutError):
+            pass
+        if not committed:
             self._click_accessible_node(target, f"combo box option {option!r}")
         self._wait_selected_option_for(control, target, option)
 

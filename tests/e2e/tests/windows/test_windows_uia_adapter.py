@@ -64,6 +64,17 @@ class ExpandCollapsePattern:
         self.CurrentExpandCollapseState = 1
 
 
+class InertInvokePattern:
+    """Accepts Invoke without acting, as Qt does for a provider whose
+    element names no press action."""
+
+    def __init__(self) -> None:
+        self.invoked = Event()
+
+    def Invoke(self) -> None:
+        self.invoked.set()
+
+
 class InertExpandCollapsePattern:
     """Accepts Expand without opening, as Qt's provider does for Qt Quick."""
 
@@ -313,6 +324,50 @@ def test_combo_popup_opens_through_invoke_when_expand_does_nothing(
     assert not clicked.is_set()
     assert control.iface_expand_collapse.CurrentExpandCollapseState == 0
     assert session.selected_option("filterCondition0Field") == "Reel"
+
+
+def test_combo_option_click_commits_when_invoke_selects_nothing(
+    tmp_path: Path,
+) -> None:
+    # Qt Widgets names only a toggle action on a combo popup item, so the
+    # Invoke provider Windows offers for it is accepted and selects nothing.
+    session = application_session(tmp_path, timeout=0.5)
+    display = Node("Event", "Text")
+    opened = Event()
+    option = Node("Reel", "ListItem")
+    option._click = lambda: setattr(display.element_info, "name", "Reel")
+    option.iface_invoke = InertInvokePattern()
+    control = Node(
+        "Field", "ComboBox", children=(display,), click=opened.set
+    )
+    session.element = lambda identifier: control
+    session._find_named = (
+        lambda *args, root=None, **kwargs: option if root is None else None
+    )
+
+    session.select_option("filterCondition0Field", "Reel")
+
+    assert option.iface_invoke.invoked.is_set()
+    assert session.selected_option("filterCondition0Field") == "Reel"
+
+
+def test_menu_action_is_clicked_so_the_menu_closes(tmp_path: Path) -> None:
+    # Qt Widgets fulfils a menu item's press action with QAction::trigger,
+    # which runs the action but leaves the menu open, and an open menu grabs
+    # input from everything after it.
+    session = application_session(tmp_path)
+    clicked: list[str] = []
+    action = Node("About", "MenuItem", click=lambda: clicked.append("action"))
+    action.iface_invoke = InertInvokePattern()
+    menu = Node("Help", "MenuItem", click=lambda: clicked.append("menu"))
+    nodes = {"helpMenu": menu, "aboutAction": action}
+    session.element = lambda identifier: nodes[identifier]
+    session.has_element = lambda identifier: False
+
+    session.activate_menu_action("helpMenu", "aboutAction")
+
+    assert clicked == ["menu", "action"]
+    assert not action.iface_invoke.invoked.is_set()
 
 
 def test_combo_selection_prefers_items_exposed_while_collapsed(
