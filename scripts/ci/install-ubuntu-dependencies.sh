@@ -19,7 +19,7 @@ case "${dependency_profile}" in
       autoconf-archive
       automake
       bison
-      clang
+      clang-20
       dpkg-dev
       libc6-dev
       libegl1-mesa-dev
