@@ -124,6 +124,20 @@ developer profile.
 
 ## Dependencies and versions
 
+- Linux builds are pinned to Clang 19 or newer through
+  `cmake/LinuxClangToolchain.cmake`, which the Linux presets and the
+  `x64-linux` triplet both chainload, so the project and every vcpkg port
+  use it. The compiler decides which optional dependencies ports link, so an
+  unpinned one gives a local package a different runtime closure than the CI
+  one. Clang 18 and older are rejected: they report `__cpp_concepts` as
+  201907 while libstdc++ gates `std::expected` on 202002, so `<expected>`
+  expands to nothing and this project's C++23 code will not compile. The
+  toolchain selects a matched pair of drivers, preferring versioned names, so
+  a distribution whose default Clang is too old still configures. Set
+  `EDIT_ATLAS_LINUX_C_COMPILER` and `EDIT_ATLAS_LINUX_CXX_COMPILER` in the
+  environment, both or neither, for a deliberate cross-compiler check;
+  changing the compiler changes vcpkg's ABI hash, so the ports rebuild once.
+  macOS and Windows keep the toolchain their environment provides.
 - The `version-string` in `vcpkg.json` is the single project version source;
   CMake reads it, and release tags are validated against it.
 - The `builtin-baseline` in `vcpkg.json` must equal the checked-out vcpkg
