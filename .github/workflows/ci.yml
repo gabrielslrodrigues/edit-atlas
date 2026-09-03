@@ -20,8 +20,13 @@ on:
 permissions:
   contents: read
 
+# Each kind of trigger gets its own lane, so superseding still works within a
+# lane while unrelated runs stop shooting each other: a merge to master used
+# to cancel a nightly in flight, which is how a tracking issue outlived the
+# run that would have closed it, and a deliberate dispatch used to cancel the
+# merge-path run for the same commit.
 concurrency:
-  group: ci-${{ github.ref }}
+  group: ci-${{ github.event_name }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -75,11 +80,14 @@ jobs:
       contents: read
       packages: read
 
-  # Every frontend production does not ship is verified on the daily
-  # schedule, and on a manual run that opts in. Merge-path runs never execute
-  # them, so pull requests are not slowed by a frontend nobody installs. They
-  # are deliberately absent from the gate below: a job that does not run on
-  # pull requests would leave the gate unsatisfied on every one.
+  # Every frontend production does not ship is verified once the change is on
+  # master, on the daily schedule, and on a manual run that opts in. Pull
+  # requests are deliberately excluded, so they are not slowed by a frontend
+  # nobody installs, which is also why this job cannot join the gate below: a
+  # job that skips on pull requests would leave the gate unsatisfied on every
+  # one. The packages it needs are built on every run regardless, and it runs
+  # beside the production frontend's suite, so the merge path pays no build
+  # cost and almost no wall clock.
   packaged-e2e-others:
     name: Packaged E2E (${{ matrix.frontend }})
     needs:
@@ -88,7 +96,8 @@ jobs:
     if: >-
       always() && needs.packages.result == 'success' &&
       needs.frontends.outputs.others != '[]' &&
-      (github.event_name == 'schedule' || inputs.other_frontend_e2e)
+      (github.event_name == 'schedule' || github.event_name == 'push' ||
+      inputs.other_frontend_e2e)
     strategy:
       fail-fast: false
       matrix:
@@ -100,15 +109,18 @@ jobs:
       contents: read
       packages: read
 
-  # A red nightly run nobody opens is not a signal. Scheduled outcomes are
-  # recorded on a tracking issue that stays open until a later run passes.
+  # A red run in a workflow list nobody opens is not a signal. Outcomes are
+  # recorded on a tracking issue that stays open until a later run passes, so
+  # every run that verified the frontend reports, whether it came from the
+  # merge path or the schedule.
   frontend-e2e-signal:
-    name: Report scheduled frontend E2E outcomes
+    name: Report frontend E2E outcomes
     needs:
       - frontends
       - packaged-e2e-others
     if: >-
-      always() && github.event_name == 'schedule' &&
+      always() &&
+      (github.event_name == 'schedule' || github.event_name == 'push') &&
       needs['packaged-e2e-others'].result != 'skipped'
     runs-on: ubuntu-24.04
     permissions:
