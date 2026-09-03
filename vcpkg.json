@@ -63,7 +63,10 @@
     "qtdeclarative",
     {
       "name": "qttools",
-      "default-features": false
+      "default-features": false,
+      "features": [
+        "qml"
+      ]
     },
     "re2",
     "spdlog"

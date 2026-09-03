@@ -246,6 +246,12 @@ jobs:
           cmake --build --preset ${{ matrix.debug_preset }}
           --target all_qmllint
 
+      - name: Check translation catalogues
+        if: runner.os == 'Linux'
+        run: >-
+          cmake --build --preset ${{ matrix.debug_preset }}
+          --target check_translations
+
       - name: Verify Widgets Debug Qt linkage
         run: >-
           cmake

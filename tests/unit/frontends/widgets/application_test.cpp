@@ -105,6 +105,22 @@ TEST(ApplicationTest, LoadsBrazilianPortugueseTranslations) {
               QStringLiteral("Salvar modelo de filtro e exportação"));
     EXPECT_EQ(ApplicationMenuBar::tr("Export Diagnostic &Logs"),
               QStringLiteral("Exportar &logs de diagnóstico"));
+    EXPECT_EQ(ApplicationMenuBar::tr("&Appearance"),
+              QStringLiteral("A&parência"));
+    EXPECT_EQ(ApplicationMenuBar::tr("&System"), QStringLiteral("&Sistema"));
+    EXPECT_EQ(ApplicationMenuBar::tr("&Light"), QStringLiteral("&Claro"));
+    EXPECT_EQ(ApplicationMenuBar::tr("&Dark"), QStringLiteral("&Escuro"));
+
+    // The Qt Quick frontend declares the same menu in QML, under the context
+    // lupdate names after the file, and shares this catalogue.
+    EXPECT_EQ(QCoreApplication::translate("Main", "&Appearance"),
+              QStringLiteral("A&parência"));
+    EXPECT_EQ(QCoreApplication::translate("Main", "&System"),
+              QStringLiteral("&Sistema"));
+    EXPECT_EQ(QCoreApplication::translate("Main", "&Light"),
+              QStringLiteral("&Claro"));
+    EXPECT_EQ(QCoreApplication::translate("Main", "&Dark"),
+              QStringLiteral("&Escuro"));
 
     const core::Diagnostic diagnostic{
         .severity = core::DiagnosticSeverity::kWarning,

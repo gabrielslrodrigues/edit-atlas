@@ -35,6 +35,8 @@ namespace {
 
 class AccessibleComboBox final : public QAccessibleWidget,
                                  public QAccessibleValueInterface {
+    Q_DECLARE_TR_FUNCTIONS(edit_atlas::frontends::widgets::AccessibleComboBox)
+
   public:
     explicit AccessibleComboBox(QComboBox *combo_box)
         : QAccessibleWidget{combo_box, QAccessible::ComboBox} {}
@@ -107,7 +109,7 @@ class AccessibleComboBox final : public QAccessibleWidget,
     QString
     localizedActionDescription(const QString &action_name) const override {
         if (action_name == showMenuAction() || action_name == pressAction()) {
-            return QComboBox::tr("Open the combo box selection popup");
+            return tr("Open the combo box selection popup");
         }
         return {};
     }
@@ -159,6 +161,9 @@ class AccessibleComboBox final : public QAccessibleWidget,
 };
 
 class AccessibleTemplateActionsButton final : public QAccessibleWidget {
+    Q_DECLARE_TR_FUNCTIONS(
+        edit_atlas::frontends::widgets::AccessibleTemplateActionsButton)
+
   public:
     explicit AccessibleTemplateActionsButton(QToolButton *button)
         : QAccessibleWidget{button, QAccessible::Button} {}
@@ -181,7 +186,7 @@ class AccessibleTemplateActionsButton final : public QAccessibleWidget {
     QString
     localizedActionDescription(const QString &action_name) const override {
         if (action_name == showMenuAction()) {
-            return QToolButton::tr("Open the template actions menu");
+            return tr("Open the template actions menu");
         }
         if (const auto *action = findAction(action_name); action != nullptr) {
             return action->text();
@@ -227,6 +232,9 @@ class AccessibleProjectionList;
 
 class AccessibleProjectionItem final : public QAccessibleInterface,
                                        public QAccessibleActionInterface {
+    Q_DECLARE_TR_FUNCTIONS(
+        edit_atlas::frontends::widgets::AccessibleProjectionItem)
+
   public:
     AccessibleProjectionItem(AccessibleProjectionList *parent,
                              QListWidgetItem *item)
@@ -436,10 +444,10 @@ QAccessible::State AccessibleProjectionItem::state(void) const {
 QString AccessibleProjectionItem::localizedActionDescription(
     const QString &action_name) const {
     if (action_name == pressAction()) {
-        return QListWidget::tr("Select this export column");
+        return tr("Select this export column");
     }
     if (action_name == toggleAction()) {
-        return QListWidget::tr("Include or exclude this export column");
+        return tr("Include or exclude this export column");
     }
     return {};
 }

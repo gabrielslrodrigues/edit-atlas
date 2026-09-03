@@ -239,10 +239,11 @@ cmake --build --preset debug-x64-linux --target all_qmllint
 
 English is the source language. Brazilian Portuguese translations are compiled
 from `src/presentation/translations/edit_atlas_pt_BR.ts` and embedded through
-the shared presentation layer. The interface defaults to Brazilian Portuguese
-on first launch. The
-**Language** menu switches between Brazilian Portuguese and English and
-remembers the choice for subsequent launches.
+the shared presentation layer; see
+[CONTRIBUTING.md](CONTRIBUTING.md#translations) for how that catalogue is
+regenerated and how CI keeps it complete. The interface defaults to Brazilian
+Portuguese on first launch. The **Language** menu switches between Brazilian
+Portuguese and English and remembers the choice for subsequent launches.
 
 The **Appearance** menu selects System, Light, or Dark and remembers the
 choice for subsequent launches. New profiles follow the system, and while
