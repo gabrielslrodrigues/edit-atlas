@@ -9,7 +9,7 @@ triggers and permissions.
 
 | Workflow | Trigger | Responsibility |
 | --- | --- | --- |
-| `ci.yml` | `master`, pull requests, daily schedule, manual dispatch | Orchestrate ordinary package validation and packaged E2E, add scheduled Qt Widgets E2E, report the single required gate, then delete transient package-transfer artifacts |
+| `ci.yml` | `master`, pull requests, daily schedule, manual dispatch | Orchestrate ordinary package validation and packaged E2E, add the non-production frontend's E2E off the pull-request path, report the single required gate, then delete transient package-transfer artifacts |
 | `build-and-package.yml` | Reusable only | Build and test every supported triplet, package Widgets and Quick, and create universal macOS packages |
 | `package-verification.yml` | Reusable only | Install and verify both frontend packages on every supported clean verification system |
 | `packaged-e2e.yml` | Reusable only | Install the Qt Quick production package and run CLI and graphical E2E on Linux and Windows; retain the disabled macOS implementation |
@@ -207,18 +207,20 @@ repeating them would double a costly dispatch without adding signal.
 ## Frontend coverage
 
 Packaged E2E runs against the frontend production ships on every merge-path
-run. Every other supported frontend is verified on the daily schedule
-instead, and on a manual run that sets the `other_frontend_e2e` dispatch
-input. Push and pull-request runs never execute them and take no longer than
-before.
+run. Every other supported frontend is verified once the change is on
+`master`, on the daily schedule, and on a manual run that sets the
+`other_frontend_e2e` dispatch input. Pull requests never execute them and
+take no longer than before. Master pushes pay no build cost, because every
+run packages every frontend regardless, and almost no wall clock, because
+those jobs run beside the production frontend's.
 
 Which frontend is which is not written into CI. The `frontends` job derives
 the production frontend from `EDIT_ATLAS_DEFAULT_FRONTEND` in
 `CMakeLists.txt` and emits the rest of the supported list as the frontends to
 schedule. Changing the default swaps which frontend the merge path exercises
 and which the schedule does, with no workflow edit, and no frontend is ever
-exercised twice in one run. The scheduled jobs are a matrix over that list,
-so a third supported frontend needs no workflow change either.
+exercised twice in one run. Those jobs are a matrix over that list, so a
+third supported frontend needs no workflow change either.
 
 They reuse the packages the run already produced and the same reusable
 workflow, selected through its `frontend` input, so scenarios, strictness,
@@ -239,13 +241,18 @@ These jobs are deliberately outside the gate. A job that does not run on
 pull requests would leave a required context unreported on every one of
 them.
 
-A red scheduled run in a workflow list is not a signal, so
+A red run in a workflow list is not a signal, so
 `scripts/ci/report-frontend-e2e-status.sh` records the outcome on a tracking
 issue per frontend: a failure opens one, or comments on the one already open,
 naming the run, the commit, and the failing scenarios per platform. A later
-scheduled run that passes comments and closes it. Detecting a regression in a
-frontend production does not ship a day later is acceptable; detecting it
-silently is not.
+run that passes comments and closes it, from the merge path or the schedule.
+A pass with no open issue records nothing, and a cancelled run records
+nothing. The issue is found again by its exact title, so that title is a
+lookup key: changing it orphans whatever a previous run raised.
+
+The schedule holds its own concurrency lane. It shared one with the ref
+until a merge to `master` cancelled a nightly partway through, which left a
+tracking issue open long after the run that would have closed it.
 
 ## Required status checks
 

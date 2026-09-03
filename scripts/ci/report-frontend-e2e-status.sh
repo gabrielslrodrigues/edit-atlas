@@ -2,10 +2,11 @@
 
 set -euo pipefail
 
-# Records the outcome of a scheduled packaged E2E run on a tracking issue, one
-# per frontend, so a failure survives until someone acts on it instead of
-# resting in a workflow run list nobody opens. A later passing run closes the
-# issue it raised. Any number of frontends may be reported on.
+# Records the outcome of a packaged E2E run on a tracking issue, one per
+# frontend, so a failure survives until someone acts on it instead of resting
+# in a workflow run list nobody opens. A later passing run closes the issue it
+# raised, whether it came from the merge path or the schedule. Any number of
+# frontends may be reported on.
 #
 # Set DRY_RUN=1 to print the actions instead of performing them.
 
@@ -90,6 +91,8 @@ PY
 }
 
 for frontend in "${frontends[@]}"; do
+  # The title is how an already-open issue is found again, so it is a lookup
+  # key rather than prose: changing it orphans the issue a previous run raised.
   title="Scheduled $frontend packaged E2E is failing"
   issue_number="$(find_open_issue "$title")"
 
@@ -98,7 +101,7 @@ for frontend in "${frontends[@]}"; do
       if [[ -n "$issue_number" ]]; then
         echo "$frontend passed; closing tracking issue #$issue_number."
         gh_or_echo issue comment "$issue_number" \
-          --body "Scheduled \`$frontend\` packaged E2E passed in $run_url. Closing."
+          --body "Packaged \`$frontend\` E2E passed in $run_url. Closing."
         gh_or_echo issue close "$issue_number" --reason completed
       else
         echo "$frontend passed; no tracking issue is open."
@@ -106,7 +109,7 @@ for frontend in "${frontends[@]}"; do
       ;;
     failure)
       failures="$(summarize_failures "$results_dir" "$frontend")"
-      body="Scheduled packaged end-to-end testing of the"
+      body="Packaged end-to-end testing of the"
       body+=" \`$frontend\` frontend failed."
       body+=$'\n\n'"Run: $run_url"
       body+=$'\n'"Commit: ${GITHUB_SHA:-unknown}"
@@ -114,7 +117,7 @@ for frontend in "${frontends[@]}"; do
       body+=$'\n'"$failures"
       body+=$'\n\n'"This frontend is not the one production ships, so this does"
       body+=" not block the merge path. The issue stays open until a later"
-      body+=" scheduled run passes, which closes it automatically."
+      body+=" run passes, which closes it automatically."
       if [[ -n "$issue_number" ]]; then
         echo "$frontend failed; updating tracking issue #$issue_number."
         gh_or_echo issue comment "$issue_number" --body "$body"
