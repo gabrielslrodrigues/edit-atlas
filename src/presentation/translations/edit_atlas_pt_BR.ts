@@ -56,12 +56,55 @@
         <translation>&amp;Idioma</translation>
     </message>
     <message>
+        <source>&amp;Appearance</source>
+        <translation>A&amp;parência</translation>
+    </message>
+    <message>
+        <source>&amp;System</source>
+        <translation>&amp;Sistema</translation>
+    </message>
+    <message>
+        <source>&amp;Light</source>
+        <translation>&amp;Claro</translation>
+    </message>
+    <message>
+        <source>&amp;Dark</source>
+        <translation>&amp;Escuro</translation>
+    </message>
+    <message>
         <source>History disabled</source>
         <translation>Histórico desativado</translation>
     </message>
     <message>
         <source>No recent files</source>
         <translation>Nenhum arquivo recente</translation>
+    </message>
+</context>
+<context>
+    <name>edit_atlas::presentation::DiagnosticModel</name>
+    <message>
+        <source>Info</source>
+        <translation>Informação</translation>
+    </message>
+    <message>
+        <source>Warning</source>
+        <translation>Aviso</translation>
+    </message>
+    <message>
+        <source>Error</source>
+        <translation>Erro</translation>
+    </message>
+    <message>
+        <source>Severity</source>
+        <translation>Severidade</translation>
+    </message>
+    <message>
+        <source>Line</source>
+        <translation>Linha</translation>
+    </message>
+    <message>
+        <source>Message</source>
+        <translation>Mensagem</translation>
     </message>
 </context>
 <context>
@@ -415,10 +458,6 @@
         <translation>Não foi possível duplicar o modelo</translation>
     </message>
     <message>
-        <source>Fix the invalid filter condition before duplicating the template.</source>
-        <translation>Corrija a condição de filtro inválida antes de duplicar o modelo.</translation>
-    </message>
-    <message>
         <source>Could Not Load Templates</source>
         <translation>Não foi possível carregar os modelos</translation>
     </message>
@@ -437,14 +476,6 @@
     <message>
         <source>Enter a name for the template.</source>
         <translation>Digite um nome para o modelo.</translation>
-    </message>
-    <message>
-        <source>Template Name Already Used</source>
-        <translation>Nome de modelo já utilizado</translation>
-    </message>
-    <message>
-        <source>A template named “%1” already exists.</source>
-        <translation>Já existe um modelo chamado “%1”.</translation>
     </message>
     <message>
         <source>Rename Template</source>
@@ -483,18 +514,8 @@
         <translation>Não foi possível armazenar o modelo neste computador.</translation>
     </message>
     <message>
-        <source>Enter a template name.</source>
-        <translation>Digite um nome para o modelo.</translation>
-    </message>
-    <message>
         <source>A template with that name already exists.</source>
         <translation>Já existe um modelo com esse nome.</translation>
-    </message>
-    <message>
-        <source>Path: %1
-Detail: %2</source>
-        <translation>Caminho: %1
-Detalhe: %2</translation>
     </message>
     <message>
         <source>Detail: %1</source>
@@ -511,6 +532,14 @@ Detalhe: %2</translation>
 System error: %1</source>
         <translation>
 Erro do sistema: %1</translation>
+    </message>
+    <message>
+        <source>Could Not Change Export Columns</source>
+        <translation>Não foi possível alterar as colunas de exportação</translation>
+    </message>
+    <message>
+        <source>Close</source>
+        <translation>Fechar</translation>
     </message>
 </context>
 <context>
@@ -710,100 +739,16 @@ Inspecione linhas do tempo editoriais e exporte relatórios estruturados.</trans
         <translation>Arquivos de vídeo compatíveis (*.mov *.mp4 *.mxf)</translation>
     </message>
     <message>
-        <source>Event columns</source>
-        <translation>Colunas de eventos</translation>
-    </message>
-    <message>
-        <source>Select the columns to export and arrange them in output order.</source>
-        <translation>Selecione as colunas a exportar e organize-as na ordem de saída.</translation>
-    </message>
-    <message>
-        <source>Event</source>
-        <translation>Evento</translation>
-    </message>
-    <message>
-        <source>Reel</source>
-        <translation>Rolo</translation>
-    </message>
-    <message>
-        <source>Track type</source>
-        <translation>Tipo de faixa</translation>
-    </message>
-    <message>
-        <source>Track</source>
-        <translation>Faixa</translation>
-    </message>
-    <message>
-        <source>Edit type</source>
-        <translation>Tipo de edição</translation>
-    </message>
-    <message>
-        <source>Transition</source>
-        <translation>Transição</translation>
-    </message>
-    <message>
-        <source>Transition frames</source>
-        <translation>Quadros da transição</translation>
-    </message>
-    <message>
-        <source>Source in</source>
-        <translation>Entrada da fonte</translation>
-    </message>
-    <message>
-        <source>Source out</source>
-        <translation>Saída da fonte</translation>
-    </message>
-    <message>
-        <source>Record in</source>
-        <translation>Entrada da gravação</translation>
-    </message>
-    <message>
-        <source>Record out</source>
-        <translation>Saída da gravação</translation>
-    </message>
-    <message>
-        <source>Duration</source>
-        <translation>Duração</translation>
-    </message>
-    <message>
-        <source>Duration frames</source>
-        <translation>Duração em quadros</translation>
-    </message>
-    <message>
-        <source>Clip name</source>
-        <translation>Nome do clipe</translation>
-    </message>
-    <message>
-        <source>Source file</source>
-        <translation>Arquivo de origem</translation>
-    </message>
-    <message>
-        <source>Comments</source>
-        <translation>Comentários</translation>
-    </message>
-    <message>
-        <source>Source line</source>
-        <translation>Linha de origem</translation>
-    </message>
-    <message>
-        <source>Move up</source>
-        <translation>Mover para cima</translation>
-    </message>
-    <message>
-        <source>Move down</source>
-        <translation>Mover para baixo</translation>
-    </message>
-    <message>
-        <source>Select at least one event column.</source>
-        <translation>Selecione pelo menos uma coluna de evento.</translation>
-    </message>
-    <message>
         <source>Continue</source>
         <translation>Continuar</translation>
     </message>
     <message>
         <source>Cancel</source>
         <translation>Cancelar</translation>
+    </message>
+    <message>
+        <source>All files (*)</source>
+        <translation>Todos os arquivos (*)</translation>
     </message>
 </context>
 <context>
@@ -1110,6 +1055,31 @@ Inspecione linhas do tempo editoriais e exporte relatórios estruturados.</trans
     <message>
         <source>Modified</source>
         <translation>Modificado</translation>
+    </message>
+</context>
+<context>
+    <name>edit_atlas::frontends::widgets::AccessibleComboBox</name>
+    <message>
+        <source>Open the combo box selection popup</source>
+        <translation>Abrir a lista de seleção da caixa de combinação</translation>
+    </message>
+</context>
+<context>
+    <name>edit_atlas::frontends::widgets::AccessibleTemplateActionsButton</name>
+    <message>
+        <source>Open the template actions menu</source>
+        <translation>Abrir o menu de ações do modelo</translation>
+    </message>
+</context>
+<context>
+    <name>edit_atlas::frontends::widgets::AccessibleProjectionItem</name>
+    <message>
+        <source>Select this export column</source>
+        <translation>Selecionar esta coluna de exportação</translation>
+    </message>
+    <message>
+        <source>Include or exclude this export column</source>
+        <translation>Incluir ou excluir esta coluna de exportação</translation>
     </message>
 </context>
 <context>
@@ -1493,10 +1463,6 @@ Inspecione linhas do tempo editoriais e exporte relatórios estruturados.</trans
         <translation>Não foi possível exportar a planilha preparada.</translation>
     </message>
     <message>
-        <source>The workbook destination could not be read.</source>
-        <translation>Não foi possível ler o destino da pasta de trabalho.</translation>
-    </message>
-    <message>
         <source>The spreadsheet export could not be started.</source>
         <translation>Não foi possível iniciar a exportação da planilha.</translation>
     </message>
@@ -1538,6 +1504,14 @@ Inspecione linhas do tempo editoriais e exporte relatórios estruturados.</trans
     <message>
         <source>Select a saved template before using this action.</source>
         <translation>Selecione um modelo salvo antes de usar esta ação.</translation>
+    </message>
+    <message>
+        <source>Enter a template name.</source>
+        <translation>Digite um nome para o modelo.</translation>
+    </message>
+    <message>
+        <source>Select at least one event column before saving the template.</source>
+        <translation>Selecione pelo menos uma coluna de evento antes de salvar o modelo.</translation>
     </message>
 </context>
 <context>
@@ -1837,6 +1811,22 @@ Inspecione linhas do tempo editoriais e exporte relatórios estruturados.</trans
         <source>The spreadsheet was saved, but its location could not be opened.</source>
         <translation>A planilha foi salva, mas não foi possível abrir sua localização.</translation>
     </message>
+    <message>
+        <source>Replace Existing File?</source>
+        <translation>Substituir arquivo existente?</translation>
+    </message>
+    <message>
+        <source>The selected file already exists. Do you want to replace it?</source>
+        <translation>O arquivo selecionado já existe. Deseja substituí-lo?</translation>
+    </message>
+    <message>
+        <source>Replace</source>
+        <translation>Substituir</translation>
+    </message>
+    <message>
+        <source>Export Spreadsheet</source>
+        <translation>Exportar planilha</translation>
+    </message>
 </context>
 <context>
     <name>Main</name>
@@ -1887,6 +1877,22 @@ Inspecione linhas do tempo editoriais e exporte relatórios estruturados.</trans
     <message>
         <source>&amp;Language</source>
         <translation>&amp;Idioma</translation>
+    </message>
+    <message>
+        <source>&amp;Appearance</source>
+        <translation>A&amp;parência</translation>
+    </message>
+    <message>
+        <source>&amp;System</source>
+        <translation>&amp;Sistema</translation>
+    </message>
+    <message>
+        <source>&amp;Light</source>
+        <translation>&amp;Claro</translation>
+    </message>
+    <message>
+        <source>&amp;Dark</source>
+        <translation>&amp;Escuro</translation>
     </message>
     <message>
         <source>&amp;Help</source>

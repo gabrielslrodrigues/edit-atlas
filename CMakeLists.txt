@@ -228,15 +228,56 @@ add_subdirectory(src/support)
 add_subdirectory(src/presentation)
 add_subdirectory(src/frontends)
 
+set(edit_atlas_translation_catalogue
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/presentation/translations/edit_atlas_pt_BR.ts"
+)
+set(edit_atlas_translation_source_targets
+    edit_atlas_presentation
+    edit_atlas_quick_frontend
+    edit_atlas_widgets_frontend
+)
+
+# The catalogue tracks no source locations, so regenerating it stays a diff of
+# translatable text rather than of line numbers.
 qt_add_translations(
     TARGETS edit_atlas_presentation
-    SOURCE_TARGETS
-        edit_atlas_presentation
-        edit_atlas_quick_frontend
-        edit_atlas_widgets_frontend
-    TS_FILES src/presentation/translations/edit_atlas_pt_BR.ts
+    SOURCE_TARGETS ${edit_atlas_translation_source_targets}
+    TS_FILES "${edit_atlas_translation_catalogue}"
     RESOURCE_PREFIX "/i18n"
+    LUPDATE_OPTIONS -locations none
 )
+
+# An inventory of what lupdate extracts right now, kept out of the source tree
+# so the check never rewrites the catalogue it is checking. Recreated at
+# configure time because lupdate merges into an existing file.
+set(edit_atlas_translation_inventory
+    "${PROJECT_BINARY_DIR}/translations/inventory/edit_atlas_pt_BR.ts"
+)
+file(
+    WRITE
+    "${edit_atlas_translation_inventory}"
+    "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n"
+    "<!DOCTYPE TS>\n"
+    "<TS version=\"2.1\" language=\"pt_BR\" sourcelanguage=\"en\"/>\n"
+)
+qt_add_lupdate(
+    SOURCE_TARGETS ${edit_atlas_translation_source_targets}
+    TS_FILES "${edit_atlas_translation_inventory}"
+    LUPDATE_TARGET extract_translation_inventory
+    NO_GLOBAL_TARGET
+    OPTIONS -locations none -no-obsolete
+)
+
+add_custom_target(
+    check_translations
+    COMMAND
+        "${CMAKE_COMMAND}"
+        "-DEDIT_ATLAS_TRANSLATION_CATALOGUE=${edit_atlas_translation_catalogue}"
+        "-DEDIT_ATLAS_TRANSLATION_INVENTORY=${edit_atlas_translation_inventory}"
+        -P "${CMAKE_CURRENT_SOURCE_DIR}/cmake/CheckTranslationCatalogue.cmake"
+    VERBATIM
+)
+add_dependencies(check_translations extract_translation_inventory)
 
 if(BUILD_TESTING)
     find_package(GTest CONFIG REQUIRED)

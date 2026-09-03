@@ -81,7 +81,7 @@ before changing a workflow.
   lifetime, and invariant details where they form part of the contract.
 - Formatting comes from `.clang-format`: LLVM-based, four-space indent,
   80-column limit, no tabs. There is no separate lint step beyond
-  `all_qmllint` and compiler warnings under
+  `all_qmllint`, `check_translations`, and compiler warnings under
   `EDIT_ATLAS_WARNINGS_AS_ERRORS`.
 
 ### QML
@@ -95,6 +95,37 @@ before changing a workflow.
   decoration. See
   [docs/accessibility-automation.md](docs/accessibility-automation.md)
   before adding or renaming one.
+
+### Translations
+
+English is the source language and
+`src/presentation/translations/edit_atlas_pt_BR.ts` is the only catalogue.
+A string that is marked for translation but missing from it ships in English
+under a Portuguese interface, so the catalogue is regenerated and checked
+from the build:
+
+```sh
+cmake --build --preset debug-x64-linux --target update_translations
+cmake --build --preset debug-x64-linux --target check_translations
+```
+
+`update_translations` merges new source strings in as unfinished entries,
+which then have to be translated by hand. It records no source locations, so
+regenerating stays a diff of translatable text rather than of line numbers.
+
+`check_translations` extracts the same strings into a throwaway catalogue in
+the build tree and compares source strings, not file text. It fails on a
+string the catalogue is missing, on an entry still unfinished, and on a
+context that yields no strings at all — which means `lupdate` stopped reading
+a file rather than that a translation went stale. `lupdate` parses QML only
+when `qttools` is built with its QML parser, which is why the manifest
+requests that port's `qml` feature; without it every `qsTr` string is skipped
+in silence.
+
+A non-`QObject` class needs a context of its own, through
+`Q_DECLARE_TR_FUNCTIONS`. Calling `tr` on a Qt class instead files the string
+under that Qt class's context, where this catalogue has no reason to look for
+it.
 
 ### Shell and PowerShell
 
