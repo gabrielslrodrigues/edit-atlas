@@ -127,8 +127,10 @@ brew install \
 
 ### Windows requirements
 
-Use MSVC 2022 or later as the C++23 compiler, with the Desktop development with
-C++ workload. This command installs Visual Studio 2022 Build Tools:
+Use MSVC 19.33 or newer as the C++23 compiler, which is Visual Studio 2022
+17.3, with the Desktop development with C++ workload. Earlier releases have no
+`<expected>`, and configuring fails with that reason. This command installs
+Visual Studio 2022 Build Tools:
 
 ```powershell
 winget install --exact --id Microsoft.VisualStudio.2022.BuildTools `
