@@ -447,12 +447,20 @@ class WindowsApplicationSession:
         self, menu_identifier: str, action_identifier: str
     ) -> None:
         menu = self.element(menu_identifier)
+        # Pointer input on purpose, at both steps. Windows offers an Invoke
+        # provider for any element with an action interface, so a pattern is
+        # always available here and tells us nothing about what it will do:
+        # Qt fulfils a menu bar item's show-menu action with setActiveAction,
+        # this project's template button implements show-menu and no press at
+        # all, and a menu item's press triggers without dismissing. A click
+        # opens, triggers, and dismisses, which is the whole interaction.
+        #
         # A prior interaction with this same menu (e.g. toggling one of its
-        # own checkable items) may have left it open. Acting on the menu bar
-        # item again would close it instead of opening it, so only act when
+        # own checkable items) may have left it open. Clicking the menu bar
+        # item again would close it instead of opening it, so only click when
         # the target action is not already showing.
         if not self.has_element(action_identifier):
-            self._invoke_or_click(menu, menu_identifier)
+            self._click_accessible_node(menu, menu_identifier)
             expand = self._pattern(menu, "iface_expand_collapse")
             if expand is not None:
                 wait_until(
@@ -625,6 +633,14 @@ class WindowsApplicationSession:
             if self._expand_collapse_state(expand) != 1:
                 self._execute_pattern(expand.Expand, node)
             return
+        # A leaf menu item is clicked for the same reason the menu path
+        # clicks: Qt fulfils its press action with QAction::trigger, which
+        # runs the action and leaves the menu open, and an open menu grabs
+        # input from everything after it. An item that opens a submenu keeps
+        # the expand path above.
+        if self._control_type(node) == "MenuItem":
+            self._click_accessible_node(node, self._node_name(node))
+            return
         invoke = self._pattern(node, "iface_invoke")
         if invoke is not None:
             self._invoke(node)
@@ -738,7 +754,7 @@ class WindowsApplicationSession:
         if self._pattern(control, "iface_invoke") is not None:
             self._invoke(control)
             return
-        self._invoke_or_click(control, identifier)
+        self._click_accessible_node(control, identifier)
 
     def _reveal_combo_option(self, control: Any, option: str) -> Any | None:
         target = self._find_combo_option(control, option)
@@ -778,18 +794,6 @@ class WindowsApplicationSession:
             if popup is not None:
                 return popup
         return None
-
-    def _invoke_or_click(self, node: Any, description: str) -> None:
-        """Act through the node's own pattern, or its bounds when it has none.
-
-        Bounds-derived input depends on stable geometry, so a layout defect
-        turns into automation flakiness rather than surfacing as a layout
-        defect. It is kept only for controls this project does not own.
-        """
-        try:
-            self._activate_node(node)
-        except ActionNotSupportedError:
-            self._click_accessible_node(node, description)
 
     @staticmethod
     def _click_accessible_node(node: Any, description: str) -> None:

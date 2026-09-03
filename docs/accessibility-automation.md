@@ -62,10 +62,13 @@ Three cases stay pointer driven, and all three are deliberate:
 - The event projection drag handle, whose `Button` role has no press
   behaviour to offer: reordering is a drag, and its keyboard equivalent
   belongs to the row rather than the handle.
-- Menu actions on Windows. Qt fulfils a menu item's press action with
-  `QAction::trigger`, which runs the action and leaves the menu open, where a
-  click both triggers and dismisses it. An open menu grabs input from
-  everything after it, so the complete interaction is the pointer one.
+- Menus on Windows, at both steps. Windows offers an Invoke provider for any
+  element with an action interface, so a pattern is always available there and
+  says nothing about what invoking it will do. Qt fulfils a menu bar item's
+  show-menu action with `setActiveAction`, the template actions button above
+  implements show-menu and no press, and a menu item's press triggers the
+  action while leaving the menu open. A click opens, triggers, and dismisses,
+  which is the whole interaction.
 
 The adapters keep bounds-derived input as a fallback for a project control
 whose action is unexpectedly absent, so a regression in the declarations above

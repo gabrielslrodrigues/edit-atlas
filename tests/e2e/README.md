@@ -299,11 +299,18 @@ Invoke and selects nothing, because it names only its toggle action, and a
 menu item accepts Invoke and triggers without dismissing the menu, because Qt
 fulfils its press action with `QAction::trigger`.
 
-An accepted pattern is therefore not a performed action. The combo path opens
-the popup through Invoke, then treats the selection itself as the verdict and
-clicks the option when a pattern was accepted without committing. A menu
-action is clicked outright: the click both triggers and dismisses, and a menu
-left open grabs input from everything after it.
+An accepted pattern is therefore not a performed action, and on Windows the
+adapter cannot tell the two apart in advance. Menus are driven by pointer
+input at both steps: Qt fulfils a menu bar item's show-menu action with
+`setActiveAction`, this project's template actions button implements show-menu
+and no press at all, and a menu item's press triggers the action while leaving
+the menu open, where an open menu grabs input from everything after it. A
+click opens, triggers, and dismisses.
+
+A combo box is the one place a pattern is preferred, because its effect is
+checked rather than assumed: the popup is opened through Invoke, which the
+following reveal would catch if it had not opened, and the option's selection
+is the verdict on whether its pattern committed, with a click as the fallback.
 
 A combo box is selected through its items' patterns when the provider exposes
 them while collapsed. Otherwise its popup is opened and paged until the

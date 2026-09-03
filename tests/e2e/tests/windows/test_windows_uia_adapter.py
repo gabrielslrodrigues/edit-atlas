@@ -326,6 +326,24 @@ def test_combo_popup_opens_through_invoke_when_expand_does_nothing(
     assert session.selected_option("filterCondition0Field") == "Reel"
 
 
+def test_activating_a_menu_action_clicks_it_so_the_menu_closes(
+    tmp_path: Path,
+) -> None:
+    # An action reached directly, because its menu was already open, is the
+    # same interaction as one reached through the menu: a click triggers and
+    # dismisses, where Qt's press action only triggers.
+    session = application_session(tmp_path)
+    clicked = Event()
+    action = Node("Rename", "MenuItem", click=clicked.set)
+    action.iface_invoke = InertInvokePattern()
+    session.element = lambda identifier, **kwargs: action
+
+    session.activate("renameTemplateAction")
+
+    assert clicked.is_set()
+    assert not action.iface_invoke.invoked.is_set()
+
+
 def test_combo_option_click_commits_when_invoke_selects_nothing(
     tmp_path: Path,
 ) -> None:
@@ -351,15 +369,20 @@ def test_combo_option_click_commits_when_invoke_selects_nothing(
     assert session.selected_option("filterCondition0Field") == "Reel"
 
 
-def test_menu_action_is_clicked_so_the_menu_closes(tmp_path: Path) -> None:
-    # Qt Widgets fulfils a menu item's press action with QAction::trigger,
-    # which runs the action but leaves the menu open, and an open menu grabs
-    # input from everything after it.
+def test_menu_action_clicks_both_the_menu_and_the_action(
+    tmp_path: Path,
+) -> None:
+    # Windows offers an Invoke provider for any element with an action
+    # interface, so both of these accept one and neither does what a click
+    # does: this project's template button implements show-menu and no press,
+    # and Qt fulfils a menu item's press with QAction::trigger, which runs the
+    # action but leaves the menu open.
     session = application_session(tmp_path)
     clicked: list[str] = []
     action = Node("About", "MenuItem", click=lambda: clicked.append("action"))
     action.iface_invoke = InertInvokePattern()
     menu = Node("Help", "MenuItem", click=lambda: clicked.append("menu"))
+    menu.iface_invoke = InertInvokePattern()
     nodes = {"helpMenu": menu, "aboutAction": action}
     session.element = lambda identifier: nodes[identifier]
     session.has_element = lambda identifier: False
@@ -367,6 +390,7 @@ def test_menu_action_is_clicked_so_the_menu_closes(tmp_path: Path) -> None:
     session.activate_menu_action("helpMenu", "aboutAction")
 
     assert clicked == ["menu", "action"]
+    assert not menu.iface_invoke.invoked.is_set()
     assert not action.iface_invoke.invoked.is_set()
 
 
