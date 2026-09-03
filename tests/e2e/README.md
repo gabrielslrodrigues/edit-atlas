@@ -289,6 +289,13 @@ invocation does anything is decided in QML, which is why the actions this
 project declares are documented with the controls rather than with the
 adapters.
 
+Offered is not the same as implemented, and a combo box is the case that
+proves it: Qt offers an ExpandCollapse provider for every one of them, but
+fulfils Expand with a ShowMenu action that no Qt Quick item can declare, so
+the call is accepted and the popup stays closed. The combo path therefore
+opens the popup through Invoke rather than through the pattern order the
+other controls use.
+
 A combo box is selected through its items' patterns when the provider exposes
 them while collapsed. Otherwise its popup is opened and paged until the
 requested option is realized, because a native popup realizes only the items

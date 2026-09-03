@@ -693,7 +693,7 @@ class WindowsApplicationSession:
             except (ActionNotSupportedError, PollTimeoutError):
                 pass
 
-        self._invoke_or_click(control, identifier)
+        self._open_combo_popup(control, identifier)
         target = wait_until(
             lambda: self._reveal_combo_option(control, option),
             lambda value: value is not None,
@@ -703,6 +703,20 @@ class WindowsApplicationSession:
         if not self._select_option_node(control, target, option):
             self._click_accessible_node(target, f"combo box option {option!r}")
         self._wait_selected_option_for(control, target, option)
+
+    def _open_combo_popup(self, control: Any, identifier: str) -> None:
+        """Open a combo box popup through the control's own press action.
+
+        Qt offers an ExpandCollapse provider for every combo box but fulfils
+        Expand with a ShowMenu action, which a Qt Quick item cannot declare,
+        so that pattern accepts the request and opens nothing. Invoke reaches
+        the press action the control does declare, which is why this does not
+        go through the pattern order the other controls use.
+        """
+        if self._pattern(control, "iface_invoke") is not None:
+            self._invoke(control)
+            return
+        self._invoke_or_click(control, identifier)
 
     def _reveal_combo_option(self, control: Any, option: str) -> Any | None:
         target = self._find_combo_option(control, option)
