@@ -33,37 +33,32 @@ var NAVTREE =
       [ "Media decoding", "api_architecture.html#autotoc_md3", null ],
       [ "Diagnostic support", "api_architecture.html#autotoc_md4", null ],
       [ "Presentation layer", "api_architecture.html#autotoc_md5", null ],
-      [ "Frontend boundary", "api_architecture.html#autotoc_md6", null ],
-      [ "Frontend maintenance policy", "api_architecture.html#autotoc_md7", null ]
+      [ "Frontend boundary", "api_architecture.html#autotoc_md6", null ]
     ] ],
     [ "Qt Quick frontend", "qt_quick_frontend.html", [
-      [ "Architectural boundary", "qt_quick_frontend.html#autotoc_md11", null ],
-      [ "Source layout", "qt_quick_frontend.html#autotoc_md12", null ],
-      [ "Configure, build, and run", "qt_quick_frontend.html#autotoc_md13", null ],
-      [ "QML and design-system conventions", "qt_quick_frontend.html#autotoc_md14", null ],
-      [ "Localization", "qt_quick_frontend.html#autotoc_md15", null ],
-      [ "Accessibility and automation", "qt_quick_frontend.html#autotoc_md16", null ],
-      [ "Linting and tests", "qt_quick_frontend.html#autotoc_md17", null ],
-      [ "Deployment and licensing", "qt_quick_frontend.html#autotoc_md18", null ]
+      [ "Architectural boundary", "qt_quick_frontend.html#autotoc_md10", null ],
+      [ "Source layout", "qt_quick_frontend.html#autotoc_md11", null ],
+      [ "QML and design-system conventions", "qt_quick_frontend.html#autotoc_md12", null ],
+      [ "Localization", "qt_quick_frontend.html#autotoc_md13", null ],
+      [ "Accessibility and automation", "qt_quick_frontend.html#autotoc_md14", null ],
+      [ "Verification and distribution boundary", "qt_quick_frontend.html#autotoc_md15", null ]
     ] ],
     [ "Qt Widgets frontend", "qt_widgets_frontend.html", [
-      [ "Architectural boundary", "qt_widgets_frontend.html#autotoc_md19", null ],
-      [ "Source layout", "qt_widgets_frontend.html#autotoc_md20", null ],
-      [ "Configure, build, and run", "qt_widgets_frontend.html#autotoc_md21", null ],
-      [ "Widget, controller, and style conventions", "qt_widgets_frontend.html#autotoc_md22", null ],
-      [ "Localization", "qt_widgets_frontend.html#autotoc_md23", null ],
-      [ "Accessibility and automation", "qt_widgets_frontend.html#autotoc_md24", null ],
-      [ "Tests", "qt_widgets_frontend.html#autotoc_md25", null ],
-      [ "Deployment, licensing, and maintenance", "qt_widgets_frontend.html#autotoc_md26", null ]
+      [ "Architectural boundary", "qt_widgets_frontend.html#autotoc_md16", null ],
+      [ "Source layout", "qt_widgets_frontend.html#autotoc_md17", null ],
+      [ "Widget, controller, and style conventions", "qt_widgets_frontend.html#autotoc_md18", null ],
+      [ "Localization", "qt_widgets_frontend.html#autotoc_md19", null ],
+      [ "Accessibility and automation", "qt_widgets_frontend.html#autotoc_md20", null ],
+      [ "Verification and distribution boundary", "qt_widgets_frontend.html#autotoc_md21", null ]
     ] ],
     [ "Command-line interface", "md_docs_2cli.html", [
-      [ "Convert an EDL", "md_docs_2cli.html#autotoc_md28", null ],
-      [ "Workbook options", "md_docs_2cli.html#autotoc_md29", null ],
-      [ "Initial-frame images", "md_docs_2cli.html#autotoc_md30", null ],
-      [ "Existing destinations", "md_docs_2cli.html#autotoc_md31", null ],
-      [ "Diagnostics and exit codes", "md_docs_2cli.html#autotoc_md32", null ],
-      [ "Executable locations", "md_docs_2cli.html#autotoc_md33", null ],
-      [ "Privacy and encoding", "md_docs_2cli.html#autotoc_md34", null ]
+      [ "Convert an EDL", "md_docs_2cli.html#autotoc_md23", null ],
+      [ "Workbook options", "md_docs_2cli.html#autotoc_md24", null ],
+      [ "Initial-frame images", "md_docs_2cli.html#autotoc_md25", null ],
+      [ "Existing destinations", "md_docs_2cli.html#autotoc_md26", null ],
+      [ "Diagnostics and exit codes", "md_docs_2cli.html#autotoc_md27", null ],
+      [ "Executable locations", "md_docs_2cli.html#autotoc_md28", null ],
+      [ "Privacy and encoding", "md_docs_2cli.html#autotoc_md29", null ]
     ] ],
     [ "Namespaces", "namespaces.html", [
       [ "Namespace List", "namespaces.html", "namespaces_dup" ],
@@ -97,11 +92,11 @@ var NAVTREE =
 var NAVTREEINDEX =
 [
 "annotated.html",
-"classedit__atlas_1_1presentation_1_1TimelineDocumentViewModel.html#af92467816807c0a0f720f7a4815a05d4",
-"functions_eval.html",
-"namespaceedit__atlas_1_1services_1_1timeline__video__diagnostic__code.html",
-"structedit__atlas_1_1media_1_1Rational.html",
-"structedit__atlas_1_1services_1_1TimelineTextFilterCondition.html#a086be1326be6214479af168f4f16de04"
+"classedit__atlas_1_1presentation_1_1TimelineDocumentViewModel.html#afc89481128d0502cf833a97c5daa9729",
+"functions_f.html",
+"namespaceedit__atlas_1_1services_1_1timeline__video__diagnostic__code.html#a0e234874f8b1944d209408095f63e7dd",
+"structedit__atlas_1_1media_1_1VideoBackendInformation.html#a674b4c73b04bf5183aa4d2371ebbbe6a",
+"structedit__atlas_1_1services_1_1TimelineTextFilterCondition.html#af44830eb29a2d1a60eeb006561fddf87"
 ];
 
 var SYNCONMSG = 'click to disable panel synchronisation';

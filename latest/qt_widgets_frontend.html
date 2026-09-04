@@ -95,12 +95,12 @@ $(document).ready(function(){initNavTree('qt_widgets_frontend.html',''); initRes
 </div><!--header-->
 <div class="contents">
 <div class="textblock"><p>Qt Widgets is the maintained secondary Edit Atlas desktop frontend. It remains independently buildable and tested for critical fixes, shared-presentation compatibility, regression coverage, and emergency distribution rollback. It is not included in ordinary production releases.</p>
-<p>Shared MVVM responsibilities and the primary/secondary maintenance policy are canonical on <a class="el" href="api_architecture.html">API architecture</a>. Qt Quick production conventions are documented on <a class="el" href="qt_quick_frontend.html">Qt Quick frontend</a>.</p>
-<h1><a class="anchor" id="autotoc_md19"></a>
+<p>Shared MVVM responsibilities and the primary/secondary maintenance policy are canonical in the <a href="https://github.com/gabrielslrodrigues/edit-atlas/blob/master/docs/architecture.md">repository architecture</a>. Qt Quick production conventions are documented on <a class="el" href="qt_quick_frontend.html">Qt Quick frontend</a>.</p>
+<h1><a class="anchor" id="autotoc_md16"></a>
 Architectural boundary</h1>
 <p>Qt Widgets implements the View and adapts shared Presentation ViewModels to widgets, actions, native dialogs, and focused controllers. It owns window composition, interaction, focus, confirmations, and translated feedback. It must not own format parsing, persistence formats, filesystem transactions, domain rules, or duplicated service workflows.</p>
 <p>The frontend is exposed through <code>EditAtlas::WidgetsFrontend</code> and the <code>edit_atlas::frontends::widgets</code> namespace. <code>EditAtlas::WidgetsApplication</code> identifies its concrete executable independently from the product-selected <code>EditAtlas::Application</code> alias.</p>
-<h1><a class="anchor" id="autotoc_md20"></a>
+<h1><a class="anchor" id="autotoc_md17"></a>
 Source layout</h1>
 <p>The implementation lives under <code>src/frontends/widgets</code>:</p>
 <div class="fragment"><div class="line">widgets/</div>
@@ -112,18 +112,7 @@ Source layout</h1>
 <div class="line">├── timeline_document_view.cpp              document-state presentation</div>
 <div class="line">└── *_controller.cpp                        dialog and command adapters</div>
 </div><!-- fragment --><p>Public declarations stay in the project include hierarchy. Private widgets, controllers, and implementation headers remain beside their source files. Shared icons and native desktop metadata stay under <code>src/frontends/resources</code>.</p>
-<h1><a class="anchor" id="autotoc_md21"></a>
-Configure, build, and run</h1>
-<p>Generic presets build Qt Quick, Qt Widgets, and the CLI. Configure and build a Linux debug tree with:</p>
-<div class="fragment"><div class="line">cmake --preset debug-x64-linux</div>
-<div class="line">cmake --build --preset debug-x64-linux</div>
-</div><!-- fragment --><p>Run the secondary Widgets application:</p>
-<div class="fragment"><div class="line">./build/debug-x64-linux/src/frontends/widgets/edit-atlas-widgets</div>
-</div><!-- fragment --><p>Use the corresponding <code>debug-arm64-osx</code>, <code>debug-x64-osx</code>, or <code>debug-x64-windows</code> preset on another supported host. Focused Release presets named <code>release-widgets-&lt;platform&gt;</code> exclude the Qt Quick implementation from the default build and produce the Widgets application as <code>edit-atlas</code>.</p>
-<p>Create a focused local package where a workflow preset exists with:</p>
-<div class="fragment"><div class="line">cmake --workflow --preset create-widgets-package-x64-linux</div>
-</div><!-- fragment --><p>Use <code>create-widgets-package-x64-windows</code> on Windows. Universal macOS package assembly remains automated in CI from native ARM64 and x64 stages.</p>
-<h1><a class="anchor" id="autotoc_md22"></a>
+<h1><a class="anchor" id="autotoc_md18"></a>
 Widget, controller, and style conventions</h1>
 <p><code>MainWindow</code> composes the desktop shell. Focused Views present shared state, while controllers translate widget signals and dialog results into shared ViewModel commands. Add behavior according to ownership:</p>
 <ul>
@@ -134,25 +123,18 @@ Widget, controller, and style conventions</h1>
 </ul>
 <p><code>resources/styles/edit_atlas.qss</code> owns visual Widget rules and selectors. It is a template rather than a finished stylesheet: it names shared appearance tokens such as <code>@window@</code> and <code>@border@</code>, never literal colors, so light and dark differ only by the palette substituted into it. Colors are owned by <code>edit_atlas::presentation</code>, which both frontends read, so a new color is added there and then referenced here. <code>application_style.cpp</code> substitutes the palette, derives the semantic <code>QPalette</code> roles from the same table, and owns non-visual application style behavior including the Fusion base style, Widget animation settings, and minimum interface font size. An appearance change reapplies both without restarting. Individual widgets continue to own their layout, content, and interaction. Do not use QSS to encode state transitions or application behavior.</p>
 <p>Object names used by QSS are also part of the maintenance surface. Do not rename one without reviewing style selectors, accessibility identifiers, and automation coverage.</p>
-<h1><a class="anchor" id="autotoc_md23"></a>
+<h1><a class="anchor" id="autotoc_md19"></a>
 Localization</h1>
 <p>User-facing QObject and Widget text uses <code>tr()</code> in the owning translation context. English remains the source language and Brazilian Portuguese remains the initial language for a new profile. Do not persist translated labels or use them as format keys, template values, or automation identifiers.</p>
 <p>Both graphical executables use the same application and organization identifiers, translation catalog, recent-file history, template directory, and export preferences. Switching to Widgets for validation or rollback requires no settings migration.</p>
-<h1><a class="anchor" id="autotoc_md24"></a>
+<h1><a class="anchor" id="autotoc_md20"></a>
 Accessibility and automation</h1>
 <p>Widgets and dialogs use <code>accessibleIdentifier</code>. Actions use the same stable value for <code>objectName</code> and their dynamic <code>accessibleIdentifier</code> property. Accessible names and descriptions remain localized; identifiers remain stable and nonlocalized.</p>
 <p>Preserve keyboard navigation, modal cancellation, semantic roles, and focus restoration when maintaining the secondary frontend. Dynamic filter and projection controls must continue following the indexed identifier contract in <code>docs/accessibility-automation.md</code> so the frontend-neutral E2E façade can drive the same user workflow.</p>
-<h1><a class="anchor" id="autotoc_md25"></a>
-Tests</h1>
-<p>Run the normal unit and integration layers with:</p>
-<div class="fragment"><div class="line">ctest --preset debug-x64-linux --label-regex &#39;^unit$&#39;</div>
-<div class="line">ctest --preset debug-x64-linux --label-regex &#39;^integration$&#39;</div>
-</div><!-- fragment --><p>The <code>edit_atlas_widgets_frontend_tests</code> GoogleTest target covers isolated frontend behavior. <code>edit_atlas_widgets_frontend_integration_tests</code> covers the real application shell, persistent-state integration, and accessibility contract. Package verification installs and launches the Widgets artifacts on every supported platform even though production releases select Qt Quick.</p>
-<p>The semantic pytest E2E façade retains Widgets support, and the daily scheduled CI run exercises it: packaged E2E installs the package of every frontend that is not the production one — currently Widgets — and drives the platform suites on Linux and Windows. A failure opens or updates a tracking issue rather than resting in a workflow run list. A rollback must select the Widgets package for packaged E2E and pass every required platform gate before a release tag is created, and the scheduled run is the standing evidence that the path still works.</p>
-<h1><a class="anchor" id="autotoc_md26"></a>
-Deployment, licensing, and maintenance</h1>
-<p>Widgets packages dynamically deploy Qt Widgets, Qt Concurrent, Qt GUI, Qt Core, platform plugins, and the shared non-Qt runtime. They receive the same notices, corresponding-source material, private runtime boundaries, and clean-installation verification as Qt Quick packages.</p>
-<p>The permitted maintenance scope and rollback role are defined on <a class="el" href="api_architecture.html">API architecture</a> rather than independently by this toolkit guide. The exact emergency release selection procedure is documented in <code>docs/packaging.md</code>. </p>
+<h1><a class="anchor" id="autotoc_md21"></a>
+Verification and distribution boundary</h1>
+<p>Widgets packages dynamically deploy Qt Widgets, Qt Concurrent, Qt GUI, Qt Core, platform plugins, and the shared non-Qt runtime. They receive the same notices, corresponding-source material, private runtime boundaries, and clean-installation and packaged-E2E verification as Qt Quick packages.</p>
+<p>The permitted maintenance scope and rollback role are defined in the <a href="https://github.com/gabrielslrodrigues/edit-atlas/blob/master/docs/architecture.md">repository architecture</a>. The exact emergency release selection procedure is in <a href="https://github.com/gabrielslrodrigues/edit-atlas/blob/master/docs/packaging.md">Desktop packaging</a>. </p>
 </div></div><!-- contents -->
 </div><!-- PageDoc -->
 </div><!-- doc-content -->

@@ -94,12 +94,12 @@ $(document).ready(function(){initNavTree('qt_quick_frontend.html',''); initResiz
   <div class="headertitle"><div class="title">Qt Quick frontend</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p>Qt Quick is the primary Edit Atlas desktop frontend and the only graphical frontend published in production releases.</p>
-<p>This page defines the Qt Quick source conventions and development workflow. Shared MVVM responsibilities and the primary/secondary maintenance policy are canonical on <a class="el" href="api_architecture.html">API architecture</a>. Qt Widgets conventions are documented on <a class="el" href="qt_widgets_frontend.html">Qt Widgets frontend</a>.</p>
-<h1><a class="anchor" id="autotoc_md11"></a>
+<div class="textblock"><p>Qt Quick is the primary Edit Atlas desktop frontend and the graphical frontend selected for normal production releases.</p>
+<p>This page defines the Qt Quick source contract. Shared MVVM responsibilities and the primary/secondary maintenance policy are canonical in the <a href="https://github.com/gabrielslrodrigues/edit-atlas/blob/master/docs/architecture.md">repository architecture</a>. Qt Widgets conventions are documented on <a class="el" href="qt_widgets_frontend.html">Qt Widgets frontend</a>.</p>
+<h1><a class="anchor" id="autotoc_md10"></a>
 Architectural boundary</h1>
 <p>Qt Quick implements the View and supplies QML-facing adapters around shared Presentation ViewModels. It owns declarative layout, dialogs, focus, navigation, translated feedback, and toolkit-specific interaction. It must not own format parsing, persistence formats, filesystem transactions, domain rules, or duplicated service workflows.</p>
-<h1><a class="anchor" id="autotoc_md12"></a>
+<h1><a class="anchor" id="autotoc_md11"></a>
 Source layout</h1>
 <p>The relevant source directories are:</p>
 <div class="fragment"><div class="line">src/</div>
@@ -111,18 +111,7 @@ Source layout</h1>
 <div class="line">    │   └── views/             application QML views and dialogs</div>
 <div class="line">    └── widgets/               maintained secondary desktop frontend</div>
 </div><!-- fragment --><p>The <code>EditAtlas.Frontends.Quick</code> QML module contains application views and QML-facing C++ types. <code>EditAtlasStyle</code> is a separate Qt Quick Controls style module built on the Basic fallback style. Shared product icons and native desktop metadata live under <code>src/frontends/resources</code> rather than either frontend.</p>
-<h1><a class="anchor" id="autotoc_md13"></a>
-Configure, build, and run</h1>
-<p>Generic presets build Qt Quick, Qt Widgets, and the CLI. Configure and build a Linux debug tree with:</p>
-<div class="fragment"><div class="line">cmake --preset debug-x64-linux</div>
-<div class="line">cmake --build --preset debug-x64-linux</div>
-</div><!-- fragment --><p>Run the primary Qt Quick application:</p>
-<div class="fragment"><div class="line">./build/debug-x64-linux/src/frontends/quick/edit-atlas</div>
-</div><!-- fragment --><p>Run the secondary Widgets application from the same build:</p>
-<div class="fragment"><div class="line">./build/debug-x64-linux/src/frontends/widgets/edit-atlas-widgets</div>
-</div><!-- fragment --><p>Use the corresponding <code>debug-arm64-osx</code>, <code>debug-x64-osx</code>, or <code>debug-x64-windows</code> preset on another supported host. The product-named Qt Quick executable is located under <code>src/frontends/quick</code>; the secondary Widgets executable is located under <code>src/frontends/widgets</code> and retains the <code>edit-atlas-widgets</code> name.</p>
-<p>Release presets named <code>release-quick-&lt;platform&gt;</code> and <code>release-widgets-&lt;platform&gt;</code> provide focused frontend builds and package validation. Generic Release presets build both isolated package applications from one shared Release tree.</p>
-<h1><a class="anchor" id="autotoc_md14"></a>
+<h1><a class="anchor" id="autotoc_md12"></a>
 QML and design-system conventions</h1>
 <p>Application QML belongs in <code>src/frontends/quick/views</code>. Reusable visual controls and styling belong in <code>src/frontends/quick/style</code>; they must not be copied into individual views.</p>
 <p>Follow these rules when changing the Qt Quick interface:</p>
@@ -137,31 +126,20 @@ QML and design-system conventions</h1>
 <li>avoid loading QML or generated translation artifacts from undocumented local paths.</li>
 </ul>
 <p>The custom style uses Qt Quick Controls Basic as its fallback. Fusion and platform-native styles are not the visual contract for the production frontend.</p>
-<h1><a class="anchor" id="autotoc_md15"></a>
+<h1><a class="anchor" id="autotoc_md13"></a>
 Localization</h1>
 <p>English is the source language and Brazilian Portuguese is the initial application language for a new profile. QML user-facing strings use <code>qsTr()</code>; C++ QObject text uses the appropriate Qt translation context. Do not use translated text as a persistent value, automation identifier, format key, or template field.</p>
 <p>Prefer complete translatable sentences with numbered placeholders over concatenated fragments. When adding or changing text, keep the English source and <code>src/presentation/translations/edit_atlas_pt_BR.ts</code> catalog consistent. Translation compilation remains part of the CMake build; no manually generated translation artifact is tracked.</p>
 <p>Language selection, recent files, templates, and export preferences are shared presentation state. Both graphical executables use the same application and organization identifiers, so switching frontend requires no settings or user data migration.</p>
-<h1><a class="anchor" id="autotoc_md16"></a>
+<h1><a class="anchor" id="autotoc_md14"></a>
 Accessibility and automation</h1>
 <p>Every interactive or semantically meaningful QML object exposes a stable, nonlocalized <code>objectName</code> and the corresponding <code>Accessible.id</code>. Provide an appropriate accessible role, localized name, and description where the control's visible text is insufficient. Keyboard focus and cancellation must remain usable without a pointer.</p>
 <p>Identifiers are an automation contract. Do not derive them from translated text or change them as part of a visual refactor. Dynamic identifiers must follow the indexed conventions in <code>docs/accessibility-automation.md</code>. Frontend-specific control structure is acceptable, but semantic E2E operations must expose the same user workflow through both adapters.</p>
-<h1><a class="anchor" id="autotoc_md17"></a>
-Linting and tests</h1>
-<p>Lint every compiled QML module from an existing build tree with:</p>
-<div class="fragment"><div class="line">cmake --build --preset debug-x64-linux --target all_qmllint</div>
-</div><!-- fragment --><p>Run the normal unit and integration layers with:</p>
-<div class="fragment"><div class="line">ctest --preset debug-x64-linux --label-regex &#39;^unit$&#39;</div>
-<div class="line">ctest --preset debug-x64-linux --label-regex &#39;^integration$&#39;</div>
-</div><!-- fragment --><p>Run only the in-process Qt Quick view suite with:</p>
-<div class="fragment"><div class="line">ctest --preset debug-x64-linux \</div>
-<div class="line">  --tests-regex &#39;^edit_atlas_quick_qml_tests$&#39;</div>
-</div><!-- fragment --><p>GoogleTest covers C++ ViewModel and adapter behavior. Qt Quick Test covers QML bindings, focus, accessibility, dynamic controls, and dialog cancellation against real shared ViewModels. Packaged pytest E2E drives the installed Qt Quick production application on Linux and Windows through platform accessibility APIs. The macOS implementation remains non-required because GitHub-hosted runners cannot be reliably pre-authorized for Accessibility.</p>
-<h1><a class="anchor" id="autotoc_md18"></a>
-Deployment and licensing</h1>
+<h1><a class="anchor" id="autotoc_md15"></a>
+Verification and distribution boundary</h1>
 <p>Production installers contain Qt Quick and do not install a second graphical application. CI still creates both frontend package variants so each can be installed and verified independently.</p>
-<p>Qt is dynamically linked. Qt Quick packages deploy the required Qt QML import tree, plugins, platform integration, and shared libraries. Package verification checks the deployed QML modules and dynamic dependency closure on Linux, macOS, and Windows. Tagged releases publish only the verified Qt Quick binary packages together with the required notices and corresponding Qt and FFmpeg source archives.</p>
-<p>Do not add a Qt module or third-party QML dependency without updating vcpkg, deployment verification, notices, corresponding-source coverage where applicable, and every supported package path. The detailed requirements remain in <code>docs/qt-lgpl-compliance.md</code>, <code>docs/ffmpeg-lgpl-compliance.md</code>, and <code>docs/packaging.md</code>. </p>
+<p>Qt is dynamically linked. Qt Quick packages deploy the required Qt QML import tree, plugins, platform integration, and shared libraries. Package verification checks the deployed QML modules and dynamic dependency closure on Linux, macOS, and Windows. The release pipeline currently resolves Qt Quick as the production frontend and publishes its verified binary packages with the required notices and corresponding Qt and FFmpeg source archives.</p>
+<p>Adding a Qt module or third-party QML dependency also changes deployment, verification, notices, and corresponding-source coverage. The required workflows are documented in <a href="https://github.com/gabrielslrodrigues/edit-atlas/blob/master/docs/packaging.md">Desktop packaging</a> and the LGPL compliance guides. </p>
 </div></div><!-- contents -->
 </div><!-- PageDoc -->
 </div><!-- doc-content -->
