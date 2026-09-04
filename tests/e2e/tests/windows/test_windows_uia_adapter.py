@@ -21,11 +21,13 @@ class ElementInfo:
         control_type: str,
         automation_id: str = "",
         control_id: int = -1,
+        class_name: str = "",
     ) -> None:
         self.name = name
         self.control_type = control_type
         self.automation_id = automation_id
         self.control_id = control_id
+        self.class_name = class_name
 
 
 class RunningProcess:
@@ -95,12 +97,32 @@ class SelectionPattern:
         self._select()
 
 
+class InertSelectionPattern:
+    """Accepts Select without selecting, as Qt does when it fulfils the
+    pattern through a toggle the element does not implement."""
+
+    def __init__(self) -> None:
+        self.CurrentIsSelected = False
+        self.selected = Event()
+
+    def Select(self) -> None:
+        self.selected.set()
+
+
 class RangeValuePattern:
     def __init__(self, set_value: Any) -> None:
         self._set_value = set_value
 
     def SetValue(self, value: float) -> None:
         self._set_value(value)
+
+
+class TextValuePattern:
+    def __init__(self) -> None:
+        self.CurrentValue = ""
+
+    def SetValue(self, value: str) -> None:
+        self.CurrentValue = value
 
 
 class Node:
@@ -110,10 +132,13 @@ class Node:
         control_type: str,
         *,
         automation_id: str = "",
+        class_name: str = "",
         children: tuple["Node", ...] = (),
         click: Any | None = None,
     ) -> None:
-        self.element_info = ElementInfo(name, control_type, automation_id)
+        self.element_info = ElementInfo(
+            name, control_type, automation_id, class_name=class_name
+        )
         self._children = children
         self._click = click
         self.focus_calls = 0
@@ -163,6 +188,7 @@ def application_session(
     artifact_directory: Path,
     *,
     desktop: Any = None,
+    focused_element_getter: Any = None,
     timeout: float = 1.0,
     startup_timeout: float = 1.0,
 ) -> WindowsApplicationSession:
@@ -171,6 +197,7 @@ def application_session(
         desktop=desktop,
         win32_desktop=None,
         keyboard_sender=None,
+        focused_element_getter=focused_element_getter,
         registry=None,
         process=RunningProcess(),
         artifact_directory=artifact_directory,
@@ -326,22 +353,110 @@ def test_combo_popup_opens_through_invoke_when_expand_does_nothing(
     assert session.selected_option("filterCondition0Field") == "Reel"
 
 
-def test_activating_a_menu_action_clicks_it_so_the_menu_closes(
+def test_activating_a_menu_bar_item_takes_its_pattern(
     tmp_path: Path,
 ) -> None:
-    # An action reached directly, because its menu was already open, is the
-    # same interaction as one reached through the menu: a click triggers and
-    # dismisses, where Qt's press action only triggers.
+    # A menu bar item carries the same control type as the actions inside the
+    # menu it opens, and Qt Quick fulfils its press action by opening that
+    # menu. Deciding on the control type alone would click it instead, which
+    # opens nothing.
     session = application_session(tmp_path)
     clicked = Event()
-    action = Node("Rename", "MenuItem", click=clicked.set)
+    opened = Event()
+    menu = Node("Appearance", "MenuItem", click=clicked.set)
+    menu.iface_invoke = InvokePattern(opened.set)
+    session.element = lambda identifier, **kwargs: menu
+
+    session.activate("appearanceSelector")
+
+    assert opened.wait(1.0)
+    assert not clicked.is_set()
+
+
+def test_menu_action_is_clicked_without_reopening_an_open_menu(
+    tmp_path: Path,
+) -> None:
+    # Reaching an action whose menu a prior interaction left open must not
+    # act on the menu again, which would close it, but still has to click the
+    # action so the menu is dismissed afterwards.
+    session = application_session(tmp_path)
+    clicked: list[str] = []
+    action = Node("Rename", "MenuItem", click=lambda: clicked.append("action"))
     action.iface_invoke = InertInvokePattern()
-    session.element = lambda identifier, **kwargs: action
+    menu = Node(
+        "Template actions", "MenuItem", click=lambda: clicked.append("menu")
+    )
+    nodes = {"templateActionsButton": menu, "renameTemplateAction": action}
+    session.element = lambda identifier: nodes[identifier]
+    session.has_element = lambda identifier: True
 
-    session.activate("renameTemplateAction")
+    session.activate_menu_action(
+        "templateActionsButton", "renameTemplateAction"
+    )
 
-    assert clicked.is_set()
+    assert clicked == ["action"]
     assert not action.iface_invoke.invoked.is_set()
+
+
+def test_menu_action_opens_menu_through_effective_pattern(
+    tmp_path: Path,
+) -> None:
+    # Qt Quick's menu bar items implement their press action. The requested
+    # action appearing proves that Invoke worked, so no click fallback should
+    # disturb the menu before its leaf action is clicked.
+    session = application_session(tmp_path)
+    clicked: list[str] = []
+    opened = Event()
+    action = Node("English", "MenuItem", click=lambda: clicked.append("action"))
+    menu = Node("Language", "MenuItem", click=lambda: clicked.append("menu"))
+    menu.iface_invoke = InvokePattern(opened.set)
+    nodes = {"languageSelector": menu, "englishLanguageAction": action}
+    session.element = lambda identifier: nodes[identifier]
+    session.has_element = lambda identifier: (
+        identifier == "englishLanguageAction" and opened.is_set()
+    )
+
+    session.activate_menu_action("languageSelector", "englishLanguageAction")
+
+    assert menu.iface_invoke.invoked.is_set()
+    assert clicked == ["action"]
+
+
+def test_menu_action_dismisses_a_blocking_invoke_before_click_fallback(
+    tmp_path: Path,
+) -> None:
+    session = application_session(tmp_path, timeout=1.0)
+    clicked: list[str] = []
+    opened = Event()
+    invoked_menu_showing = Event()
+    release_invoke = Event()
+    action = Node("Edit export columns", "MenuItem")
+    action._click = lambda: clicked.append("action")
+    menu = Node("Template actions", "Button")
+    menu._click = lambda: (clicked.append("menu"), opened.set())
+    menu.iface_invoke = InvokePattern(
+        lambda: (invoked_menu_showing.set(), release_invoke.wait())
+    )
+    nodes = {"templateActionsButton": menu, "editExportColumnsAction": action}
+    session.element = lambda identifier: nodes[identifier]
+    session.has_element = lambda identifier: (
+        identifier == "editExportColumnsAction"
+        and (invoked_menu_showing.is_set() or opened.is_set())
+    )
+
+    def send_keys(keys: str, **options: Any) -> None:
+        assert (keys, options) == ("{ESC}", {"pause": 0})
+        invoked_menu_showing.clear()
+        release_invoke.set()
+
+    session._keyboard_sender = send_keys
+
+    session.activate_menu_action(
+        "templateActionsButton", "editExportColumnsAction"
+    )
+
+    assert menu.iface_invoke.invoked.wait(1.0)
+    assert clicked == ["menu", "action"]
 
 
 def test_combo_option_click_commits_when_invoke_selects_nothing(
@@ -372,26 +487,91 @@ def test_combo_option_click_commits_when_invoke_selects_nothing(
 def test_menu_action_clicks_both_the_menu_and_the_action(
     tmp_path: Path,
 ) -> None:
-    # Windows offers an Invoke provider for any element with an action
-    # interface, so both of these accept one and neither does what a click
-    # does: this project's template button implements show-menu and no press,
-    # and Qt fulfils a menu item's press with QAction::trigger, which runs the
-    # action but leaves the menu open.
-    session = application_session(tmp_path)
+    # Qt Widgets exposes menu titles as QAction. Its accepted pattern does not
+    # provide a usable complete interaction, and invoking the leaf triggers it
+    # without dismissing the menu, so both steps deliberately use clicks.
+    session = application_session(tmp_path, timeout=1.0)
     clicked: list[str] = []
+    opened = Event()
     action = Node("About", "MenuItem", click=lambda: clicked.append("action"))
     action.iface_invoke = InertInvokePattern()
-    menu = Node("Help", "MenuItem", click=lambda: clicked.append("menu"))
+    menu = Node(
+        "Help",
+        "MenuItem",
+        class_name="QAction",
+        click=lambda: (clicked.append("menu"), opened.set()),
+    )
     menu.iface_invoke = InertInvokePattern()
     nodes = {"helpMenu": menu, "aboutAction": action}
     session.element = lambda identifier: nodes[identifier]
-    session.has_element = lambda identifier: False
+    session.has_element = lambda identifier: (
+        identifier == "aboutAction" and opened.is_set()
+    )
 
     session.activate_menu_action("helpMenu", "aboutAction")
 
     assert clicked == ["menu", "action"]
     assert not menu.iface_invoke.invoked.is_set()
     assert not action.iface_invoke.invoked.is_set()
+
+
+def test_selecting_a_list_item_presses_it_so_it_becomes_current(
+    tmp_path: Path,
+) -> None:
+    # This project's list item implements its press action as setCurrentItem,
+    # which is what the buttons beside the list act on. UIA SelectionItem is
+    # only obliged to change the selection, so taking it first would leave
+    # the current row where it was.
+    session = application_session(tmp_path)
+    item = Node("Comments", "ListItem")
+    item.iface_selection_item = InertSelectionPattern()
+    item.iface_invoke = InvokePattern(
+        lambda: setattr(item.iface_selection_item, "CurrentIsSelected", True)
+    )
+    session._list_item = lambda identifier, name: item
+
+    session.select_list_item("eventColumnsList", "Comments")
+
+    assert item.iface_invoke.invoked.is_set()
+    assert not item.iface_selection_item.selected.is_set()
+
+
+def test_selecting_a_list_item_falls_back_when_its_press_selects_nothing(
+    tmp_path: Path,
+) -> None:
+    # Windows offers an Invoke provider for any element with an action
+    # interface, so a press is accepted whether or not the element implements
+    # one, and the selection is the only verdict on whether it took.
+    session = application_session(tmp_path, timeout=0.5)
+    item = Node("Comments", "ListItem")
+    item.iface_invoke = InertInvokePattern()
+    item.iface_selection_item = SelectionPattern(lambda: None)
+    session._list_item = lambda identifier, name: item
+
+    session.select_list_item("eventColumnsList", "Comments")
+
+    assert item.iface_invoke.invoked.is_set()
+    assert item.iface_selection_item.CurrentIsSelected
+
+
+def test_selecting_a_list_item_clicks_when_no_pattern_selects_it(
+    tmp_path: Path,
+) -> None:
+    session = application_session(tmp_path, timeout=0.5)
+    clicked = Event()
+    item = Node("Comments", "ListItem", click=clicked.set)
+    item.iface_invoke = InertInvokePattern()
+    item.iface_selection_item = InertSelectionPattern()
+    item._click = lambda: (
+        clicked.set(),
+        setattr(item.iface_selection_item, "CurrentIsSelected", True),
+    )
+    session._list_item = lambda identifier, name: item
+
+    session.select_list_item("eventColumnsList", "Comments")
+
+    assert item.iface_selection_item.selected.is_set()
+    assert clicked.is_set()
 
 
 def test_combo_selection_prefers_items_exposed_while_collapsed(
@@ -554,7 +734,12 @@ def test_menu_option_selection_uses_uia_invoke_pattern(tmp_path: Path) -> None:
 def test_menu_action_uses_accessible_item_bounds(tmp_path: Path) -> None:
     session = application_session(tmp_path)
     clicked: list[str] = []
-    menu = Node("Template actions", "Button", click=lambda: clicked.append("menu"))
+    opened = Event()
+    menu = Node(
+        "Template actions",
+        "Button",
+        click=lambda: (clicked.append("menu"), opened.set()),
+    )
     action = Node(
         "Edit export columns",
         "MenuItem",
@@ -565,7 +750,9 @@ def test_menu_action_uses_accessible_item_bounds(tmp_path: Path) -> None:
         "editExportColumnsAction": action,
     }
     session.element = lambda identifier: nodes[identifier]
-    session.has_element = lambda identifier: False
+    session.has_element = lambda identifier: (
+        identifier == "editExportColumnsAction" and opened.is_set()
+    )
 
     session.activate_menu_action(
         "templateActionsButton", "editExportColumnsAction"
@@ -575,15 +762,15 @@ def test_menu_action_uses_accessible_item_bounds(tmp_path: Path) -> None:
 
 
 def test_menu_action_waits_for_the_dropdown_to_expand(tmp_path: Path) -> None:
-    session = application_session(tmp_path)
+    session = application_session(tmp_path, timeout=1.0)
     clicked: list[str] = []
     action = Node(
         "Open", "MenuItem", click=lambda: clicked.append("action")
     )
-    expand = ExpandCollapsePattern()
+    expand = InertExpandCollapsePattern()
 
     def open_after_delay() -> None:
-        time.sleep(0.2)
+        time.sleep(0.1)
         expand.CurrentExpandCollapseState = 1
 
     menu = Node(
@@ -594,7 +781,10 @@ def test_menu_action_waits_for_the_dropdown_to_expand(tmp_path: Path) -> None:
     menu.iface_expand_collapse = expand
     nodes = {"fileMenu": menu, "openDocumentAction": action}
     session.element = lambda identifier: nodes[identifier]
-    session.has_element = lambda identifier: False
+    session.has_element = lambda identifier: (
+        identifier == "openDocumentAction"
+        and expand.CurrentExpandCollapseState == 1
+    )
 
     session.activate_menu_action("fileMenu", "openDocumentAction")
 
@@ -754,10 +944,57 @@ def test_native_file_dialog_uses_focused_keyboard_input(
     session.open_file_dialog("timelineOpenFileDialog", path)
 
     assert keyboard_calls == [
+        ("^a", {"pause": 0}),
+        ("^a", {"pause": 0}),
         (
             str(path),
-            {"with_spaces": True, "pause": 0, "vk_packet": True},
+            {"with_spaces": True, "pause": 0.05, "vk_packet": True},
         ),
+        ("{ENTER}", {"pause": 0}),
+    ]
+
+
+def test_native_file_dialog_sets_the_globally_focused_editor(
+    tmp_path: Path,
+) -> None:
+    filename = Node("File name:", "Edit", automation_id="1148")
+    filename.iface_value = TextValuePattern()
+    session = application_session(
+        tmp_path, focused_element_getter=lambda: filename
+    )
+    dialog_open = Event()
+    dialog_open.set()
+    keyboard_calls: list[tuple[str, dict[str, Any]]] = []
+
+    class Dialog:
+        @staticmethod
+        def exists() -> bool:
+            return dialog_open.is_set()
+
+        @staticmethod
+        def has_focus() -> bool:
+            return True
+
+    class Desktop:
+        @staticmethod
+        def windows(**criteria: Any) -> list[Dialog]:
+            return [Dialog()]
+
+    session._win32_desktop = Desktop()
+
+    def send_keys(keys: str, **options: Any) -> None:
+        keyboard_calls.append((keys, options))
+        if keys == "{ENTER}":
+            dialog_open.clear()
+
+    session._keyboard_sender = send_keys
+    path = tmp_path / "timeline.edl"
+
+    session.open_file_dialog("timelineOpenFileDialog", path)
+
+    assert filename.iface_value.CurrentValue == str(path)
+    assert keyboard_calls == [
+        ("^a", {"pause": 0}),
         ("{ENTER}", {"pause": 0}),
     ]
 

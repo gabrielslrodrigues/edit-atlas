@@ -277,11 +277,13 @@ native core files for crashed packaged executables to
 The required Windows suite drives the GUI installed by the generated MSI with
 pywinauto's UIA backend. It uses UIA Invoke, Toggle, Selection, Value, and
 ExpandCollapse patterns and native file-dialog controls. It uses no pointer
-coordinates, no image matching, and no fixed sleeps. Pointer input is used
-only at bounds an element reports, for native dialogs and as a fallback, and
-keyboard paging only where a scrollable control exposes no Scroll pattern,
-which is how a virtualized list or a native combo popup reveals content
-outside its viewport.
+coordinates, no image matching, and no fixed sleeps. The blocking native file
+chooser hides its filename editor from traversal, so the adapter sets the
+globally focused editor's UIA Value pattern and verifies the complete path;
+focused keyboard entry remains a fallback. Pointer input is used only at
+bounds an element reports, for native dialogs and as a fallback, and keyboard
+paging only where a scrollable control exposes no Scroll pattern, which is how
+a virtualized list or a native combo popup reveals content outside its viewport.
 
 Qt exposes an Invoke provider for every Quick item, so a pattern is always
 offered here even when the item implements nothing behind it. Whether the
@@ -299,13 +301,23 @@ Invoke and selects nothing, because it names only its toggle action, and a
 menu item accepts Invoke and triggers without dismissing the menu, because Qt
 fulfils its press action with `QAction::trigger`.
 
-An accepted pattern is therefore not a performed action, and on Windows the
-adapter cannot tell the two apart in advance. Menus are driven by pointer
-input at both steps: Qt fulfils a menu bar item's show-menu action with
-`setActiveAction`, this project's template actions button implements show-menu
-and no press at all, and a menu item's press triggers the action while leaving
-the menu open, where an open menu grabs input from everything after it. A
-click opens, triggers, and dismisses.
+An accepted pattern is therefore not a performed action, and the offered
+pattern alone cannot establish its effect. A menu opener takes its pattern
+first and lets the requested action appearing prove that the menu opened. Qt
+Quick therefore keeps using the press action its QML menu bar items implement.
+Qt Widgets exposes its menu titles as `QAction`, so those open directly through
+bounds-derived clicks; the template actions button falls back to the same path
+when its accepted action cannot complete usefully. A Widgets Invoke that
+remains blocked while its popup is active is dismissed with Escape, and its
+leaf must become absent before the click fallback reopens it, so the serialized
+provider cannot deadlock the visibility check or satisfy it with stale state.
+The action must remain visible across consecutive observations—with a longer
+window for pointer-opened menus—so popup animation cannot race the following
+input. A menu's leaf action is deliberately clicked: its press
+triggers the action but leaves the menu open, where an open menu grabs input
+from everything after it, while a click triggers and dismisses. That decision
+belongs to the menu path alone, not to the control type, so generic activation
+still takes the pattern.
 
 A combo box is the one place a pattern is preferred, because its effect is
 checked rather than assumed: the popup is opened through Invoke, which the
