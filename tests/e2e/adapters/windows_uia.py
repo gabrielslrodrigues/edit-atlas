@@ -189,11 +189,22 @@ class WindowsApplicationSession:
 
     def wait_ready(self) -> None:
         try:
-            self.element("mainWindow", timeout=self._startup_timeout)
+            main_window = self.element(
+                "mainWindow", timeout=self._startup_timeout
+            )
+            # A visible UIA tree does not mean the launched window is in the
+            # foreground. Pointer-backed interactions would otherwise land on
+            # whichever application still covers it on a developer desktop.
+            main_window.set_focus()
         except ElementNotFoundError as error:
             raise StartupNotReadyError(
                 "the application did not become automatable within "
                 f"{self._startup_timeout:g} seconds: {error}"
+            ) from error
+        except Exception as error:
+            raise StartupNotReadyError(
+                "the application became automatable but its main window "
+                f"could not be focused: {error}"
             ) from error
 
     def element(
@@ -290,75 +301,14 @@ class WindowsApplicationSession:
         return self._is_checked(self._list_item(identifier, name))
 
     def select_list_item(self, identifier: str, name: str) -> None:
-        # Selecting a row and making it current are two different things, and
-        # the controls beside a list act on the current row. This project's
-        # list item implements its press action as setCurrentItem, so Invoke
-        # delivers both; UIA SelectionItem only has to change the selection,
-        # and Qt fulfils it through the parent's selection interface or a
-        # toggle of the item and its selected siblings, neither of which has
-        # to move the current row. Preferring the press action is therefore
-        # not a style choice, and the selection is what decides whether a
-        # step worked rather than the provider accepting the call.
+        # Qt exposes checkable QListWidget items through SelectionItem, but
+        # CurrentIsSelected can reflect their check state without making them
+        # current. The shared movement buttons act on the current row, which
+        # UIA does not expose separately. A click at the reported bounds is
+        # therefore the complete selection interaction; the caller verifies
+        # its effect by waiting for the requested list order.
         node = self._list_item(identifier, name)
-        budget = min(2.0, self._timeout)
-        steps = (
-            lambda: self._press_node(node, f"list item {name!r}"),
-            lambda: self._select_node(node, f"list item {name!r}"),
-            lambda: self._click_accessible_node(node, f"list item {name!r}"),
-        )
-        for step in steps:
-            try:
-                step()
-            except ActionNotSupportedError:
-                continue
-            try:
-                self._wait_list_item_selected(node, name, timeout=budget)
-                return
-            except PollTimeoutError:
-                continue
-        self._wait_list_item_selected(node, name)
-
-    def _press_node(self, node: Any, description: str) -> None:
-        completed = self._invoke(node)
-        wait_until(
-            completed.is_set,
-            lambda done: done,
-            timeout=self._timeout,
-            description=f"{description} press to complete",
-        )
-        self._ensure_running()
-
-    def _select_node(self, node: Any, description: str) -> None:
-        pattern = self._pattern(node, "iface_selection_item")
-        if pattern is None:
-            raise ActionNotSupportedError(
-                f"{description} exposes no UIA SelectionItem pattern"
-            )
-        try:
-            pattern.Select()
-        except Exception as error:
-            raise ActionNotSupportedError(
-                f"UIA selection failed for {description}: {error}"
-            ) from error
-
-    def _wait_list_item_selected(
-        self, node: Any, name: str, *, timeout: float | None = None
-    ) -> None:
-        wait_until(
-            lambda: self._is_selected(node),
-            lambda selected: selected,
-            timeout=self._timeout if timeout is None else timeout,
-            description=f"list item {name!r} to become selected",
-        )
-
-    def _is_selected(self, node: Any) -> bool:
-        pattern = self._pattern(node, "iface_selection_item")
-        if pattern is None:
-            return False
-        try:
-            return bool(pattern.CurrentIsSelected)
-        except Exception:
-            return False
+        self._click_accessible_node(node, f"list item {name!r}")
 
     def set_list_item_checked(
         self, identifier: str, name: str, checked: bool
