@@ -4,6 +4,8 @@ This file records user-facing Edit Atlas changes beginning with version 0.2.0.
 
 ## [Unreleased]
 
+## [0.4.0]
+
 ### Added
 
 - A System, Light, and Dark appearance preference shared by both desktop
@@ -15,8 +17,15 @@ This file records user-facing Edit Atlas changes beginning with version 0.2.0.
 - The production desktop application now uses the redesigned Qt Quick
   interface while preserving existing language, recent-file, template, and
   export settings.
+- Application typography is now consistent across Linux, macOS, and Windows,
+  using a bundled interface typeface and falling back to the platform family
+  when it is unavailable.
 - Documentation now provides a focused desktop user guide and task-based index
   for development, testing, packaging, and automation references.
+- Building from source now requires Clang 19, or MSVC 19.33 from Visual Studio
+  2022 17.3, or another toolchain whose standard library provides
+  `std::expected`; configuration fails naming the missing facility rather than
+  failing later as a template error.
 
 ## [0.3.0]
 
@@ -63,6 +72,7 @@ This file records user-facing Edit Atlas changes beginning with version 0.2.0.
 - Filter, export, and template responsibilities are separated from the desktop
   interface so they can be shared by other frontends.
 
-[Unreleased]: https://github.com/gabrielslrodrigues/edit-atlas/compare/v0.3.0...HEAD
+[Unreleased]: https://github.com/gabrielslrodrigues/edit-atlas/compare/v0.4.0...HEAD
+[0.4.0]: https://github.com/gabrielslrodrigues/edit-atlas/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/gabrielslrodrigues/edit-atlas/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/gabrielslrodrigues/edit-atlas/compare/v0.1.2...v0.2.0
