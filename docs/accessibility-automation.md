@@ -50,18 +50,32 @@ Every control this project owns is therefore driven by an action:
   delegate is an `ItemDelegate` and implements a press action, but its
   `ListItem` role stops Qt advertising it, so AT-SPI never offers it.
 - An event projection row declares a toggle action for including and
-  excluding the column, for the same reason.
+  excluding the column, for the same reason, and a press action that makes
+  the row current. The adapters select a row through that press action:
+  selecting a row and making it current are different states, the buttons
+  beside the list act on the current one, and neither AT-SPI selection nor
+  UIA `SelectionItem` is obliged to move it.
 - A timeline column header declares a press action that sorts the column. It
   is a plain item with the `Button` role, so the advertised press action would
   otherwise be inert.
 
-Two cases stay pointer driven, and both are deliberate:
+Four cases use pointer input, and all four are deliberate:
 
 - Qt's built-in file chooser delegates, which this project does not own and
   which expose no action.
 - The event projection drag handle, whose `Button` role has no press
   behaviour to offer: reordering is a drag, and its keyboard equivalent
   belongs to the row rather than the handle.
+- Windows menu openers whose accepted action does not provide the complete
+  interaction. Qt Quick QML menu bar items retain their implemented press path;
+  Qt Widgets `QAction` menu titles use a bounds-derived click, and the template
+  actions button falls back to one when needed. An Invoke that blocks while its
+  popup is active is dismissed with Escape before the click fallback; its leaf
+  must become absent before reopening, avoiding concurrent queries and stale
+  visibility from the serialized UIA provider.
+- Windows menu leaf actions. Their press triggers the action while leaving the
+  menu open; a click both triggers and dismisses it, which is the complete
+  interaction.
 
 The adapters keep bounds-derived input as a fallback for a project control
 whose action is unexpectedly absent, so a regression in the declarations above

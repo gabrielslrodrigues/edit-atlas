@@ -2,14 +2,14 @@
 
 Interactions in this module use UIA control patterns, except for Windows'
 native file chooser. Its blocking modal UIA provider exposes neither its
-filename field nor accept button, so the adapter types into the field that the
-operating system focuses when the chooser opens. A combo box is selected
-through its items' patterns when the provider exposes them while collapsed,
-and otherwise by pointer input at the accessible bounds of an item in its
-popup, because Qt does not commit desktop ExpandCollapse or SelectionItem
-actions. A native popup realizes only the items in its viewport, so it is
-paged like any virtualized list. Explicit coordinates and image matching are
-absent.
+filename field nor accept button through traversal, so the adapter sets the
+globally focused filename editor through its Value pattern. A combo box is
+selected through its items' patterns when the provider exposes them while
+collapsed, and otherwise by pointer input at the accessible bounds of an item
+in its popup, because Qt does not commit desktop ExpandCollapse or
+SelectionItem actions. A native popup realizes only the items in its viewport,
+so it is paged like any virtualized list. Explicit coordinates and image
+matching are absent.
 """
 
 from __future__ import annotations
@@ -64,6 +64,7 @@ class WindowsUiaAdapter:
         self._desktop: Any = None
         self._win32_desktop: Any = None
         self._keyboard_sender: Any = None
+        self._focused_element_getter: Any = None
 
     def preflight(self) -> None:
         if os.name != "nt":
@@ -72,7 +73,10 @@ class WindowsUiaAdapter:
             )
         try:
             from pywinauto import Application, Desktop
+            from pywinauto.controls.uiawrapper import UIAWrapper
             from pywinauto.keyboard import send_keys
+            from pywinauto.uia_defines import IUIA
+            from pywinauto.uia_element_info import UIAElementInfo
 
             desktop = Desktop(backend="uia")
             desktop.windows()
@@ -86,6 +90,9 @@ class WindowsUiaAdapter:
         self._desktop = desktop
         self._win32_desktop = win32_desktop
         self._keyboard_sender = send_keys
+        self._focused_element_getter = lambda: UIAWrapper(
+            UIAElementInfo(IUIA().get_focused_element())
+        )
 
     def launch(
         self,
@@ -129,6 +136,7 @@ class WindowsUiaAdapter:
                 desktop=self._desktop,
                 win32_desktop=self._win32_desktop,
                 keyboard_sender=self._keyboard_sender,
+                focused_element_getter=self._focused_element_getter,
                 registry=self._registry,
                 process=process,
                 artifact_directory=self._artifact_directory,
@@ -159,6 +167,7 @@ class WindowsApplicationSession:
         desktop: Any,
         win32_desktop: Any,
         keyboard_sender: Any,
+        focused_element_getter: Any,
         registry: ProcessRegistry,
         process: subprocess.Popen[str],
         artifact_directory: Path,
@@ -169,6 +178,7 @@ class WindowsApplicationSession:
         self._desktop = desktop
         self._win32_desktop = win32_desktop
         self._keyboard_sender = keyboard_sender
+        self._focused_element_getter = focused_element_getter
         self._registry = registry
         self._process = process
         self._artifact_directory = artifact_directory
@@ -280,24 +290,75 @@ class WindowsApplicationSession:
         return self._is_checked(self._list_item(identifier, name))
 
     def select_list_item(self, identifier: str, name: str) -> None:
+        # Selecting a row and making it current are two different things, and
+        # the controls beside a list act on the current row. This project's
+        # list item implements its press action as setCurrentItem, so Invoke
+        # delivers both; UIA SelectionItem only has to change the selection,
+        # and Qt fulfils it through the parent's selection interface or a
+        # toggle of the item and its selected siblings, neither of which has
+        # to move the current row. Preferring the press action is therefore
+        # not a style choice, and the selection is what decides whether a
+        # step worked rather than the provider accepting the call.
         node = self._list_item(identifier, name)
+        budget = min(2.0, self._timeout)
+        steps = (
+            lambda: self._press_node(node, f"list item {name!r}"),
+            lambda: self._select_node(node, f"list item {name!r}"),
+            lambda: self._click_accessible_node(node, f"list item {name!r}"),
+        )
+        for step in steps:
+            try:
+                step()
+            except ActionNotSupportedError:
+                continue
+            try:
+                self._wait_list_item_selected(node, name, timeout=budget)
+                return
+            except PollTimeoutError:
+                continue
+        self._wait_list_item_selected(node, name)
+
+    def _press_node(self, node: Any, description: str) -> None:
+        completed = self._invoke(node)
+        wait_until(
+            completed.is_set,
+            lambda done: done,
+            timeout=self._timeout,
+            description=f"{description} press to complete",
+        )
+        self._ensure_running()
+
+    def _select_node(self, node: Any, description: str) -> None:
         pattern = self._pattern(node, "iface_selection_item")
         if pattern is None:
             raise ActionNotSupportedError(
-                f"list item {name!r} exposes no UIA SelectionItem pattern"
+                f"{description} exposes no UIA SelectionItem pattern"
             )
         try:
             pattern.Select()
         except Exception as error:
             raise ActionNotSupportedError(
-                f"UIA selection failed for list item {name!r}: {error}"
+                f"UIA selection failed for {description}: {error}"
             ) from error
+
+    def _wait_list_item_selected(
+        self, node: Any, name: str, *, timeout: float | None = None
+    ) -> None:
         wait_until(
-            lambda: bool(pattern.CurrentIsSelected),
+            lambda: self._is_selected(node),
             lambda selected: selected,
-            timeout=self._timeout,
+            timeout=self._timeout if timeout is None else timeout,
             description=f"list item {name!r} to become selected",
         )
+
+    def _is_selected(self, node: Any) -> bool:
+        pattern = self._pattern(node, "iface_selection_item")
+        if pattern is None:
+            return False
+        try:
+            return bool(pattern.CurrentIsSelected)
+        except Exception:
+            return False
 
     def set_list_item_checked(
         self, identifier: str, name: str, checked: bool
@@ -383,9 +444,19 @@ class WindowsApplicationSession:
             description=f"native file chooser {dialog_identifier!r} to receive focus",
         )
         try:
-            self._keyboard_sender(
-                os.fspath(path), with_spaces=True, pause=0, vk_packet=True
-            )
+            # The shell exposes no traversable filename editor, but Ctrl+A
+            # primes its focus and GetFocusedElement returns the standard edit
+            # with a writable Value pattern. Set the whole path atomically so
+            # autocomplete cannot discard characters from a typed long path.
+            self._keyboard_sender("^a", pause=0)
+            if not self._set_focused_native_filename(os.fspath(path)):
+                self._keyboard_sender("^a", pause=0)
+                self._keyboard_sender(
+                    os.fspath(path),
+                    with_spaces=True,
+                    pause=0.05,
+                    vk_packet=True,
+                )
             self._keyboard_sender("{ENTER}", pause=0)
         except Exception as error:
             raise ActionNotSupportedError(
@@ -447,22 +518,90 @@ class WindowsApplicationSession:
         self, menu_identifier: str, action_identifier: str
     ) -> None:
         menu = self.element(menu_identifier)
-        # A prior interaction with this same menu (e.g. toggling one of its
-        # own checkable items) may have left it open. Pressing the menu bar
-        # item again would toggle it closed instead of opening it, so only
-        # act when the target action is not already showing.
+        # Windows offers an Invoke provider for any element with an action
+        # interface, so accepting a pattern does not prove that it opened the
+        # menu. Qt Quick's QML menu bar item implements its press action, while
+        # Qt Widgets exposes menu titles as QAction and its accepted action does
+        # not provide a usable complete interaction. Preserve the Quick action
+        # contract and route only QAction openers through their bounds. A prior
+        # interaction may already have left this menu open, so do neither when
+        # the action is already showing.
         if not self.has_element(action_identifier):
-            self._invoke_or_click(menu, menu_identifier)
-            expand = self._pattern(menu, "iface_expand_collapse")
-            if expand is not None:
+            opened = False
+            if self._uia_class_name(menu) != "QAction":
+                try:
+                    opened = self._open_menu_through_action(
+                        menu, menu_identifier, action_identifier
+                    )
+                except (ActionNotSupportedError, PollTimeoutError):
+                    pass
+            if not opened:
+                self._click_accessible_node(menu, menu_identifier)
                 wait_until(
-                    lambda: self._expand_collapse_state(expand),
-                    lambda state: state == 1,
+                    lambda: self.has_element(action_identifier),
+                    lambda present: present,
                     timeout=self._timeout,
+                    consecutive=10,
                     description=f"{menu_identifier!r} menu to open",
                 )
         action = self.element(action_identifier)
-        self._invoke_or_click(action, action_identifier)
+        # Pointer input on purpose. Qt Widgets fulfils a menu item's press
+        # action with QAction::trigger, which runs the action but leaves the
+        # menu open, and an open menu grabs input from everything after it. A
+        # click both triggers and dismisses, which is the whole interaction.
+        self._click_accessible_node(action, action_identifier)
+
+    def _open_menu_through_action(
+        self, menu: Any, menu_identifier: str, action_identifier: str
+    ) -> bool:
+        invoke = self._pattern(menu, "iface_invoke")
+        expand = self._pattern(menu, "iface_expand_collapse")
+        if invoke is not None and expand is None:
+            completed = self._invoke(menu)
+            try:
+                wait_until(
+                    completed.is_set,
+                    lambda done: done,
+                    timeout=min(2.0, self._timeout),
+                    description=f"{menu_identifier!r} opener action to complete",
+                )
+            except PollTimeoutError:
+                # A Qt Widgets menu can keep Invoke blocked for as long as the
+                # popup is active, while its provider serializes every tree
+                # query behind that call. Dismiss it without querying UIA so
+                # the action thread can return, then use the click path below.
+                self._keyboard_sender("{ESC}", pause=0)
+                wait_until(
+                    completed.is_set,
+                    lambda done: done,
+                    timeout=self._timeout,
+                    description=(
+                        f"{menu_identifier!r} blocked opener action to dismiss"
+                    ),
+                )
+                self._ensure_running()
+                wait_until(
+                    lambda: self.has_element(action_identifier),
+                    lambda present: not present,
+                    timeout=self._timeout,
+                    consecutive=2,
+                    description=(
+                        f"{menu_identifier!r} blocked opener menu to dismiss"
+                    ),
+                )
+                return False
+            self._ensure_running()
+        else:
+            self._activate_node(menu)
+
+        wait_until(
+            lambda: self.has_element(action_identifier),
+            lambda present: present,
+            timeout=min(2.0, self._timeout),
+            consecutive=3,
+            description=f"{menu_identifier!r} action to open its menu",
+        )
+        return True
 
     @staticmethod
     def _expand_collapse_state(expand: Any) -> int:
@@ -700,7 +839,25 @@ class WindowsApplicationSession:
             timeout=self._timeout,
             description=f"combo box option {option!r} for {identifier!r}",
         )
-        if not self._select_option_node(control, target, option):
+        # Windows offers an Invoke provider for anything with an action
+        # interface, whether or not the element implements the press action
+        # behind it: a Qt Widgets popup item names only its toggle action, so
+        # invoking it is accepted and selects nothing. The pattern is tried
+        # first and the selection is what decides, with a click as the
+        # fallback, because that is what commits on every provider seen here.
+        budget = min(2.0, self._timeout)
+        committed = False
+        try:
+            if self._select_option_node(
+                control, target, option, timeout=budget
+            ):
+                self._wait_selected_option_for(
+                    control, target, option, timeout=budget
+                )
+                committed = True
+        except (ActionNotSupportedError, PollTimeoutError):
+            pass
+        if not committed:
             self._click_accessible_node(target, f"combo box option {option!r}")
         self._wait_selected_option_for(control, target, option)
 
@@ -716,7 +873,7 @@ class WindowsApplicationSession:
         if self._pattern(control, "iface_invoke") is not None:
             self._invoke(control)
             return
-        self._invoke_or_click(control, identifier)
+        self._click_accessible_node(control, identifier)
 
     def _reveal_combo_option(self, control: Any, option: str) -> Any | None:
         target = self._find_combo_option(control, option)
@@ -756,18 +913,6 @@ class WindowsApplicationSession:
             if popup is not None:
                 return popup
         return None
-
-    def _invoke_or_click(self, node: Any, description: str) -> None:
-        """Act through the node's own pattern, or its bounds when it has none.
-
-        Bounds-derived input depends on stable geometry, so a layout defect
-        turns into automation flakiness rather than surfacing as a layout
-        defect. It is kept only for controls this project does not own.
-        """
-        try:
-            self._activate_node(node)
-        except ActionNotSupportedError:
-            self._click_accessible_node(node, description)
 
     @staticmethod
     def _click_accessible_node(node: Any, description: str) -> None:
@@ -1088,6 +1233,43 @@ class WindowsApplicationSession:
                 continue
         return None
 
+    def _set_focused_native_filename(self, path: str) -> bool:
+        if self._focused_element_getter is None:
+            return False
+        try:
+            editor = wait_until(
+                self._focused_element_getter,
+                lambda node: (
+                    self._control_type(node) == "Edit"
+                    and self._automation_id(node) == "1148"
+                    and self._pattern(node, "iface_value") is not None
+                ),
+                timeout=min(2.0, self._timeout),
+                description="focused native filename editor",
+            )
+            value = self._pattern(editor, "iface_value")
+            value.SetValue(path)
+            wait_until(
+                lambda: self._focused_native_filename_value(),
+                lambda text: text == path,
+                timeout=min(2.0, self._timeout),
+                description="native filename editor to contain the full path",
+            )
+            return True
+        except Exception:
+            return False
+
+    def _focused_native_filename_value(self) -> str:
+        if self._focused_element_getter is None:
+            return ""
+        editor = self._focused_element_getter()
+        if (
+            self._control_type(editor) != "Edit"
+            or self._automation_id(editor) != "1148"
+        ):
+            return ""
+        return self._node_text(editor)
+
     def _find_identifier(
         self, identifier: str, *, showing: bool = True
     ) -> Any | None:
@@ -1207,6 +1389,13 @@ class WindowsApplicationSession:
     @staticmethod
     def _control_type(node: Any) -> str:
         return str(node.element_info.control_type or "")
+
+    @staticmethod
+    def _uia_class_name(node: Any) -> str:
+        try:
+            return str(node.element_info.class_name or "")
+        except Exception:
+            return ""
 
     @staticmethod
     def _control_id(node: Any) -> int:
