@@ -8,6 +8,7 @@ from typing import Any
 import pytest
 
 from adapters.windows_uia import (
+    ActionNotSupportedError,
     ElementNotFoundError,
     StartupNotReadyError,
     WindowsApplicationSession,
@@ -130,6 +131,7 @@ class Node:
         self._children = children
         self._click = click
         self.focus_calls = 0
+        self.keyboard_focus = False
 
     def descendants(self) -> list["Node"]:
         descendants: list[Node] = []
@@ -151,6 +153,9 @@ class Node:
 
     def class_name(self) -> str:
         return self.element_info.control_type
+
+    def has_keyboard_focus(self) -> bool:
+        return self.keyboard_focus
 
     def set_focus(self) -> None:
         self.focus_calls += 1
@@ -508,7 +513,11 @@ def test_selecting_a_list_item_clicks_to_make_it_current(
 ) -> None:
     session = application_session(tmp_path)
     current = Event()
-    item = Node("Comments", "ListItem", click=current.set)
+    item = Node("Comments", "ListItem")
+    item._click = lambda: (
+        current.set(),
+        setattr(item, "keyboard_focus", True),
+    )
     session._list_item = lambda identifier, name: item
 
     session.select_list_item("eventColumnsList", "Comments")
@@ -516,12 +525,37 @@ def test_selecting_a_list_item_clicks_to_make_it_current(
     assert current.is_set()
 
 
+def test_selecting_a_list_item_rejects_a_click_on_another_row(
+    tmp_path: Path,
+) -> None:
+    # The shared movement buttons act on the current row, and their enabled
+    # state is true for any current row above the first, so a click one row
+    # off would otherwise reorder the wrong column and surface as a timeout
+    # while the caller waits for an order that can no longer occur.
+    session = application_session(tmp_path, timeout=0.3)
+    requested = Node("Comments", "ListItem")
+    neighbour = Node("Source file", "ListItem")
+    requested._click = lambda: setattr(neighbour, "keyboard_focus", True)
+    session._list_item = lambda identifier, name: requested
+    session._list_nodes = lambda identifier: [requested, neighbour]
+
+    with pytest.raises(ActionNotSupportedError) as failure:
+        session.select_list_item("eventColumnsList", "Comments")
+
+    assert "'Comments'" in str(failure.value)
+    assert "'Source file'" in str(failure.value)
+
+
 def test_checked_list_item_is_clicked_when_uia_reports_it_selected(
     tmp_path: Path,
 ) -> None:
     session = application_session(tmp_path)
     current = Event()
-    item = Node("Comments", "ListItem", click=current.set)
+    item = Node("Comments", "ListItem")
+    item._click = lambda: (
+        current.set(),
+        setattr(item, "keyboard_focus", True),
+    )
     item.iface_selection_item = SelectionPattern(lambda: None)
     item.iface_selection_item.CurrentIsSelected = True
     item.iface_invoke = InvokePattern()

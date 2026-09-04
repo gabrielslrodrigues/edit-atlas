@@ -303,12 +303,40 @@ class WindowsApplicationSession:
     def select_list_item(self, identifier: str, name: str) -> None:
         # Qt exposes checkable QListWidget items through SelectionItem, but
         # CurrentIsSelected can reflect their check state without making them
-        # current. The shared movement buttons act on the current row, which
-        # UIA does not expose separately. A click at the reported bounds is
-        # therefore the complete selection interaction; the caller verifies
-        # its effect by waiting for the requested list order.
+        # current, so a click at the reported bounds is the selection
+        # interaction. Which row it landed on still has to be established:
+        # the shared movement buttons act on the current row, and their
+        # enabled state cannot identify it, being true for any current row
+        # above the first. A click one row off would pass that check and move
+        # the wrong column. Qt reports the current row as the focused one,
+        # which identifies it.
         node = self._list_item(identifier, name)
         self._click_accessible_node(node, f"list item {name!r}")
+        try:
+            wait_until(
+                lambda: self._has_keyboard_focus(node),
+                lambda current: current,
+                timeout=self._timeout,
+                description=f"list item {name!r} to become the current row",
+            )
+        except PollTimeoutError as error:
+            raise ActionNotSupportedError(
+                f"clicking list item {name!r} in {identifier!r} left "
+                f"{self._current_list_item_name(identifier)} current"
+            ) from error
+
+    def _current_list_item_name(self, identifier: str) -> str:
+        for node in self._list_nodes(identifier):
+            if self._has_keyboard_focus(node):
+                return repr(self._node_name(node))
+        return "no row"
+
+    @staticmethod
+    def _has_keyboard_focus(node: Any) -> bool:
+        try:
+            return bool(node.has_keyboard_focus())
+        except Exception:
+            return False
 
     def set_list_item_checked(
         self, identifier: str, name: str, checked: bool
