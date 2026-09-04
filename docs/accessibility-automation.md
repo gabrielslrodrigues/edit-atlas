@@ -37,7 +37,8 @@ invocation *does* comes from elsewhere: an `Accessible.on…Action` handler, an
 role-specific default for checkable and value-based roles. So a control can
 advertise an action nothing implements, or implement one nothing advertises.
 
-Every control this project owns is therefore driven by an action:
+Every control this project owns exposes an action where the platform
+accessibility contract can represent the complete interaction:
 
 - Controls derived from `AbstractButton` — the styled buttons, tool buttons,
   check boxes, menu items, and menu bar items — keep the press action Qt both
@@ -51,21 +52,24 @@ Every control this project owns is therefore driven by an action:
   `ListItem` role stops Qt advertising it, so AT-SPI never offers it.
 - An event projection row declares a toggle action for including and
   excluding the column, for the same reason, and a press action that makes
-  the row current. The adapters select a row through that press action:
-  selecting a row and making it current are different states, the buttons
-  beside the list act on the current one, and neither AT-SPI selection nor
-  UIA `SelectionItem` is obliged to move it.
+  the row current. Selecting a row and making it current are different
+  states, because the buttons beside the list act on the current one. The
+  Windows adapter clicks Widgets rows at their reported bounds because UIA
+  does not expose the current row separately and can report a checked row as
+  selected without making it current.
 - A timeline column header declares a press action that sorts the column. It
   is a plain item with the `Button` role, so the advertised press action would
   otherwise be inert.
 
-Four cases use pointer input, and all four are deliberate:
+Five cases use pointer input, and all five are deliberate:
 
 - Qt's built-in file chooser delegates, which this project does not own and
   which expose no action.
 - The event projection drag handle, whose `Button` role has no press
   behaviour to offer: reordering is a drag, and its keyboard equivalent
   belongs to the row rather than the handle.
+- Windows Widgets event projection rows, where a bounds-derived click makes
+  the row current before a shared movement button is used.
 - Windows menu openers whose accepted action does not provide the complete
   interaction. Qt Quick QML menu bar items retain their implemented press path;
   Qt Widgets `QAction` menu titles use a bounds-derived click, and the template

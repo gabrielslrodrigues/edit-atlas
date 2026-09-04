@@ -97,18 +97,6 @@ class SelectionPattern:
         self._select()
 
 
-class InertSelectionPattern:
-    """Accepts Select without selecting, as Qt does when it fulfils the
-    pattern through a toggle the element does not implement."""
-
-    def __init__(self) -> None:
-        self.CurrentIsSelected = False
-        self.selected = Event()
-
-    def Select(self) -> None:
-        self.selected.set()
-
-
 class RangeValuePattern:
     def __init__(self, set_value: Any) -> None:
         self._set_value = set_value
@@ -515,63 +503,34 @@ def test_menu_action_clicks_both_the_menu_and_the_action(
     assert not action.iface_invoke.invoked.is_set()
 
 
-def test_selecting_a_list_item_presses_it_so_it_becomes_current(
+def test_selecting_a_list_item_clicks_to_make_it_current(
     tmp_path: Path,
 ) -> None:
-    # This project's list item implements its press action as setCurrentItem,
-    # which is what the buttons beside the list act on. UIA SelectionItem is
-    # only obliged to change the selection, so taking it first would leave
-    # the current row where it was.
     session = application_session(tmp_path)
-    item = Node("Comments", "ListItem")
-    item.iface_selection_item = InertSelectionPattern()
-    item.iface_invoke = InvokePattern(
-        lambda: setattr(item.iface_selection_item, "CurrentIsSelected", True)
-    )
+    current = Event()
+    item = Node("Comments", "ListItem", click=current.set)
     session._list_item = lambda identifier, name: item
 
     session.select_list_item("eventColumnsList", "Comments")
 
-    assert item.iface_invoke.invoked.is_set()
-    assert not item.iface_selection_item.selected.is_set()
+    assert current.is_set()
 
 
-def test_selecting_a_list_item_falls_back_when_its_press_selects_nothing(
+def test_checked_list_item_is_clicked_when_uia_reports_it_selected(
     tmp_path: Path,
 ) -> None:
-    # Windows offers an Invoke provider for any element with an action
-    # interface, so a press is accepted whether or not the element implements
-    # one, and the selection is the only verdict on whether it took.
-    session = application_session(tmp_path, timeout=0.5)
-    item = Node("Comments", "ListItem")
-    item.iface_invoke = InertInvokePattern()
+    session = application_session(tmp_path)
+    current = Event()
+    item = Node("Comments", "ListItem", click=current.set)
     item.iface_selection_item = SelectionPattern(lambda: None)
+    item.iface_selection_item.CurrentIsSelected = True
+    item.iface_invoke = InvokePattern()
     session._list_item = lambda identifier, name: item
 
     session.select_list_item("eventColumnsList", "Comments")
 
-    assert item.iface_invoke.invoked.is_set()
-    assert item.iface_selection_item.CurrentIsSelected
-
-
-def test_selecting_a_list_item_clicks_when_no_pattern_selects_it(
-    tmp_path: Path,
-) -> None:
-    session = application_session(tmp_path, timeout=0.5)
-    clicked = Event()
-    item = Node("Comments", "ListItem", click=clicked.set)
-    item.iface_invoke = InertInvokePattern()
-    item.iface_selection_item = InertSelectionPattern()
-    item._click = lambda: (
-        clicked.set(),
-        setattr(item.iface_selection_item, "CurrentIsSelected", True),
-    )
-    session._list_item = lambda identifier, name: item
-
-    session.select_list_item("eventColumnsList", "Comments")
-
-    assert item.iface_selection_item.selected.is_set()
-    assert clicked.is_set()
+    assert current.is_set()
+    assert not item.iface_invoke.invoked.is_set()
 
 
 def test_combo_selection_prefers_items_exposed_while_collapsed(
@@ -1102,6 +1061,24 @@ def test_startup_readiness_uses_the_startup_budget(tmp_path: Path) -> None:
     assert "did not become automatable within 0.4 seconds" in str(
         failure.value
     )
+
+
+def test_startup_readiness_foregrounds_the_main_window(tmp_path: Path) -> None:
+    main_window = Node(
+        "Edit Atlas", "Window", automation_id="mainWindow"
+    )
+
+    class Desktop:
+        @staticmethod
+        def windows(**criteria: Any) -> list[Node]:
+            assert criteria == {"process": RunningProcess.pid}
+            return [main_window]
+
+    session = application_session(tmp_path, desktop=Desktop())
+
+    session.wait_ready()
+
+    assert main_window.focus_calls == 1
 
 
 def test_element_lookup_uses_the_operation_budget(tmp_path: Path) -> None:

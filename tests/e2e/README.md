@@ -281,9 +281,11 @@ coordinates, no image matching, and no fixed sleeps. The blocking native file
 chooser hides its filename editor from traversal, so the adapter sets the
 globally focused editor's UIA Value pattern and verifies the complete path;
 focused keyboard entry remains a fallback. Pointer input is used only at
-bounds an element reports, for native dialogs and as a fallback, and keyboard
-paging only where a scrollable control exposes no Scroll pattern, which is how
-a virtualized list or a native combo popup reveals content outside its viewport.
+bounds an element reports, for native dialogs, Widgets menus and projection
+rows whose complete interaction UIA does not represent, and as a fallback.
+Keyboard paging is used only where a scrollable control exposes no Scroll
+pattern, which is how a virtualized list or a native combo popup reveals
+content outside its viewport.
 
 Qt exposes an Invoke provider for every Quick item, so a pattern is always
 offered here even when the item implements nothing behind it. Whether the
@@ -330,6 +332,12 @@ requested option is realized, because a native popup realizes only the items
 inside its viewport; an option below the fold is absent from the UIA tree
 however long the wait, which is what made selection depend on where the
 control sat on screen.
+
+Widgets projection rows are clicked at their reported bounds before using the
+shared movement buttons. UIA does not expose the current row separately, and
+its selected state can reflect a row's check state instead. The enabled
+movement control and resulting list order establish that the intended row is
+current.
 
 Install the project-owned dependencies first. The script is idempotent, and
 is the same one the hosted CI job runs, so a local environment and CI prepare
