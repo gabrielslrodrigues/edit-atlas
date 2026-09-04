@@ -277,11 +277,13 @@ native core files for crashed packaged executables to
 The required Windows suite drives the GUI installed by the generated MSI with
 pywinauto's UIA backend. It uses UIA Invoke, Toggle, Selection, Value, and
 ExpandCollapse patterns and native file-dialog controls. It uses no pointer
-coordinates, no image matching, and no fixed sleeps. Pointer input is used
-only at bounds an element reports, for native dialogs and as a fallback, and
-keyboard paging only where a scrollable control exposes no Scroll pattern,
-which is how a virtualized list or a native combo popup reveals content
-outside its viewport.
+coordinates, no image matching, and no fixed sleeps. The blocking native file
+chooser hides its filename editor from traversal, so the adapter sets the
+globally focused editor's UIA Value pattern and verifies the complete path;
+focused keyboard entry remains a fallback. Pointer input is used only at
+bounds an element reports, for native dialogs and as a fallback, and keyboard
+paging only where a scrollable control exposes no Scroll pattern, which is how
+a virtualized list or a native combo popup reveals content outside its viewport.
 
 Qt exposes an Invoke provider for every Quick item, so a pattern is always
 offered here even when the item implements nothing behind it. Whether the
@@ -289,12 +291,38 @@ invocation does anything is decided in QML, which is why the actions this
 project declares are documented with the controls rather than with the
 adapters.
 
-Offered is not the same as implemented, and a combo box is the case that
-proves it: Qt offers an ExpandCollapse provider for every one of them, but
-fulfils Expand with a ShowMenu action that no Qt Quick item can declare, so
-the call is accepted and the popup stays closed. The combo path therefore
-opens the popup through Invoke rather than through the pattern order the
-other controls use.
+Offered is not the same as implemented, and this is where the merge-path
+suites disagree, because the two toolkits implement different halves. Qt
+offers an ExpandCollapse provider for every combo box but fulfils Expand with
+a ShowMenu action no Qt Quick item can declare, so on Quick that call is
+accepted and the popup stays closed. Windows offers an Invoke provider for
+anything with an action interface at all, so on Widgets a popup item accepts
+Invoke and selects nothing, because it names only its toggle action, and a
+menu item accepts Invoke and triggers without dismissing the menu, because Qt
+fulfils its press action with `QAction::trigger`.
+
+An accepted pattern is therefore not a performed action, and the offered
+pattern alone cannot establish its effect. A menu opener takes its pattern
+first and lets the requested action appearing prove that the menu opened. Qt
+Quick therefore keeps using the press action its QML menu bar items implement.
+Qt Widgets exposes its menu titles as `QAction`, so those open directly through
+bounds-derived clicks; the template actions button falls back to the same path
+when its accepted action cannot complete usefully. A Widgets Invoke that
+remains blocked while its popup is active is dismissed with Escape, and its
+leaf must become absent before the click fallback reopens it, so the serialized
+provider cannot deadlock the visibility check or satisfy it with stale state.
+The action must remain visible across consecutive observations—with a longer
+window for pointer-opened menus—so popup animation cannot race the following
+input. A menu's leaf action is deliberately clicked: its press
+triggers the action but leaves the menu open, where an open menu grabs input
+from everything after it, while a click triggers and dismisses. That decision
+belongs to the menu path alone, not to the control type, so generic activation
+still takes the pattern.
+
+A combo box is the one place a pattern is preferred, because its effect is
+checked rather than assumed: the popup is opened through Invoke, which the
+following reveal would catch if it had not opened, and the option's selection
+is the verdict on whether its pattern committed, with a click as the fallback.
 
 A combo box is selected through its items' patterns when the provider exposes
 them while collapsed. Otherwise its popup is opened and paged until the

@@ -313,12 +313,10 @@ class EditAtlasApplication:
         self._session.wait_selected_option("templateSelector", name)
 
     def _template_action(self, identifier: str) -> None:
-        if self._session.has_element(identifier):
-            self._session.activate(identifier)
-        else:
-            self._session.activate_menu_action(
-                "templateActionsButton", identifier
-            )
+        # Always through the menu path, even when the item is already
+        # showing: that path leaves an open menu alone, and it is what
+        # dismisses the menu afterwards on Windows.
+        self._session.activate_menu_action("templateActionsButton", identifier)
 
     def _open_menu(
         self, identifier: str, *, member: str | None = None
