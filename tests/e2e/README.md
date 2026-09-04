@@ -1,84 +1,25 @@
-# End-to-end tests
+# Packaged end-to-end tests
 
-This directory contains black-box pytest scenarios that exercise installed
-Edit Atlas packages. Pytest is only the runner layer: platform adapters,
-semantic application operations, polling, process management, and archive
-inspectors are ordinary Python modules that can be reused by another runner.
+The pytest E2E suite drives installed Edit Atlas packages through their public
+GUI and command-line interfaces. It is separate from CTest and never uses a
+build-tree application as the system under test.
 
-E2E tests are not registered with CTest. They must use the public GUI or command
-line, keep user state isolated, use bounded polling instead of fixed sleeps, and
-provide reproducible entry points that place generated environments and output
-under `build/`.
+Use the platform provisioner when one is available. It installs the package in
+an isolated environment, runs the same lower-level entry point used by CI,
+copies results to the host, and removes the environment afterwards.
 
-## Layout
+## Requirements
 
-- `adapters/` contains platform adapters and deterministic process control.
-- `application/` exposes semantic user operations and bounded state polling.
-- `inspectors/` validates XLSX and support-bundle ZIP/XML contents.
-- `tests/` contains thin black-box scenarios.
-- `conftest.py` owns pytest options, fixtures, teardown, and strict outcomes.
+Install uv 0.12 and provide:
 
-Only `conftest.py` and files under `tests/` may import pytest.
+- the package for the frontend and platform under test;
+- either the matching
+  `edit_atlas_e2e_media_fixture_generator` build-tree executable or an existing
+  `build/e2e/media-fixtures` directory generated from the same source tree; and
+- an interactive desktop for graphical tests.
 
-The semantic GUI façade supports both graphical frontends through their shared
-nonlocalized accessibility contract. Where Widgets and Qt Quick necessarily
-present a control differently, such as shared projection movement buttons
-versus per-row actions, the façade resolves the available identifier before
-performing the same user operation. Test scenarios remain frontend-neutral.
-
-## Provisioned environments
-
-Packaged E2E provisioning has one semantic contract on every platform, exposed
-through `provision-linux.sh`, `provision-windows.ps1`, and
-`provision-macos.sh`. A provisioner owns the complete environment lifecycle:
-
-1. create or prepare the platform's isolated execution environment;
-2. install host requirements inside that environment through the matching
-   script under `scripts/ci`, without copying its dependency list;
-3. install the package under test inside the environment rather than on the
-   developer machine;
-4. generate rendered-video fixtures through the matching
-   `generate-media-fixtures` entry point, or verify the recorded generator
-   digest before accepting fixtures supplied by the host;
-5. invoke the existing platform `run-*` entry point without changing its
-   scenarios, strictness, identifiers, or artifact layout;
-6. make `build/e2e/reports`, `build/e2e/artifacts`,
-   `build/e2e/crash-dumps`, and `build/e2e/output` available to the host; and
-7. dispose of the environment, including the installed package and isolated
-   test state.
-
-Command syntax is platform-native, but inputs have the same meaning: the
-package under test, the matching fixture-generator executable or a validated
-fixture directory, an artifact destination, and optional pytest arguments.
-Provisioners reject a missing or ambiguous package and propagate the suite's
-exit status. They never fall back to installing a package on the host.
-
-The isolation mechanism is necessarily platform-specific:
-
-| Platform | Required environment | Implementation status |
-| --- | --- | --- |
-| Linux | Disposable OCI container with Xvfb and a session D-Bus | Implemented by `provision-linux.sh` |
-| Windows | Disposable interactive desktop, locally through Windows Sandbox | Implemented by `provision-windows.ps1` |
-| macOS | Persistent host or virtual machine on Apple hardware, with Accessibility approval for its interactive test user | Boundary defined; no runner provided |
-
-Where no environment is available, which is macOS alone, the provisioning
-command exits immediately with the missing requirement and a documentation
-reference, without changing the host. This is intentional: partial host setup
-would violate the isolation contract. The lower-level `run-linux.sh`,
-`run-windows.ps1`, and `run-macos.sh` commands remain available for already
-prepared environments and keep their existing interfaces.
-
-## Running packaged tests
-
-The entry points use uv and the committed lockfile to create a pinned Python
-3.12 virtual environment at `build/e2e/venv`. They write JUnit XML, a
-self-contained HTML report, command transcripts, outputs, and GUI failure
-artifacts beneath `build/e2e`. Install a compatible uv 0.12 release
-before using an entry point.
-
-Desktop rendered-video scenarios use deterministic MOV fixtures generated by
-the project's FFmpeg-backed integration-test utility. After building a preset,
-generate them under the E2E tree before running a desktop suite:
+Generate fixtures only through the repository entry point so their recorded
+source digest can be validated:
 
 ```sh
 tests/e2e/generate-media-fixtures.sh \
@@ -86,175 +27,65 @@ tests/e2e/generate-media-fixtures.sh \
   build/e2e/media-fixtures
 ```
 
-Windows PowerShell, with the corresponding `.exe`:
+On Windows PowerShell:
 
 ```powershell
 tests/e2e/generate-media-fixtures.ps1 `
-  -Generator "build\<preset>\tests\integration\media\edit_atlas_e2e_media_fixture_generator.exe" `
-  -FixtureDirectory build\e2e\media-fixtures
+  -Generator `
+    "build\<preset>\tests\integration\media\edit_atlas_e2e_media_fixture_generator.exe" `
+  -FixtureDirectory "build\e2e\media-fixtures"
 ```
 
-CI prepares and caches the fixtures once through the same entry point, then
-supplies the same timecoded media to the required Linux and Windows jobs and
-the disabled macOS job.
+A stale or missing generator digest stops collection and prints the required
+regeneration command.
 
-The entry points record a digest of the inputs that determine fixture content
-— the generator and fixture-helper sources and `vcpkg.json`, the same inputs
-CI's fixture cache key hashes — in a `generator-digest.txt` file beside the
-fixtures. A desktop suite verifies that digest against the tree before
-collecting any test and fails with the regeneration command when the digest is
-absent or no longer matches, so fixtures from an older generator revision
-cannot silently exercise a newer build. Invoking the generator directly leaves
-no digest and is rejected on that basis; regenerate through the entry point
-instead.
+## Command-line scenarios
 
-Packaged CLI tests on Linux and macOS:
+Run the installed CLI on Linux or macOS with:
 
 ```sh
-tests/e2e/run.sh --cli /usr/bin/edit-atlas-cli
+tests/e2e/run.sh --cli /path/to/edit-atlas-cli
 ```
 
-Windows PowerShell:
+On Windows PowerShell:
 
 ```powershell
-tests/e2e/run.ps1 -Cli "C:\Program Files\Edit Atlas\edit-atlas-cli.exe"
+tests/e2e/run.ps1 -Cli "C:\path\to\edit-atlas-cli.exe"
 ```
 
-The CLI path must refer to the executable installed by the package under test,
-not a build-tree target. The entry points pass the fixture directory, output
-directory, isolated state root, locale, operation and startup timeouts, and
-artifact directory as explicit pytest options. Additional pytest arguments may
-follow the CLI option.
+Additional pytest arguments follow the executable option. A required suite
+fails when it collects nothing or when a test is deselected, skipped, xfailed,
+or unexpectedly passes an xfail.
 
-Waits have two budgets. `--operation-timeout` bounds anything done to an
-application already under automation, so a genuine failure reports quickly.
-`--startup-timeout` bounds readiness only: the process starting, the window
-appearing, and the accessibility tree becoming enumerable. The first launch of
-a run pays cold-start costs no later launch pays, so it gets the larger budget
-instead of every wait getting it. A readiness failure reports as
-`StartupNotReadyError`, distinct from a missing element.
+## Linux desktop tests
 
-Menus are stateful. Activating a menu title opens it, and activating an open
-menu closes it, so a helper that reads several items from one menu must read
-them in a single opening. `EditAtlasApplication._open_menu` accepts a member
-item to probe and leaves an already-open menu alone, which is what keeps a
-second read from closing the menu it needs.
-
-Required scenarios are intentionally strict. A run fails if no tests are
-collected or if a required test is deselected, skipped, or unexpectedly
-xfails/xpasses. Teardown terminates registered processes and removes the
-isolated state root even after a failure. Generated outputs and diagnostics are
-retained for inspection.
-
-### Linux desktop tests
-
-The required Linux suite drives the installed GUI with dogtail over AT-SPI in
-an X11 and D-Bus session. It uses semantic accessibility identifiers, actions,
-selection, and editable-text interfaces. It never uses fixed coordinates,
-image matching, or fixed sleeps.
-
-Every control this project owns is driven through its own accessible action.
-Pointer input at accessibility-reported bounds remains only for Qt's built-in
-file chooser, whose delegates expose no action, and as the fallback each
-project control takes when its action is unexpectedly absent. AT-SPI
-advertises only the actions an item reports, so a Qt Quick item whose declared
-role suppresses the action Qt implements for it must declare that action
-itself; see
-[docs/accessibility-automation.md](../../docs/accessibility-automation.md).
-
-The preferred local entry point builds a disposable Ubuntu 24.04 image, installs
-the generated DEB inside it, generates or validates the media fixtures, and
-runs the suite at the same `1440x1000x24` screen geometry used by CI. The
-repository is mounted read-only, while reports and artifacts are written as
-the invoking host user. Podman is selected when both supported runtimes are
-available:
+Linux provisioning requires Podman or Docker. It runs the generated DEB in a
+disposable Ubuntu container with Xvfb and a session D-Bus. Podman is preferred
+when both runtimes are installed:
 
 ```sh
 tests/e2e/provision-linux.sh \
-  --package /path/to/edit-atlas.deb \
+  --package /path/to/edit-atlas-X.Y.Z-linux-x86_64.deb \
   --fixture-generator \
     build/debug-x64-linux/tests/integration/media/edit_atlas_e2e_media_fixture_generator
 ```
 
-Select Docker explicitly when needed:
+Reuse current fixtures or select Docker explicitly when needed:
 
 ```sh
 tests/e2e/provision-linux.sh \
   --runtime docker \
-  --package /path/to/edit-atlas.deb \
+  --package /path/to/edit-atlas-X.Y.Z-linux-x86_64.deb \
   --media-fixture-dir build/e2e/media-fixtures
 ```
 
-`--artifact-dir` selects a host output directory; it defaults to
-`build/e2e`. Inside the container the sources, results, and fixtures are
-placed beneath one home directory at fixed paths, mirroring CI, where the
-checkout sits under the runner's home. File dialogs open at the home
-directory, so a layout that puts the sources in an unrelated subtree would
-exercise navigation the required CI runs never reach.
+The default runner image matches CI's Ubuntu 24.04 environment. A package built
+against a newer glibc may not run there; use the compatible CI package, or set
+`--base-image` to a matching userspace for a local-only check. The provisioner
+pulls the content-addressed runner image and builds it only when no matching
+published image exists.
 
-`--base-image` overrides the pinned base. The default is Ubuntu 24.04, the
-minimum supported Debian-based system, so the required runs keep verifying
-that floor. Override it to match a host that builds packages against a newer
-userspace, which is what makes a locally built package testable:
-
-```sh
-tests/e2e/provision-linux.sh \
-  --base-image docker.io/library/ubuntu:26.04 \
-  --package build/release-quick-x64-linux/edit-atlas-0.3.0-linux-x86_64.deb \
-  --fixture-generator \
-    build/debug-x64-linux/tests/integration/media/edit_atlas_e2e_media_fixture_generator
-```
-
-The runner image is published by `e2e-runner-image.yml` and pulled rather
-than rebuilt. Its tag is derived from the files that determine its contents —
-the `Containerfile`, `install-ubuntu-dependencies.sh`, and the Python project
-and lockfile — so a local run and the CI run ask for the same image whenever
-they run from the same checkout, and changing any of those inputs names a
-different image automatically. Nothing has to be pinned by hand.
-
-A run builds the image only when no published one matches the checkout, which
-happens the first time a branch changes the runner definition, on a
-`--base-image` override, since an override derives its own reference and can
-never be mistaken for the published default, and wherever the registry cannot
-be read, such as a pull request from a fork.
-
-Publication is not restricted to the default branch. A branch that changes the
-image inputs publishes its own image, because the tag is derived from those
-inputs: two branches either produce an identical image, in which case
-publishing is a no-op, or different images under different tags, which cannot
-collide. This is also what exercises the pull path before a change reaches the
-default branch rather than after it.
-
-CI runs this same provisioner rather than a separate path, so a difference
-between a local run and a CI run is a difference in the image reference, which
-both sides compute from the same files. The image contains only the E2E
-environment: the package and fixtures are supplied as inputs, and neither a
-local run nor a CI run builds or packages the application. The image is
-rebuilt through the container runtime's layer cache
-when its pinned base, dependency script, or container entry point changes.
-Native packages are declared only by
-`scripts/ci/install-ubuntu-dependencies.sh --e2e`. The generated DEB and uv's
-committed lockfile provide the application and Python dependency closures. The
-locked Python environment is part of the runner image, so an ordinary E2E run
-does not reconstruct it or write a virtual environment onto the host.
-
-The DEB must target amd64 and be compatible with the image's pinned Ubuntu
-24.04 userspace. A package built on a distribution with a newer glibc installs
-successfully, because its declared `libc6` dependency is satisfied, and then
-fails to load its own bundled Qt and FFmpeg libraries. The provisioner
-smoke-tests the installed package and reports that as an incompatible input
-rather than rebuilding the application or letting it surface as unexplained
-failures across the suite. Use the package produced by the compatible CI build
-when validating CI behavior locally.
-
-`--fixture-generator` runs the generator on the host rather than in the
-container, because it is a build-tree binary linked against the host's
-toolchain and vcpkg libraries. The fixtures it writes are ordinary data and are
-mounted in read-only, so fixture generation is unaffected by the host and image
-having different userspaces.
-
-For an already prepared native environment, install the generated DEB and run
-the lower-level entry point in a deterministic desktop session:
+For an already prepared environment, install the DEB and run:
 
 ```sh
 dbus-run-session -- xvfb-run --auto-servernum \
@@ -264,167 +95,51 @@ dbus-run-session -- xvfb-run --auto-servernum \
   --cli /usr/bin/edit-atlas-cli
 ```
 
-The paths must point to executables installed by the DEB. The Linux runner
-performs an explicit backend preflight, and a missing AT-SPI backend is an
-error. Tests run serially with bounded state polling. Accessibility-tree dumps,
-application logs, XWD screenshots when available, generated workbooks, the
-support bundle, and pytest reports are written below `build/e2e`. CI directs
-native core files for crashed packaged executables to
-`build/e2e/crash-dumps` and uploads them with the other E2E artifacts.
+The Linux adapter requires AT-SPI and uses stable accessibility identifiers
+and actions. Its only pointer input uses bounds reported by the accessibility
+tree for controls whose complete interaction has no AT-SPI action.
 
-### Windows desktop tests
+## Windows desktop tests
 
-The required Windows suite drives the GUI installed by the generated MSI with
-pywinauto's UIA backend. It uses UIA Invoke, Toggle, Selection, Value, and
-ExpandCollapse patterns and native file-dialog controls. It uses no pointer
-coordinates, no image matching, and no fixed sleeps. The blocking native file
-chooser hides its filename editor from traversal, so the adapter sets the
-globally focused editor's UIA Value pattern and verifies the complete path;
-focused keyboard entry remains a fallback. Pointer input is used only at
-bounds an element reports, for native dialogs, Widgets menus and projection
-rows whose complete interaction UIA does not represent, and as a fallback.
-Keyboard paging is used only where a scrollable control exposes no Scroll
-pattern, which is how a virtualized list or a native combo popup reveals
-content outside its viewport.
-
-Qt exposes an Invoke provider for every Quick item, so a pattern is always
-offered here even when the item implements nothing behind it. Whether the
-invocation does anything is decided in QML, which is why the actions this
-project declares are documented with the controls rather than with the
-adapters.
-
-Offered is not the same as implemented, and this is where the merge-path
-suites disagree, because the two toolkits implement different halves. Qt
-offers an ExpandCollapse provider for every combo box but fulfils Expand with
-a ShowMenu action no Qt Quick item can declare, so on Quick that call is
-accepted and the popup stays closed. Windows offers an Invoke provider for
-anything with an action interface at all, so on Widgets a popup item accepts
-Invoke and selects nothing, because it names only its toggle action, and a
-menu item accepts Invoke and triggers without dismissing the menu, because Qt
-fulfils its press action with `QAction::trigger`.
-
-An accepted pattern is therefore not a performed action, and the offered
-pattern alone cannot establish its effect. A menu opener takes its pattern
-first and lets the requested action appearing prove that the menu opened. Qt
-Quick therefore keeps using the press action its QML menu bar items implement.
-Qt Widgets exposes its menu titles as `QAction`, so those open directly through
-bounds-derived clicks; the template actions button falls back to the same path
-when its accepted action cannot complete usefully. A Widgets Invoke that
-remains blocked while its popup is active is dismissed with Escape, and its
-leaf must become absent before the click fallback reopens it, so the serialized
-provider cannot deadlock the visibility check or satisfy it with stale state.
-The action must remain visible across consecutive observations—with a longer
-window for pointer-opened menus—so popup animation cannot race the following
-input. A menu's leaf action is deliberately clicked: its press
-triggers the action but leaves the menu open, where an open menu grabs input
-from everything after it, while a click triggers and dismisses. That decision
-belongs to the menu path alone, not to the control type, so generic activation
-still takes the pattern.
-
-A combo box is the one place a pattern is preferred, because its effect is
-checked rather than assumed: the popup is opened through Invoke, which the
-following reveal would catch if it had not opened, and the option's selection
-is the verdict on whether its pattern committed, with a click as the fallback.
-
-A combo box is selected through its items' patterns when the provider exposes
-them while collapsed. Otherwise its popup is opened and paged until the
-requested option is realized, because a native popup realizes only the items
-inside its viewport; an option below the fold is absent from the UIA tree
-however long the wait, which is what made selection depend on where the
-control sat on screen.
-
-Widgets projection rows are clicked at their reported bounds before using the
-shared movement buttons. UIA does not expose the current row separately, and
-its selected state can reflect a row's check state instead. The enabled
-movement control and resulting list order establish that the intended row is
-current.
-
-Install the project-owned dependencies first. The script is idempotent, and
-is the same one the hosted CI job runs, so a local environment and CI prepare
-themselves from one contract:
-
-```powershell
-scripts/ci/install-windows-dependencies.ps1
-```
-
-It installs only what is needed to install the MSI and execute the suite,
-which today is `uv` at the version `tests/e2e/pyproject.toml` requires. Python
-itself is provisioned by uv from the committed lockfile.
-
-Four things remain environmental rather than installed, and are reported by
-the script rather than provided by it:
-
-- Windows, with PowerShell 7 or later.
-- An interactive desktop session. UI Automation drives a real desktop, so a
-  service, a session-isolated context, or a Server Core container cannot run
-  the GUI suite.
-- The build toolchain, when packages are produced on the same machine. The
-  compiler, Windows SDK, and CMake come from the selected image or from the
-  build workflow's own actions; this script installs no build tooling.
-- A generated MSI and rendered-video fixtures, which are produced elsewhere.
-
-The preferred local entry point is a Windows Sandbox, which installs no
-package and no dependency on the developer host:
+Windows provisioning uses Windows Sandbox and the generated MSI:
 
 ```powershell
 tests/e2e/provision-windows.ps1 `
-  -Msi "build\release-quick-x64-windows\edit-atlas-0.3.0-win64.msi" `
-  -FixtureGenerator "build\debug-x64-windows\tests\integration\media\edit_atlas_e2e_media_fixture_generator.exe"
+  -Msi "C:\packages\edit-atlas-X.Y.Z-windows-x64.msi" `
+  -FixtureGenerator `
+    "build\debug-x64-windows\tests\integration\media\edit_atlas_e2e_media_fixture_generator.exe"
 ```
 
-`-MediaFixtureDir` supplies an already generated fixture directory instead of
-generating one. `-ArtifactDir` selects the host output directory, defaulting
-to `build/e2e`. Fixtures are generated on the host, as on Linux, because the
-generator is a build-tree binary linked against the host's toolchain.
+Windows Sandbox requires Windows 10 1903 or newer in Pro, Enterprise, or
+Education edition, hardware virtualization, and the
+`Containers-DisposableClientVM` feature. The command-line launcher is available
+from Windows 11 24H2. Only one sandbox instance may run at a time. The
+repository, package, fixture, and artifact paths used by the sandbox must be
+local paths rather than UNC paths.
 
-The sandbox maps the repository, the MSI's directory, and the fixtures
-read-only, and the artifact directory writable, so reports and artifacts
-arrive on the host. Windows Sandbox reports no exit status to its host, so the
-suite's status is written to `sandbox-exit-code.txt` in that directory and the
-launcher waits for it, then exits with it. `-TimeoutMinutes` bounds that wait.
+Supply `-MediaFixtureDir` to reuse current fixtures and `-ArtifactDir` to choose
+the host result directory. The sandbox writes its result to
+`sandbox-exit-code.txt`; the provisioner waits for that file and returns the
+same exit code.
 
-Windows Sandbox requires Windows 10 1903 or newer, in a Pro, Enterprise, or
-Education edition, with hardware virtualization enabled in firmware and the
-`Containers-DisposableClientVM` feature enabled. The `WindowsSandbox.exe`
-command-line launcher this entry point uses is present from Windows 11 24H2
-onward. Windows permits one sandbox instance at a time.
-
-Home editions have no Windows Sandbox and cannot enable it, and no Hyper-V
-either, so they have no isolated interactive desktop at all.
-`-AllowHostInstall` runs the same harness directly on the host instead,
-trading isolation for the ability to run locally what CI runs. It is never
-selected automatically:
+When Windows Sandbox is unavailable, `-AllowHostInstall` runs the same harness
+on an elevated interactive host:
 
 ```powershell
 tests/e2e/provision-windows.ps1 `
-  -Msi "C:\packages\edit-atlas-0.3.0-win64.msi" `
-  -MediaFixtureDir C:\edit-atlas-e2e\media-fixtures `
-  -ArtifactDir C:\edit-atlas-e2e `
+  -Msi "C:\packages\edit-atlas-X.Y.Z-windows-x64.msi" `
+  -MediaFixtureDir "C:\edit-atlas-e2e\media-fixtures" `
+  -ArtifactDir "C:\edit-atlas-e2e" `
   -AllowHostInstall
 ```
 
-It refuses before changing anything when the session is not elevated, since
-the package installs per-machine, and when Edit Atlas is already installed,
-because this package shares that installation's upgrade code: installing here
-would replace it and the run's cleanup would then remove it. Uninstall it
-first. Afterwards the package and its crash-dump settings are gone, while uv
-and the artifacts remain, and no Edit Atlas stays installed.
+Host installation is never selected automatically. It refuses to run when an
+Edit Atlas package is already installed because the package under test would
+replace it. The harness removes its package and crash-dump settings afterwards;
+uv and the selected artifact directory remain.
 
-The artifact directory must be a local path. Windows Installer cannot install
-to a network path and a sandbox cannot map one, which a checkout reached over
-`\\wsl.localhost` runs into; the repository itself may stay there.
-
-The sandbox image is built from the host's own Windows build, so it cannot
-match the hosted CI runner exactly. That is accepted deliberately: Windows
-parity is a parity of dependency provisioning, MSI installation, crash
-configuration, suite invocation, artifact layout, cleanup, and exit status —
-all of which live in `tests/e2e/windows/run-provisioned.ps1`, the harness the
-sandbox and the CI job both invoke — and not a parity of OS images. Only
-Linux gets exact userspace parity, through its pinned runner image.
-
-To run against an already prepared disposable environment, install the MSI
-into a private directory and run the suite directly from an interactive
-PowerShell desktop session:
+For an already prepared disposable desktop, install the MSI to a private
+directory and run:
 
 ```powershell
 tests/e2e/run-windows.ps1 `
@@ -432,73 +147,21 @@ tests/e2e/run-windows.ps1 `
   -Cli "C:\path\to\install\bin\edit-atlas-cli.exe"
 ```
 
-Both paths must point to executables installed by the MSI. The runner performs
-an explicit UIA backend preflight and treats a missing backend as an error.
-Tests run serially with bounded state polling. UIA-tree dumps, application
-logs, PNG screenshots on failure, generated workbooks, the support bundle, and
-pytest reports are written below `build/e2e`. The harness enables Windows
-Error Reporting full dumps for the packaged GUI and CLI and retains crashes
-under `build/e2e/crash-dumps` with the other failure artifacts, so a sandbox
-run and a CI run collect crashes identically.
+The Windows adapter requires UI Automation. It uses semantic patterns where
+they perform the complete interaction and pointer input only at
+accessibility-reported bounds for native dialogs, Widgets menus and projection
+rows, or a verified fallback. It contains no fixed screen coordinates, image
+matching, or fixed sleeps.
 
-### macOS desktop tests
+## macOS desktop tests
 
-The experimental macOS suite drives the universal application through PyObjC
-and the macOS Accessibility API. It uses the same stable identifiers and shared
-GUI scenarios as Linux and Windows. Native open/save panels are discovered in
-the focused system accessibility hierarchy because macOS hosts them in a
-separate process. Controls, path fields, and confirmation buttons use AX
-attributes and actions; the standard Command-Shift-G shortcut is used only to
-open the native Go to Folder sheet. No pointer coordinates, image matching, or
-fixed sleeps are used.
+`provision-macos.sh` reports the required environment and exits without making
+changes. Packaged GUI automation needs Apple hardware with a persistent Aqua
+test session and Accessibility permission granted to the pinned Python
+interpreter. GitHub-hosted runners cannot be prepared reliably with that
+permission, so the macOS packaged GUI job remains disabled and experimental.
 
-macOS requires the process driving the Accessibility API to be approved under
-**System Settings > Privacy & Security > Accessibility**. That approval is tied
-to the interactive user's protected privacy database and cannot be granted
-reliably to a test process on a fresh, non-interactive GitHub-hosted runner.
-
-The host must therefore be Apple hardware, either a persistent machine or a
-virtual machine, logged into an Aqua session as a test user who has granted
-that approval. `provision-macos.sh` exists for symmetry with the other
-platforms and fails immediately with this requirement, changing nothing,
-because a partially prepared host would install the package outside any
-isolation.
-
-Approval is recorded against a specific executable, by path and code-signature
-identity, and it is the Python interpreter driving the suite that needs it, not
-Edit Atlas. That is why the automation executable must be pinned: anything
-that replaces the interpreter binary revokes the approval in practice, and the
-suite then fails its preflight rather than running untrusted. In particular it
-is invalidated by a uv-managed Python upgrade, a lockfile change that resolves
-a different interpreter, recreating the virtual environment at another path,
-re-signing or replacing the binary, and, in some cases, a macOS upgrade. Each
-requires re-approval by the interactive user before the suite can run again.
-
-The CI workflow contains the scheduled/manual-only
-`e2e-macos-package` job so the intended package dependency and experimental,
-non-blocking status remain explicit. A constant-false guard keeps the job
-skipped. The complete installation, test, artifact-upload, and teardown steps
-remain in the job so it can be enabled without reconstructing the workflow.
-
-The guard may be removed once, and only once, all of the following hold, since
-removing it earlier would make a required check depend on an environment that
-cannot satisfy it:
-
-- a runner on Apple hardware is registered to this repository and stays
-  logged into an Aqua session across reboots;
-- its test user has granted Accessibility approval to the pinned automation
-  executable, and that approval survives the dependency updates listed above,
-  or the runner's setup re-grants it deliberately;
-- the packaged suite has passed on that runner by hand, against a generated
-  universal PKG, so the packaged AX path is known to work rather than assumed;
-- crash-report collection and package removal have been confirmed on it, so a
-  failure leaves diagnosable artifacts and no installed package.
-
-Until then the job stays disabled and macOS makes no execution or parity
-claim: the package-verification jobs are what cover macOS in CI.
-
-After installing the universal PKG, run the complete suite from that trusted
-interactive session:
+On a prepared host, install the universal PKG and run:
 
 ```sh
 tests/e2e/run-macos.sh \
@@ -506,27 +169,49 @@ tests/e2e/run-macos.sh \
   --cli /Applications/edit-atlas.app/Contents/MacOS/edit-atlas-cli
 ```
 
-The runner performs an explicit `AXIsProcessTrusted` preflight before pytest.
-An unavailable or untrusted backend is an error, never a skipped test. Tests
-run serially with bounded polling. AX-tree dumps, application logs, screenshots
-when macOS permits capture, generated outputs, and pytest reports are written
-below `build/e2e`. The package-verification jobs and the disabled E2E job collect
-new native `.ips` or `.crash` reports. Verification reports are retained under
-`build/package-check-macos/crash-reports`, while E2E reports are retained under
-`build/e2e/crash-dumps` with the other artifacts. Because the CI job is disabled,
-the real packaged AX path remains experimental and must be validated manually
-on a trusted runner before the guard is removed.
+Replacing or moving the automation interpreter, changing its signature, or
+upgrading macOS may require Accessibility approval again. The runner fails its
+trust preflight instead of skipping tests. Package verification still installs
+and launches both macOS application slices without GUI automation.
 
-The existing macOS package-verification jobs still install and launch both
-native slices of the universal application. Packaged CLI tests can also be run
-locally with `run.sh`; neither check requires Accessibility permission.
+## Results and cleanup
+
+`--artifact-dir` on Linux, `-ArtifactDir` on Windows, and `build/e2e` by
+default contain:
+
+- `reports/` — JUnit XML and a self-contained HTML report;
+- `artifacts/` — application logs, accessibility trees, failure screenshots,
+  and command transcripts;
+- `crash-dumps/` — platform crash reports when available; and
+- `output/` — generated workbooks and support bundles.
+
+The harness terminates registered application processes and removes its marked
+state root even after failure. Provisioners also uninstall the package and
+dispose of their isolated environment. Generated results, the uv virtual
+environment, and media fixtures remain under the selected artifact root for
+inspection or reuse; remove them when they are no longer needed.
+
+## Maintainer contract
+
+The shared GUI façade exposes user operations rather than toolkit controls.
+Widgets and Qt Quick may implement an operation differently, but scenarios must
+remain frontend-neutral and use the stable identifiers in
+[Accessibility automation](../../docs/accessibility-automation.md).
+
+Use bounded state polling. `--startup-timeout` covers process launch, window
+appearance, focus, and initial accessibility enumeration;
+`--operation-timeout` covers interactions after readiness. Do not add fixed
+sleeps or make a provider accepting an action the verdict; verify the resulting
+application state.
+
+Only `conftest.py` and modules under `tests/` may import pytest. Platform
+adapters, the semantic application façade, inspectors, polling, and process
+management remain runner-independent modules.
 
 ## Dependency management
 
-`pyproject.toml` declares pytest, HTML reporting, pywinauto and Pillow on
-Windows, dogtail and its PyGObject/PyCairo bridge on Linux, and the macOS
-ApplicationServices PyObjC bridge. `uv.lock` pins the complete cross-platform
-resolution. The entry points use `uv run --locked`, so an outdated or missing
-lockfile is an error rather than an implicit dependency update. Native packages
-needed by a platform accessibility backend are installed by that platform's CI
-job rather than by uv.
+`pyproject.toml` declares the platform-specific automation dependencies and
+requires Python 3.12. `uv.lock` pins the complete resolution. Entry points use
+`uv run --locked`, so dependency changes require updating and committing both
+files. Native accessibility packages are installed by the platform
+provisioning scripts.

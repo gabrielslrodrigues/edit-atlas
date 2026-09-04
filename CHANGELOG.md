@@ -15,6 +15,8 @@ This file records user-facing Edit Atlas changes beginning with version 0.2.0.
 - The production desktop application now uses the redesigned Qt Quick
   interface while preserving existing language, recent-file, template, and
   export settings.
+- Documentation now provides a focused desktop user guide and task-based index
+  for development, testing, packaging, and automation references.
 
 ## [0.3.0]
 

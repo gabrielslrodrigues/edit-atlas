@@ -23,33 +23,17 @@ because only one of those modal scopes is active at a time.
 ## Invocable actions
 
 An identifier lets automation find a control; an action lets it operate one.
-Assistive technology and the platform adapters both prefer actions, because
-pointer input derived from accessible bounds depends on stable geometry, so a
-layout defect becomes automation flakiness instead of surfacing as a layout
-defect.
-
-Qt Quick decides the two halves separately, and they can disagree. The
-advertised action list comes from the item's accessible role: `Button`,
-`MenuItem`, and `Link` advertise a press action, checkable roles advertise
-press and toggle, and roles such as `ListItem` advertise none. What the
-invocation *does* comes from elsewhere: an `Accessible.on…Action` handler, an
-`accessible…Action()` method — which every `AbstractButton` provides — or the
-role-specific default for checkable and value-based roles. So a control can
-advertise an action nothing implements, or implement one nothing advertises.
+Assistive technology and platform adapters prefer actions. Declaring a role
+does not guarantee that Qt advertises or implements the complete action, so
+each control must expose the behavior its semantic operation requires.
 
 Every control this project owns exposes an action where the platform
 accessibility contract can represent the complete interaction:
 
-- Controls derived from `AbstractButton` — the styled buttons, tool buttons,
-  check boxes, menu items, and menu bar items — keep the press action Qt both
-  advertises and implements for their role. They declare no handler, which
-  would only duplicate the advertised action.
-- A combo box declares its own press action to open and close its popup: the
-  `ComboBox` role advertises none and the control is not a button.
+- Controls derived from `AbstractButton` keep the press action provided by Qt.
+- A combo box declares a press action that opens and closes its popup.
 - A combo box option declares a press action that emits the delegate's
-  `clicked` signal, which is what selects the option and closes the popup. The
-  delegate is an `ItemDelegate` and implements a press action, but its
-  `ListItem` role stops Qt advertising it, so AT-SPI never offers it.
+  `clicked` signal, selecting the option and closing the popup.
 - An event projection row declares a toggle action for including and
   excluding the column, for the same reason, and a press action that makes
   the row current. Selecting a row and making it current are different
@@ -57,9 +41,7 @@ accessibility contract can represent the complete interaction:
   Windows adapter clicks Widgets rows at their reported bounds because UIA
   does not expose the current row separately and can report a checked row as
   selected without making it current.
-- A timeline column header declares a press action that sorts the column. It
-  is a plain item with the `Button` role, so the advertised press action would
-  otherwise be inert.
+- A timeline column header declares a press action that sorts the column.
 
 Five cases use pointer input, and all five are deliberate:
 
@@ -73,19 +55,13 @@ Five cases use pointer input, and all five are deliberate:
 - Windows menu openers whose accepted action does not provide the complete
   interaction. Qt Quick QML menu bar items retain their implemented press path;
   Qt Widgets `QAction` menu titles use a bounds-derived click, and the template
-  actions button falls back to one when needed. An Invoke that blocks while its
-  popup is active is dismissed with Escape before the click fallback; its leaf
-  must become absent before reopening, avoiding concurrent queries and stale
-  visibility from the serialized UIA provider.
+  actions button falls back to one when needed.
 - Windows menu leaf actions. Their press triggers the action while leaving the
   menu open; a click both triggers and dismisses it, which is the complete
   interaction.
 
-The adapters keep bounds-derived input as a fallback for a project control
-whose action is unexpectedly absent, so a regression in the declarations above
-shows up as a passing test with a slower path rather than a broken suite. Qt
-Quick Test asserts the effect of the declared actions, which is what
-distinguishes an implemented action from an advertised one.
+Adapters verify the state produced by an action rather than treating provider
+acceptance as success. Qt Quick Test asserts the effect of declared actions.
 
 ## Persistent application surface
 

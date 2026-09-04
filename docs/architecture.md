@@ -168,11 +168,12 @@ so the shared boundary stays Qt Core only, and so QML and Qt Style Sheets can
 consume it without conversion. The dependency direction is unchanged: a
 frontend depends on presentation, and nothing inward depends on a frontend.
 
-Toolkit-specific contributor workflows and conventions are defined in the
-[Qt Quick](api/qt-quick-frontend.md) and
-[Qt Widgets](api/qt-widgets-frontend.md) frontend guides. The complete shared
-primary/secondary maintenance policy is canonical in the
-[API architecture](api/architecture.md).
+This document is canonical for dependency direction and the shared
+primary/secondary maintenance policy. Toolkit-specific source conventions are
+defined in the [Qt Quick](api/qt-quick-frontend.md) and
+[Qt Widgets](api/qt-widgets-frontend.md) frontend guides. The generated
+[API architecture](api/architecture.md) summarizes relationships between
+public types without redefining repository policy.
 
 The command-line frontend is exposed as `EditAtlas::CliFrontend` in the
 `edit_atlas::frontends::cli` namespace. It links `EditAtlas::Services` without

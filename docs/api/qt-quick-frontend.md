@@ -1,12 +1,12 @@
 # Qt Quick frontend {#qt_quick_frontend}
 
-Qt Quick is the primary Edit Atlas desktop frontend and the only graphical
-frontend published in production releases.
+Qt Quick is the primary Edit Atlas desktop frontend and the graphical frontend
+selected for normal production releases.
 
-This page defines the Qt Quick source conventions and development workflow.
-Shared MVVM responsibilities and the primary/secondary maintenance policy are
-canonical on @ref api_architecture. Qt Widgets conventions are documented on
-@ref qt_widgets_frontend.
+This page defines the Qt Quick source contract. Shared MVVM responsibilities
+and the primary/secondary maintenance policy are canonical in the
+[repository architecture](https://github.com/gabrielslrodrigues/edit-atlas/blob/master/docs/architecture.md).
+Qt Widgets conventions are documented on @ref qt_widgets_frontend.
 
 ## Architectural boundary
 
@@ -36,39 +36,6 @@ QML-facing C++ types. `EditAtlasStyle` is a separate Qt Quick Controls style
 module built on the Basic fallback style. Shared product icons and native
 desktop metadata live under `src/frontends/resources` rather than either
 frontend.
-
-## Configure, build, and run
-
-Generic presets build Qt Quick, Qt Widgets, and the CLI. Configure and build a
-Linux debug tree with:
-
-```sh
-cmake --preset debug-x64-linux
-cmake --build --preset debug-x64-linux
-```
-
-Run the primary Qt Quick application:
-
-```sh
-./build/debug-x64-linux/src/frontends/quick/edit-atlas
-```
-
-Run the secondary Widgets application from the same build:
-
-```sh
-./build/debug-x64-linux/src/frontends/widgets/edit-atlas-widgets
-```
-
-Use the corresponding `debug-arm64-osx`, `debug-x64-osx`, or
-`debug-x64-windows` preset on another supported host. The product-named Qt
-Quick executable is located under `src/frontends/quick`; the secondary
-Widgets executable is located under `src/frontends/widgets` and retains the
-`edit-atlas-widgets` name.
-
-Release presets named `release-quick-<platform>` and
-`release-widgets-<platform>` provide focused frontend builds and package
-validation. Generic Release presets build both isolated package applications
-from one shared Release tree.
 
 ## QML and design-system conventions
 
@@ -133,36 +100,7 @@ follow the indexed conventions in `docs/accessibility-automation.md`.
 Frontend-specific control structure is acceptable, but semantic E2E operations
 must expose the same user workflow through both adapters.
 
-## Linting and tests
-
-Lint every compiled QML module from an existing build tree with:
-
-```sh
-cmake --build --preset debug-x64-linux --target all_qmllint
-```
-
-Run the normal unit and integration layers with:
-
-```sh
-ctest --preset debug-x64-linux --label-regex '^unit$'
-ctest --preset debug-x64-linux --label-regex '^integration$'
-```
-
-Run only the in-process Qt Quick view suite with:
-
-```sh
-ctest --preset debug-x64-linux \
-  --tests-regex '^edit_atlas_quick_qml_tests$'
-```
-
-GoogleTest covers C++ ViewModel and adapter behavior. Qt Quick Test covers QML
-bindings, focus, accessibility, dynamic controls, and dialog cancellation
-against real shared ViewModels. Packaged pytest E2E drives the installed Qt
-Quick production application on Linux and Windows through platform
-accessibility APIs. The macOS implementation remains non-required because
-GitHub-hosted runners cannot be reliably pre-authorized for Accessibility.
-
-## Deployment and licensing
+## Verification and distribution boundary
 
 Production installers contain Qt Quick and do not install a second graphical
 application. CI still creates both frontend package variants so each can be
@@ -171,12 +109,12 @@ installed and verified independently.
 Qt is dynamically linked. Qt Quick packages deploy the required Qt QML import
 tree, plugins, platform integration, and shared libraries. Package verification
 checks the deployed QML modules and dynamic dependency closure on Linux,
-macOS, and Windows. Tagged releases publish only the verified Qt Quick binary
-packages together with the required notices and corresponding Qt and FFmpeg
-source archives.
+macOS, and Windows. The release pipeline currently resolves Qt Quick as the
+production frontend and publishes its verified binary packages with the
+required notices and corresponding Qt and FFmpeg source archives.
 
-Do not add a Qt module or third-party QML dependency without updating vcpkg,
-deployment verification, notices, corresponding-source coverage where
-applicable, and every supported package path. The detailed requirements remain
-in `docs/qt-lgpl-compliance.md`, `docs/ffmpeg-lgpl-compliance.md`, and
-`docs/packaging.md`.
+Adding a Qt module or third-party QML dependency also changes deployment,
+verification, notices, and corresponding-source coverage. The required
+workflows are documented in
+[Desktop packaging](https://github.com/gabrielslrodrigues/edit-atlas/blob/master/docs/packaging.md)
+and the LGPL compliance guides.

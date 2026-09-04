@@ -12,7 +12,7 @@ triggers and permissions.
 | `ci.yml` | `master`, pull requests, daily schedule, manual dispatch | Orchestrate ordinary package validation and the packaged E2E of every supported frontend, report the single required gate, then delete transient package-transfer artifacts |
 | `build-and-package.yml` | Reusable only | Build and test every supported triplet, package Widgets and Quick, and create universal macOS packages |
 | `package-verification.yml` | Reusable only | Install and verify both frontend packages on every supported clean verification system |
-| `packaged-e2e.yml` | Reusable only | Install the Qt Quick production package and run CLI and graphical E2E on Linux and Windows; retain the disabled macOS implementation |
+| `packaged-e2e.yml` | Reusable only | Install the selected frontend package and run CLI and graphical E2E on Linux and Windows; retain the disabled macOS implementation |
 | `e2e-runner-image.yml` | `master` when its inputs change, reusable call, manual dispatch | Publish the Linux packaged E2E runner image, which contains the test environment and never the application |
 | `release-candidate.yml` | Reusable only | Resolve the candidate version, generate corresponding source, build and package every triplet, then assemble and verify the release assets |
 | `release-dry-run.yml` | Manual dispatch | Rehearse a release by running the candidate pipeline and publishing nothing |
@@ -73,31 +73,8 @@ verification and packaged E2E consumption.
 ## Precompiled-header boundaries
 
 Selected C++ targets use private precompiled headers to reduce native CI build
-time. The selection is deliberately narrow: a target must repeatedly parse a
-stable Qt or GoogleTest dependency across enough translation units to recover
-the cost of creating its own PCH. Source files must still include every header
-they use directly.
-
-The evaluation used the Linux `debug-x64-linux` and `release-x64-linux`
-presets with Clang 22.1.6 and Ninja 1.13.2. Dependency installation and CMake
-configuration were excluded. Clean Debug builds were alternated between
-otherwise identical trees at four parallel jobs, matching the CPU count of the
-hosted Linux runner. Release used the same clean-build method. Times are wall
-clock seconds:
-
-| Configuration | PCH disabled | PCH enabled | Improvement |
-| --- | ---: | ---: | ---: |
-| Debug clean build, median of 3 | 88.58 s | 62.70 s | 29.2% |
-| Release clean build | 96.35 s | 69.03 s | 28.4% |
-
-Representative one-source Debug rebuilds were also measured three times on a
-24-core developer system. Median presentation, Widgets, Quick, and
-presentation-test rebuilds improved from 2.74, 2.65, 2.65, and 2.54 seconds to
-1.31, 0.90, 1.15, and 1.45 seconds respectively. These local results confirm
-that PCH generation does not trade CI savings for slower ordinary edits; the
-four-core clean measurements above are the primary selection criterion.
-
-PCHs are enabled for these target groups:
+time. They are enabled only where stable Qt or GoogleTest dependencies repeat
+across enough translation units to recover the creation cost:
 
 - shared presentation, for its repeated Qt Core and common standard-library
   parsing;
@@ -108,12 +85,11 @@ PCHs are enabled for these target groups:
 - the four largest GoogleTest executables: core unit tests, presentation unit
   tests, services integration tests, and Quick frontend integration tests.
 
-The GoogleTest targets each compile their own PCH; none reuse a PCH from a
-target with a different compile context. Ninja action timings for the selected
-targets fell between 29% and 64%. Smaller test executables, thin application
-executables, and the small Quick style target do not contain enough C++ source
-files to justify another PCH. Core, formats, media, services, storage, support,
-and the CLI remain PCH-free.
+Each target compiles its own PCH; none reuse one from a different compile
+context. Smaller test executables, thin application executables, the Quick
+style target, core, formats, media, services, storage, support, and the CLI
+remain PCH-free. Source files must still include every header they use
+directly.
 
 CMake's standard switch provides the self-contained-source control build:
 
@@ -123,8 +99,8 @@ cmake --preset debug-x64-linux \
 cmake --build --preset debug-x64-linux
 ```
 
-The evaluation completed clean Debug and Release builds with that switch, so
-PCH availability does not replace direct includes.
+CI verifies this control build so PCH availability cannot replace direct
+includes.
 
 ## Artifact lifecycle
 
@@ -135,12 +111,11 @@ crash dumps, installer logs, and build diagnostics remain available for seven
 days because they do not distribute a runnable Edit Atlas package.
 
 Release runs retain transfer artifacts for up to three days as recovery data.
-The release workflow publishes only the Qt Quick production frontend and its
+The release workflow publishes only the resolved production frontend and its
 matching Qt and FFmpeg corresponding-source archives, notices, license, and
-checksums. Widgets packages remain CI verification artifacts rather than
-release assets. After successful publication, the workflow deletes the
-transfer copies from the workflow run; the GitHub Release remains the
-distribution location.
+checksums. Other frontend packages remain CI verification artifacts. After
+successful publication, the workflow deletes the transfer copies from the
+workflow run; the GitHub Release remains the distribution location.
 
 The vcpkg NuGet feed is a dependency binary cache rather than a workflow
 artifact. Package jobs retain the existing per-triplet concurrency groups so
@@ -207,12 +182,8 @@ repeating them would double a costly dispatch without adding signal.
 ## Frontend coverage
 
 Packaged E2E runs against every supported frontend on every run, and the gate
-requires all of them. The two suites are the same reusable workflow with a
-different `frontend` input, so nothing but that input distinguishes the one
-production ships. It costs almost nothing to hold them to the same standard:
-every run packages every frontend regardless, so no build work is added, and
-the jobs run beside each other rather than in sequence, so the merge path
-adds no wall clock.
+requires all of them. The suites use the same reusable workflow with a
+different required `frontend` input and run in parallel.
 
 Which frontend is which is not written into CI. The `frontends` job derives
 the production frontend from `EDIT_ATLAS_DEFAULT_FRONTEND` in
@@ -222,38 +193,22 @@ and no frontend is ever exercised twice in one run. The rest are a matrix
 over that list, so a third supported frontend needs no workflow change
 either.
 
-They reuse the packages the run already produced and the same reusable
-workflow, selected through its `frontend` input, so scenarios, strictness,
-and artifacts match the merge-path jobs. Job names and result artifacts carry
-the frontend. That input is required: no caller can inherit a frontend by
-omission.
+They reuse the packages the run already produced, so scenarios, strictness,
+and artifacts match. Job names and result artifacts carry the frontend.
 
 The release path derives the frontend the same way. `release-candidate.yml`
 resolves it once, assembles that frontend's packages, and exposes it to its
 callers, so a tagged release publishes and end-to-end tests whatever
 production ships rather than a toolkit named in an artifact pattern.
 
-Building and verifying packages is deliberately not derived: those jobs cover
-every supported frontend, because a frontend that is not shipped today is
-still expected to compile, install, and launch.
-
-A tracking issue used to carry the outcome for the frontend production does
-not ship, because a suite that ran only on a schedule could fail where nobody
-was looking. A gated suite cannot: the failure blocks the merge instead. That
-apparatus is gone, and with it the risk that the signal it produced was the
-one nobody read.
-
-The schedule still earns its place, for a reason the merge path cannot cover:
-it catches drift that no change in this repository causes, such as a runner
-image or a dependency moving underneath a commit that was green when it
-landed.
+Build and package verification always cover every supported frontend. The
+schedule additionally detects runner-image and dependency drift that no
+repository change caused.
 
 Each kind of trigger holds its own concurrency lane, keyed by event and ref.
-Superseding still applies within a lane, so a new push to a branch cancels
-the run for the commit it replaced, which is what you want when only the tip
-matters. Across lanes nothing is cancelled: a merge to `master` no longer
-cancels a nightly partway through, and a deliberate dispatch no
-longer cancels the merge-path run for the same commit.
+Superseding applies within a lane, so a new branch push cancels the run for the
+commit it replaced. A merge, schedule, and manual dispatch do not cancel one
+another.
 
 ## Required status checks
 
@@ -262,11 +217,11 @@ in the ruleset.
 
 The gate job in `ci.yml` depends on package production, package
 verification, and the packaged E2E of every supported frontend, runs with
-`if: always()`, and fails unless every dependency concluded `success`. Making a job mandatory therefore means
-adding it to the gate's `needs:` list, which is reviewed with the change that
-introduces it. Renaming, re-matrixing, or splitting a job needs no ruleset
-edit, and a required context that nothing reports can no longer strand a pull
-request at "Expected — Waiting for status to be reported".
+`if: always()`, and fails unless every dependency concluded `success`. Making
+a job mandatory therefore means adding it to the gate's `needs:` list, which
+is reviewed with the change that introduces it. Renaming, re-matrixing, or
+splitting a job needs no ruleset edit, and a required context that nothing
+reports can no longer strand a pull request waiting for an absent status.
 
 The comparison is against `success` rather than a tolerance for `skipped`,
 because a job that a failed dependency prevented from running concludes
