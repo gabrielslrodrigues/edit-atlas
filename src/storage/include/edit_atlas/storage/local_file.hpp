@@ -90,7 +90,7 @@ class AtomicFileTransaction final {
     ExistingFilePolicy existing_file_policy_;
 };
 
-/// Reads all bytes from p path after checking platform size limits.
+/// Reads all bytes from \p path after checking platform size limits.
 [[nodiscard]] ReadLocalFileResult
 ReadLocalFile(const std::filesystem::path &path);
 
@@ -99,7 +99,7 @@ ReadLocalFile(const std::filesystem::path &path);
 PrepareAtomicFile(const std::filesystem::path &path,
                   ExistingFilePolicy existing_file_policy);
 
-/// Writes p content to a temporary sibling and atomically commits it.
+/// Writes \p content to a temporary sibling and atomically commits it.
 [[nodiscard]] WriteLocalFileResult
 WriteLocalFileAtomically(const std::filesystem::path &path,
                          std::span<const std::byte> content,

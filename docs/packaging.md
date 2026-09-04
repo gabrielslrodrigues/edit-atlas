@@ -8,7 +8,7 @@ not need CMake, vcpkg, or a separate Qt installation.
 
 Qt Quick is the primary packaged frontend. The shared maintenance policy and
 secondary Widgets rollback boundary are documented in
-[Architecture](api/architecture.md), with toolkit-specific details in the
+[Architecture](architecture.md), with toolkit-specific details in the
 [Qt Quick](api/qt-quick-frontend.md) and
 [Qt Widgets](api/qt-widgets-frontend.md) frontend guides.
 
@@ -90,11 +90,9 @@ cmake --workflow --preset create-widgets-package-x64-windows
 cmake --workflow --preset create-quick-package-x64-windows
 ```
 
-The generic `create-package-` workflows continue to follow the project's
-current default frontend, which is Qt Quick. The explicit Widgets workflows
-remain available for secondary-frontend validation and emergency rollback,
-and the daily scheduled CI run exercises the Widgets package through packaged
-end-to-end testing so that rollback path is verified rather than assumed.
+The generic `create-package-` workflows follow the project's current default
+frontend, which is Qt Quick. Explicit frontend workflows remain available for
+validation and emergency rollback. CI verifies both packages on every run.
 
 The universal macOS package is assembled by CI from independently built and
 staged ARM64 and x64 application bundles. This avoids relying on a universal
@@ -165,58 +163,10 @@ sudo dnf remove edit-atlas
 
 ## Package verification
 
-CI separates package production from package consumption through reusable
-workflows. The `build-and-package.yml` workflow's native matrix builds and
-tests both frontends in one generic Release tree, then stages and packages the
-isolated Widgets and Qt Quick packaging applications for native macOS ARM64
-and x64, Linux x64, and Windows x64. Both applications reuse the frontend
-libraries from that build; their CPack configurations select the matching
-frontend runtime component together with the shared runtime component. A
-dedicated job merges each frontend's matching pair of Mach-O files into a
-universal macOS bundle and creates both installers.
-The independent `package-verification.yml` workflow then downloads both
-frontend variants and treats them like end-user downloads while packaged E2E
-runs concurrently from the same artifacts:
-
-- extracts the portable archive and both Linux native packages, verifies their
-  private runtime-library layout, executable RUNPATHs, deployed Qt libraries,
-  XCB and Wayland plugins, architecture metadata, and license materials, then
-  installs and removes the Debian package through APT and the RPM package
-  through DNF on Fedora 44; each installed package is launched under Xvfb and
-  its CLI converts a representative CMX 3600 fixture;
-- installs the macOS package on both Apple Silicon and Intel runners, verifies
-  its deployed Qt runtime, launches each native slice, and checks every Mach-O
-  file for both x86_64 and ARM64 slices; packaged GUI automation remains an
-  explicitly skipped experimental job because GitHub-hosted runners cannot be
-  reliably pre-authorized for the macOS Accessibility API, while its complete
-  PyObjC AX runner is retained for a trusted interactive runner;
-- silently installs the Windows package into an isolated directory, verifies
-  Qt, the required QML imports for Qt Quick, and the Windows platform plugin,
-  confirms the uninstall registry entry, runs the uninstaller, and confirms
-  the executable was removed.
-
-### Dependency cache lifecycle
-
-CI uses the repository's public GitHub Packages NuGet feed as the vcpkg binary
-cache. vcpkg stores each built dependency using its package ABI, so compatible
-binaries can be reused across branches and runner images while incompatible
-compiler or SDK combinations remain separate. The feed is configured with the
-workflow-provided `GITHUB_TOKEN`, and the package IDs use an Edit Atlas prefix
-to keep them distinct from caches owned by other repositories. No personal
-token is required.
-
-Jobs for the same platform and triplet are serialized to avoid competing
-uploads of the same package, while different triplets continue to run
-concurrently. Fork pull requests can read packages but cannot publish them.
-The job summary reports the number of packages restored and built by vcpkg.
-
-The packages are CI implementation details, not application dependencies for
-end users. Public package storage and transfer are free for this public
-repository. Old ABI versions may remain in the feed until package-retention
-automation is added.
-
-The package checks are scripts rather than embedded workflow fragments, so the
-same checks can be run locally after creating the matching package:
+Package verification checks archive structure, deployed dependencies,
+architecture metadata, license material, installation, launch, representative
+CLI conversion, and removal where the platform provides a package manager.
+Run the same scripts CI uses after creating the matching package:
 
 ```sh
 ./scripts/ci/verify-linux-packages.sh ubuntu build/packages/widgets/x64-linux
@@ -276,9 +226,9 @@ After approval, the workflow calls the same reusable package and packaged-E2E
 workflows used by ordinary CI. They build and test Linux x64, macOS ARM64 and
 x64, and Windows x64 from the tag, assemble the universal macOS package, and
 validate every package on the supported verification systems. The release
-workflow uploads only the five Qt Quick production installers and archives to
-its draft GitHub Release. Widgets packages remain CI artifacts used for
-secondary-frontend verification. The release workflow also downloads the
+workflow uploads only the five packages for the production frontend resolved
+from `EDIT_ATLAS_DEFAULT_FRONTEND`. Other frontend packages remain CI
+artifacts used for verification. The release workflow also downloads the
 exact source archives selected by the pinned vcpkg ports for Qt Base,
 Declarative, Language Server, Shader Tools, and SVG, verifies their
 SHA-512 digests, and packages them with the complete ports and patch sets,
@@ -309,18 +259,20 @@ regression in the primary Qt Quick frontend does not require reverting the
 shared presentation or service architecture. Before tagging an emergency
 Widgets release:
 
-1. set the default `frontend` input in `packaged-e2e.yml` to `widgets`;
-2. select `widgets-frontend-*-packages` in the release asset download step;
+1. set `EDIT_ATLAS_DEFAULT_FRONTEND` in `CMakeLists.txt` to `widgets`;
+2. run `scripts/ci/resolve-frontends.sh` and confirm that it reports Widgets as
+   production;
 3. run the complete ordinary CI workflow and confirm that the Widgets package
    passes package verification and packaged E2E on every required platform;
 4. create the version tag only after those checks pass.
 
 These changes select the already-maintained secondary frontend; they do not
 remove Qt Quick, change persistent application identifiers, or migrate user
-state. The explicit `release-widgets-` presets provide the equivalent local
-development and package-validation path without changing the project default.
-Restore Qt Quick through the same two workflow selection points after the
-blocking regression is fixed and validated.
+state. CI and release workflows derive their package and E2E selection through
+`scripts/ci/resolve-frontends.sh`; no workflow artifact pattern or input is
+edited separately. The explicit `release-widgets-` presets provide the
+equivalent local package-validation path. Restore the CMake default to Qt Quick
+after the blocking regression is fixed and validated.
 
 The Qt corresponding-source archive includes the exact source archives,
 vcpkg ports, and patch sets for Qt Base, Declarative, Language Server, Shader

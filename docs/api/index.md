@@ -7,9 +7,11 @@ shared Qt presentation boundary.
 
 ## Start here
 
-- @ref api_architecture "Architecture and dependency direction"
-- @ref qt_quick_frontend "Qt Quick frontend development guide"
-- @ref qt_widgets_frontend "Qt Widgets frontend maintenance guide"
+- [Repository architecture](https://github.com/gabrielslrodrigues/edit-atlas/blob/master/docs/architecture.md)
+  — canonical dependency direction and frontend maintenance policy
+- @ref api_architecture "Relationships between public APIs"
+- @ref qt_quick_frontend "Qt Quick frontend source conventions"
+- @ref qt_widgets_frontend "Qt Widgets frontend source conventions"
 - `edit_atlas::core::TimelineDocument` is the shared editorial model.
 - `edit_atlas::core::Importer` and `edit_atlas::core::Exporter` are the format
   extension points.

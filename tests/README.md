@@ -40,10 +40,8 @@ The maintained secondary frontend uses GoogleTest under
 workflow and maintenance expectations are documented in the
 [Qt Widgets frontend guide](../docs/api/qt-widgets-frontend.md).
 
-The former CMake-driven separate-process CLI check is intentionally not
-registered here. Packaged CLI process behavior belongs to the pytest E2E suite
-tracked by issue #88; the integration suite invokes the CLI application in
-process.
+Packaged CLI process behavior belongs to the pytest E2E suite; the integration
+suite invokes the CLI application in process.
 
 Native application integration tests set `EDIT_ATLAS_TEST_STATE_ROOT` before
 constructing application services. The internal override redirects QSettings

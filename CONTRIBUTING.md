@@ -155,33 +155,15 @@ developer profile.
 
 ## Dependencies and versions
 
-- `std::expected` is the only C++23 facility these sources use, so it decides
-  which compilers work. `cmake/EditAtlasCompilerSupport.cmake` declares the
-  floors — Clang 19 and MSVC 19.33, which is Visual Studio 2022 17.3 — and
-  configuration also compiles a program that includes `<expected>`, so a
-  compiler new enough paired with an old standard library is rejected too,
-  with the facility named rather than as a template error mid-build. Apple
-  Clang carries no number: libc++ 16 was the first release to provide
-  `<expected>`, but Apple's libc++ does not track upstream releases, so macOS
-  is left to that check alone. `cmake/LinuxClangToolchain.cmake` holds its own
-  copy of the Clang floor because it selects a driver before CMake knows the
-  compiler, and vcpkg hashes the chainloaded toolchain into every `x64-linux`
-  port's ABI, so including the declaration there would rebuild every port to
-  share one integer; configuration fails if the two numbers disagree.
-- Linux builds are pinned to Clang 19 or newer through
-  `cmake/LinuxClangToolchain.cmake`, which the Linux presets and the
-  `x64-linux` triplet both chainload, so the project and every vcpkg port
-  use it. The compiler decides which optional dependencies ports link, so an
-  unpinned one gives a local package a different runtime closure than the CI
-  one. Clang 18 and older are rejected: they report `__cpp_concepts` as
-  201907 while libstdc++ gates `std::expected` on 202002, so `<expected>`
-  expands to nothing and this project's C++23 code will not compile. The
-  toolchain selects a matched pair of drivers, preferring versioned names, so
-  a distribution whose default Clang is too old still configures. Set
-  `EDIT_ATLAS_LINUX_C_COMPILER` and `EDIT_ATLAS_LINUX_CXX_COMPILER` in the
-  environment, both or neither, for a deliberate cross-compiler check;
-  changing the compiler changes vcpkg's ABI hash, so the ports rebuild once.
-  macOS and Windows keep the toolchain their environment provides.
+- `cmake/EditAtlasCompilerSupport.cmake` declares the compiler floors: Clang
+  19 and MSVC 19.33 (Visual Studio 2022 17.3). Configuration also verifies
+  that the selected standard library provides `std::expected`; Apple Clang is
+  governed by that facility check.
+- Linux presets and the `x64-linux` triplet select a matched Clang 19-or-newer
+  toolchain through `cmake/LinuxClangToolchain.cmake`. Set both
+  `EDIT_ATLAS_LINUX_C_COMPILER` and `EDIT_ATLAS_LINUX_CXX_COMPILER`, or neither,
+  for a deliberate override. Changing compilers changes vcpkg package ABIs and
+  rebuilds affected ports.
 - The `version-string` in `vcpkg.json` is the single project version source;
   CMake reads it, and release tags are validated against it.
 - The `builtin-baseline` in `vcpkg.json` must equal the checked-out vcpkg

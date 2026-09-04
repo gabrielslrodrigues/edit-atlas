@@ -6,7 +6,7 @@ it is not legal advice.
 
 Qt Quick is the production graphical frontend. Frontend dependencies and the
 shared maintenance policy are documented in
-[Architecture](api/architecture.md), with deployment-specific guidance in the
+[Architecture](architecture.md), with deployment-specific guidance in the
 [Qt Quick](api/qt-quick-frontend.md) and
 [Qt Widgets](api/qt-widgets-frontend.md) frontend guides.
 
