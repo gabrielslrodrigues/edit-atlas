@@ -40,7 +40,10 @@ accessibility contract can represent the complete interaction:
   states, because the buttons beside the list act on the current one. The
   Windows adapter clicks Widgets rows at their reported bounds because UIA
   does not expose the current row separately and can report a checked row as
-  selected without making it current.
+  selected without making it current. It then confirms the clicked row is the
+  one Qt reports as focused, which is the current row: the movement buttons
+  are enabled for any current row above the first, so their state cannot
+  distinguish a click that landed one row off from one that landed correctly.
 - A timeline column header declares a press action that sorts the column.
 
 Five cases use pointer input, and all five are deliberate:
@@ -51,7 +54,8 @@ Five cases use pointer input, and all five are deliberate:
   behaviour to offer: reordering is a drag, and its keyboard equivalent
   belongs to the row rather than the handle.
 - Windows Widgets event projection rows, where a bounds-derived click makes
-  the row current before a shared movement button is used.
+  the row current before a shared movement button is used, and the adapter
+  verifies which row it made current.
 - Windows menu openers whose accepted action does not provide the complete
   interaction. Qt Quick QML menu bar items retain their implemented press path;
   Qt Widgets `QAction` menu titles use a bounds-derived click, and the template

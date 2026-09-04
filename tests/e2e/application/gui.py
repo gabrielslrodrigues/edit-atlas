@@ -180,7 +180,6 @@ class EditAtlasApplication:
                     self._session.activate(quick_move_button, showing=False)
                 else:
                     self._session.select_list_item("eventColumnsList", name)
-                    self._session.wait_sensitive("moveColumnUpButton", True)
                     self._session.activate("moveColumnUpButton")
                 available[position - 1], available[position] = (
                     available[position],
