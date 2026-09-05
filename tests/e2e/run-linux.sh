@@ -25,10 +25,9 @@ export QT_QPA_PLATFORM=xcb
 export XDG_SESSION_TYPE=x11
 exec uv run --locked --project "${script_directory}" python -m pytest \
   -c "${script_directory}/pytest.ini" \
-  "${script_directory}/tests/test_packaged_cli.py" \
-  "${script_directory}/tests/test_packaged_gui.py" \
-  "${script_directory}/tests/test_export_column_ordering.py" \
-  "${script_directory}/tests/linux" \
+  "${script_directory}/tests" \
+  --ignore "${script_directory}/tests/macos" \
+  --ignore "${script_directory}/tests/windows" \
   --fixture-dir "${repository_root}/tests/fixtures/cmx3600" \
   --media-fixture-dir "${media_fixture_directory}" \
   --output-dir "${e2e_root}/output" \
