@@ -27,6 +27,7 @@ exec uv run --locked --project "${script_directory}" python -m pytest \
   -c "${script_directory}/pytest.ini" \
   "${script_directory}/tests/test_packaged_cli.py" \
   "${script_directory}/tests/test_packaged_gui.py" \
+  "${script_directory}/tests/test_export_column_ordering.py" \
   "${script_directory}/tests/linux" \
   --fixture-dir "${repository_root}/tests/fixtures/cmx3600" \
   --media-fixture-dir "${media_fixture_directory}" \

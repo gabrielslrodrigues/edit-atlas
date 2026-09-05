@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import Callable
 
 from adapters.desktop import DesktopSession
+from application.polling import PollTimeoutError
 
 
 SessionFactory = Callable[[str], DesktopSession]
@@ -179,13 +180,14 @@ class EditAtlasApplication:
                     self._session.focus(quick_move_button, showing=False)
                     self._session.activate(quick_move_button, showing=False)
                 else:
-                    self._session.select_list_item("eventColumnsList", name)
-                    self._session.activate("moveColumnUpButton")
-                available[position - 1], available[position] = (
-                    available[position],
-                    available[position - 1],
-                )
-                self._session.wait_list_items("eventColumnsList", available)
+                    # One operation on purpose: enumerating the list's
+                    # accessible children resets the widget's current row,
+                    # which is what the movement control acts on, so nothing
+                    # may look an element up between the two steps.
+                    self._session.move_list_item(
+                        "eventColumnsList", name, "moveColumnUpButton"
+                    )
+                available = self._await_moved_column(name, available)
         # Apply the leading selections last so all remaining rows stay visible.
         for name in reversed(available):
             self._session.set_list_item_checked(
@@ -193,6 +195,57 @@ class EditAtlasApplication:
             )
         if opened_projection:
             self._close_spreadsheet_export_columns()
+
+    def _await_moved_column(
+        self, name: str, before: list[str]
+    ) -> list[str]:
+        """Waits for the requested row, and only it, to move up one place.
+
+        Comparing the whole list against a predicted order could only report
+        that the prediction never arrived. A control that moved a different
+        row is a distinct failure, and reconstructing which one from a
+        screenshot afterwards is what this reports directly instead.
+        """
+        position = before.index(name)
+        expected = list(before)
+        expected[position - 1], expected[position] = (
+            expected[position],
+            expected[position - 1],
+        )
+        try:
+            return self._session.wait_list_items("eventColumnsList", expected)
+        except PollTimeoutError as error:
+            observed = self._session.list_items("eventColumnsList")
+            raise AssertionError(
+                self._describe_move(name, position, before, observed)
+            ) from error
+
+    def _describe_move(
+        self,
+        name: str,
+        position: int,
+        before: list[str],
+        observed: list[str],
+    ) -> str:
+        moved = [
+            f"{item!r} from {index} to {observed.index(item)}"
+            for index, item in enumerate(before)
+            if item in observed and observed.index(item) != index
+        ]
+        return (
+            f"moving {name!r} up from index {position} moved "
+            + (", ".join(moved) if moved else "nothing")
+            + f"; afterwards {self._describe_current_row()}"
+        )
+
+    def _describe_current_row(self) -> str:
+        current = self._session.current_list_item("eventColumnsList")
+        enabled = self._session.is_sensitive("moveColumnUpButton")
+        return (
+            f"the list reported {current!r} as its current row and "
+            "moveColumnUpButton was "
+            + ("enabled" if enabled else "disabled")
+        )
 
     def spreadsheet_export_column_selection(
         self,
