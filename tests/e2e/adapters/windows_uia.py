@@ -325,11 +325,18 @@ class WindowsApplicationSession:
                 f"{self._current_list_item_name(identifier)} current"
             ) from error
 
-    def _current_list_item_name(self, identifier: str) -> str:
+    def current_list_item(self, identifier: str) -> str | None:
+        # Qt reports the current row as the focused one, which is what the
+        # controls beside a list act on. UIA exposes no current-row property
+        # of its own.
         for node in self._list_nodes(identifier):
             if self._has_keyboard_focus(node):
-                return repr(self._node_name(node))
-        return "no row"
+                return self._node_name(node)
+        return None
+
+    def _current_list_item_name(self, identifier: str) -> str:
+        current = self.current_list_item(identifier)
+        return "no row" if current is None else repr(current)
 
     @staticmethod
     def _has_keyboard_focus(node: Any) -> bool:
@@ -337,6 +344,25 @@ class WindowsApplicationSession:
             return bool(node.has_keyboard_focus())
         except Exception:
             return False
+
+    def move_list_item(
+        self, identifier: str, name: str, control: str
+    ) -> None:
+        # Enumerating the list's accessible children resets the widget's
+        # current row, and the controls beside a list act on that row, so a
+        # lookup between selecting a row and acting on it destroys its own
+        # precondition. Both elements are resolved first for that reason.
+        node = self._list_item(identifier, name)
+        button = self.element(control)
+        self._click_accessible_node(node, f"list item {name!r}")
+        completed = self._invoke(button)
+        wait_until(
+            completed.is_set,
+            lambda done: done,
+            timeout=self._timeout,
+            description=f"{control!r} activation to complete",
+        )
+        self._ensure_running()
 
     def set_list_item_checked(
         self, identifier: str, name: str, checked: bool

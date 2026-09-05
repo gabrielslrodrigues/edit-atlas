@@ -56,6 +56,7 @@ $Arguments = @(
   "-c", (Join-Path $ScriptDirectory "pytest.ini"),
   (Join-Path $ScriptDirectory "tests/test_packaged_cli.py"),
   (Join-Path $ScriptDirectory "tests/test_packaged_gui.py"),
+  (Join-Path $ScriptDirectory "tests/test_export_column_ordering.py"),
   (Join-Path $ScriptDirectory "tests/windows"),
   "--app", $App,
   "--cli", $Cli,

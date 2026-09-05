@@ -20,6 +20,7 @@ exec uv run --locked --project "${script_directory}" python -m pytest \
   "${script_directory}/tests/macos" \
   "${script_directory}/tests/test_packaged_cli.py" \
   "${script_directory}/tests/test_packaged_gui.py" \
+  "${script_directory}/tests/test_export_column_ordering.py" \
   --fixture-dir "${repository_root}/tests/fixtures/cmx3600" \
   --media-fixture-dir "${e2e_root}/media-fixtures" \
   --output-dir "${e2e_root}/output" \

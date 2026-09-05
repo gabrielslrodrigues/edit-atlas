@@ -458,6 +458,23 @@ class LinuxApplicationSession:
             in ("list item", "table row")
         ]
 
+    def current_list_item(self, identifier: str) -> str | None:
+        # The controls beside a list act on its current row, which AT-SPI
+        # reports as the focused descendant rather than the selected one.
+        control = self.element(identifier)
+        for node in self._walk(control):
+            if str(getattr(node, "role_name", "")).casefold() not in (
+                "list item",
+                "table row",
+            ):
+                continue
+            try:
+                if node.focused:
+                    return str(node.name)
+            except Exception:
+                continue
+        return None
+
     def is_list_item_checked(self, identifier: str, name: str) -> bool:
         node = self._visible_list_item(identifier, name)
         return bool(node.checked)
@@ -476,6 +493,23 @@ class LinuxApplicationSession:
             timeout=self._timeout,
             description=f"list item {name!r} to become selected",
         )
+
+    def move_list_item(
+        self, identifier: str, name: str, control: str
+    ) -> None:
+        # Both elements are resolved before either is used, so no accessible
+        # enumeration falls between selecting a row and acting on it. AT-SPI
+        # has not shown the current-row reset Windows does, and the ordering
+        # costs nothing here.
+        button = self.element(control)
+        list_control = self.element(identifier)
+        node = self._list_item(identifier, name, control=list_control)
+        self._scroll_into_view(node)
+        try:
+            node.select()
+        except Exception:
+            self._activate_node(node)
+        self._activate_node(button)
 
     def set_list_item_checked(
         self, identifier: str, name: str, checked: bool
