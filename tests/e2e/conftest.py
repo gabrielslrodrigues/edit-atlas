@@ -164,7 +164,16 @@ def state_root(pytestconfig: pytest.Config) -> Path:
             raise pytest.UsageError(
                 f"refusing to remove unowned state directory: {path}"
             )
-        shutil.rmtree(path)
+        try:
+            shutil.rmtree(path)
+        except OSError as error:
+            # An interrupted run leaves the application holding its log open,
+            # and the resulting errno says only that a file is in use.
+            raise pytest.UsageError(
+                f"could not remove the state directory {path}: {error}. A "
+                "previous run was probably interrupted and left an Edit "
+                "Atlas process running; close it and run again."
+            ) from error
     path.mkdir(parents=True)
     marker = path / ".edit-atlas-e2e-state"
     marker.write_text("owned by the Edit Atlas E2E harness\n", encoding="utf-8")

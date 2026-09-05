@@ -38,20 +38,31 @@ jobs:
     steps:
       - name: Install Ubuntu verification tools
         if: matrix.distribution == 'ubuntu'
-        run: >-
-          apt-get update &&
-          apt-get install
-          --yes
-          --no-install-recommends
-          binutils
-          ca-certificates
-          cmake
-          findutils
-          git
-          libgomp1
-          libxkbcommon0
-          xauth
-          xvfb
+        run: |
+          set -eu
+          # A container inherits the vanilla sources and reaches the public
+          # archive, while the runner hosting it has a local mirror.
+          for sources in /etc/apt/sources.list \
+              /etc/apt/sources.list.d/ubuntu.sources; do
+            [ -f "${sources}" ] || continue
+            sed -i \
+              -e 's|http://archive\.ubuntu\.com|http://azure.archive.ubuntu.com|g' \
+              -e 's|http://security\.ubuntu\.com|http://azure.archive.ubuntu.com|g' \
+              "${sources}"
+          done
+          printf 'Acquire::Retries "3";\n' \
+            > /etc/apt/apt.conf.d/99-edit-atlas-retries
+          apt-get update
+          apt-get install --yes --no-install-recommends \
+            binutils \
+            ca-certificates \
+            cmake \
+            findutils \
+            git \
+            libgomp1 \
+            libxkbcommon0 \
+            xauth \
+            xvfb
 
       - name: Install Fedora verification tools
         if: matrix.distribution == 'fedora'

@@ -17,9 +17,9 @@ uv run --locked --project "${script_directory}" \
   python "${script_directory}/preflight_macos.py"
 exec uv run --locked --project "${script_directory}" python -m pytest \
   -c "${script_directory}/pytest.ini" \
-  "${script_directory}/tests/macos" \
-  "${script_directory}/tests/test_packaged_cli.py" \
-  "${script_directory}/tests/test_packaged_gui.py" \
+  "${script_directory}/tests" \
+  --ignore "${script_directory}/tests/linux" \
+  --ignore "${script_directory}/tests/windows" \
   --fixture-dir "${repository_root}/tests/fixtures/cmx3600" \
   --media-fixture-dir "${e2e_root}/media-fixtures" \
   --output-dir "${e2e_root}/output" \

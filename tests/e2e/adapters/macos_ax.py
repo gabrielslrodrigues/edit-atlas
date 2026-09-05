@@ -275,6 +275,12 @@ class MacApplicationSession:
     def list_items(self, identifier: str) -> list[str]:
         return [self._node_name(node) for node in self._list_nodes(identifier)]
 
+    def current_list_item(self, identifier: str) -> str | None:
+        for node in self._list_nodes(identifier):
+            if bool(self._attribute(node, "AXFocused", False)):
+                return self._node_name(node)
+        return None
+
     def is_list_item_checked(self, identifier: str, name: str) -> bool:
         return self._is_checked(self._list_item(identifier, name))
 
@@ -290,6 +296,13 @@ class MacApplicationSession:
             timeout=self._timeout,
             description=f"list item {name!r} to become selected",
         )
+
+    def move_list_item(
+        self, identifier: str, name: str, control: str
+    ) -> None:
+        button = self.element(control)
+        self.select_list_item(identifier, name)
+        self._activate_node(button)
 
     def set_list_item_checked(
         self, identifier: str, name: str, checked: bool

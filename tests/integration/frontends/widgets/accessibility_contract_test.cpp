@@ -409,6 +409,35 @@ TEST(AccessibilityContractTest,
 }
 
 TEST(AccessibilityContractTest,
+     EnumeratingProjectionChildrenKeepsTheCurrentRow) {
+    const auto projection = core::DefaultTimelineEventProjection();
+    EventProjectionDialog dialog{projection};
+    auto *columns = FindByAccessibleIdentifier<QListWidget>(
+        dialog, QStringLiteral("eventColumnsList"));
+    ASSERT_NE(columns, nullptr);
+    ASSERT_GT(columns->count(), 2);
+    columns->setCurrentRow(2);
+    auto *list_interface = QAccessible::queryAccessibleInterface(columns);
+    ASSERT_NE(list_interface, nullptr);
+    auto *selection_interface = list_interface->selectionInterface();
+
+    // The movement buttons act on the current row, and reading a list is what
+    // assistive technology does continually.
+    for (int index = 0; index < list_interface->childCount(); ++index) {
+        auto *child_interface = list_interface->child(index);
+        ASSERT_NE(child_interface, nullptr);
+        child_interface->text(QAccessible::Name);
+        child_interface->state();
+        child_interface->rect();
+        if (selection_interface != nullptr) {
+            selection_interface->isSelected(child_interface);
+        }
+    }
+
+    EXPECT_EQ(columns->currentRow(), 2);
+}
+
+TEST(AccessibilityContractTest,
      ReleasesProjectionChildInterfacesWhenDialogCloses) {
     QAccessible::Id child_identifier = 0;
     {

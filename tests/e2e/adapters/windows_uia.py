@@ -325,11 +325,18 @@ class WindowsApplicationSession:
                 f"{self._current_list_item_name(identifier)} current"
             ) from error
 
-    def _current_list_item_name(self, identifier: str) -> str:
+    def current_list_item(self, identifier: str) -> str | None:
+        # Qt reports the current row as the focused one, which is what the
+        # controls beside a list act on. UIA exposes no current-row property
+        # of its own.
         for node in self._list_nodes(identifier):
             if self._has_keyboard_focus(node):
-                return repr(self._node_name(node))
-        return "no row"
+                return self._node_name(node)
+        return None
+
+    def _current_list_item_name(self, identifier: str) -> str:
+        current = self.current_list_item(identifier)
+        return "no row" if current is None else repr(current)
 
     @staticmethod
     def _has_keyboard_focus(node: Any) -> bool:
@@ -337,6 +344,25 @@ class WindowsApplicationSession:
             return bool(node.has_keyboard_focus())
         except Exception:
             return False
+
+    def move_list_item(
+        self, identifier: str, name: str, control: str
+    ) -> None:
+        # Enumerating the list's accessible children resets the widget's
+        # current row, and the controls beside a list act on that row, so a
+        # lookup between selecting a row and acting on it destroys its own
+        # precondition. Both elements are resolved first for that reason.
+        node = self._list_item(identifier, name)
+        button = self.element(control)
+        self._click_accessible_node(node, f"list item {name!r}")
+        completed = self._invoke(button)
+        wait_until(
+            completed.is_set,
+            lambda done: done,
+            timeout=self._timeout,
+            description=f"{control!r} activation to complete",
+        )
+        self._ensure_running()
 
     def set_list_item_checked(
         self, identifier: str, name: str, checked: bool
@@ -1048,7 +1074,7 @@ class WindowsApplicationSession:
     def _toggle_state(toggle: Any) -> bool:
         return int(toggle.CurrentToggleState) == 1
 
-    def _list_nodes(self, identifier: str) -> list[Any]:
+    def _list_nodes(self, identifier: str, *, page: bool = True) -> list[Any]:
         control = self.element(identifier)
         seen: set[str] = set()
         ordered: list[Any] = []
@@ -1086,6 +1112,8 @@ class WindowsApplicationSession:
         # Page to the bottom merging newly revealed rows, then page back so
         # repeated observations of the same list stay consistent.
         pages = 0
+        if not page:
+            return [indexed[index] for index in sorted(indexed)] or ordered
         while pages < self._MAX_LIST_PAGES:
             if not self._page_list(control, "down"):
                 break
@@ -1120,7 +1148,12 @@ class WindowsApplicationSession:
         # Qt Quick's ListView currently exposes its rows through UIA but no
         # Scroll pattern. It does implement keyboard paging once UIA gives
         # the list focus, so use that semantic fallback instead of wheel or
-        # coordinate input.
+        # coordinate input. A control that has the pattern and reports
+        # nothing to scroll is not virtualized, and paging it would only move
+        # the current row that the controls beside it act on.
+        scroll = self._pattern(control, "iface_scroll")
+        if scroll is not None and not self._vertically_scrollable(scroll):
+            return False
         try:
             control.set_focus()
             key = "{PGDN}" if direction == "down" else "{PGUP}"
@@ -1129,8 +1162,21 @@ class WindowsApplicationSession:
             return False
         return True
 
+    @staticmethod
+    def _vertically_scrollable(scroll: Any) -> bool:
+        try:
+            return bool(scroll.CurrentVerticallyScrollable)
+        except Exception:
+            return True
+
     def _list_item(self, identifier: str, name: str) -> Any:
-        node = self._named_node(self._list_nodes(identifier), name)
+        # Answered from the visible rows where possible: paging moves the
+        # current row, and this runs immediately before the row is clicked.
+        node = self._named_node(
+            self._list_nodes(identifier, page=False), name
+        )
+        if node is None:
+            node = self._named_node(self._list_nodes(identifier), name)
         if node is None:
             raise ElementNotFoundError(
                 f"{identifier!r} contains no list item {name!r}"
