@@ -54,10 +54,9 @@ New-Item -ItemType Directory -Force $Reports, $Output, $Artifacts | Out-Null
 $Arguments = @(
   "-m", "pytest",
   "-c", (Join-Path $ScriptDirectory "pytest.ini"),
-  (Join-Path $ScriptDirectory "tests/test_packaged_cli.py"),
-  (Join-Path $ScriptDirectory "tests/test_packaged_gui.py"),
-  (Join-Path $ScriptDirectory "tests/test_export_column_ordering.py"),
-  (Join-Path $ScriptDirectory "tests/windows"),
+  (Join-Path $ScriptDirectory "tests"),
+  "--ignore", (Join-Path $ScriptDirectory "tests/linux"),
+  "--ignore", (Join-Path $ScriptDirectory "tests/macos"),
   "--app", $App,
   "--cli", $Cli,
   "--fixture-dir", (Join-Path $RepositoryRoot "tests/fixtures/cmx3600"),
