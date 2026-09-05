@@ -106,6 +106,11 @@ class RangeValuePattern:
         self._set_value(value)
 
 
+class ScrollPattern:
+    def __init__(self, vertically_scrollable: bool) -> None:
+        self.CurrentVerticallyScrollable = vertically_scrollable
+
+
 class TextValuePattern:
     def __init__(self) -> None:
         self.CurrentValue = ""
@@ -636,6 +641,63 @@ def test_table_text_includes_virtualized_uia_grid_cells(
     session.element = lambda identifier: table
 
     assert "SYNTHETIC AUDIO NOTE" in session.text_content("eventTable")
+
+
+def test_reading_a_list_that_fits_does_not_page_it(tmp_path: Path) -> None:
+    # Paging sends Page Down and Page Up, which move the current row that the
+    # controls beside a list act on. A control reporting nothing to scroll has
+    # no rows to reveal, so the keys would only do that damage.
+    session = application_session(tmp_path)
+    rows = [Node(f"Field {index}", "ListItem") for index in range(3)]
+    paged: list[str] = []
+
+    class FittingList:
+        def __init__(self) -> None:
+            self.focus_calls = 0
+            self.iface_scroll = ScrollPattern(False)
+
+        def scroll(self, direction: str, amount: str) -> None:
+            raise RuntimeError("nothing to scroll")
+
+        def set_focus(self) -> None:
+            self.focus_calls += 1
+
+        def descendants(self) -> list[Node]:
+            return list(rows)
+
+    control = FittingList()
+    session.element = lambda identifier: control
+    session._keyboard_sender = lambda keys, **options: paged.append(keys)
+
+    assert session.list_items("eventColumnsList") == [
+        "Field 0",
+        "Field 1",
+        "Field 2",
+    ]
+    assert paged == []
+    assert control.focus_calls == 0
+
+
+def test_finding_a_visible_list_item_does_not_page(tmp_path: Path) -> None:
+    session = application_session(tmp_path)
+    rows = [Node(f"Field {index}", "ListItem") for index in range(3)]
+    paged: list[str] = []
+
+    class PagingList:
+        def scroll(self, direction: str, amount: str) -> None:
+            raise RuntimeError("Qt Quick exposes no UIA Scroll pattern")
+
+        def set_focus(self) -> None:
+            return None
+
+        def descendants(self) -> list[Node]:
+            return list(rows)
+
+    session.element = lambda identifier: PagingList()
+    session._keyboard_sender = lambda keys, **options: paged.append(keys)
+
+    assert session._list_item("eventColumnsList", "Field 1") is rows[1]
+    assert paged == []
 
 
 def test_list_items_scrolls_through_a_virtualized_list(tmp_path: Path) -> None:

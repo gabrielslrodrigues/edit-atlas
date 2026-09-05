@@ -16,13 +16,12 @@ DEFAULT_COLUMNS = [
 
 
 class ProjectionSession:
-    """A projection list whose current row is lost when it is enumerated.
+    """A projection list whose current row is lost when it is read.
 
-    Measured on Windows: reading the list's accessible children resets the
-    widget's current row, and the movement control acts on that row. Clicking
-    a row and then looking anything up therefore destroys the precondition
-    for the move. `current_override` additionally models a control that acts
-    on a row other than the current one.
+    Reading the list pages it, and paging moves the current row the movement
+    control acts on, so clicking a row and then reading destroys the
+    precondition for the move. `current_override` additionally models a
+    control that acts on a row other than the current one.
     """
 
     def __init__(self, *, current_override: str | None = None) -> None:
@@ -88,7 +87,7 @@ def application_for(session: ProjectionSession) -> EditAtlasApplication:
     return EditAtlasApplication(lambda name: session)
 
 
-def test_moving_a_column_does_not_enumerate_between_its_two_steps() -> None:
+def test_moving_a_column_does_not_read_between_its_two_steps() -> None:
     session = ProjectionSession()
 
     application_for(session).set_export_columns({"Clip name"}, ["Clip name"])
@@ -96,7 +95,7 @@ def test_moving_a_column_does_not_enumerate_between_its_two_steps() -> None:
     assert session.items[0] == "Clip name"
 
 
-def test_enumerating_between_the_steps_would_lose_the_current_row() -> None:
+def test_reading_between_the_steps_would_lose_the_current_row() -> None:
     # Guards the reason the move is one operation: the select and the
     # activation cannot be separated by a lookup.
     session = ProjectionSession()

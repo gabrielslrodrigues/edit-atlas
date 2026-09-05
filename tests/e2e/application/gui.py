@@ -180,10 +180,10 @@ class EditAtlasApplication:
                     self._session.focus(quick_move_button, showing=False)
                     self._session.activate(quick_move_button, showing=False)
                 else:
-                    # One operation on purpose: enumerating the list's
-                    # accessible children resets the widget's current row,
-                    # which is what the movement control acts on, so nothing
-                    # may look an element up between the two steps.
+                    # One operation on purpose: reading the list pages it,
+                    # and paging moves the current row the movement control
+                    # acts on, so nothing may look an element up between the
+                    # two steps.
                     self._session.move_list_item(
                         "eventColumnsList", name, "moveColumnUpButton"
                     )
