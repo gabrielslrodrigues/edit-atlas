@@ -1,0 +1,7 @@
+var searchData=
+[
+  ['identifier_0',['identifier',['../structedit__atlas_1_1core_1_1Track.html#aa110e61075aaef92b359104783a29acf',1,'edit_atlas::core::Track::identifier'],['../structedit__atlas_1_1core_1_1Transition.html#afc76629c6d53c454dc127ec2324ba6f1',1,'edit_atlas::core::Transition::identifier'],['../structedit__atlas_1_1core_1_1EditEvent.html#ae9f9cdfccd6a491fd7fbfec5f0e952ef',1,'edit_atlas::core::EditEvent::identifier'],['../structedit__atlas_1_1core_1_1FormatDescriptor.html#a0c6688b853c852567dd7096d6b9b29be',1,'edit_atlas::core::FormatDescriptor::identifier'],['../structedit__atlas_1_1services_1_1TimelineTemplate.html#adb6eaa7727fb07ca589343acb6a79397',1,'edit_atlas::services::TimelineTemplate::identifier']]],
+  ['image_1',['image',['../structedit__atlas_1_1core_1_1TimelineEventImage.html#a1c9c8bb2102fa9e1e22a06c6098f147f',1,'edit_atlas::core::TimelineEventImage::image'],['../structedit__atlas_1_1media_1_1DecodedVideoFrame.html#a8e425a63a962507de481d71fca295620',1,'edit_atlas::media::DecodedVideoFrame::image'],['../structedit__atlas_1_1services_1_1TimelineEventFrame.html#a24db3f494d1829c5aa217cce59f048cb',1,'edit_atlas::services::TimelineEventFrame::image']]],
+  ['importer_5fformats_2',['importer_formats',['../structedit__atlas_1_1support_1_1DiagnosticEnvironment.html#ad69ba16ddb005b12015f18d49ac596d5',1,'edit_atlas::support::DiagnosticEnvironment']]],
+  ['index_3',['index',['../structedit__atlas_1_1media_1_1MediaStreamInfo.html#ab061a935db78441def26e67514fffaf7',1,'edit_atlas::media::MediaStreamInfo']]]
+];

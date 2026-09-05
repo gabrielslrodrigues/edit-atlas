@@ -1,0 +1,9 @@
+<map id="edit_atlas::core::TimelineEventImage" name="edit_atlas::core::TimelineEventImage">
+<area shape="rect" id="Node000001" title="Associates an immutable RGB image with one event in an export document." alt="" coords="19,284,206,324"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,181,220,221"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="115,235,115,284,110,284,110,235"/>
+<area shape="rect" id="Node000003" href="$structedit__atlas_1_1core_1_1RgbImage.html" title="An owned top&#45;to&#45;bottom packed RGB24 image." alt="" coords="15,93,211,119"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="115,132,115,181,110,181,110,132"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="23,5,202,31"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="115,45,115,93,110,93,110,45"/>
+</map>

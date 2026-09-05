@@ -1,0 +1,13 @@
+<map id="edit_atlas::services::TimelineEventFrame" name="edit_atlas::services::TimelineEventFrame">
+<area shape="rect" id="Node000001" title="Associates one timeline event with its extracted initial frame." alt="" coords="87,299,252,339"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="39,203,126,229"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="95,240,115,273,142,297,138,301,111,276,90,243"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="5,93,144,133"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="80,147,84,203,79,203,75,147"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="154,196,369,236"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="244,249,222,276,196,300,192,297,218,273,240,246"/>
+<area shape="rect" id="Node000005" href="$structedit__atlas_1_1core_1_1RgbImage.html" title="An owned top&#45;to&#45;bottom packed RGB24 image." alt="" coords="169,101,365,126"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="268,140,265,196,260,196,263,140"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="177,5,356,31"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="269,44,269,101,264,101,264,44"/>
+</map>

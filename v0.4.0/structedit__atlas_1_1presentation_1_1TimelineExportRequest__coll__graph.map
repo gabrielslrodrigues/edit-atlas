@@ -1,0 +1,12 @@
+<map id="edit_atlas::presentation::TimelineExportRequest" name="edit_atlas::presentation::TimelineExportRequest">
+<area shape="rect" id="Node000001" title="Frontend&#45;provided destination and format options for one export." alt="" coords="5,388,188,428"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="53,95,140,120"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="98,134,95,247,98,388,93,388,90,247,93,134"/>
+<area shape="rect" id="Node000005" href="$structedit__atlas_1_1core_1_1MetadataEntry.html" title="A metadata property." alt="" coords="118,183,310,223"/>
+<area shape="poly" id="edge5_Node000005_Node000002" title=" " alt="" coords="124,127,192,180,188,185,120,131"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="27,5,166,45"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="99,59,99,94,94,94,94,59"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="121,285,299,325"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="180,336,120,390,116,386,177,332"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="215,237,213,285,208,285,210,237"/>
+</map>

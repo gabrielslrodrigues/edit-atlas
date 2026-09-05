@@ -1,0 +1,5 @@
+<map id="edit_atlas::services::TimelineVideoMapping" name="edit_atlas::services::TimelineVideoMapping">
+<area shape="rect" id="Node000001" title="Exact mapping between an accepted video and its record timeline." alt="" coords="13,93,193,133"/>
+<area shape="rect" id="Node000002" href="$classedit__atlas_1_1core_1_1Timecode.html" title="A validated SMPTE&#45;style timecode label and its exact frame rate." alt="" coords="5,5,200,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="105,44,105,93,100,93,100,44"/>
+</map>

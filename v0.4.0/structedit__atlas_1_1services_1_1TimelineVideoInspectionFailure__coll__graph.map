@@ -1,0 +1,11 @@
+<map id="edit_atlas::services::TimelineVideoInspectionFailure" name="edit_atlas::services::TimelineVideoInspectionFailure">
+<area shape="rect" id="Node000001" title="A rejected video path and its structured failure details." alt="" coords="5,388,240,428"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="37,285,208,325"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="125,339,125,388,120,388,120,339"/>
+<area shape="rect" id="Node000003" href="$structedit__atlas_1_1core_1_1Diagnostic.html" title="A machine&#45;identifiable diagnostic with a human&#45;readable explanation." alt="" coords="23,197,222,223"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="125,236,125,285,120,285,120,236"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="79,95,166,120"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="125,134,125,197,120,197,120,134"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="53,5,192,45"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="125,59,125,94,120,94,120,59"/>
+</map>
