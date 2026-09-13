@@ -111,9 +111,7 @@ class StyleCommandTest(unittest.TestCase):
         fixture = self.root / "tests/fixtures/cmx3600/bytes.edl"
         fixture.parent.mkdir(parents=True)
         fixture.write_bytes(b"\xff\r\n")
-        (self.root / ".editorconfig").write_text(
-            "root = true\n", newline="\n"
-        )
+        (self.root / ".editorconfig").write_text("root = true\n", newline="\n")
         result = self.invoke("inventory")
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
         expected = {
@@ -133,9 +131,7 @@ class StyleCommandTest(unittest.TestCase):
         self.assertEqual(fixture.read_bytes(), b"\xff\r\n")
 
     def test_unknown_file_type_fails_inventory(self) -> None:
-        (self.root / "unclassified.custom").write_text(
-            "data\n", newline="\n"
-        )
+        (self.root / "unclassified.custom").write_text("data\n", newline="\n")
         result = self.invoke("inventory")
         self.assertNotEqual(result.returncode, 0)
         self.assertIn("unclassified.custom", result.stderr)
