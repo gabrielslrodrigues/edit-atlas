@@ -14,7 +14,7 @@ param(
 $ErrorActionPreference = 'Stop'
 $ScriptDirectory = Split-Path -Parent $MyInvocation.MyCommand.Path
 $RepositoryRoot =
-  (Resolve-Path (Join-Path $ScriptDirectory '../..')).ProviderPath
+(Resolve-Path (Join-Path $ScriptDirectory '../..')).ProviderPath
 
 if (-not (Test-Path -LiteralPath $Generator -PathType Leaf)) {
   throw "generator does not exist: $Generator"

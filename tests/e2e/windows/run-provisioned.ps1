@@ -47,7 +47,7 @@ $InstallLog = Join-Path $ArtifactRoot 'msi-install.log'
 $UninstallLog = Join-Path $ArtifactRoot 'msi-uninstall.log'
 $DumpDirectory = Join-Path $ArtifactRoot 'crash-dumps'
 $WerRoot =
-  'HKCU:\Software\Microsoft\Windows\Windows Error Reporting\LocalDumps'
+'HKCU:\Software\Microsoft\Windows\Windows Error Reporting\LocalDumps'
 $Executables = @('edit-atlas.exe', 'edit-atlas-cli.exe')
 
 if (-not [Environment]::UserInteractive) {
@@ -106,9 +106,9 @@ try {
   $process = Start-Process `
     -FilePath msiexec.exe `
     -ArgumentList @(
-      '/i', "`"$Msi`"", '/qn', '/norestart', '/L*V', "`"$InstallLog`"",
-      "INSTALL_ROOT=`"$InstallRoot`""
-    ) `
+    '/i', "`"$Msi`"", '/qn', '/norestart', '/L*V', "`"$InstallLog`"",
+    "INSTALL_ROOT=`"$InstallRoot`""
+  ) `
     -PassThru `
     -Wait
   if ($process.ExitCode -notin @(0, 3010)) {
@@ -171,8 +171,8 @@ produces.
     $process = Start-Process `
       -FilePath msiexec.exe `
       -ArgumentList @(
-        '/x', "`"$Msi`"", '/qn', '/norestart', '/L*V', "`"$UninstallLog`""
-      ) `
+      '/x', "`"$Msi`"", '/qn', '/norestart', '/L*V', "`"$UninstallLog`""
+    ) `
       -PassThru `
       -Wait
     if ($process.ExitCode -notin @(0, 1605, 3010)) {

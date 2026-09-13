@@ -91,14 +91,14 @@ try {
   Invoke-CheckedProcess `
     -FilePath 'msiexec.exe' `
     -ArgumentList @(
-      '/i',
-      "`"$installer`"",
-      '/qn',
-      '/norestart',
-      '/L*V',
-      "`"$installLog`"",
-      "INSTALL_ROOT=`"$InstallDirectory`""
-    ) `
+    '/i',
+    "`"$installer`"",
+    '/qn',
+    '/norestart',
+    '/L*V',
+    "`"$installLog`"",
+    "INSTALL_ROOT=`"$InstallDirectory`""
+  ) `
     -Description 'Installing the MSI package'
   $installed = $true
 
@@ -139,13 +139,13 @@ try {
   Invoke-CheckedProcess `
     -FilePath 'msiexec.exe' `
     -ArgumentList @(
-      '/x',
-      "`"$installer`"",
-      '/qn',
-      '/norestart',
-      '/L*V',
-      "`"$uninstallLog`""
-    ) `
+    '/x',
+    "`"$installer`"",
+    '/qn',
+    '/norestart',
+    '/L*V',
+    "`"$uninstallLog`""
+  ) `
     -Description 'Uninstalling the MSI package'
   $installed = $false
 
@@ -161,13 +161,13 @@ try {
       Invoke-CheckedProcess `
         -FilePath 'msiexec.exe' `
         -ArgumentList @(
-          '/x',
-          "`"$installer`"",
-          '/qn',
-          '/norestart',
-          '/L*V',
-          "`"$cleanupLog`""
-        ) `
+        '/x',
+        "`"$installer`"",
+        '/qn',
+        '/norestart',
+        '/L*V',
+        "`"$cleanupLog`""
+      ) `
         -Description 'Cleaning up the MSI package' `
         -TimeoutSeconds 120
     } catch {

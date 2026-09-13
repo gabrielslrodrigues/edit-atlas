@@ -213,8 +213,8 @@ Set-Content -Path '$GuestResults\sandbox-exit-code.txt' -Value `$code
 "@ | Set-Content -LiteralPath $BootstrapFile -Encoding UTF8
 
 $BootstrapCommand =
-  'powershell.exe -ExecutionPolicy Bypass -NoProfile ' +
-  "-File $GuestResults\sandbox-bootstrap.ps1"
+'powershell.exe -ExecutionPolicy Bypass -NoProfile ' +
+"-File $GuestResults\sandbox-bootstrap.ps1"
 
 $ConfigurationFile = Join-Path $ArtifactDir 'sandbox.wsb'
 @"
