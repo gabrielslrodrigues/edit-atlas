@@ -39,7 +39,7 @@ class StyleCommandTest(unittest.TestCase):
                 self.root / "tools/style/modules",
             )
         (self.root / ".gitignore").write_text(
-            "/tools/style/modules/\n", encoding="utf-8"
+            "/tools/style/modules/\n", encoding="utf-8", newline="\n"
         )
         subprocess.run(["git", "init", "--quiet", str(self.root)], check=True)
 
@@ -63,12 +63,15 @@ class StyleCommandTest(unittest.TestCase):
     def test_format_is_idempotent_and_check_is_read_only(self) -> None:
         source = self.root / "sample.cpp"
         source.write_text(
-            BOILERPLATE + "int main(void){return 0;}\n", encoding="utf-8"
+            BOILERPLATE + "int main(void){return 0;}\n",
+            encoding="utf-8",
+            newline="\n",
         )
         if sys.platform == "win32":
             (self.root / "sample.ps1").write_text(
                 "function Get-Sample {return 'value'}\nGet-Sample\n",
                 encoding="utf-8",
+                newline="\n",
             )
         result = self.invoke("format")
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
@@ -108,7 +111,9 @@ class StyleCommandTest(unittest.TestCase):
         fixture = self.root / "tests/fixtures/cmx3600/bytes.edl"
         fixture.parent.mkdir(parents=True)
         fixture.write_bytes(b"\xff\r\n")
-        (self.root / ".editorconfig").write_text("root = true\n")
+        (self.root / ".editorconfig").write_text(
+            "root = true\n", newline="\n"
+        )
         result = self.invoke("inventory")
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
         expected = {
@@ -128,14 +133,18 @@ class StyleCommandTest(unittest.TestCase):
         self.assertEqual(fixture.read_bytes(), b"\xff\r\n")
 
     def test_unknown_file_type_fails_inventory(self) -> None:
-        (self.root / "unclassified.custom").write_text("data\n")
+        (self.root / "unclassified.custom").write_text(
+            "data\n", newline="\n"
+        )
         result = self.invoke("inventory")
         self.assertNotEqual(result.returncode, 0)
         self.assertIn("unclassified.custom", result.stderr)
 
     def test_missing_pinned_package_fails_before_formatting(self) -> None:
         requirements = self.root / "tools/style/requirements.txt"
-        requirements.write_text("edit-atlas-nonexistent-style-tool==0.0.0\n")
+        requirements.write_text(
+            "edit-atlas-nonexistent-style-tool==0.0.0\n", newline="\n"
+        )
         before = self.snapshot()
         result = self.invoke("format")
         self.assertNotEqual(result.returncode, 0)
