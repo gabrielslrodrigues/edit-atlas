@@ -23,6 +23,9 @@ jobs:
         with:
           version: 0.12.3
 
+      - name: Install CMake
+        uses: lukka/get-cmake@v4.4.0
+
       - name: Bootstrap pinned style tools
         run: cmake -P cmake/BootstrapStyle.cmake
 

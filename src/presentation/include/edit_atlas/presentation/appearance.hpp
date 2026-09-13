@@ -93,30 +93,50 @@ struct AppearancePalette final {
   Q_PROPERTY(QString tooltipText MEMBER tooltip_text CONSTANT)
 
  public:
+  /// Primary interactive color, used for selection and emphasis.
   QString accent;
+  /// Accent under a hovered pointer.
   QString accent_hovered;
+  /// Accent while a control is pressed.
   QString accent_pressed;
+  /// Text and icons drawn on an accent-filled surface.
   QString on_accent;
 
+  /// Application window background.
   QString window;
+  /// Raised panel and view background.
   QString surface;
+  /// Secondary surface, for alternating or nested panels.
   QString surface_alternate;
+  /// Control background, such as a button or a text field.
   QString control;
+  /// Control background under a hovered pointer.
   QString control_hovered;
+  /// Control background while pressed.
   QString control_pressed;
 
+  /// Separator and control outline.
   QString border;
+  /// Outline of the control holding keyboard focus.
   QString focus;
+  /// Text and outlines of a control that cannot be used.
   QString disabled;
 
+  /// Body and heading text.
   QString text_primary;
+  /// Supporting text, such as descriptions and captions.
   QString text_secondary;
+  /// Text drawn on an inverted surface.
   QString text_inverted;
 
+  /// Text reporting a recoverable condition.
   QString warning;
+  /// Text reporting a failure.
   QString danger;
 
+  /// Tooltip background.
   QString tooltip_surface;
+  /// Tooltip text.
   QString tooltip_text;
 };
 
