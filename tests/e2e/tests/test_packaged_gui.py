@@ -32,9 +32,13 @@ def test_startup_import_failure_recovery_and_preferences_persist(
     app.session.wait_text_contains("emptyOpenButton", "Open Timeline")
     app.switch_appearance("Dark")
     app.set_recent_files_enabled(True)
-    app.open_timeline(fixture_directory / "mixed_tracks.edl", frame_rate="24 fps")
+    app.open_timeline(
+        fixture_directory / "mixed_tracks.edl", frame_rate="24 fps"
+    )
 
-    app.session.wait_text_contains("timelineTitleLabel", "SYNTHETIC MIXED TRACKS")
+    app.session.wait_text_contains(
+        "timelineTitleLabel", "SYNTHETIC MIXED TRACKS"
+    )
     app.session.wait_text_contains("timelineSummary", "4 events")
     table_text = "\n".join(app.table_text())
     assert "001" in table_text
@@ -47,7 +51,9 @@ def test_startup_import_failure_recovery_and_preferences_persist(
     assert app.wait_import_failure()
     assert app.session.visible_text("diagnosticsTree")
 
-    app.open_timeline(fixture_directory / "mixed_tracks.edl", frame_rate="24 fps")
+    app.open_timeline(
+        fixture_directory / "mixed_tracks.edl", frame_rate="24 fps"
+    )
     app.wait_event_count(4)
     app.restart()
 
@@ -66,7 +72,9 @@ def test_filter_and_template_workflow_persists(
 ) -> None:
     app = edit_atlas_application
     app.switch_language("English")
-    app.open_timeline(fixture_directory / "mixed_tracks.edl", frame_rate="24 fps")
+    app.open_timeline(
+        fixture_directory / "mixed_tracks.edl", frame_rate="24 fps"
+    )
 
     app.set_filter_field(0, "Reel")
     app.set_filter_text(0, "BROLL")
@@ -115,7 +123,9 @@ def test_filter_and_template_workflow_persists(
     app.delete_template()
 
     app.restart()
-    app.open_timeline(fixture_directory / "mixed_tracks.edl", frame_rate="24 fps")
+    app.open_timeline(
+        fixture_directory / "mixed_tracks.edl", frame_rate="24 fps"
+    )
     app.select_template("Primary")
     app.wait_event_count(1)
     app.begin_spreadsheet_export()
@@ -133,7 +143,9 @@ def test_filtered_spreadsheet_and_private_support_bundle(
 ) -> None:
     app = edit_atlas_application
     app.switch_language("English")
-    app.open_timeline(fixture_directory / "mixed_tracks.edl", frame_rate="24 fps")
+    app.open_timeline(
+        fixture_directory / "mixed_tracks.edl", frame_rate="24 fps"
+    )
     app.set_filter_field(0, "Reel")
     app.set_filter_text(0, "BROLL")
     app.wait_event_count(2)
@@ -180,9 +192,12 @@ def test_filtered_spreadsheet_and_private_support_bundle(
         assert label in summary
     assert any(name.startswith("logs/") for name in bundle.entry_names())
 
-    # The bundled faces are embedded in the executable, so nothing outside the
-    # process can observe them directly. The installed application reports the
-    # family it resolved, which is what proves registration succeeded here
+    # The bundled faces are embedded in the executable, so nothing
+    # outside the
+    # process can observe them directly. The installed application
+    # reports the
+    # family it resolved, which is what proves registration succeeded
+    # here
     # rather than only in a test that supplies its own font resource.
     assert "Interface typeface: Inter" in bundle.log_text()
 
@@ -230,9 +245,7 @@ def test_rendered_video_export_embeds_matching_event_frames(
     assert workbook.event_image_relationship_targets() == (
         workbook.event_image_entries()
     )
-    assert workbook.event_image_anchors() == [
-        (0, row) for row in range(1, 5)
-    ]
+    assert workbook.event_image_anchors() == [(0, row) for row in range(1, 5)]
     assert workbook.has_event_drawing_relationship()
 
 

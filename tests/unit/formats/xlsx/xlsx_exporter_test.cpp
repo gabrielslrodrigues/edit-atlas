@@ -1,15 +1,16 @@
-#include <edit_atlas/formats/xlsx/xlsx_exporter.hpp>
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
-#include <edit_atlas/formats/xlsx/detail/xlsx_workbook_text.hpp>
-
-#include <edit_atlas/core/editorial_timeline.hpp>
-#include <edit_atlas/core/format.hpp>
-#include <edit_atlas/core/rgb_image.hpp>
-#include <edit_atlas/core/timecode.hpp>
-#include <edit_atlas/core/timeline_projection.hpp>
-
-#include <gtest/gtest.h>
-#include <minizip/unzip.h>
+#include "edit_atlas/formats/xlsx/xlsx_exporter.hpp"
 
 #include <array>
 #include <cstddef>
@@ -25,639 +26,636 @@
 #include <utility>
 #include <vector>
 
+#include "gtest/gtest.h"
+#include "minizip/unzip.h"
+
+#include "edit_atlas/core/editorial_timeline.hpp"
+#include "edit_atlas/core/format.hpp"
+#include "edit_atlas/core/rgb_image.hpp"
+#include "edit_atlas/core/timecode.hpp"
+#include "edit_atlas/core/timeline_projection.hpp"
+#include "edit_atlas/formats/xlsx/detail/xlsx_workbook_text.hpp"
+
 namespace edit_atlas::formats::xlsx {
 namespace {
 
 class TemporaryWorkbook final {
-  public:
-    explicit TemporaryWorkbook(const std::vector<std::byte> &content)
-        : path_(std::filesystem::path{testing::TempDir()} /
-                (std::string{testing::UnitTest::GetInstance()
-                                 ->current_test_info()
-                                 ->name()} +
-                 ".xlsx")) {
-        std::ofstream stream{path_, std::ios::binary | std::ios::trunc};
-        stream.write(reinterpret_cast<const char *>(content.data()),
-                     static_cast<std::streamsize>(content.size()));
-    }
+ public:
+  explicit TemporaryWorkbook(const std::vector<std::byte>& content)
+      : path_(std::filesystem::path{testing::TempDir()} /
+              (std::string{testing::UnitTest::GetInstance()
+                               ->current_test_info()
+                               ->name()} +
+               ".xlsx")) {
+    std::ofstream stream{path_, std::ios::binary | std::ios::trunc};
+    stream.write(reinterpret_cast<const char*>(content.data()),
+                 static_cast<std::streamsize>(content.size()));
+  }
 
-    ~TemporaryWorkbook(void) {
-        std::error_code error;
-        std::filesystem::remove(path_, error);
-    }
+  ~TemporaryWorkbook(void) {
+    std::error_code error;
+    std::filesystem::remove(path_, error);
+  }
 
-    TemporaryWorkbook(const TemporaryWorkbook &) = delete;
-    TemporaryWorkbook &operator=(const TemporaryWorkbook &) = delete;
-    TemporaryWorkbook(TemporaryWorkbook &&) = delete;
-    TemporaryWorkbook &operator=(TemporaryWorkbook &&) = delete;
+  TemporaryWorkbook(const TemporaryWorkbook&) = delete;
+  TemporaryWorkbook& operator=(const TemporaryWorkbook&) = delete;
+  TemporaryWorkbook(TemporaryWorkbook&&) = delete;
+  TemporaryWorkbook& operator=(TemporaryWorkbook&&) = delete;
 
-    [[nodiscard]] const std::filesystem::path &path(void) const noexcept {
-        return path_;
-    }
+  [[nodiscard]] const std::filesystem::path& path(void) const noexcept {
+    return path_;
+  }
 
-  private:
-    std::filesystem::path path_;
+ private:
+  std::filesystem::path path_;
 };
 
-[[nodiscard]] std::optional<std::string>
-ReadZipEntry(const std::filesystem::path &path, std::string_view entry_name) {
-    const auto path_text = path.string();
-    auto *archive = unzOpen64(path_text.c_str());
-    if (archive == nullptr) {
-        return std::nullopt;
-    }
+[[nodiscard]] std::optional<std::string> ReadZipEntry(
+    const std::filesystem::path& path, std::string_view entry_name) {
+  const auto path_text = path.string();
+  auto* archive = unzOpen64(path_text.c_str());
+  if (archive == nullptr) {
+    return std::nullopt;
+  }
 
-    const std::string name{entry_name};
-    if (unzLocateFile(archive, name.c_str(), 0) != UNZ_OK) {
-        unzClose(archive);
-        return std::nullopt;
-    }
+  const std::string name{entry_name};
+  if (unzLocateFile(archive, name.c_str(), 0) != UNZ_OK) {
+    unzClose(archive);
+    return std::nullopt;
+  }
 
-    unz_file_info64 information{};
-    if (unzGetCurrentFileInfo64(archive, &information, nullptr, 0, nullptr, 0,
-                                nullptr, 0) != UNZ_OK ||
-        unzOpenCurrentFile(archive) != UNZ_OK) {
-        unzClose(archive);
-        return std::nullopt;
-    }
+  unz_file_info64 information{};
+  if (unzGetCurrentFileInfo64(archive, &information, nullptr, 0, nullptr, 0,
+                              nullptr, 0) != UNZ_OK ||
+      unzOpenCurrentFile(archive) != UNZ_OK) {
+    unzClose(archive);
+    return std::nullopt;
+  }
 
-    std::string content(static_cast<std::size_t>(information.uncompressed_size),
-                        '\0');
-    std::size_t offset = 0;
-    while (offset < content.size()) {
-        const auto remaining = content.size() - offset;
-        const auto chunk_size =
-            remaining > static_cast<std::size_t>(0x7FFF'FFFF)
-                ? 0x7FFF'FFFFU
-                : static_cast<unsigned int>(remaining);
-        const auto bytes_read =
-            unzReadCurrentFile(archive, content.data() + offset, chunk_size);
-        if (bytes_read <= 0) {
-            unzCloseCurrentFile(archive);
-            unzClose(archive);
-            return std::nullopt;
-        }
-        offset += static_cast<std::size_t>(bytes_read);
+  std::string content(static_cast<std::size_t>(information.uncompressed_size),
+                      '\0');
+  std::size_t offset = 0;
+  while (offset < content.size()) {
+    const auto remaining = content.size() - offset;
+    const auto chunk_size = remaining > static_cast<std::size_t>(0x7FFF'FFFF)
+                                ? 0x7FFF'FFFFU
+                                : static_cast<unsigned int>(remaining);
+    const auto bytes_read =
+        unzReadCurrentFile(archive, content.data() + offset, chunk_size);
+    if (bytes_read <= 0) {
+      unzCloseCurrentFile(archive);
+      unzClose(archive);
+      return std::nullopt;
     }
+    offset += static_cast<std::size_t>(bytes_read);
+  }
 
-    const auto entry_close_result = unzCloseCurrentFile(archive);
-    const auto archive_close_result = unzClose(archive);
-    if (entry_close_result != UNZ_OK || archive_close_result != UNZ_OK) {
-        return std::nullopt;
-    }
-    return content;
+  const auto entry_close_result = unzCloseCurrentFile(archive);
+  const auto archive_close_result = unzClose(archive);
+  if (entry_close_result != UNZ_OK || archive_close_result != UNZ_OK) {
+    return std::nullopt;
+  }
+  return content;
 }
 
-[[nodiscard]] std::optional<std::size_t>
-SharedStringIndex(std::string_view shared_strings, std::string_view text) {
-    const auto element = std::string{"<t>"} + std::string{text} + "</t>";
-    const auto text_position = shared_strings.find(element);
-    if (text_position == std::string_view::npos) {
-        return std::nullopt;
-    }
+[[nodiscard]] std::optional<std::size_t> SharedStringIndex(
+    std::string_view shared_strings, std::string_view text) {
+  const auto element = std::string{"<t>"} + std::string{text} + "</t>";
+  const auto text_position = shared_strings.find(element);
+  if (text_position == std::string_view::npos) {
+    return std::nullopt;
+  }
 
-    std::size_t count = 0;
-    std::size_t position = 0;
-    while ((position = shared_strings.find("<si>", position)) < text_position) {
-        ++count;
-        position += 4;
-    }
-    if (count == 0) {
-        return std::nullopt;
-    }
-    return count - 1;
+  std::size_t count = 0;
+  std::size_t position = 0;
+  while ((position = shared_strings.find("<si>", position)) < text_position) {
+    ++count;
+    position += 4;
+  }
+  if (count == 0) {
+    return std::nullopt;
+  }
+  return count - 1;
 }
 
 [[nodiscard]] bool CellUsesSharedString(std::string_view worksheet,
                                         std::string_view cell,
                                         std::size_t shared_string_index) {
-    const auto reference = std::string{"r=\""} + std::string{cell} + "\"";
-    const auto cell_position = worksheet.find(reference);
-    if (cell_position == std::string_view::npos) {
-        return false;
-    }
-    const auto cell_end = worksheet.find("</c>", cell_position);
-    if (cell_end == std::string_view::npos) {
-        return false;
-    }
-    const auto value =
-        std::string{"<v>"} + std::to_string(shared_string_index) + "</v>";
-    const auto value_position = worksheet.find(value, cell_position);
-    return value_position != std::string_view::npos &&
-           value_position < cell_end;
+  const auto reference = std::string{"r=\""} + std::string{cell} + "\"";
+  const auto cell_position = worksheet.find(reference);
+  if (cell_position == std::string_view::npos) {
+    return false;
+  }
+  const auto cell_end = worksheet.find("</c>", cell_position);
+  if (cell_end == std::string_view::npos) {
+    return false;
+  }
+  const auto value =
+      std::string{"<v>"} + std::to_string(shared_string_index) + "</v>";
+  const auto value_position = worksheet.find(value, cell_position);
+  return value_position != std::string_view::npos && value_position < cell_end;
 }
 
 [[nodiscard]] core::Timecode TimecodeAt(std::int64_t frame_count,
-                                        const core::FrameRate &rate) {
-    return core::Timecode::FromFrameCount(frame_count, rate,
-                                          core::TimecodeMode::kDropFrame)
-        .value();
+                                        const core::FrameRate& rate) {
+  return core::Timecode::FromFrameCount(frame_count, rate,
+                                        core::TimecodeMode::kDropFrame)
+      .value();
 }
 
 [[nodiscard]] core::TimecodeRange RangeAt(std::int64_t frame_count,
                                           std::int64_t duration,
-                                          const core::FrameRate &rate) {
-    return core::TimecodeRange::Create(TimecodeAt(frame_count, rate),
-                                       TimecodeAt(frame_count + duration, rate))
-        .value();
+                                          const core::FrameRate& rate) {
+  return core::TimecodeRange::Create(TimecodeAt(frame_count, rate),
+                                     TimecodeAt(frame_count + duration, rate))
+      .value();
 }
 
 [[nodiscard]] core::TimelineDocument Document(void) {
-    const auto rate = core::FrameRate::Create(30'000, 1'001).value();
-    core::EditEvent event{
-        .identifier = "001",
-        .reel = "AX",
-        .track =
-            core::Track{
-                .kind = core::TrackKind::kVideo,
-                .identifier = "V",
-            },
-        .edit_type = core::EditType::kDissolve,
-        .transition =
-            core::Transition{
-                .identifier = "D",
-                .duration_frames = 12,
-            },
-        .source_range = RangeAt(17'982, 30, rate),
-        .record_range = RangeAt(107'892, 30, rate),
-        .comments =
-            {
-                core::Comment{
-                    .text = "Opening shot",
-                    .provenance = std::nullopt,
-                },
-            },
-        .metadata =
-            {
-                core::MetadataEntry{
-                    .key = "clip_name",
-                    .value = std::string{"=SUM(A1:A2)"},
-                },
-                core::MetadataEntry{
-                    .key = "source_file",
-                    .value = std::string{"opening.mov"},
-                },
-            },
-        .provenance =
-            core::SourceLineProvenance{
-                .location =
-                    core::SourceLocation{
-                        .source = "example.edl",
-                        .line = 4,
-                        .column = 1,
-                    },
-                .line = "001 AX V D ...",
-            },
-    };
+  const auto rate = core::FrameRate::Create(30'000, 1'001).value();
+  core::EditEvent event{
+      .identifier = "001",
+      .reel = "AX",
+      .track =
+          core::Track{
+              .kind = core::TrackKind::kVideo,
+              .identifier = "V",
+          },
+      .edit_type = core::EditType::kDissolve,
+      .transition =
+          core::Transition{
+              .identifier = "D",
+              .duration_frames = 12,
+          },
+      .source_range = RangeAt(17'982, 30, rate),
+      .record_range = RangeAt(107'892, 30, rate),
+      .comments =
+          {
+              core::Comment{
+                  .text = "Opening shot",
+                  .provenance = std::nullopt,
+              },
+          },
+      .metadata =
+          {
+              core::MetadataEntry{
+                  .key = "clip_name",
+                  .value = std::string{"=SUM(A1:A2)"},
+              },
+              core::MetadataEntry{
+                  .key = "source_file",
+                  .value = std::string{"opening.mov"},
+              },
+          },
+      .provenance =
+          core::SourceLineProvenance{
+              .location =
+                  core::SourceLocation{
+                      .source = "example.edl",
+                      .line = 4,
+                      .column = 1,
+                  },
+              .line = "001 AX V D ...",
+          },
+  };
 
-    return core::TimelineDocument{
-        .title = "Example Timeline",
-        .frame_rate = rate,
-        .timecode_mode = core::TimecodeMode::kDropFrame,
-        .events = {std::move(event)},
-        .metadata =
-            {
-                core::MetadataEntry{
-                    .key = "source_format",
-                    .value = std::string{"cmx-3600"},
-                },
-                core::MetadataEntry{
-                    .key = "playback_speed",
-                    .value = 1.25,
-                },
-                core::MetadataEntry{
-                    .key = "interlaced",
-                    .value = false,
-                },
-            },
-        .diagnostics =
-            {
-                core::Diagnostic{
-                    .severity = core::DiagnosticSeverity::kWarning,
-                    .code = "cmx3600.unknown_content",
-                    .message = "An unknown source line was preserved.",
-                    .location =
-                        core::SourceLocation{
-                            .source = "example.edl",
-                            .line = 8,
-                            .column = 1,
-                        },
-                },
-            },
-        .provenance = std::nullopt,
-    };
+  return core::TimelineDocument{
+      .title = "Example Timeline",
+      .frame_rate = rate,
+      .timecode_mode = core::TimecodeMode::kDropFrame,
+      .events = {std::move(event)},
+      .metadata =
+          {
+              core::MetadataEntry{
+                  .key = "source_format",
+                  .value = std::string{"cmx-3600"},
+              },
+              core::MetadataEntry{
+                  .key = "playback_speed",
+                  .value = 1.25,
+              },
+              core::MetadataEntry{
+                  .key = "interlaced",
+                  .value = false,
+              },
+          },
+      .diagnostics =
+          {
+              core::Diagnostic{
+                  .severity = core::DiagnosticSeverity::kWarning,
+                  .code = "cmx3600.unknown_content",
+                  .message = "An unknown source line was preserved.",
+                  .location =
+                      core::SourceLocation{
+                          .source = "example.edl",
+                          .line = 8,
+                          .column = 1,
+                      },
+              },
+          },
+      .provenance = std::nullopt,
+  };
 }
 
-[[nodiscard]] std::shared_ptr<const core::RgbImage>
-InitialFrame(std::byte value) {
-    return std::make_shared<const core::RgbImage>(core::RgbImage{
-        .width = 2,
-        .height = 2,
-        .row_stride = 6,
-        .pixels = std::vector<std::byte>(12, value),
-    });
+[[nodiscard]] std::shared_ptr<const core::RgbImage> InitialFrame(
+    std::byte value) {
+  return std::make_shared<const core::RgbImage>(core::RgbImage{
+      .width = 2,
+      .height = 2,
+      .row_stride = 6,
+      .pixels = std::vector<std::byte>(12, value),
+  });
 }
 
 [[nodiscard]] core::ExportResult ExportDocument(WorkbookLanguage language) {
-    const XlsxExporter exporter;
-    const auto document = Document();
-    return exporter.Export(core::ExportRequest{
-        .document = document,
-        .event_projection =
-            {
-                core::DefaultTimelineEventProjection().begin(),
-                core::DefaultTimelineEventProjection().end(),
-            },
-        .options =
-            {
-                core::MetadataEntry{
-                    .key = std::string{kWorkbookLanguageOption},
-                    .value = std::string{WorkbookLanguageTag(language)},
-                },
-            },
-        .event_images = {},
-    });
+  const XlsxExporter exporter;
+  const auto document = Document();
+  return exporter.Export(core::ExportRequest{
+      .document = document,
+      .event_projection =
+          {
+              core::DefaultTimelineEventProjection().begin(),
+              core::DefaultTimelineEventProjection().end(),
+          },
+      .options =
+          {
+              core::MetadataEntry{
+                  .key = std::string{kWorkbookLanguageOption},
+                  .value = std::string{WorkbookLanguageTag(language)},
+              },
+          },
+      .event_images = {},
+  });
 }
 
-[[nodiscard]] core::ExportResult
-ExportDocument(std::vector<core::TimelineEventField> projection,
-               std::vector<core::TimelineEventImage> event_images = {}) {
-    const XlsxExporter exporter;
-    const auto document = Document();
-    return exporter.Export(core::ExportRequest{
-        .document = document,
-        .event_projection = std::move(projection),
-        .options = {},
-        .event_images = std::move(event_images),
-    });
+[[nodiscard]] core::ExportResult ExportDocument(
+    std::vector<core::TimelineEventField> projection,
+    std::vector<core::TimelineEventImage> event_images = {}) {
+  const XlsxExporter exporter;
+  const auto document = Document();
+  return exporter.Export(core::ExportRequest{
+      .document = document,
+      .event_projection = std::move(projection),
+      .options = {},
+      .event_images = std::move(event_images),
+  });
 }
 
 [[nodiscard]] core::ExportResult ExportDocument(void) {
-    return ExportDocument(WorkbookLanguage::kEnglish);
+  return ExportDocument(WorkbookLanguage::kEnglish);
 }
 
 TEST(XlsxExporterTest, DescribesAndExportsTheFormat) {
-    const XlsxExporter exporter;
-    const auto result = ExportDocument();
+  const XlsxExporter exporter;
+  const auto result = ExportDocument();
 
-    EXPECT_EQ(exporter.descriptor().identifier, kFormatIdentifier);
-    EXPECT_EQ(exporter.descriptor().extensions,
-              std::vector<std::string>{"xlsx"});
-    ASSERT_TRUE(result.artifact.has_value());
-    EXPECT_TRUE(result.diagnostics.empty());
-    EXPECT_EQ(result.artifact->suggested_extension, "xlsx");
-    EXPECT_EQ(
-        result.artifact->media_type,
-        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
-    ASSERT_GE(result.artifact->content.size(), 2);
-    EXPECT_EQ(result.artifact->content[0], static_cast<std::byte>('P'));
-    EXPECT_EQ(result.artifact->content[1], static_cast<std::byte>('K'));
+  EXPECT_EQ(exporter.descriptor().identifier, kFormatIdentifier);
+  EXPECT_EQ(exporter.descriptor().extensions, std::vector<std::string>{"xlsx"});
+  ASSERT_TRUE(result.artifact.has_value());
+  EXPECT_TRUE(result.diagnostics.empty());
+  EXPECT_EQ(result.artifact->suggested_extension, "xlsx");
+  EXPECT_EQ(
+      result.artifact->media_type,
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+  ASSERT_GE(result.artifact->content.size(), 2);
+  EXPECT_EQ(result.artifact->content[0], static_cast<std::byte>('P'));
+  EXPECT_EQ(result.artifact->content[1], static_cast<std::byte>('K'));
 }
 
 TEST(XlsxWorkbookTextTest, ResolvesLabelsByKeyAndLanguage) {
-    const auto &english = detail::WorkbookTextFor(WorkbookLanguage::kEnglish);
-    const auto &portuguese =
-        detail::WorkbookTextFor(WorkbookLanguage::kBrazilianPortuguese);
+  const auto& english = detail::WorkbookTextFor(WorkbookLanguage::kEnglish);
+  const auto& portuguese =
+      detail::WorkbookTextFor(WorkbookLanguage::kBrazilianPortuguese);
 
-    EXPECT_EQ(english.Get(detail::WorkbookTextKey::kTimelineSheet), "Timeline");
-    EXPECT_EQ(portuguese.Get(detail::WorkbookTextKey::kTimelineSheet),
-              "Linha do tempo");
-    EXPECT_EQ(english.EventColumn(core::TimelineEventField::kDuration),
-              "Duration");
-    EXPECT_EQ(portuguese.EventColumn(core::TimelineEventField::kDurationFrames),
-              "Duração em quadros");
-    EXPECT_EQ(english.EventColumn(core::TimelineEventField::kInitialFrame),
-              "Initial Frame");
-    EXPECT_EQ(portuguese.EventColumn(core::TimelineEventField::kInitialFrame),
-              "Quadro inicial");
-    EXPECT_TRUE(english.Get(detail::WorkbookTextKey::kCount).empty());
+  EXPECT_EQ(english.Get(detail::WorkbookTextKey::kTimelineSheet), "Timeline");
+  EXPECT_EQ(portuguese.Get(detail::WorkbookTextKey::kTimelineSheet),
+            "Linha do tempo");
+  EXPECT_EQ(english.EventColumn(core::TimelineEventField::kDuration),
+            "Duration");
+  EXPECT_EQ(portuguese.EventColumn(core::TimelineEventField::kDurationFrames),
+            "Duração em quadros");
+  EXPECT_EQ(english.EventColumn(core::TimelineEventField::kInitialFrame),
+            "Initial Frame");
+  EXPECT_EQ(portuguese.EventColumn(core::TimelineEventField::kInitialFrame),
+            "Quadro inicial");
+  EXPECT_TRUE(english.Get(detail::WorkbookTextKey::kCount).empty());
 }
 
 TEST(XlsxExporterTest, WritesStableSheetsAndTimelineValues) {
-    const auto result = ExportDocument();
-    ASSERT_TRUE(result.artifact.has_value());
-    const TemporaryWorkbook workbook{result.artifact->content};
+  const auto result = ExportDocument();
+  ASSERT_TRUE(result.artifact.has_value());
+  const TemporaryWorkbook workbook{result.artifact->content};
 
-    const auto workbook_xml = ReadZipEntry(workbook.path(), "xl/workbook.xml");
-    const auto shared_strings =
-        ReadZipEntry(workbook.path(), "xl/sharedStrings.xml");
-    const auto timeline =
-        ReadZipEntry(workbook.path(), "xl/worksheets/sheet2.xml");
-    ASSERT_TRUE(workbook_xml.has_value());
-    ASSERT_TRUE(shared_strings.has_value());
-    ASSERT_TRUE(timeline.has_value());
-    EXPECT_NE(workbook_xml->find("name=\"Events\""), std::string::npos);
-    EXPECT_NE(workbook_xml->find("name=\"Timeline\""), std::string::npos);
-    EXPECT_NE(workbook_xml->find("name=\"Diagnostics\""), std::string::npos);
-    EXPECT_NE(shared_strings->find("Example Timeline"), std::string::npos);
-    EXPECT_NE(shared_strings->find("30000/1001"), std::string::npos);
-    EXPECT_NE(shared_strings->find("Drop Frame"), std::string::npos);
-    EXPECT_NE(shared_strings->find("cmx-3600"), std::string::npos);
-    EXPECT_NE(shared_strings->find("playback_speed"), std::string::npos);
-    EXPECT_NE(timeline->find("<v>1</v>"), std::string::npos);
-    EXPECT_NE(timeline->find("<v>1.25</v>"), std::string::npos);
+  const auto workbook_xml = ReadZipEntry(workbook.path(), "xl/workbook.xml");
+  const auto shared_strings =
+      ReadZipEntry(workbook.path(), "xl/sharedStrings.xml");
+  const auto timeline =
+      ReadZipEntry(workbook.path(), "xl/worksheets/sheet2.xml");
+  ASSERT_TRUE(workbook_xml.has_value());
+  ASSERT_TRUE(shared_strings.has_value());
+  ASSERT_TRUE(timeline.has_value());
+  EXPECT_NE(workbook_xml->find("name=\"Events\""), std::string::npos);
+  EXPECT_NE(workbook_xml->find("name=\"Timeline\""), std::string::npos);
+  EXPECT_NE(workbook_xml->find("name=\"Diagnostics\""), std::string::npos);
+  EXPECT_NE(shared_strings->find("Example Timeline"), std::string::npos);
+  EXPECT_NE(shared_strings->find("30000/1001"), std::string::npos);
+  EXPECT_NE(shared_strings->find("Drop Frame"), std::string::npos);
+  EXPECT_NE(shared_strings->find("cmx-3600"), std::string::npos);
+  EXPECT_NE(shared_strings->find("playback_speed"), std::string::npos);
+  EXPECT_NE(timeline->find("<v>1</v>"), std::string::npos);
+  EXPECT_NE(timeline->find("<v>1.25</v>"), std::string::npos);
 }
 
 TEST(XlsxExporterTest, LocalizesBrazilianPortuguesePresentation) {
-    const auto result = ExportDocument(WorkbookLanguage::kBrazilianPortuguese);
-    ASSERT_TRUE(result.artifact.has_value());
-    const TemporaryWorkbook workbook{result.artifact->content};
+  const auto result = ExportDocument(WorkbookLanguage::kBrazilianPortuguese);
+  ASSERT_TRUE(result.artifact.has_value());
+  const TemporaryWorkbook workbook{result.artifact->content};
 
-    const auto workbook_xml = ReadZipEntry(workbook.path(), "xl/workbook.xml");
-    const auto shared_strings =
-        ReadZipEntry(workbook.path(), "xl/sharedStrings.xml");
-    const auto properties = ReadZipEntry(workbook.path(), "docProps/core.xml");
-    const auto timeline =
-        ReadZipEntry(workbook.path(), "xl/worksheets/sheet2.xml");
-    ASSERT_TRUE(workbook_xml.has_value());
-    ASSERT_TRUE(shared_strings.has_value());
-    ASSERT_TRUE(properties.has_value());
-    ASSERT_TRUE(timeline.has_value());
+  const auto workbook_xml = ReadZipEntry(workbook.path(), "xl/workbook.xml");
+  const auto shared_strings =
+      ReadZipEntry(workbook.path(), "xl/sharedStrings.xml");
+  const auto properties = ReadZipEntry(workbook.path(), "docProps/core.xml");
+  const auto timeline =
+      ReadZipEntry(workbook.path(), "xl/worksheets/sheet2.xml");
+  ASSERT_TRUE(workbook_xml.has_value());
+  ASSERT_TRUE(shared_strings.has_value());
+  ASSERT_TRUE(properties.has_value());
+  ASSERT_TRUE(timeline.has_value());
 
-    EXPECT_NE(workbook_xml->find("name=\"Eventos\""), std::string::npos);
-    EXPECT_NE(workbook_xml->find("name=\"Linha do tempo\""), std::string::npos);
-    EXPECT_NE(workbook_xml->find("name=\"Diagnósticos\""), std::string::npos);
-    EXPECT_NE(shared_strings->find("Tipo de edição"), std::string::npos);
-    EXPECT_NE(shared_strings->find("Dissolução"), std::string::npos);
-    EXPECT_NE(shared_strings->find("Duração"), std::string::npos);
-    EXPECT_NE(shared_strings->find("Duração em quadros"), std::string::npos);
-    EXPECT_NE(shared_strings->find("Taxa de quadros"), std::string::npos);
-    EXPECT_NE(shared_strings->find("Aviso"), std::string::npos);
-    EXPECT_NE(properties->find("Relatório de linha do tempo editorial"),
-              std::string::npos);
-    EXPECT_NE(properties->find("Criado pelo Edit Atlas"), std::string::npos);
+  EXPECT_NE(workbook_xml->find("name=\"Eventos\""), std::string::npos);
+  EXPECT_NE(workbook_xml->find("name=\"Linha do tempo\""), std::string::npos);
+  EXPECT_NE(workbook_xml->find("name=\"Diagnósticos\""), std::string::npos);
+  EXPECT_NE(shared_strings->find("Tipo de edição"), std::string::npos);
+  EXPECT_NE(shared_strings->find("Dissolução"), std::string::npos);
+  EXPECT_NE(shared_strings->find("Duração"), std::string::npos);
+  EXPECT_NE(shared_strings->find("Duração em quadros"), std::string::npos);
+  EXPECT_NE(shared_strings->find("Taxa de quadros"), std::string::npos);
+  EXPECT_NE(shared_strings->find("Aviso"), std::string::npos);
+  EXPECT_NE(properties->find("Relatório de linha do tempo editorial"),
+            std::string::npos);
+  EXPECT_NE(properties->find("Criado pelo Edit Atlas"), std::string::npos);
 
-    EXPECT_NE(shared_strings->find("=SUM(A1:A2)"), std::string::npos);
-    EXPECT_NE(shared_strings->find("Opening shot"), std::string::npos);
-    EXPECT_NE(shared_strings->find("opening.mov"), std::string::npos);
-    EXPECT_NE(shared_strings->find("Example Timeline"), std::string::npos);
-    EXPECT_NE(shared_strings->find("cmx3600.unknown_content"),
-              std::string::npos);
-    EXPECT_NE(shared_strings->find("An unknown source line was preserved."),
-              std::string::npos);
-    EXPECT_NE(timeline->find("<v>0</v>"), std::string::npos);
-    EXPECT_NE(timeline->find("<v>1.25</v>"), std::string::npos);
+  EXPECT_NE(shared_strings->find("=SUM(A1:A2)"), std::string::npos);
+  EXPECT_NE(shared_strings->find("Opening shot"), std::string::npos);
+  EXPECT_NE(shared_strings->find("opening.mov"), std::string::npos);
+  EXPECT_NE(shared_strings->find("Example Timeline"), std::string::npos);
+  EXPECT_NE(shared_strings->find("cmx3600.unknown_content"), std::string::npos);
+  EXPECT_NE(shared_strings->find("An unknown source line was preserved."),
+            std::string::npos);
+  EXPECT_NE(timeline->find("<v>0</v>"), std::string::npos);
+  EXPECT_NE(timeline->find("<v>1.25</v>"), std::string::npos);
 }
 
 TEST(XlsxExporterTest, PreservesEventValuesAsLiteralText) {
-    const auto result = ExportDocument();
-    ASSERT_TRUE(result.artifact.has_value());
-    const TemporaryWorkbook workbook{result.artifact->content};
+  const auto result = ExportDocument();
+  ASSERT_TRUE(result.artifact.has_value());
+  const TemporaryWorkbook workbook{result.artifact->content};
 
-    const auto events =
-        ReadZipEntry(workbook.path(), "xl/worksheets/sheet1.xml");
-    const auto shared_strings =
-        ReadZipEntry(workbook.path(), "xl/sharedStrings.xml");
-    ASSERT_TRUE(events.has_value());
-    ASSERT_TRUE(shared_strings.has_value());
-    EXPECT_NE(shared_strings->find("00:10:00;00"), std::string::npos);
-    EXPECT_NE(shared_strings->find("01:00:00;00"), std::string::npos);
-    EXPECT_NE(shared_strings->find("=SUM(A1:A2)"), std::string::npos);
-    EXPECT_NE(shared_strings->find("Opening shot"), std::string::npos);
-    EXPECT_NE(shared_strings->find("opening.mov"), std::string::npos);
-    EXPECT_NE(events->find("<v>12</v>"), std::string::npos);
-    EXPECT_EQ(events->find("<f>"), std::string::npos);
+  const auto events = ReadZipEntry(workbook.path(), "xl/worksheets/sheet1.xml");
+  const auto shared_strings =
+      ReadZipEntry(workbook.path(), "xl/sharedStrings.xml");
+  ASSERT_TRUE(events.has_value());
+  ASSERT_TRUE(shared_strings.has_value());
+  EXPECT_NE(shared_strings->find("00:10:00;00"), std::string::npos);
+  EXPECT_NE(shared_strings->find("01:00:00;00"), std::string::npos);
+  EXPECT_NE(shared_strings->find("=SUM(A1:A2)"), std::string::npos);
+  EXPECT_NE(shared_strings->find("Opening shot"), std::string::npos);
+  EXPECT_NE(shared_strings->find("opening.mov"), std::string::npos);
+  EXPECT_NE(events->find("<v>12</v>"), std::string::npos);
+  EXPECT_EQ(events->find("<f>"), std::string::npos);
 }
 
 TEST(XlsxExporterTest, ExportsFormattedAndRawDurationColumnsIndependently) {
-    const auto result = ExportDocument({
-        core::TimelineEventField::kDuration,
-        core::TimelineEventField::kDurationFrames,
-    });
-    ASSERT_TRUE(result.artifact.has_value());
-    const TemporaryWorkbook workbook{result.artifact->content};
+  const auto result = ExportDocument({
+      core::TimelineEventField::kDuration,
+      core::TimelineEventField::kDurationFrames,
+  });
+  ASSERT_TRUE(result.artifact.has_value());
+  const TemporaryWorkbook workbook{result.artifact->content};
 
-    const auto events =
-        ReadZipEntry(workbook.path(), "xl/worksheets/sheet1.xml");
-    const auto shared_strings =
-        ReadZipEntry(workbook.path(), "xl/sharedStrings.xml");
-    ASSERT_TRUE(events.has_value());
-    ASSERT_TRUE(shared_strings.has_value());
+  const auto events = ReadZipEntry(workbook.path(), "xl/worksheets/sheet1.xml");
+  const auto shared_strings =
+      ReadZipEntry(workbook.path(), "xl/sharedStrings.xml");
+  ASSERT_TRUE(events.has_value());
+  ASSERT_TRUE(shared_strings.has_value());
 
-    const auto duration_header = SharedStringIndex(*shared_strings, "Duration");
-    const auto duration_frames_header =
-        SharedStringIndex(*shared_strings, "Duration Frames");
-    const auto duration = SharedStringIndex(*shared_strings, "00:00:01;00");
-    ASSERT_TRUE(duration_header.has_value());
-    ASSERT_TRUE(duration_frames_header.has_value());
-    ASSERT_TRUE(duration.has_value());
-    EXPECT_TRUE(CellUsesSharedString(*events, "A1", *duration_header));
-    EXPECT_TRUE(CellUsesSharedString(*events, "B1", *duration_frames_header));
-    EXPECT_TRUE(CellUsesSharedString(*events, "A2", *duration));
-    EXPECT_NE(events->find("r=\"B2\"><v>30</v>"), std::string::npos);
+  const auto duration_header = SharedStringIndex(*shared_strings, "Duration");
+  const auto duration_frames_header =
+      SharedStringIndex(*shared_strings, "Duration Frames");
+  const auto duration = SharedStringIndex(*shared_strings, "00:00:01;00");
+  ASSERT_TRUE(duration_header.has_value());
+  ASSERT_TRUE(duration_frames_header.has_value());
+  ASSERT_TRUE(duration.has_value());
+  EXPECT_TRUE(CellUsesSharedString(*events, "A1", *duration_header));
+  EXPECT_TRUE(CellUsesSharedString(*events, "B1", *duration_frames_header));
+  EXPECT_TRUE(CellUsesSharedString(*events, "A2", *duration));
+  EXPECT_NE(events->find("r=\"B2\"><v>30</v>"), std::string::npos);
 }
 
 TEST(XlsxExporterTest, WritesOnlySelectedEventColumnsInSelectedOrder) {
-    const auto result = ExportDocument({
-        core::TimelineEventField::kComments,
-        core::TimelineEventField::kEventIdentifier,
-    });
-    ASSERT_TRUE(result.artifact.has_value());
-    const TemporaryWorkbook workbook{result.artifact->content};
+  const auto result = ExportDocument({
+      core::TimelineEventField::kComments,
+      core::TimelineEventField::kEventIdentifier,
+  });
+  ASSERT_TRUE(result.artifact.has_value());
+  const TemporaryWorkbook workbook{result.artifact->content};
 
-    const auto events =
-        ReadZipEntry(workbook.path(), "xl/worksheets/sheet1.xml");
-    const auto shared_strings =
-        ReadZipEntry(workbook.path(), "xl/sharedStrings.xml");
-    ASSERT_TRUE(events.has_value());
-    ASSERT_TRUE(shared_strings.has_value());
+  const auto events = ReadZipEntry(workbook.path(), "xl/worksheets/sheet1.xml");
+  const auto shared_strings =
+      ReadZipEntry(workbook.path(), "xl/sharedStrings.xml");
+  ASSERT_TRUE(events.has_value());
+  ASSERT_TRUE(shared_strings.has_value());
 
-    const auto comments_header = SharedStringIndex(*shared_strings, "Comments");
-    const auto event_header = SharedStringIndex(*shared_strings, "Event");
-    ASSERT_TRUE(comments_header.has_value());
-    ASSERT_TRUE(event_header.has_value());
-    EXPECT_TRUE(CellUsesSharedString(*events, "A1", *comments_header));
-    EXPECT_TRUE(CellUsesSharedString(*events, "B1", *event_header));
-    EXPECT_EQ(shared_strings->find("<t>Reel</t>"), std::string::npos);
-    EXPECT_EQ(shared_strings->find("<t>AX</t>"), std::string::npos);
-    EXPECT_EQ(events->find("r=\"C1\""), std::string::npos);
+  const auto comments_header = SharedStringIndex(*shared_strings, "Comments");
+  const auto event_header = SharedStringIndex(*shared_strings, "Event");
+  ASSERT_TRUE(comments_header.has_value());
+  ASSERT_TRUE(event_header.has_value());
+  EXPECT_TRUE(CellUsesSharedString(*events, "A1", *comments_header));
+  EXPECT_TRUE(CellUsesSharedString(*events, "B1", *event_header));
+  EXPECT_EQ(shared_strings->find("<t>Reel</t>"), std::string::npos);
+  EXPECT_EQ(shared_strings->find("<t>AX</t>"), std::string::npos);
+  EXPECT_EQ(events->find("r=\"C1\""), std::string::npos);
 }
 
 TEST(XlsxExporterTest,
      EmbedsInitialFramesAtReorderedColumnsAndFilteredEventRows) {
-    const XlsxExporter exporter;
-    auto document = Document();
-    auto second_event = document.events.front();
-    second_event.identifier = "002";
-    document.events.push_back(std::move(second_event));
-    const auto result = exporter.Export(core::ExportRequest{
-        .document = document,
-        .event_projection =
-            {
-                core::TimelineEventField::kComments,
-                core::TimelineEventField::kInitialFrame,
-                core::TimelineEventField::kEventIdentifier,
-            },
-        .options = {},
-        .event_images =
-            {
-                core::TimelineEventImage{
-                    .event_index = 0,
-                    .image = InitialFrame(std::byte{0x11}),
-                },
-                core::TimelineEventImage{
-                    .event_index = 1,
-                    .image = InitialFrame(std::byte{0x22}),
-                },
-            },
-    });
-    ASSERT_TRUE(result.artifact.has_value());
-    const TemporaryWorkbook workbook{result.artifact->content};
+  const XlsxExporter exporter;
+  auto document = Document();
+  auto second_event = document.events.front();
+  second_event.identifier = "002";
+  document.events.push_back(std::move(second_event));
+  const auto result = exporter.Export(core::ExportRequest{
+      .document = document,
+      .event_projection =
+          {
+              core::TimelineEventField::kComments,
+              core::TimelineEventField::kInitialFrame,
+              core::TimelineEventField::kEventIdentifier,
+          },
+      .options = {},
+      .event_images =
+          {
+              core::TimelineEventImage{
+                  .event_index = 0,
+                  .image = InitialFrame(std::byte{0x11}),
+              },
+              core::TimelineEventImage{
+                  .event_index = 1,
+                  .image = InitialFrame(std::byte{0x22}),
+              },
+          },
+  });
+  ASSERT_TRUE(result.artifact.has_value());
+  const TemporaryWorkbook workbook{result.artifact->content};
 
-    const auto shared_strings =
-        ReadZipEntry(workbook.path(), "xl/sharedStrings.xml");
-    const auto events =
-        ReadZipEntry(workbook.path(), "xl/worksheets/sheet1.xml");
-    const auto drawing =
-        ReadZipEntry(workbook.path(), "xl/drawings/drawing1.xml");
-    const auto first_image =
-        ReadZipEntry(workbook.path(), "xl/media/image1.png");
-    const auto second_image =
-        ReadZipEntry(workbook.path(), "xl/media/image2.png");
-    ASSERT_TRUE(shared_strings.has_value());
-    ASSERT_TRUE(events.has_value());
-    ASSERT_TRUE(drawing.has_value());
-    ASSERT_TRUE(first_image.has_value());
-    ASSERT_TRUE(second_image.has_value());
+  const auto shared_strings =
+      ReadZipEntry(workbook.path(), "xl/sharedStrings.xml");
+  const auto events = ReadZipEntry(workbook.path(), "xl/worksheets/sheet1.xml");
+  const auto drawing =
+      ReadZipEntry(workbook.path(), "xl/drawings/drawing1.xml");
+  const auto first_image = ReadZipEntry(workbook.path(), "xl/media/image1.png");
+  const auto second_image =
+      ReadZipEntry(workbook.path(), "xl/media/image2.png");
+  ASSERT_TRUE(shared_strings.has_value());
+  ASSERT_TRUE(events.has_value());
+  ASSERT_TRUE(drawing.has_value());
+  ASSERT_TRUE(first_image.has_value());
+  ASSERT_TRUE(second_image.has_value());
 
-    const auto frame_header =
-        SharedStringIndex(*shared_strings, "Initial Frame");
-    ASSERT_TRUE(frame_header.has_value());
-    EXPECT_TRUE(CellUsesSharedString(*events, "B1", *frame_header));
-    EXPECT_EQ(drawing->find("<xdr:col>0</xdr:col>"), std::string::npos);
-    EXPECT_NE(drawing->find("<xdr:col>1</xdr:col>"), std::string::npos);
-    EXPECT_NE(drawing->find("<xdr:row>1</xdr:row>"), std::string::npos);
-    EXPECT_NE(drawing->find("<xdr:row>2</xdr:row>"), std::string::npos);
-    ASSERT_GE(first_image->size(), 8);
-    EXPECT_EQ(static_cast<unsigned char>((*first_image)[0]), 0x89U);
-    EXPECT_EQ(first_image->substr(1, 3), "PNG");
+  const auto frame_header = SharedStringIndex(*shared_strings, "Initial Frame");
+  ASSERT_TRUE(frame_header.has_value());
+  EXPECT_TRUE(CellUsesSharedString(*events, "B1", *frame_header));
+  EXPECT_EQ(drawing->find("<xdr:col>0</xdr:col>"), std::string::npos);
+  EXPECT_NE(drawing->find("<xdr:col>1</xdr:col>"), std::string::npos);
+  EXPECT_NE(drawing->find("<xdr:row>1</xdr:row>"), std::string::npos);
+  EXPECT_NE(drawing->find("<xdr:row>2</xdr:row>"), std::string::npos);
+  ASSERT_GE(first_image->size(), 8);
+  EXPECT_EQ(static_cast<unsigned char>((*first_image)[0]), 0x89U);
+  EXPECT_EQ(first_image->substr(1, 3), "PNG");
 }
 
 TEST(XlsxExporterTest, LeavesWorkbookUnchangedWithoutInitialFrameField) {
-    const auto result =
-        ExportDocument({core::TimelineEventField::kEventIdentifier},
-                       {
-                           core::TimelineEventImage{
-                               .event_index = 0,
-                               .image = InitialFrame(std::byte{0x33}),
-                           },
-                       });
-    ASSERT_TRUE(result.artifact.has_value());
-    const TemporaryWorkbook workbook{result.artifact->content};
+  const auto result =
+      ExportDocument({core::TimelineEventField::kEventIdentifier},
+                     {
+                         core::TimelineEventImage{
+                             .event_index = 0,
+                             .image = InitialFrame(std::byte{0x33}),
+                         },
+                     });
+  ASSERT_TRUE(result.artifact.has_value());
+  const TemporaryWorkbook workbook{result.artifact->content};
 
-    const auto shared_strings =
-        ReadZipEntry(workbook.path(), "xl/sharedStrings.xml");
-    ASSERT_TRUE(shared_strings.has_value());
-    EXPECT_EQ(shared_strings->find("Initial Frame"), std::string::npos);
-    EXPECT_FALSE(
-        ReadZipEntry(workbook.path(), "xl/drawings/drawing1.xml").has_value());
-    EXPECT_FALSE(
-        ReadZipEntry(workbook.path(), "xl/media/image1.png").has_value());
+  const auto shared_strings =
+      ReadZipEntry(workbook.path(), "xl/sharedStrings.xml");
+  ASSERT_TRUE(shared_strings.has_value());
+  EXPECT_EQ(shared_strings->find("Initial Frame"), std::string::npos);
+  EXPECT_FALSE(
+      ReadZipEntry(workbook.path(), "xl/drawings/drawing1.xml").has_value());
+  EXPECT_FALSE(
+      ReadZipEntry(workbook.path(), "xl/media/image1.png").has_value());
 }
 
 TEST(XlsxExporterTest, LocalizesInitialFrameWorkbookHeader) {
-    const XlsxExporter exporter;
-    const auto document = Document();
-    const auto result = exporter.Export(core::ExportRequest{
-        .document = document,
-        .event_projection = {core::TimelineEventField::kInitialFrame},
-        .options =
-            {
-                core::MetadataEntry{
-                    .key = std::string{kWorkbookLanguageOption},
-                    .value = std::string{WorkbookLanguageTag(
-                        WorkbookLanguage::kBrazilianPortuguese)},
-                },
-            },
-        .event_images =
-            {
-                core::TimelineEventImage{
-                    .event_index = 0,
-                    .image = InitialFrame(std::byte{0x44}),
-                },
-            },
-    });
-    ASSERT_TRUE(result.artifact.has_value());
-    const TemporaryWorkbook workbook{result.artifact->content};
+  const XlsxExporter exporter;
+  const auto document = Document();
+  const auto result = exporter.Export(core::ExportRequest{
+      .document = document,
+      .event_projection = {core::TimelineEventField::kInitialFrame},
+      .options =
+          {
+              core::MetadataEntry{
+                  .key = std::string{kWorkbookLanguageOption},
+                  .value = std::string{WorkbookLanguageTag(
+                      WorkbookLanguage::kBrazilianPortuguese)},
+              },
+          },
+      .event_images =
+          {
+              core::TimelineEventImage{
+                  .event_index = 0,
+                  .image = InitialFrame(std::byte{0x44}),
+              },
+          },
+  });
+  ASSERT_TRUE(result.artifact.has_value());
+  const TemporaryWorkbook workbook{result.artifact->content};
 
-    const auto shared_strings =
-        ReadZipEntry(workbook.path(), "xl/sharedStrings.xml");
-    const auto events =
-        ReadZipEntry(workbook.path(), "xl/worksheets/sheet1.xml");
-    ASSERT_TRUE(shared_strings.has_value());
-    ASSERT_TRUE(events.has_value());
-    const auto header = SharedStringIndex(*shared_strings, "Quadro inicial");
-    ASSERT_TRUE(header.has_value());
-    EXPECT_TRUE(CellUsesSharedString(*events, "A1", *header));
+  const auto shared_strings =
+      ReadZipEntry(workbook.path(), "xl/sharedStrings.xml");
+  const auto events = ReadZipEntry(workbook.path(), "xl/worksheets/sheet1.xml");
+  ASSERT_TRUE(shared_strings.has_value());
+  ASSERT_TRUE(events.has_value());
+  const auto header = SharedStringIndex(*shared_strings, "Quadro inicial");
+  ASSERT_TRUE(header.has_value());
+  EXPECT_TRUE(CellUsesSharedString(*events, "A1", *header));
 }
 
 TEST(XlsxExporterTest, RejectsMissingInitialFrameImages) {
-    const auto result =
-        ExportDocument({core::TimelineEventField::kInitialFrame});
+  const auto result = ExportDocument({core::TimelineEventField::kInitialFrame});
 
-    EXPECT_FALSE(result.artifact.has_value());
-    ASSERT_EQ(result.diagnostics.size(), 1);
-    EXPECT_EQ(result.diagnostics.front().code,
-              diagnostic_code::kImageWriteFailed);
+  EXPECT_FALSE(result.artifact.has_value());
+  ASSERT_EQ(result.diagnostics.size(), 1);
+  EXPECT_EQ(result.diagnostics.front().code,
+            diagnostic_code::kImageWriteFailed);
 }
 
 TEST(XlsxExporterTest, RejectsAnEmptyEventProjection) {
-    const auto result = ExportDocument(std::vector<core::TimelineEventField>{});
+  const auto result = ExportDocument(std::vector<core::TimelineEventField>{});
 
-    EXPECT_FALSE(result.artifact.has_value());
-    ASSERT_EQ(result.diagnostics.size(), 1);
-    EXPECT_EQ(result.diagnostics.front().code,
-              diagnostic_code::kInvalidEventProjection);
+  EXPECT_FALSE(result.artifact.has_value());
+  ASSERT_EQ(result.diagnostics.size(), 1);
+  EXPECT_EQ(result.diagnostics.front().code,
+            diagnostic_code::kInvalidEventProjection);
 }
 
 TEST(XlsxExporterTest, WritesDiagnosticDetails) {
-    const auto result = ExportDocument();
-    ASSERT_TRUE(result.artifact.has_value());
-    const TemporaryWorkbook workbook{result.artifact->content};
+  const auto result = ExportDocument();
+  ASSERT_TRUE(result.artifact.has_value());
+  const TemporaryWorkbook workbook{result.artifact->content};
 
-    const auto shared_strings =
-        ReadZipEntry(workbook.path(), "xl/sharedStrings.xml");
-    ASSERT_TRUE(shared_strings.has_value());
-    EXPECT_NE(shared_strings->find("Warning"), std::string::npos);
-    EXPECT_NE(shared_strings->find("cmx3600.unknown_content"),
-              std::string::npos);
-    EXPECT_NE(shared_strings->find("An unknown source line was preserved."),
-              std::string::npos);
-    EXPECT_NE(shared_strings->find("example.edl"), std::string::npos);
+  const auto shared_strings =
+      ReadZipEntry(workbook.path(), "xl/sharedStrings.xml");
+  ASSERT_TRUE(shared_strings.has_value());
+  EXPECT_NE(shared_strings->find("Warning"), std::string::npos);
+  EXPECT_NE(shared_strings->find("cmx3600.unknown_content"), std::string::npos);
+  EXPECT_NE(shared_strings->find("An unknown source line was preserved."),
+            std::string::npos);
+  EXPECT_NE(shared_strings->find("example.edl"), std::string::npos);
 }
 
 TEST(XlsxExporterTest, OmitsOptionalSheetsWhenRequested) {
-    const XlsxExporter exporter;
-    const auto document = Document();
-    const auto result = exporter.Export(core::ExportRequest{
-        .document = document,
-        .event_projection =
-            {
-                core::DefaultTimelineEventProjection().begin(),
-                core::DefaultTimelineEventProjection().end(),
-            },
-        .options =
-            {
-                core::MetadataEntry{
-                    .key = std::string{kIncludeTimelineSheetOption},
-                    .value = false,
-                },
-                core::MetadataEntry{
-                    .key = std::string{kIncludeDiagnosticsSheetOption},
-                    .value = false,
-                },
-            },
-        .event_images = {},
-    });
-    ASSERT_TRUE(result.artifact.has_value());
-    const TemporaryWorkbook workbook{result.artifact->content};
+  const XlsxExporter exporter;
+  const auto document = Document();
+  const auto result = exporter.Export(core::ExportRequest{
+      .document = document,
+      .event_projection =
+          {
+              core::DefaultTimelineEventProjection().begin(),
+              core::DefaultTimelineEventProjection().end(),
+          },
+      .options =
+          {
+              core::MetadataEntry{
+                  .key = std::string{kIncludeTimelineSheetOption},
+                  .value = false,
+              },
+              core::MetadataEntry{
+                  .key = std::string{kIncludeDiagnosticsSheetOption},
+                  .value = false,
+              },
+          },
+      .event_images = {},
+  });
+  ASSERT_TRUE(result.artifact.has_value());
+  const TemporaryWorkbook workbook{result.artifact->content};
 
-    const auto workbook_xml = ReadZipEntry(workbook.path(), "xl/workbook.xml");
-    ASSERT_TRUE(workbook_xml.has_value());
-    EXPECT_NE(workbook_xml->find("name=\"Events\""), std::string::npos);
-    EXPECT_EQ(workbook_xml->find("name=\"Timeline\""), std::string::npos);
-    EXPECT_EQ(workbook_xml->find("name=\"Diagnostics\""), std::string::npos);
+  const auto workbook_xml = ReadZipEntry(workbook.path(), "xl/workbook.xml");
+  ASSERT_TRUE(workbook_xml.has_value());
+  EXPECT_NE(workbook_xml->find("name=\"Events\""), std::string::npos);
+  EXPECT_EQ(workbook_xml->find("name=\"Timeline\""), std::string::npos);
+  EXPECT_EQ(workbook_xml->find("name=\"Diagnostics\""), std::string::npos);
 }
 
-} // namespace
-} // namespace edit_atlas::formats::xlsx
+}  // namespace
+}  // namespace edit_atlas::formats::xlsx

@@ -1,14 +1,25 @@
-#include <edit_atlas/presentation/typography.hpp>
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
-#include <QApplication>
-#include <QFont>
-#include <QFontDatabase>
-#include <QFontInfo>
-#include <QFontMetrics>
-#include <QString>
-#include <QtGlobal>
+#include "edit_atlas/presentation/typography.hpp"
 
-#include <gtest/gtest.h>
+#include "QApplication"
+#include "QFont"
+#include "QFontDatabase"
+#include "QFontInfo"
+#include "QFontMetrics"
+#include "QString"
+#include "QtGlobal"
+#include "gtest/gtest.h"
 
 namespace edit_atlas::frontends::widgets {
 namespace {
@@ -21,75 +32,75 @@ namespace {
 // platform that supports them still fails.
 [[nodiscard]] bool PlatformLoadsApplicationFonts(void) {
 #if defined(Q_OS_MACOS)
-    return false;
+  return false;
 #else
-    return true;
+  return true;
 #endif
 }
 
 TEST(TypographyIntegrationTest, RegistersTheBundledFamilyWhereSupported) {
-    const auto registered = presentation::RegisterBundledTypography();
-    const auto &policy = presentation::ApplicationTypographyPolicy();
+  const auto registered = presentation::RegisterBundledTypography();
+  const auto& policy = presentation::ApplicationTypographyPolicy();
 
-    if (!PlatformLoadsApplicationFonts()) {
-        EXPECT_FALSE(registered);
-        EXPECT_TRUE(presentation::ResolvedTypographyFamily().isEmpty());
-        return;
-    }
+  if (!PlatformLoadsApplicationFonts()) {
+    EXPECT_FALSE(registered);
+    EXPECT_TRUE(presentation::ResolvedTypographyFamily().isEmpty());
+    return;
+  }
 
-    ASSERT_TRUE(registered);
-    EXPECT_EQ(presentation::ResolvedTypographyFamily(), policy.family);
-    EXPECT_TRUE(QFontDatabase::families().contains(policy.family));
+  ASSERT_TRUE(registered);
+  EXPECT_EQ(presentation::ResolvedTypographyFamily(), policy.family);
+  EXPECT_TRUE(QFontDatabase::families().contains(policy.family));
 }
 
 TEST(TypographyIntegrationTest, AppliesTheSharedPolicyToTheApplication) {
-    if (!PlatformLoadsApplicationFonts()) {
-        return;
-    }
-    ASSERT_TRUE(presentation::RegisterBundledTypography());
-    presentation::ApplyApplicationTypography();
+  if (!PlatformLoadsApplicationFonts()) {
+    return;
+  }
+  ASSERT_TRUE(presentation::RegisterBundledTypography());
+  presentation::ApplyApplicationTypography();
 
-    const auto &policy = presentation::ApplicationTypographyPolicy();
-    const auto font = QApplication::font();
-    EXPECT_EQ(font.family(), policy.family);
-    EXPECT_DOUBLE_EQ(font.pointSizeF(), policy.bodyPointSize);
-    EXPECT_EQ(static_cast<int>(font.weight()), policy.bodyWeight);
+  const auto& policy = presentation::ApplicationTypographyPolicy();
+  const auto font = QApplication::font();
+  EXPECT_EQ(font.family(), policy.family);
+  EXPECT_DOUBLE_EQ(font.pointSizeF(), policy.body_point_size);
+  EXPECT_EQ(static_cast<int>(font.weight()), policy.body_weight);
 }
 
 TEST(TypographyIntegrationTest, ResolvesEveryWeightTheHierarchyUses) {
-    if (!PlatformLoadsApplicationFonts()) {
-        return;
-    }
-    ASSERT_TRUE(presentation::RegisterBundledTypography());
-    const auto &policy = presentation::ApplicationTypographyPolicy();
+  if (!PlatformLoadsApplicationFonts()) {
+    return;
+  }
+  ASSERT_TRUE(presentation::RegisterBundledTypography());
+  const auto& policy = presentation::ApplicationTypographyPolicy();
 
-    // A missing face resolves to a substitute family rather than failing, so
-    // the family reported back is what proves each weight is bundled.
-    for (const auto weight :
-         {policy.bodyWeight, policy.headingWeight, policy.titleWeight}) {
-        QFont font{policy.family};
-        font.setWeight(static_cast<QFont::Weight>(weight));
-        const QFontInfo info{font};
-        EXPECT_EQ(info.family(), policy.family) << "weight " << weight;
-    }
+  // A missing face resolves to a substitute family rather than failing, so
+  // the family reported back is what proves each weight is bundled.
+  for (const auto weight :
+       {policy.body_weight, policy.heading_weight, policy.title_weight}) {
+    QFont font{policy.family};
+    font.setWeight(static_cast<QFont::Weight>(weight));
+    const QFontInfo info{font};
+    EXPECT_EQ(info.family(), policy.family) << "weight " << weight;
+  }
 }
 
 TEST(TypographyIntegrationTest, SupportsInterfaceCharactersInBothLanguages) {
-    if (!PlatformLoadsApplicationFonts()) {
-        return;
-    }
-    ASSERT_TRUE(presentation::RegisterBundledTypography());
-    const auto &policy = presentation::ApplicationTypographyPolicy();
-    const QFont font{policy.family};
+  if (!PlatformLoadsApplicationFonts()) {
+    return;
+  }
+  ASSERT_TRUE(presentation::RegisterBundledTypography());
+  const auto& policy = presentation::ApplicationTypographyPolicy();
+  const QFont font{policy.family};
 
-    // Brazilian Portuguese needs these beyond ASCII; a missing glyph would
-    // render as a fallback box in the interface.
-    for (const auto character : QStringLiteral("áàâãéêíóôõúüçÁÂÃÉÍÓÕÚÇ")) {
-        EXPECT_TRUE(QFontMetrics{font}.inFont(character))
-            << "missing glyph for code point "
-            << static_cast<unsigned int>(character.unicode());
-    }
+  // Brazilian Portuguese needs these beyond ASCII; a missing glyph would
+  // render as a fallback box in the interface.
+  for (const auto character : QStringLiteral("áàâãéêíóôõúüçÁÂÃÉÍÓÕÚÇ")) {
+    EXPECT_TRUE(QFontMetrics{font}.inFont(character))
+        << "missing glyph for code point "
+        << static_cast<unsigned int>(character.unicode());
+  }
 }
 
-} // namespace
-} // namespace edit_atlas::frontends::widgets
+}  // namespace
+}  // namespace edit_atlas::frontends::widgets

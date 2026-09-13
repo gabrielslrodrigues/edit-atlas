@@ -8,12 +8,11 @@ from typing import Callable
 from adapters.desktop import DesktopSession
 from application.polling import PollTimeoutError
 
-
 SessionFactory = Callable[[str], DesktopSession]
 
 
 class EditAtlasApplication:
-    """Runner-independent façade over a platform accessibility session."""
+    """Runner-independent façade over an accessibility session."""
 
     def __init__(self, session_factory: SessionFactory) -> None:
         self._session_factory = session_factory
@@ -102,7 +101,9 @@ class EditAtlasApplication:
     def set_filter_track_kind(self, index: int, value: str) -> None:
         self._session.select_option(f"filterCondition{index}TrackKind", value)
 
-    def set_filter_option(self, index: int, option: str, enabled: bool) -> None:
+    def set_filter_option(
+        self, index: int, option: str, enabled: bool
+    ) -> None:
         self._session.set_checked(f"filterCondition{index}{option}", enabled)
 
     def set_filter_combination(self, value: str) -> None:
@@ -143,7 +144,9 @@ class EditAtlasApplication:
             self._session.activate("updateTemplateButton")
         else:
             self._session.activate("templatePrimaryButton")
-            self._session.wait_name_contains("templatePrimaryButton", "Save as")
+            self._session.wait_name_contains(
+                "templatePrimaryButton", "Save as"
+            )
 
     def select_template(self, name: str) -> None:
         self._session.select_option("templateSelector", name)
@@ -165,30 +168,34 @@ class EditAtlasApplication:
     def set_export_columns(self, checked: set[str], order: list[str]) -> None:
         opened_projection = self._open_spreadsheet_export_columns()
         available = self._session.list_items("eventColumnsList")
-        # Arrange rows before a selection can reveal conditional controls and
+        # Arrange rows before a selection can reveal conditional
+        # controls and
         # shrink the list's visible area.
         for target_index, name in enumerate(order):
             while available.index(name) > target_index:
                 position = available.index(name)
                 quick_move_button = f"eventColumn{position}MoveUpButton"
-                if self._session.has_element(
-                    quick_move_button, showing=False
-                ):
+                if self._session.has_element(quick_move_button, showing=False):
                     # The row may be virtualized out of the visible
-                    # viewport; bring it into view before clicking so the
+                    # viewport; bring it into view before clicking so
+                    # the
                     # click actually lands on it.
                     self._session.focus(quick_move_button, showing=False)
                     self._session.activate(quick_move_button, showing=False)
                 else:
-                    # One operation on purpose: reading the list pages it,
-                    # and paging moves the current row the movement control
-                    # acts on, so nothing may look an element up between the
+                    # One operation on purpose: reading the list pages
+                    # it,
+                    # and paging moves the current row the movement
+                    # control
+                    # acts on, so nothing may look an element up between
+                    # the
                     # two steps.
                     self._session.move_list_item(
                         "eventColumnsList", name, "moveColumnUpButton"
                     )
                 available = self._await_moved_column(name, available)
-        # Apply the leading selections last so all remaining rows stay visible.
+        # Apply the leading selections last so all remaining rows stay
+        # visible.
         for name in reversed(available):
             self._session.set_list_item_checked(
                 "eventColumnsList", name, name in checked
@@ -196,15 +203,15 @@ class EditAtlasApplication:
         if opened_projection:
             self._close_spreadsheet_export_columns()
 
-    def _await_moved_column(
-        self, name: str, before: list[str]
-    ) -> list[str]:
-        """Waits for the requested row, and only it, to move up one place.
+    def _await_moved_column(self, name: str, before: list[str]) -> list[str]:
+        """Waits for the requested row, and only it, to move up one
+        place.
 
-        Comparing the whole list against a predicted order could only report
-        that the prediction never arrived. A control that moved a different
-        row is a distinct failure, and reconstructing which one from a
-        screenshot afterwards is what this reports directly instead.
+        Comparing the whole list against a predicted order could only
+        report that the prediction never arrived. A control that
+        moved a different row is a distinct failure, and
+        reconstructing which one from a screenshot afterwards is what
+        this reports directly instead.
         """
         position = before.index(name)
         expected = list(before)
@@ -243,8 +250,7 @@ class EditAtlasApplication:
         enabled = self._session.is_sensitive("moveColumnUpButton")
         return (
             f"the list reported {current!r} as its current row and "
-            "moveColumnUpButton was "
-            + ("enabled" if enabled else "disabled")
+            "moveColumnUpButton was " + ("enabled" if enabled else "disabled")
         )
 
     def spreadsheet_export_column_selection(
@@ -270,7 +276,9 @@ class EditAtlasApplication:
     ) -> None:
         self._session.activate("timelineExportButton")
         self._session.element("spreadsheetOptionsDialog")
-        self._session.select_option("workbookLanguageSelector", workbook_language)
+        self._session.select_option(
+            "workbookLanguageSelector", workbook_language
+        )
         self._session.set_checked(
             "includeTimelineSheetCheckBox", include_timeline
         )
@@ -288,7 +296,9 @@ class EditAtlasApplication:
 
     def continue_spreadsheet_export(self, destination: Path) -> None:
         self._session.activate("continueSpreadsheetExportButton")
-        self._session.open_file_dialog("spreadsheetSaveFileDialog", destination)
+        self._session.open_file_dialog(
+            "spreadsheetSaveFileDialog", destination
+        )
 
     def cancel_rendered_video_export(self) -> list[str]:
         self._session.element("spreadsheetExportProgressDialog")
@@ -326,7 +336,9 @@ class EditAtlasApplication:
         )
         self._session.element("supportBundleDisclosureDialog")
         self._session.activate("continueSupportBundleButton")
-        self._session.open_file_dialog("supportBundleSaveFileDialog", destination)
+        self._session.open_file_dialog(
+            "supportBundleSaveFileDialog", destination
+        )
         self._session.element("supportBundleResultDialog")
         self._session.activate("closeDialogButton")
         self._session.wait_absent("supportBundleResultDialog")
@@ -374,8 +386,10 @@ class EditAtlasApplication:
     def _open_menu(
         self, identifier: str, *, member: str | None = None
     ) -> None:
-        # Activating an open menu closes it, so reopening one to read a second
-        # item loses both. Callers that read several items pass a member to
+        # Activating an open menu closes it, so reopening one to read a
+        # second
+        # item loses both. Callers that read several items pass a member
+        # to
         # probe, and an already-open menu is then left alone.
         if member is not None and self._session.has_element(member):
             return

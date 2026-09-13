@@ -6,7 +6,9 @@ from application.cli import InstalledCli
 from inspectors.xlsx import XlsxWorkbook
 
 
-def test_installed_cli_reports_its_version(installed_cli: InstalledCli) -> None:
+def test_installed_cli_reports_its_version(
+    installed_cli: InstalledCli,
+) -> None:
     result = installed_cli.invoke(("--version",))
 
     assert result.exit_code == 0
@@ -17,8 +19,10 @@ def test_installed_cli_reports_its_version(installed_cli: InstalledCli) -> None:
 def test_installed_package_ships_licensing_material(
     installed_cli: InstalledCli,
 ) -> None:
-    # Package verification checks staged and extracted trees; this checks what
-    # an installed package actually put on the machine, which is what the
+    # Package verification checks staged and extracted trees; this
+    # checks what
+    # an installed package actually put on the machine, which is what
+    # the
     # licenses have to accompany.
     directory = installed_cli.installed_license_directory()
     assert directory is not None, "no installed license directory was found"
@@ -129,7 +133,9 @@ def test_installed_cli_preserves_then_replaces_existing_output(
     assert "cli.output.destination_exists" in refused.standard_error
     assert destination.read_bytes() == b"original"
 
-    replaced = installed_cli.convert(source, destination, "--fps=24", "--force")
+    replaced = installed_cli.convert(
+        source, destination, "--fps=24", "--force"
+    )
     assert replaced.exit_code == 0
     assert XlsxWorkbook(destination).event_row_count() == 4
 

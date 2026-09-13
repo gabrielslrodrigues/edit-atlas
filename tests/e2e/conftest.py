@@ -1,11 +1,11 @@
 from __future__ import annotations
 
-from collections.abc import Generator
 import os
-from pathlib import Path
 import shutil
 import sys
 import warnings
+from collections.abc import Generator
+from pathlib import Path
 
 import pytest
 
@@ -16,7 +16,6 @@ from application.media_fixtures import (
     regeneration_command,
     stale_fixture_reason,
 )
-
 
 REPORTS_KEY = pytest.StashKey[dict[str, pytest.TestReport]]()
 REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
@@ -35,8 +34,12 @@ def pytest_runtest_makereport(
 
 def pytest_addoption(parser: pytest.Parser) -> None:
     group = parser.getgroup("edit-atlas")
-    group.addoption("--cli", type=Path, required=True, help="installed CLI path")
-    group.addoption("--app", type=Path, help="installed desktop application path")
+    group.addoption(
+        "--cli", type=Path, required=True, help="installed CLI path"
+    )
+    group.addoption(
+        "--app", type=Path, help="installed desktop application path"
+    )
     group.addoption(
         "--fixture-dir", type=Path, required=True, help="CMX fixture directory"
     )
@@ -58,7 +61,8 @@ def pytest_collection_finish(session: pytest.Session) -> None:
         raise pytest.UsageError("required E2E suite collected no tests")
     # Reject fixtures left over from an older generator before anything
     # runs, rather than when the first rendered-video scenario reaches
-    # them. The directory is optional, so an absent option is not an error.
+    # them. The directory is optional, so an absent option is not an
+    # error.
     option = session.config.getoption("media_fixture_dir")
     if option is None:
         return
@@ -71,9 +75,9 @@ def pytest_collection_finish(session: pytest.Session) -> None:
 def pytest_deselected(items: list[pytest.Item]) -> None:
     if items:
         config = items[0].config
-        config.stash[DESELECTED_KEY] = config.stash.get(DESELECTED_KEY, 0) + len(
-            items
-        )
+        config.stash[DESELECTED_KEY] = config.stash.get(
+            DESELECTED_KEY, 0
+        ) + len(items)
 
 
 def pytest_sessionfinish(
@@ -167,7 +171,8 @@ def state_root(pytestconfig: pytest.Config) -> Path:
         try:
             shutil.rmtree(path)
         except OSError as error:
-            # An interrupted run leaves the application holding its log open,
+            # An interrupted run leaves the application holding its log
+            # open,
             # and the resulting errno says only that a file is in use.
             raise pytest.UsageError(
                 f"could not remove the state directory {path}: {error}. A "
@@ -176,7 +181,9 @@ def state_root(pytestconfig: pytest.Config) -> Path:
             ) from error
     path.mkdir(parents=True)
     marker = path / ".edit-atlas-e2e-state"
-    marker.write_text("owned by the Edit Atlas E2E harness\n", encoding="utf-8")
+    marker.write_text(
+        "owned by the Edit Atlas E2E harness\n", encoding="utf-8"
+    )
     try:
         yield path
     finally:
@@ -204,7 +211,9 @@ def installed_cli(
     if not executable.is_file():
         raise pytest.UsageError(f"installed CLI does not exist: {executable}")
     if os.name != "nt" and not os.access(executable, os.X_OK):
-        raise pytest.UsageError(f"installed CLI is not executable: {executable}")
+        raise pytest.UsageError(
+            f"installed CLI is not executable: {executable}"
+        )
     return InstalledCli(
         executable,
         process_registry,
@@ -292,7 +301,8 @@ def edit_atlas_application(
                 application.capture_artifacts(request.node.name)
             except Exception as error:
                 warnings.warn(
-                    f"could not capture desktop E2E failure artifacts: {error}",
+                    "could not capture desktop E2E failure artifacts: "
+                    f"{error}",
                     RuntimeWarning,
                     stacklevel=1,
                 )

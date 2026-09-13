@@ -1,4 +1,6 @@
-cmake_minimum_required(VERSION 4.0)
+file(STRINGS "${CMAKE_CURRENT_LIST_DIR}/cmake/MinimumVersion.txt"
+    EDIT_ATLAS_MINIMUM_CMAKE_VERSION)
+cmake_minimum_required(VERSION ${EDIT_ATLAS_MINIMUM_CMAKE_VERSION})
 
 file(READ "${CMAKE_CURRENT_LIST_DIR}/vcpkg.json" edit_atlas_vcpkg_manifest)
 string(

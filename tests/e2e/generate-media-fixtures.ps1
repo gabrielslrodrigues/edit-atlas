@@ -11,10 +11,10 @@ param(
 # record, so fixtures must be produced through this entry point rather than by
 # invoking the generator directly.
 
-$ErrorActionPreference = "Stop"
+$ErrorActionPreference = 'Stop'
 $ScriptDirectory = Split-Path -Parent $MyInvocation.MyCommand.Path
 $RepositoryRoot =
-  (Resolve-Path (Join-Path $ScriptDirectory "../..")).ProviderPath
+  (Resolve-Path (Join-Path $ScriptDirectory '../..')).ProviderPath
 
 if (-not (Test-Path -LiteralPath $Generator -PathType Leaf)) {
   throw "generator does not exist: $Generator"
@@ -28,12 +28,12 @@ if ($LASTEXITCODE -ne 0) {
 }
 
 $Python = if (Get-Command python3 -ErrorAction SilentlyContinue) {
-  "python3"
+  'python3'
 } else {
-  "python"
+  'python'
 }
 
-& $Python (Join-Path $ScriptDirectory "application/media_fixtures.py") `
+& $Python (Join-Path $ScriptDirectory 'application/media_fixtures.py') `
   --repository-root $RepositoryRoot `
   $FixtureDirectory
 if ($LASTEXITCODE -ne 0) {

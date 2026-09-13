@@ -2,12 +2,11 @@
 
 from __future__ import annotations
 
+import posixpath
 from hashlib import sha256
 from pathlib import Path
-import posixpath
 from xml.etree import ElementTree
 from zipfile import BadZipFile, ZipFile
-
 
 MAIN_NAMESPACE = "http://schemas.openxmlformats.org/spreadsheetml/2006/main"
 DRAWING_NAMESPACE = (
@@ -17,7 +16,8 @@ RELATIONSHIP_NAMESPACE = (
     "http://schemas.openxmlformats.org/package/2006/relationships"
 )
 DRAWING_RELATIONSHIP_TYPE = (
-    "http://schemas.openxmlformats.org/officeDocument/2006/relationships/drawing"
+    "http://schemas.openxmlformats.org/officeDocument/2006/"
+    "relationships/drawing"
 )
 IMAGE_RELATIONSHIP_TYPE = (
     "http://schemas.openxmlformats.org/officeDocument/2006/relationships/image"
@@ -25,10 +25,12 @@ IMAGE_RELATIONSHIP_TYPE = (
 
 
 class WorkbookInspectionError(ValueError):
-    pass
+    """The workbook cannot be read as the expected ZIP/XML document."""
 
 
 class XlsxWorkbook:
+    """Inspect exported workbook structure and embedded event images."""
+
     def __init__(self, path: Path) -> None:
         self.path = path
         try:
@@ -40,13 +42,17 @@ class XlsxWorkbook:
                         f"{path} is missing required XLSX entries"
                     )
         except (BadZipFile, OSError) as error:
-            raise WorkbookInspectionError(f"cannot inspect {path}: {error}") from error
+            raise WorkbookInspectionError(
+                f"cannot inspect {path}: {error}"
+            ) from error
 
     def entry_names(self) -> set[str]:
+        """Return the complete archive entry names."""
         with ZipFile(self.path) as archive:
             return set(archive.namelist())
 
     def sheet_names(self) -> list[str]:
+        """Return sheet names in workbook order."""
         root = self._xml("xl/workbook.xml")
         return [
             sheet.attrib["name"]
@@ -54,20 +60,26 @@ class XlsxWorkbook:
         ]
 
     def shared_strings(self) -> list[str]:
+        """Decode the shared-string table, or return an empty table."""
         if "xl/sharedStrings.xml" not in self.entry_names():
             return []
         root = self._xml("xl/sharedStrings.xml")
         return [
-            "".join(text.text or "" for text in value.iter(f"{{{MAIN_NAMESPACE}}}t"))
+            "".join(
+                text.text or ""
+                for text in value.iter(f"{{{MAIN_NAMESPACE}}}t")
+            )
             for value in root.findall(f"{{{MAIN_NAMESPACE}}}si")
         ]
 
     def event_row_count(self) -> int:
+        """Count event-sheet rows excluding the header."""
         root = self._xml("xl/worksheets/sheet1.xml")
         rows = root.findall(f".//{{{MAIN_NAMESPACE}}}row")
         return max(0, len(rows) - 1)
 
     def event_headers(self) -> list[str]:
+        """Decode the event-sheet header in column order."""
         root = self._xml("xl/worksheets/sheet1.xml")
         row = root.find(f".//{{{MAIN_NAMESPACE}}}row")
         if row is None:
@@ -93,6 +105,7 @@ class XlsxWorkbook:
         return headers
 
     def event_image_entries(self) -> list[str]:
+        """Return sorted PNG entries under the workbook media path."""
         return sorted(
             name
             for name in self.entry_names()
@@ -100,6 +113,7 @@ class XlsxWorkbook:
         )
 
     def event_image_hashes(self) -> list[str]:
+        """Hash image payloads in sorted archive-entry order."""
         with ZipFile(self.path) as archive:
             return [
                 sha256(archive.read(entry)).hexdigest()
@@ -107,6 +121,7 @@ class XlsxWorkbook:
             ]
 
     def event_images_are_png(self) -> bool:
+        """Check every event-image payload for the PNG signature."""
         signature = b"\x89PNG\r\n\x1a\n"
         with ZipFile(self.path) as archive:
             return all(
@@ -115,6 +130,7 @@ class XlsxWorkbook:
             )
 
     def event_image_relationship_targets(self) -> list[str]:
+        """Return normalized image targets from the event drawing."""
         root = self._xml("xl/drawings/_rels/drawing1.xml.rels")
         targets = []
         for relationship in root.findall(
@@ -130,6 +146,7 @@ class XlsxWorkbook:
         return sorted(targets)
 
     def event_image_anchors(self) -> list[tuple[int, int]]:
+        """Return zero-based column and row origins of event images."""
         root = self._xml("xl/drawings/drawing1.xml")
         anchors = []
         for origin in root.findall(f".//{{{DRAWING_NAMESPACE}}}from"):
@@ -140,6 +157,7 @@ class XlsxWorkbook:
         return anchors
 
     def has_event_drawing_relationship(self) -> bool:
+        """Report whether the event sheet references its drawing."""
         root = self._xml("xl/worksheets/_rels/sheet1.xml.rels")
         return any(
             relationship.attrib.get("Type") == DRAWING_RELATIONSHIP_TYPE
@@ -153,7 +171,12 @@ class XlsxWorkbook:
         try:
             with ZipFile(self.path) as archive:
                 return ElementTree.fromstring(archive.read(entry))
-        except (BadZipFile, KeyError, ElementTree.ParseError, OSError) as error:
+        except (
+            BadZipFile,
+            KeyError,
+            ElementTree.ParseError,
+            OSError,
+        ) as error:
             raise WorkbookInspectionError(
                 f"cannot parse {entry} in {self.path}: {error}"
             ) from error

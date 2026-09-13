@@ -59,30 +59,47 @@ before changing a workflow.
 
 ## Code conventions
 
+### Standards and precedence
+
+Apply each applicable guide in full: language usage, design, ownership,
+error handling, interfaces, imports, documentation, formatting, and naming.
+Custom rules below override guides and tool defaults. Any uncertainty about
+meaning, applicability, or precedence requires asking the owner before the
+affected change; independent work with clear rules may continue.
+
 ### C++
 
-- Headers use include guards derived from the header's path, in the form
-  `EDIT_ATLAS_<PATH>_HPP_`, and never `#pragma once`.
-- Empty parameter lists are written `(void)`, not `()`.
-- Namespaces are snake case under `edit_atlas::<layer>`; types and
-  functions are PascalCase; leaf types are `final`; source and header
-  filenames are snake case. A type registered as a creatable QML type is the
-  exception and must not be `final`, because Qt's registration derives from
-  it; MSVC rejects this while Clang does not notice.
-- Qt signals are the exception to function naming: they use Qt's lower camel
-  case, as `documentChanged` or `exportFinished`, including property-notify
-  signals. This is what `Q_PROPERTY NOTIFY` and QML handler resolution
-  expect, and it keeps project signals indistinguishable in style from Qt's
-  own. Commands, accessors, slots, and private handlers stay PascalCase, so
-  `HandleExportFinished` is a slot and `exportFinished` is the signal it
-  reacts to.
-- Public declarations carry LLVM-style `///` comments. The first sentence
-  is the brief summary; follow it with parameter, return-value, ownership,
-  lifetime, and invariant details where they form part of the contract.
-- Formatting comes from `.clang-format`: LLVM-based, four-space indent,
-  80-column limit, no tabs. There is no separate lint step beyond
-  `all_qmllint`, `check_translations`, and compiler warnings under
-  `EDIT_ATLAS_WARNINGS_AS_ERRORS`.
+Follow the full [Google C++ Style Guide](https://google.github.io/styleguide/cppguide.html)
+with these custom rules:
+
+- Use C++23 and snake_case `.cpp`/`.hpp` filenames.
+- Permit `<filesystem>` and `std::filesystem` as an explicit exception to
+  Google's disallowed standard library features.
+- Headers use path-derived `EDIT_ATLAS_<PATH>_HPP_` include guards, never
+  `#pragma once`.
+- Write `(void)` on named zero-parameter functions, including constructors
+  and destructors.
+- Mark leaf types `final`. Creatable QML types must remain non-final because
+  Qt registration derives from them; preserve framework-required names.
+- Use Google's getter/setter naming exception, including accessors without
+  matching backing members. A getter need not trivially return a member.
+- Qt signals and dedicated receiving slots use lowerCamelCase. Determine
+  dedicated-slot status from actual callers. Methods used for other purposes
+  retain ordinary naming, even when also connected to a signal.
+- Return typed failures for expected domain errors. Bounded exceptions remain
+  appropriate for library integration and failure containment; contain them
+  at the responsible boundary without losing existing failure categories.
+- Public declarations carry `///` API comments describing the contract,
+  including ownership, lifetime, and invariants where relevant.
+- Include What You Use applies with no corresponding-header exception: a
+  `.cpp` includes its own header, but must still directly include the header
+  for any other symbol it uses, even one that header happens to pull in
+  transitively.
+
+Formatting follows Google's two-space, 80-column style. Formatting and
+linting do not establish semantic compliance: review headers, dependencies,
+ownership, lifetimes, class design, type usage, concurrency, and exception
+safety separately.
 
 ### QML
 
@@ -127,18 +144,36 @@ A non-`QObject` class needs a context of its own, through
 under that Qt class's context, where this catalogue has no reason to look for
 it.
 
-### Shell and PowerShell
+### Bash
 
-- Shell scripts begin with `#!/usr/bin/env bash` and `set -euo pipefail`,
-  indent with two spaces, and validate their argument count before doing
-  anything.
-- Every script has a PowerShell counterpart where the workflow it serves
-  runs on Windows.
+Follow the full [Google Shell Style Guide](https://google.github.io/styleguide/shellguide.html),
+including quoting, expansion, pipelines, error handling, naming, functions,
+and documentation. Scripts begin with `#!/usr/bin/env bash` and
+`set -euo pipefail`, use two-space indentation, and validate argument counts
+before other work. Lint with ShellCheck. Provide a PowerShell counterpart
+where the workflow runs on Windows.
+
+The guide's ~100-line threshold for switching to a structured language is not
+a rewrite trigger here: CI, build, and E2E orchestration scripts stay in Bash
+regardless of length, as an explicit project deviation.
+
+### PowerShell
+
+Use Microsoft's approved PascalCase `Verb-Noun` function names and lint with
+PSScriptAnalyzer. Use two-space indentation, spaces around binary operators
+and after commas, opening braces on the declaration line, and closing braces
+on their own lines. Use single-quoted literal strings unless interpolation
+or escape processing is needed. Keep lines within 80 columns where practical;
+do not split indivisible paths, identifiers, or URLs. Preserve native-command
+exit checks and cross-platform counterpart behavior.
 
 ### Python
 
-Python appears only in `tests/e2e`. It follows the same 80-column habit as
-the C++ sources and uses four-space indentation.
+Follow full [PEP 8](https://peps.python.org/pep-0008/): four-space indentation,
+79-column code, and 72-column comments and docstrings, including imports,
+naming, documentation, and programming recommendations. Use Ruff formatting
+and linting; review rules the tools do not enforce. The standard applies to
+utilities and embedded Python as well as the packaged E2E suites.
 
 ## Tests
 
@@ -198,15 +233,70 @@ developer profile.
 
 ## Text and formatting
 
+`.gitattributes` keeps authored text at LF on every checkout, including
+Windows, and exempts byte-sensitive files from conversion.
 `.editorconfig` sets UTF-8, LF line endings, a final newline, trimmed
 trailing whitespace, and space indentation for every file in the
 repository. Only the indent width varies: four columns for authored source
-— C++, CMake, QML, Python — and two for scripts and data or markup formats
-— shell, PowerShell, JSON, YAML, and Markdown.
+— CMake, QML, Python — and two for scripts and data or markup formats
+— C++, shell, PowerShell, JSON, YAML, and Markdown.
 
 Markdown committed here wraps at roughly 80 columns. Text destined for a web
 form — issue and pull-request bodies, review comments — does not wrap at
 all.
+
+## Style commands
+
+Style tooling does not require configuring or building the application.
+Bootstrap its pinned dependencies with uv >=0.12.3,<0.13:
+
+```sh
+cmake -P cmake/BootstrapStyle.cmake
+```
+
+Bootstrap creates `tools/style/.venv` with Python 3.12 and the exact versions
+in `tools/style/requirements.txt`. On Windows it also saves PSScriptAnalyzer
+1.24.0 under `tools/style/modules`. These directories are ignored machine
+state. Installation is explicit; checking never installs missing tools.
+
+```sh
+cmake -P cmake/Format.cmake
+cmake -P cmake/CheckStyle.cmake
+```
+
+Formatting applies clang-format to C++, Ruff to Python, and PSScriptAnalyzer
+formatting to PowerShell on Windows. Bash, QML, other authored formats, and
+embedded code require manual corrections where no formatter is selected.
+Checking also runs cpplint, Ruff lint, ShellCheck on Linux/macOS, and
+PSScriptAnalyzer on Windows. Use both CI platforms for complete tool coverage.
+Both jobs also run `cmake -P cmake/TestStyle.cmake` to exercise formatter
+idempotence, read-only checking, inventory coverage, and representative
+violations in disposable repositories. Both jobs are required by `CI gate`.
+Missing tools, incorrect pinned package versions, and unknown file
+classifications fail the check.
+
+The inventory includes tracked files, dotfiles, and unignored additions and
+never descends into the vcpkg gitlink. Licence texts, binary assets, parser
+fixtures, dependency locks, and the upstream patch retain their byte
+representation. The inventory reports each reason. Change generated content
+through its established inputs and commands. Text checks enforce UTF-8 without
+a BOM, LF endings, a final newline, no tabs, and no trailing whitespace on
+other files. Header guards follow logical public include paths; private
+headers use repository-relative paths with the leading `src/` removed.
+
+QML linting and translation checks remain the existing `all_qmllint` and
+`check_translations` build targets. Standalone style checks do not replace
+those targets, compiler diagnostics, or behavioral verification. Embedded
+scripts and documentation examples require the same language review as
+standalone code, including quoting across their enclosing format.
+
+Semantic review must cover every applicable guide section, particularly
+ownership, lifetimes, interfaces, imports, class design, initialization,
+integer conversions, concurrency, failure containment, and naming exceptions.
+Formatter success is not a compliance claim. Build, lint, test, and installation
+commands remain subject to the current-handover authorization rules.
+The [migration audit](docs/standards-audit.md) records guide-section coverage
+and outstanding review separately from tool execution.
 
 ## Agent configuration
 

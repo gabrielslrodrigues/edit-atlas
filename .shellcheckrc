@@ -1,0 +1,4 @@
+# SC2329 false-positives on every `cleanup() { ... }` registered only via
+# `trap cleanup EXIT`; shellcheck's own message already names this exact case
+# ("ignored if invoked indirectly").
+disable=SC2329

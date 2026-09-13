@@ -2,16 +2,15 @@
 
 from __future__ import annotations
 
-from threading import Event
 import time
+from threading import Event
 from typing import Callable, TypeVar
-
 
 Value = TypeVar("Value")
 
 
 class PollTimeoutError(TimeoutError):
-    """Raised when observable state does not reach the requested condition."""
+    """Raised when state does not reach the condition in time."""
 
 
 def wait_until(
@@ -23,6 +22,10 @@ def wait_until(
     consecutive: int = 1,
     description: str = "condition",
 ) -> Value:
+    """Wait for consecutive accepted observations within the time limit.
+
+    Observation errors propagate; a timeout reports the last value seen.
+    """
     if timeout <= 0 or interval <= 0 or consecutive <= 0:
         raise ValueError("timeout, interval, and consecutive must be positive")
     deadline = time.monotonic() + timeout

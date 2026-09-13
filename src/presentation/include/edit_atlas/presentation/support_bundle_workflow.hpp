@@ -1,47 +1,59 @@
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #ifndef EDIT_ATLAS_PRESENTATION_SUPPORT_BUNDLE_WORKFLOW_HPP_
 #define EDIT_ATLAS_PRESENTATION_SUPPORT_BUNDLE_WORKFLOW_HPP_
 
-#include <edit_atlas/support/support_bundle.hpp>
+#include "QFutureWatcher"
+#include "QObject"
 
-#include <QFutureWatcher>
-#include <QObject>
+#include "edit_atlas/support/support_bundle.hpp"
 
 namespace edit_atlas::presentation {
 
 /// Owns Qt asynchronous execution for diagnostic support-bundle creation.
 class SupportBundleWorkflow final : public QObject {
-    Q_OBJECT
+  Q_OBJECT
 
-  public:
-    /// Creates an idle asynchronous support-bundle workflow.
-    explicit SupportBundleWorkflow(QObject *parent = nullptr);
-    /// Waits for owned asynchronous work before destruction.
-    ~SupportBundleWorkflow(void) override;
+ public:
+  /// Creates an idle asynchronous support-bundle workflow.
+  explicit SupportBundleWorkflow(QObject* parent = nullptr);
+  /// Waits for owned asynchronous work before destruction.
+  ~SupportBundleWorkflow(void) override;
 
-    /// Workflows are non-copyable QObject owners.
-    SupportBundleWorkflow(const SupportBundleWorkflow &) = delete;
-    /// Workflows are non-copy-assignable QObject owners.
-    SupportBundleWorkflow &operator=(const SupportBundleWorkflow &) = delete;
-    /// Workflows are non-movable QObject owners.
-    SupportBundleWorkflow(SupportBundleWorkflow &&) = delete;
-    /// Workflows are non-move-assignable QObject owners.
-    SupportBundleWorkflow &operator=(SupportBundleWorkflow &&) = delete;
+  /// Workflows are non-copyable QObject owners.
+  SupportBundleWorkflow(const SupportBundleWorkflow&) = delete;
+  /// Workflows are non-copy-assignable QObject owners.
+  SupportBundleWorkflow& operator=(const SupportBundleWorkflow&) = delete;
+  /// Workflows are non-movable QObject owners.
+  SupportBundleWorkflow(SupportBundleWorkflow&&) = delete;
+  /// Workflows are non-move-assignable QObject owners.
+  SupportBundleWorkflow& operator=(SupportBundleWorkflow&&) = delete;
 
-    /// Starts support-bundle creation on a worker thread.
-    void Create(support::SupportBundleRequest request);
-    /// Returns the most recent completed support-bundle result.
-    [[nodiscard]] support::CreateSupportBundleResult Result(void) const;
-    /// Returns whether support-bundle creation is running.
-    [[nodiscard]] bool IsBusy(void) const noexcept;
+  /// Starts support-bundle creation on a worker thread.
+  void Create(support::SupportBundleRequest request);
+  /// Returns the most recent completed support-bundle result.
+  [[nodiscard]] support::CreateSupportBundleResult Result(void) const;
+  /// Returns whether support-bundle creation is running.
+  [[nodiscard]] bool IsBusy(void) const noexcept;
 
-  signals:
-    /// Reports that support-bundle creation finished.
-    void finished(void);
+ signals:
+  /// Reports that support-bundle creation finished.
+  void finished(void);
 
-  private:
-    QFutureWatcher<support::CreateSupportBundleResult> watcher_;
+ private:
+  QFutureWatcher<support::CreateSupportBundleResult> watcher_;
 };
 
-} // namespace edit_atlas::presentation
+}  // namespace edit_atlas::presentation
 
-#endif // EDIT_ATLAS_PRESENTATION_SUPPORT_BUNDLE_WORKFLOW_HPP_
+#endif  // EDIT_ATLAS_PRESENTATION_SUPPORT_BUNDLE_WORKFLOW_HPP_

@@ -184,7 +184,9 @@ def test_combo_selection_uses_ax_menu_actions(tmp_path: Path) -> None:
     control = Node(AXRole="AXPopUpButton", AXValue="Event")
     option = Node(AXRole="AXMenuItem", AXTitle="Reel")
     control.actions["AXShowMenu"] = lambda: None
-    option.actions["AXPress"] = lambda: control.attributes.update(AXValue="Reel")
+    option.actions["AXPress"] = lambda: control.attributes.update(
+        AXValue="Reel"
+    )
     session.element = lambda identifier: MacElement(session, control)
     session._find_option_in_roots = lambda name: option
 
@@ -193,7 +195,9 @@ def test_combo_selection_uses_ax_menu_actions(tmp_path: Path) -> None:
     assert session.selected_option("filterCondition0Field") == "Reel"
 
 
-def test_checkable_list_item_uses_ax_value_and_selection(tmp_path: Path) -> None:
+def test_checkable_list_item_uses_ax_value_and_selection(
+    tmp_path: Path,
+) -> None:
     item = Node(
         AXRole="AXRow",
         AXTitle="Comments",
@@ -232,9 +236,7 @@ def test_native_open_panel_uses_go_to_folder_and_ax_actions(
         AXChildren=[open_button],
         AXDefaultButton=open_button,
     )
-    focused_application = Node(
-        AXRole="AXApplication", AXFocusedWindow=dialog
-    )
+    focused_application = Node(AXRole="AXApplication", AXFocusedWindow=dialog)
     system = Node(
         AXRole="AXSystemWide", AXFocusedApplication=focused_application
     )
@@ -291,9 +293,7 @@ def test_native_save_panel_sets_directory_and_filename(tmp_path: Path) -> None:
         AXChildren=[filename_editor, save_button],
         AXDefaultButton=save_button,
     )
-    focused_application = Node(
-        AXRole="AXApplication", AXFocusedWindow=dialog
-    )
+    focused_application = Node(AXRole="AXApplication", AXFocusedWindow=dialog)
     system = Node(
         AXRole="AXSystemWide", AXFocusedApplication=focused_application
     )

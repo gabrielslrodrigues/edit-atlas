@@ -1,25 +1,41 @@
-#include <edit_atlas/formats/xlsx/detail/xlsx_workbook_text.hpp>
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+#include "edit_atlas/formats/xlsx/detail/xlsx_workbook_text.hpp"
 
 #include <array>
 #include <cstddef>
+#include <span>
+#include <string_view>
+
+#include "edit_atlas/core/timeline_projection.hpp"
+#include "edit_atlas/formats/xlsx/xlsx_exporter.hpp"
 
 namespace edit_atlas::formats::xlsx::detail {
 namespace {
 
 struct LocalizedText final {
-    std::string_view english;
-    std::string_view brazilian_portuguese;
+  std::string_view english;
+  std::string_view brazilian_portuguese;
 
-    [[nodiscard]] std::string_view
-    For(WorkbookLanguage language) const noexcept {
-        switch (language) {
-        case WorkbookLanguage::kEnglish:
-            return english;
-        case WorkbookLanguage::kBrazilianPortuguese:
-            return brazilian_portuguese;
-        }
+  [[nodiscard]] std::string_view For(WorkbookLanguage language) const noexcept {
+    switch (language) {
+      case WorkbookLanguage::kEnglish:
         return english;
+      case WorkbookLanguage::kBrazilianPortuguese:
+        return brazilian_portuguese;
     }
+    return english;
+  }
 };
 
 // Entries are indexed by WorkbookTextKey. Keep this order synchronized with
@@ -101,49 +117,46 @@ static_assert(kTexts.size() ==
               static_cast<std::size_t>(WorkbookTextKey::kCount));
 static_assert(kEventColumns.size() == core::kTimelineEventFieldCount);
 
-} // namespace
-
-WorkbookText::WorkbookText(WorkbookLanguage language) noexcept
-    : language_(language) {}
+}  // namespace
 
 std::string_view WorkbookText::Get(WorkbookTextKey key) const noexcept {
-    const auto index = static_cast<std::size_t>(key);
-    if (index >= kTexts.size()) {
-        return {};
-    }
-    return kTexts[index].For(language_);
+  const auto index = static_cast<std::size_t>(key);
+  if (index >= kTexts.size()) {
+    return {};
+  }
+  return kTexts[index].For(language_);
 }
 
-std::string_view
-WorkbookText::EventColumn(core::TimelineEventField field) const noexcept {
-    const auto index = static_cast<std::size_t>(field);
-    if (index >= kEventColumns.size()) {
-        return {};
-    }
-    return kEventColumns[index].For(language_);
+std::string_view WorkbookText::EventColumn(
+    core::TimelineEventField field) const noexcept {
+  const auto index = static_cast<std::size_t>(field);
+  if (index >= kEventColumns.size()) {
+    return {};
+  }
+  return kEventColumns[index].For(language_);
 }
 
-std::span<const WorkbookTextKey>
-WorkbookText::TimelineColumns(void) const noexcept {
-    return kTimelineColumns;
+std::span<const WorkbookTextKey> WorkbookText::TimelineColumns(
+    void) const noexcept {
+  return kTimelineColumns;
 }
 
-std::span<const WorkbookTextKey>
-WorkbookText::DiagnosticColumns(void) const noexcept {
-    return kDiagnosticColumns;
+std::span<const WorkbookTextKey> WorkbookText::DiagnosticColumns(
+    void) const noexcept {
+  return kDiagnosticColumns;
 }
 
-const WorkbookText &WorkbookTextFor(WorkbookLanguage language) noexcept {
-    static const WorkbookText kEnglish{WorkbookLanguage::kEnglish};
-    static const WorkbookText kBrazilianPortuguese{
-        WorkbookLanguage::kBrazilianPortuguese};
-    switch (language) {
+const WorkbookText& WorkbookTextFor(WorkbookLanguage language) noexcept {
+  static constexpr WorkbookText kEnglish{WorkbookLanguage::kEnglish};
+  static constexpr WorkbookText kBrazilianPortuguese{
+      WorkbookLanguage::kBrazilianPortuguese};
+  switch (language) {
     case WorkbookLanguage::kEnglish:
-        return kEnglish;
+      return kEnglish;
     case WorkbookLanguage::kBrazilianPortuguese:
-        return kBrazilianPortuguese;
-    }
-    return kEnglish;
+      return kBrazilianPortuguese;
+  }
+  return kEnglish;
 }
 
-} // namespace edit_atlas::formats::xlsx::detail
+}  // namespace edit_atlas::formats::xlsx::detail

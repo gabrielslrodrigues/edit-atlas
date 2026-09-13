@@ -1,0 +1,11 @@
+* text=auto eol=lf
+
+LICENSE -text
+src/frontends/resources/fonts/LICENSE.txt -text
+*.ttf -text
+*.icns -text
+*.ico -text
+*.png -text
+tests/fixtures/**/*.edl -text
+tests/e2e/uv.lock -text
+vcpkg-overlays/libxlsxwriter/minizip.diff -text

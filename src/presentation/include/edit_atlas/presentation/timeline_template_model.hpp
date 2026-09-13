@@ -1,15 +1,17 @@
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #ifndef EDIT_ATLAS_PRESENTATION_TIMELINE_TEMPLATE_MODEL_HPP_
 #define EDIT_ATLAS_PRESENTATION_TIMELINE_TEMPLATE_MODEL_HPP_
-
-#include <edit_atlas/services/timeline_template.hpp>
-
-#include <QAbstractListModel>
-#include <QByteArray>
-#include <QHash>
-#include <QModelIndex>
-#include <QObject>
-#include <QVariant>
-#include <Qt>
 
 #include <optional>
 #include <span>
@@ -17,63 +19,73 @@
 #include <string_view>
 #include <vector>
 
+#include "QAbstractListModel"
+#include "QByteArray"
+#include "QHash"
+#include "QModelIndex"
+#include "QObject"
+#include "QVariant"
+#include "Qt"
+
+#include "edit_atlas/services/timeline_template.hpp"
+
 namespace edit_atlas::presentation {
 
 /// Presents saved timeline templates and the explicit no-template choice.
 class TimelineTemplateModel final : public QAbstractListModel {
-    Q_OBJECT
+  Q_OBJECT
 
-  public:
-    /// Roles describing one template choice.
-    enum Role {
-        /// Stable, nonlocalized template identifier.
-        kIdentifierRole = Qt::UserRole,
-        /// Whether this choice is currently active.
-        kActiveRole,
-        /// Whether the active template has unapplied changes.
-        kModifiedRole,
-    };
-    Q_ENUM(Role)
+ public:
+  /// Roles describing one template choice.
+  enum Role {
+    /// Stable, nonlocalized template identifier.
+    kIdentifierRole = Qt::UserRole,
+    /// Whether this choice is currently active.
+    kActiveRole,
+    /// Whether the active template has unapplied changes.
+    kModifiedRole,
+  };
+  Q_ENUM(Role)
 
-    /// Creates a model containing only the no-template choice.
-    explicit TimelineTemplateModel(QObject *parent = nullptr);
-    /// Destroys the copied template catalog.
-    ~TimelineTemplateModel(void) override = default;
+  /// Creates a model containing only the no-template choice.
+  explicit TimelineTemplateModel(QObject* parent = nullptr);
+  /// Destroys the copied template catalog.
+  ~TimelineTemplateModel(void) override = default;
 
-    TimelineTemplateModel(const TimelineTemplateModel &) = delete;
-    TimelineTemplateModel &operator=(const TimelineTemplateModel &) = delete;
-    TimelineTemplateModel(TimelineTemplateModel &&) = delete;
-    TimelineTemplateModel &operator=(TimelineTemplateModel &&) = delete;
+  TimelineTemplateModel(const TimelineTemplateModel&) = delete;
+  TimelineTemplateModel& operator=(const TimelineTemplateModel&) = delete;
+  TimelineTemplateModel(TimelineTemplateModel&&) = delete;
+  TimelineTemplateModel& operator=(TimelineTemplateModel&&) = delete;
 
-    /// Returns the no-template row plus every saved template.
-    [[nodiscard]] int
-    rowCount(const QModelIndex &parent = QModelIndex{}) const override;
-    /// Returns localized display text and stable template state.
-    [[nodiscard]] QVariant data(const QModelIndex &index,
-                                int role = Qt::DisplayRole) const override;
-    /// Returns stable QML role names for template state.
-    [[nodiscard]] QHash<int, QByteArray> roleNames(void) const override;
+  /// Returns the no-template row plus every saved template.
+  [[nodiscard]] int rowCount(
+      const QModelIndex& parent = QModelIndex{}) const override;
+  /// Returns localized display text and stable template state.
+  [[nodiscard]] QVariant data(const QModelIndex& index,
+                              int role = Qt::DisplayRole) const override;
+  /// Returns stable QML role names for template state.
+  [[nodiscard]] QHash<int, QByteArray> roleNames(void) const override;
 
-    /// Replaces the copied catalog, active identifier, and modified state.
-    void SetTemplates(std::span<const services::TimelineTemplate> templates,
-                      std::optional<std::string_view> active_identifier,
-                      bool modified);
-    /// Returns the row containing the active choice.
-    [[nodiscard]] int ActiveRow(void) const noexcept;
-    /// Notifies views that localized no-template text changed.
-    void Retranslate(void);
+  /// Replaces the copied catalog, active identifier, and modified state.
+  void SetTemplates(std::span<const services::TimelineTemplate> templates,
+                    std::optional<std::string_view> active_identifier,
+                    bool modified);
+  /// Returns the row containing the active choice.
+  [[nodiscard]] int ActiveRow(void) const noexcept;
+  /// Notifies views that localized no-template text changed.
+  void Retranslate(void);
 
-  private:
-    struct TemplateItem final {
-        std::string identifier;
-        std::string name;
-    };
+ private:
+  struct TemplateItem final {
+    std::string identifier;
+    std::string name;
+  };
 
-    std::vector<TemplateItem> templates_;
-    std::string active_identifier_;
-    bool modified_ = false;
+  std::vector<TemplateItem> templates_;
+  std::string active_identifier_;
+  bool modified_ = false;
 };
 
-} // namespace edit_atlas::presentation
+}  // namespace edit_atlas::presentation
 
-#endif // EDIT_ATLAS_PRESENTATION_TIMELINE_TEMPLATE_MODEL_HPP_
+#endif  // EDIT_ATLAS_PRESENTATION_TIMELINE_TEMPLATE_MODEL_HPP_

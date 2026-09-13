@@ -1,24 +1,25 @@
 """Windows desktop automation through pywinauto and UI Automation.
 
-Interactions in this module use UIA control patterns, except for Windows'
-native file chooser. Its blocking modal UIA provider exposes neither its
-filename field nor accept button through traversal, so the adapter sets the
-globally focused filename editor through its Value pattern. A combo box is
-selected through its items' patterns when the provider exposes them while
-collapsed, and otherwise by pointer input at the accessible bounds of an item
-in its popup, because Qt does not commit desktop ExpandCollapse or
-SelectionItem actions. A native popup realizes only the items in its viewport,
-so it is paged like any virtualized list. Explicit coordinates and image
+Interactions in this module use UIA control patterns, except for
+Windows' native file chooser. Its blocking modal UIA provider exposes
+neither its filename field nor accept button through traversal, so
+the adapter sets the globally focused filename editor through its
+Value pattern. A combo box is selected through its items' patterns
+when the provider exposes them while collapsed, and otherwise by
+pointer input at the accessible bounds of an item in its popup,
+because Qt does not commit desktop ExpandCollapse or SelectionItem
+actions. A native popup realizes only the items in its viewport, so
+it is paged like any virtualized list. Explicit coordinates and image
 matching are absent.
 """
 
 from __future__ import annotations
 
-from collections import deque
 import os
-from pathlib import Path
 import subprocess
 import threading
+from collections import deque
+from pathlib import Path
 from typing import Any, Mapping, Sequence
 
 from adapters.processes import ProcessRegistry
@@ -30,7 +31,7 @@ class AccessibilityBackendError(RuntimeError):
 
 
 class ElementNotFoundError(LookupError):
-    """Raised when a semantic element is absent after bounded polling."""
+    """Raised when an element is absent after bounded polling."""
 
 
 class StartupNotReadyError(ElementNotFoundError):
@@ -192,9 +193,12 @@ class WindowsApplicationSession:
             main_window = self.element(
                 "mainWindow", timeout=self._startup_timeout
             )
-            # A visible UIA tree does not mean the launched window is in the
-            # foreground. Pointer-backed interactions would otherwise land on
-            # whichever application still covers it on a developer desktop.
+            # A visible UIA tree does not mean the launched window is in
+            # the
+            # foreground. Pointer-backed interactions would otherwise
+            # land on
+            # whichever application still covers it on a developer
+            # desktop.
             main_window.set_focus()
         except ElementNotFoundError as error:
             raise StartupNotReadyError(
@@ -260,7 +264,8 @@ class WindowsApplicationSession:
         node = self._find_named(names, root=root)
         if node is None:
             raise ElementNotFoundError(
-                f"could not find a showing accessible named one of {tuple(names)!r}"
+                "could not find a showing accessible named one of "
+                f"{tuple(names)!r}"
             )
         self._activate_node(node)
 
@@ -301,14 +306,20 @@ class WindowsApplicationSession:
         return self._is_checked(self._list_item(identifier, name))
 
     def select_list_item(self, identifier: str, name: str) -> None:
-        # Qt exposes checkable QListWidget items through SelectionItem, but
-        # CurrentIsSelected can reflect their check state without making them
+        # Qt exposes checkable QListWidget items through SelectionItem,
+        # but
+        # CurrentIsSelected can reflect their check state without making
+        # them
         # current, so a click at the reported bounds is the selection
-        # interaction. Which row it landed on still has to be established:
+        # interaction. Which row it landed on still has to be
+        # established:
         # the shared movement buttons act on the current row, and their
-        # enabled state cannot identify it, being true for any current row
-        # above the first. A click one row off would pass that check and move
-        # the wrong column. Qt reports the current row as the focused one,
+        # enabled state cannot identify it, being true for any current
+        # row
+        # above the first. A click one row off would pass that check and
+        # move
+        # the wrong column. Qt reports the current row as the focused
+        # one,
         # which identifies it.
         node = self._list_item(identifier, name)
         self._click_accessible_node(node, f"list item {name!r}")
@@ -326,8 +337,10 @@ class WindowsApplicationSession:
             ) from error
 
     def current_list_item(self, identifier: str) -> str | None:
-        # Qt reports the current row as the focused one, which is what the
-        # controls beside a list act on. UIA exposes no current-row property
+        # Qt reports the current row as the focused one, which is what
+        # the
+        # controls beside a list act on. UIA exposes no current-row
+        # property
         # of its own.
         for node in self._list_nodes(identifier):
             if self._has_keyboard_focus(node):
@@ -345,13 +358,14 @@ class WindowsApplicationSession:
         except Exception:
             return False
 
-    def move_list_item(
-        self, identifier: str, name: str, control: str
-    ) -> None:
+    def move_list_item(self, identifier: str, name: str, control: str) -> None:
         # Enumerating the list's accessible children resets the widget's
-        # current row, and the controls beside a list act on that row, so a
-        # lookup between selecting a row and acting on it destroys its own
-        # precondition. Both elements are resolved first for that reason.
+        # current row, and the controls beside a list act on that row,
+        # so a
+        # lookup between selecting a row and acting on it destroys its
+        # own
+        # precondition. Both elements are resolved first for that
+        # reason.
         node = self._list_item(identifier, name)
         button = self.element(control)
         self._click_accessible_node(node, f"list item {name!r}")
@@ -445,13 +459,19 @@ class WindowsApplicationSession:
             dialog.has_focus,
             lambda focused: focused,
             timeout=self._timeout,
-            description=f"native file chooser {dialog_identifier!r} to receive focus",
+            description=(
+                f"native file chooser {dialog_identifier!r} to receive focus"
+            ),
         )
         try:
-            # The shell exposes no traversable filename editor, but Ctrl+A
-            # primes its focus and GetFocusedElement returns the standard edit
-            # with a writable Value pattern. Set the whole path atomically so
-            # autocomplete cannot discard characters from a typed long path.
+            # The shell exposes no traversable filename editor, but
+            # Ctrl+A
+            # primes its focus and GetFocusedElement returns the
+            # standard edit
+            # with a writable Value pattern. Set the whole path
+            # atomically so
+            # autocomplete cannot discard characters from a typed long
+            # path.
             self._keyboard_sender("^a", pause=0)
             if not self._set_focused_native_filename(os.fspath(path)):
                 self._keyboard_sender("^a", pause=0)
@@ -472,7 +492,8 @@ class WindowsApplicationSession:
             lambda present: not present,
             timeout=self._timeout,
             description=(
-                f"native file chooser {dialog_identifier!r} to accept keyboard input"
+                f"native file chooser {dialog_identifier!r} "
+                "to accept keyboard input"
             ),
         )
         if overwrite_expected:
@@ -481,12 +502,13 @@ class WindowsApplicationSession:
     def _accept_native_overwrite_confirmation(self) -> None:
         """Accept the shell's overwrite prompt when Windows raises one.
 
-        The packaged dialogs are declared with ``popupType: Popup.Item``, so
-        they render in-scene and Windows adds no ``Confirm Save As`` window
-        of its own; the application-owned replacement dialog is then the
-        only confirmation. Pass through the shell prompt when a build does
-        raise one, and continue when it does not, rather than requiring a
-        window the frontend never creates.
+        The packaged dialogs are declared with ``popupType:
+        Popup.Item``, so they render in-scene and Windows adds no
+        ``Confirm Save As`` window of its own; the application-owned
+        replacement dialog is then the only confirmation. Pass
+        through the shell prompt when a build does raise one, and
+        continue when it does not, rather than requiring a window the
+        frontend never creates.
         """
         try:
             confirmation = wait_until(
@@ -522,13 +544,20 @@ class WindowsApplicationSession:
         self, menu_identifier: str, action_identifier: str
     ) -> None:
         menu = self.element(menu_identifier)
-        # Windows offers an Invoke provider for any element with an action
-        # interface, so accepting a pattern does not prove that it opened the
-        # menu. Qt Quick's QML menu bar item implements its press action, while
-        # Qt Widgets exposes menu titles as QAction and its accepted action does
-        # not provide a usable complete interaction. Preserve the Quick action
-        # contract and route only QAction openers through their bounds. A prior
-        # interaction may already have left this menu open, so do neither when
+        # Windows offers an Invoke provider for any element with an
+        # action
+        # interface, so accepting a pattern does not prove that it
+        # opened the
+        # menu. Qt Quick's QML menu bar item implements its press
+        # action, while
+        # Qt Widgets exposes menu titles as QAction and its accepted
+        # action does
+        # not provide a usable complete interaction. Preserve the Quick
+        # action
+        # contract and route only QAction openers through their bounds.
+        # A prior
+        # interaction may already have left this menu open, so do
+        # neither when
         # the action is already showing.
         if not self.has_element(action_identifier):
             opened = False
@@ -549,10 +578,14 @@ class WindowsApplicationSession:
                     description=f"{menu_identifier!r} menu to open",
                 )
         action = self.element(action_identifier)
-        # Pointer input on purpose. Qt Widgets fulfils a menu item's press
-        # action with QAction::trigger, which runs the action but leaves the
-        # menu open, and an open menu grabs input from everything after it. A
-        # click both triggers and dismisses, which is the whole interaction.
+        # Pointer input on purpose. Qt Widgets fulfils a menu item's
+        # press
+        # action with QAction::trigger, which runs the action but leaves
+        # the
+        # menu open, and an open menu grabs input from everything after
+        # it. A
+        # click both triggers and dismisses, which is the whole
+        # interaction.
         self._click_accessible_node(action, action_identifier)
 
     def _open_menu_through_action(
@@ -567,13 +600,19 @@ class WindowsApplicationSession:
                     completed.is_set,
                     lambda done: done,
                     timeout=min(2.0, self._timeout),
-                    description=f"{menu_identifier!r} opener action to complete",
+                    description=(
+                        f"{menu_identifier!r} opener action to complete"
+                    ),
                 )
             except PollTimeoutError:
-                # A Qt Widgets menu can keep Invoke blocked for as long as the
-                # popup is active, while its provider serializes every tree
-                # query behind that call. Dismiss it without querying UIA so
-                # the action thread can return, then use the click path below.
+                # A Qt Widgets menu can keep Invoke blocked for as long
+                # as the
+                # popup is active, while its provider serializes every
+                # tree
+                # query behind that call. Dismiss it without querying
+                # UIA so
+                # the action thread can return, then use the click path
+                # below.
                 self._keyboard_sender("{ESC}", pause=0)
                 wait_until(
                     completed.is_set,
@@ -670,8 +709,10 @@ class WindowsApplicationSession:
     def wait_selected_option(self, identifier: str, expected: str) -> str:
         return wait_until(
             lambda: self.selected_option(identifier),
-            lambda selected: self._normalized_name(selected)
-            == self._normalized_name(expected),
+            lambda selected: (
+                self._normalized_name(selected)
+                == self._normalized_name(expected)
+            ),
             timeout=self._timeout,
             description=f"{identifier!r} selection to become {expected!r}",
         )
@@ -721,9 +762,7 @@ class WindowsApplicationSession:
         )
         accessibility_path.write_text(accessibility_tree, encoding="utf-8")
         windows = (
-            [native_dialog]
-            if native_dialog is not None
-            else self._windows()
+            [native_dialog] if native_dialog is not None else self._windows()
         )
         if not windows:
             return
@@ -777,7 +816,8 @@ class WindowsApplicationSession:
             self._execute_pattern(selection.Select, node)
             return
         raise ActionNotSupportedError(
-            f"{self._node_name(node)!r} exposes no supported UIA control pattern"
+            f"{self._node_name(node)!r} exposes no supported "
+            "UIA control pattern"
         )
 
     def _select_option_node(
@@ -815,15 +855,20 @@ class WindowsApplicationSession:
     def _select_combo_option(
         self, control: Any, identifier: str, option: str
     ) -> None:
-        # A provider that exposes its items while collapsed can be selected
-        # without the popup, which no scroll position can then affect. Qt
+        # A provider that exposes its items while collapsed can be
+        # selected
+        # without the popup, which no scroll position can then affect.
+        # Qt
         # Quick's in-scene popup is such a provider. Qt does not always
-        # commit the action, so a selection that does not take effect falls
+        # commit the action, so a selection that does not take effect
+        # falls
         # through to the popup rather than failing.
         direct = self._named_node(self._option_nodes(control), option)
         if direct is not None:
-            # A committed selection is observable at once, so this is bounded
-            # briefly: the cost of the attempt is paid before every fallback.
+            # A committed selection is observable at once, so this is
+            # bounded
+            # briefly: the cost of the attempt is paid before every
+            # fallback.
             budget = min(2.0, self._timeout)
             try:
                 if self._select_option_node(
@@ -844,11 +889,15 @@ class WindowsApplicationSession:
             description=f"combo box option {option!r} for {identifier!r}",
         )
         # Windows offers an Invoke provider for anything with an action
-        # interface, whether or not the element implements the press action
-        # behind it: a Qt Widgets popup item names only its toggle action, so
-        # invoking it is accepted and selects nothing. The pattern is tried
+        # interface, whether or not the element implements the press
+        # action
+        # behind it: a Qt Widgets popup item names only its toggle
+        # action, so
+        # invoking it is accepted and selects nothing. The pattern is
+        # tried
         # first and the selection is what decides, with a click as the
-        # fallback, because that is what commits on every provider seen here.
+        # fallback, because that is what commits on every provider seen
+        # here.
         budget = min(2.0, self._timeout)
         committed = False
         try:
@@ -866,13 +915,15 @@ class WindowsApplicationSession:
         self._wait_selected_option_for(control, target, option)
 
     def _open_combo_popup(self, control: Any, identifier: str) -> None:
-        """Open a combo box popup through the control's own press action.
+        """Open a combo box popup through the control's own press
+        action.
 
-        Qt offers an ExpandCollapse provider for every combo box but fulfils
-        Expand with a ShowMenu action, which a Qt Quick item cannot declare,
-        so that pattern accepts the request and opens nothing. Invoke reaches
-        the press action the control does declare, which is why this does not
-        go through the pattern order the other controls use.
+        Qt offers an ExpandCollapse provider for every combo box but
+        fulfils Expand with a ShowMenu action, which a Qt Quick item
+        cannot declare, so that pattern accepts the request and opens
+        nothing. Invoke reaches the press action the control does
+        declare, which is why this does not go through the pattern
+        order the other controls use.
         """
         if self._pattern(control, "iface_invoke") is not None:
             self._invoke(control)
@@ -884,8 +935,10 @@ class WindowsApplicationSession:
         if target is not None:
             return target
 
-        # A native combo popup is a separate window that realizes only the
-        # items inside its viewport, so an option below the fold is absent
+        # A native combo popup is a separate window that realizes only
+        # the
+        # items inside its viewport, so an option below the fold is
+        # absent
         # from the UIA tree however long the wait. Page it the way a
         # virtualized list is paged instead of depending on where the
         # control sits on screen.
@@ -911,9 +964,7 @@ class WindowsApplicationSession:
 
     def _combo_popup_list(self, control: Any) -> Any | None:
         for root in (control, None):
-            popup = self._find_named(
-                None, root=root, control_types=("List",)
-            )
+            popup = self._find_named(None, root=root, control_types=("List",))
             if popup is not None:
                 return popup
         return None
@@ -924,7 +975,8 @@ class WindowsApplicationSession:
             node.click_input()
         except Exception as error:
             raise ActionNotSupportedError(
-                f"accessible element {description!r} could not be clicked: {error}"
+                f"accessible element {description!r} "
+                f"could not be clicked: {error}"
             ) from error
 
     def _wait_selected_option_for(
@@ -949,9 +1001,11 @@ class WindowsApplicationSession:
 
         wait_until(
             selected_state,
-            lambda state: self._normalized_name(state[0])
-            == self._normalized_name(expected)
-            or state[1],
+            lambda state: (
+                self._normalized_name(state[0])
+                == self._normalized_name(expected)
+                or state[1]
+            ),
             timeout=self._timeout if timeout is None else timeout,
             description=f"option {expected!r} to become selected",
         )
@@ -964,9 +1018,7 @@ class WindowsApplicationSession:
             )
         return self._invoke_pattern(pattern.Invoke, node)
 
-    def _invoke_pattern(
-        self, operation: Any, node: Any
-    ) -> threading.Event:
+    def _invoke_pattern(self, operation: Any, node: Any) -> threading.Event:
         return self._execute_async(operation, self._node_name(node))
 
     def _execute_async(
@@ -1006,7 +1058,9 @@ class WindowsApplicationSession:
                 f"UIA action failed for {self._node_name(node)!r}: {error}"
             ) from error
 
-    def _set_toggle_state(self, node: Any, checked: bool, description: str) -> None:
+    def _set_toggle_state(
+        self, node: Any, checked: bool, description: str
+    ) -> None:
         toggle = self._pattern(node, "iface_toggle")
         if toggle is None:
             raise ActionNotSupportedError(
@@ -1030,8 +1084,10 @@ class WindowsApplicationSession:
                 try:
                     return self._toggle_state(toggle), node.is_visible()
                 except Exception:
-                    # Qt removes a menu item from the UIA tree when its menu
-                    # closes. The setting is verified after the menu is opened
+                    # Qt removes a menu item from the UIA tree when its
+                    # menu
+                    # closes. The setting is verified after the menu is
+                    # opened
                     # again by the calling workflow.
                     return None, False
 
@@ -1107,9 +1163,12 @@ class WindowsApplicationSession:
             return added
 
         collect()
-        # A virtualized list exposes only the rows inside its viewport, so
-        # a single snapshot silently omits everything scrolled out of view.
-        # Page to the bottom merging newly revealed rows, then page back so
+        # A virtualized list exposes only the rows inside its viewport,
+        # so
+        # a single snapshot silently omits everything scrolled out of
+        # view.
+        # Page to the bottom merging newly revealed rows, then page back
+        # so
         # repeated observations of the same list stay consistent.
         pages = 0
         if not page:
@@ -1138,18 +1197,22 @@ class WindowsApplicationSession:
         return int(suffix) if suffix.isdigit() else None
 
     def _page_list(self, control: Any, direction: str) -> bool:
-        """Page a scrollable control, reporting whether it accepted it."""
+        """Page a scrollable control, reporting acceptance."""
         try:
             control.scroll(direction, "page")
             return True
         except Exception:
             pass
 
-        # Qt Quick's ListView currently exposes its rows through UIA but no
-        # Scroll pattern. It does implement keyboard paging once UIA gives
-        # the list focus, so use that semantic fallback instead of wheel or
+        # Qt Quick's ListView currently exposes its rows through UIA but
+        # no
+        # Scroll pattern. It does implement keyboard paging once UIA
+        # gives
+        # the list focus, so use that semantic fallback instead of wheel
+        # or
         # coordinate input. A control that has the pattern and reports
-        # nothing to scroll is not virtualized, and paging it would only move
+        # nothing to scroll is not virtualized, and paging it would only
+        # move
         # the current row that the controls beside it act on.
         scroll = self._pattern(control, "iface_scroll")
         if scroll is not None and not self._vertically_scrollable(scroll):
@@ -1170,11 +1233,11 @@ class WindowsApplicationSession:
             return True
 
     def _list_item(self, identifier: str, name: str) -> Any:
-        # Answered from the visible rows where possible: paging moves the
-        # current row, and this runs immediately before the row is clicked.
-        node = self._named_node(
-            self._list_nodes(identifier, page=False), name
-        )
+        # Answered from the visible rows where possible: paging moves
+        # the
+        # current row, and this runs immediately before the row is
+        # clicked.
+        node = self._named_node(self._list_nodes(identifier, page=False), name)
         if node is None:
             node = self._named_node(self._list_nodes(identifier), name)
         if node is None:
@@ -1187,7 +1250,8 @@ class WindowsApplicationSession:
         return [
             node
             for node in self._descendants(control)
-            if self._control_type(node) in ("ListItem", "MenuItem", "RadioButton")
+            if self._control_type(node)
+            in ("ListItem", "MenuItem", "RadioButton")
         ]
 
     def _native_file_dialog(self, identifier: str) -> Any:
@@ -1340,9 +1404,13 @@ class WindowsApplicationSession:
             else {self._normalized_name(name) for name in names}
         )
         valid_types = None if control_types is None else set(control_types)
-        roots = (root,) if root is not None else tuple(reversed(self._windows()))
+        roots = (
+            (root,) if root is not None else tuple(reversed(self._windows()))
+        )
         for candidate_root in roots:
-            if self._named_node_matches(candidate_root, candidates, valid_types):
+            if self._named_node_matches(
+                candidate_root, candidates, valid_types
+            ):
                 return candidate_root
         for candidate_root in roots:
             for node in self._descendants(candidate_root):

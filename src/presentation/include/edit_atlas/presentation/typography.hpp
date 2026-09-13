@@ -1,8 +1,20 @@
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #ifndef EDIT_ATLAS_PRESENTATION_TYPOGRAPHY_HPP_
 #define EDIT_ATLAS_PRESENTATION_TYPOGRAPHY_HPP_
 
-#include <QString>
-#include <QStringList>
+#include "QString"
+#include "QStringList"
 
 namespace edit_atlas::presentation {
 
@@ -12,24 +24,24 @@ namespace edit_atlas::presentation {
 /// points so device-independent scaling and high-DPI behavior are unchanged.
 /// Neither frontend defines a font of its own.
 struct ApplicationTypography final {
-    /// Bundled family applied when its faces registered successfully.
-    QString family;
-    /// Point size of body text.
-    int bodyPointSize;
-    /// Point size of section headings.
-    int headingPointSize;
-    /// Point size of window and page titles.
-    int titlePointSize;
-    /// Weight of body text.
-    int bodyWeight;
-    /// Weight of section headings.
-    int headingWeight;
-    /// Weight of window and page titles.
-    int titleWeight;
+  /// Bundled family applied when its faces registered successfully.
+  QString family;
+  /// Point size of body text.
+  int body_point_size;
+  /// Point size of section headings.
+  int heading_point_size;
+  /// Point size of window and page titles.
+  int title_point_size;
+  /// Weight of body text.
+  int body_weight;
+  /// Weight of section headings.
+  int heading_weight;
+  /// Weight of window and page titles.
+  int title_weight;
 };
 
 /// Returns the shared typography policy.
-[[nodiscard]] const ApplicationTypography &ApplicationTypographyPolicy(void);
+[[nodiscard]] const ApplicationTypography& ApplicationTypographyPolicy(void);
 
 /// Resource paths of the bundled faces, in the order they are registered.
 ///
@@ -58,6 +70,6 @@ void ApplyApplicationTypography(void);
 /// string otherwise, which leaves the platform default in place.
 [[nodiscard]] QString ResolvedTypographyFamily(void);
 
-} // namespace edit_atlas::presentation
+}  // namespace edit_atlas::presentation
 
-#endif // EDIT_ATLAS_PRESENTATION_TYPOGRAPHY_HPP_
+#endif  // EDIT_ATLAS_PRESENTATION_TYPOGRAPHY_HPP_

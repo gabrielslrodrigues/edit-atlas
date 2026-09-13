@@ -1,0 +1,5 @@
+file(STRINGS "${CMAKE_CURRENT_LIST_DIR}/MinimumVersion.txt"
+    EDIT_ATLAS_MINIMUM_CMAKE_VERSION)
+cmake_minimum_required(VERSION ${EDIT_ATLAS_MINIMUM_CMAKE_VERSION})
+set(EDIT_ATLAS_STYLE_MODE check)
+include("${CMAKE_CURRENT_LIST_DIR}/Style.cmake")

@@ -1,20 +1,20 @@
 """macOS desktop automation through the Accessibility API.
 
-Application controls are located by their stable Qt accessibility identifiers
-and manipulated through AX attributes and actions. Native open/save panels are
-owned by a separate macOS process, so they are located through the focused
-system-wide accessibility hierarchy.
+Application controls are located by their stable Qt accessibility
+identifiers and manipulated through AX attributes and actions. Native
+open/save panels are owned by a separate macOS process, so they are
+located through the focused system-wide accessibility hierarchy.
 """
 
 from __future__ import annotations
 
-from collections import deque
-from dataclasses import dataclass
 import os
-from pathlib import Path
 import subprocess
 import sys
 import threading
+from collections import deque
+from dataclasses import dataclass
+from pathlib import Path
 from typing import Any, Iterable, Mapping, Sequence
 
 from adapters.processes import ProcessRegistry
@@ -26,7 +26,7 @@ class AccessibilityBackendError(RuntimeError):
 
 
 class ElementNotFoundError(LookupError):
-    """Raised when a semantic element is absent after bounded polling."""
+    """Raised when an element is absent after bounded polling."""
 
 
 class StartupNotReadyError(ElementNotFoundError):
@@ -54,7 +54,9 @@ class MacElement:
 
 
 class MacAxAdapter:
-    """Launch packaged applications and connect to them through macOS AX."""
+    """Launch packaged applications and connect to them through macOS
+    AX.
+    """
 
     def __init__(
         self,
@@ -247,7 +249,8 @@ class MacApplicationSession:
         node = self._find_named(root, names)
         if node is None:
             raise ElementNotFoundError(
-                f"could not find a showing accessible named one of {tuple(names)!r}"
+                "could not find a showing accessible named one of "
+                f"{tuple(names)!r}"
             )
         self._activate_node(node)
 
@@ -287,7 +290,9 @@ class MacApplicationSession:
     def select_list_item(self, identifier: str, name: str) -> None:
         node = self._list_item(identifier, name)
         if self._is_settable(node, "AXSelected"):
-            self._set_attribute(node, "AXSelected", True, f"list item {name!r}")
+            self._set_attribute(
+                node, "AXSelected", True, f"list item {name!r}"
+            )
         else:
             self._activate_node(node)
         wait_until(
@@ -297,9 +302,7 @@ class MacApplicationSession:
             description=f"list item {name!r} to become selected",
         )
 
-    def move_list_item(
-        self, identifier: str, name: str, control: str
-    ) -> None:
+    def move_list_item(self, identifier: str, name: str, control: str) -> None:
         button = self.element(control)
         self.select_list_item(identifier, name)
         self._activate_node(button)
@@ -313,9 +316,9 @@ class MacApplicationSession:
 
     def select_option(self, identifier: str, option: str) -> None:
         control = self.element(identifier)._raw
-        if self._normalized_name(self._node_text(control)) == self._normalized_name(
-            option
-        ):
+        if self._normalized_name(
+            self._node_text(control)
+        ) == self._normalized_name(option):
             return
 
         actions = self._action_names(control)
@@ -347,7 +350,9 @@ class MacApplicationSession:
         self._send_go_to_folder_shortcut()
         go_sheet = wait_until(
             self._focused_dialog,
-            lambda value: value is not None and not self._same_element(value, dialog),
+            lambda value: (
+                value is not None and not self._same_element(value, dialog)
+            ),
             timeout=self._timeout,
             description="native Go to Folder sheet",
         )
@@ -357,11 +362,15 @@ class MacApplicationSession:
             timeout=self._timeout,
             description="Go to Folder path editor",
         )
-        go_path = path.parent if "save" in dialog_identifier.casefold() else path
+        go_path = (
+            path.parent if "save" in dialog_identifier.casefold() else path
+        )
         self._set_value(path_editor, os.fspath(go_path), "Go to Folder path")
         self._activate_default_button(go_sheet, ("Go", "Ir"))
         wait_until(
-            lambda: self._is_available(go_sheet) and self._is_showing(go_sheet),
+            lambda: (
+                self._is_available(go_sheet) and self._is_showing(go_sheet)
+            ),
             lambda showing: not showing,
             timeout=self._timeout,
             description="Go to Folder sheet to close",
@@ -433,8 +442,10 @@ class MacApplicationSession:
     def wait_selected_option(self, identifier: str, expected: str) -> str:
         return wait_until(
             lambda: self.selected_option(identifier),
-            lambda selected: self._normalized_name(selected)
-            == self._normalized_name(expected),
+            lambda selected: (
+                self._normalized_name(selected)
+                == self._normalized_name(expected)
+            ),
             timeout=self._timeout,
             description=f"{identifier!r} selection to become {expected!r}",
         )
@@ -520,7 +531,9 @@ class MacApplicationSession:
                 self._perform_action(node, action)
                 return
         if self._is_settable(node, "AXSelected"):
-            self._set_attribute(node, "AXSelected", True, self._node_name(node))
+            self._set_attribute(
+                node, "AXSelected", True, self._node_name(node)
+            )
             return
         raise ActionNotSupportedError(
             f"{self._node_name(node)!r} exposes no supported AX action"
@@ -570,7 +583,11 @@ class MacApplicationSession:
     def _native_file_dialog(self, identifier: str) -> Any:
         def find_dialog() -> Any | None:
             identified = self._find_identifier(identifier, showing=True)
-            return identified if identified is not None else self._focused_dialog()
+            return (
+                identified
+                if identified is not None
+                else self._focused_dialog()
+            )
 
         try:
             return wait_until(
@@ -587,7 +604,9 @@ class MacApplicationSession:
         focused_application = self._attribute(
             self._system, "AXFocusedApplication", None
         )
-        roots = [focused_application] if focused_application is not None else []
+        roots = (
+            [focused_application] if focused_application is not None else []
+        )
         for root in roots:
             focused_window = self._attribute(root, "AXFocusedWindow", None)
             if focused_window is not None:
@@ -616,10 +635,9 @@ class MacApplicationSession:
     def _focused_editable(self, root: Any) -> Any | None:
         candidates = []
         for node in self._walk(root):
-            if (
-                self._string_attribute(node, "AXRole") in self._EDITABLE_ROLES
-                and self._is_settable(node, "AXValue")
-            ):
+            if self._string_attribute(
+                node, "AXRole"
+            ) in self._EDITABLE_ROLES and self._is_settable(node, "AXValue"):
                 candidates.append(node)
         return next(
             (
@@ -643,7 +661,12 @@ class MacApplicationSession:
                 for node in candidates
                 if any(
                     token in self._normalized_name(self._node_name(node))
-                    for token in ("save as", "filename", "file name", "salvar como")
+                    for token in (
+                        "save as",
+                        "filename",
+                        "file name",
+                        "salvar como",
+                    )
                 )
             ),
             None,
@@ -652,14 +675,18 @@ class MacApplicationSession:
             return preferred
         if candidates:
             return candidates[0]
-        raise ElementNotFoundError("native save panel contains no filename editor")
+        raise ElementNotFoundError(
+            "native save panel contains no filename editor"
+        )
 
     def _activate_default_button(
         self, dialog: Any, fallback_names: Sequence[str]
     ) -> None:
         button = self._attribute(dialog, "AXDefaultButton", None)
         if button is None:
-            button = self._find_named(dialog, fallback_names, roles=("AXButton",))
+            button = self._find_named(
+                dialog, fallback_names, roles=("AXButton",)
+            )
         if button is None:
             raise ElementNotFoundError(
                 "dialog contains no default button named one of "
@@ -669,7 +696,9 @@ class MacApplicationSession:
             lambda: bool(self._attribute(button, "AXEnabled", True)),
             lambda enabled: enabled,
             timeout=self._timeout,
-            description=f"dialog button {self._node_name(button)!r} to be enabled",
+            description=(
+                f"dialog button {self._node_name(button)!r} to be enabled"
+            ),
         )
         self._activate_node(button)
 
@@ -712,9 +741,7 @@ class MacApplicationSession:
         if rows:
             return rows
         return [
-            node
-            for node in self._children(control)
-            if self._node_name(node)
+            node for node in self._children(control) if self._node_name(node)
         ]
 
     def _list_item(self, identifier: str, name: str) -> Any:
@@ -723,7 +750,8 @@ class MacApplicationSession:
             (
                 candidate
                 for candidate in self._list_nodes(identifier)
-                if self._normalized_name(self._node_name(candidate)) == normalized
+                if self._normalized_name(self._node_name(candidate))
+                == normalized
             ),
             None,
         )
@@ -794,7 +822,9 @@ class MacApplicationSession:
         seen: set[str] = set()
         for attribute in self._CHILD_ATTRIBUTES:
             value = self._attribute(node, attribute, [])
-            if isinstance(value, (str, bytes)) or not hasattr(value, "__iter__"):
+            if isinstance(value, (str, bytes)) or not hasattr(
+                value, "__iter__"
+            ):
                 values = [value]
             else:
                 values = list(value)
@@ -820,7 +850,8 @@ class MacApplicationSession:
         error = self._ax.AXUIElementSetAttributeValue(node, attribute, value)
         if error != self._success:
             raise ActionNotSupportedError(
-                f"setting {attribute} for {description!r} failed with error {error}"
+                f"setting {attribute} for {description!r} "
+                f"failed with error {error}"
             )
 
     def _is_settable(self, node: Any, attribute: str) -> bool:
@@ -845,7 +876,9 @@ class MacApplicationSession:
         if not isinstance(result, tuple) or len(result) != 2:
             return default
         error, value = result
-        return value if error == self._success and value is not None else default
+        return (
+            value if error == self._success and value is not None else default
+        )
 
     def _action_names(self, node: Any) -> tuple[str, ...]:
         try:
@@ -951,7 +984,9 @@ class MacApplicationSession:
     def _diagnostic_roots(self) -> list[tuple[str, Any]]:
         roots = [("application", self._application)]
         focused = self._attribute(self._system, "AXFocusedApplication", None)
-        if focused is not None and not self._same_element(focused, self._application):
+        if focused is not None and not self._same_element(
+            focused, self._application
+        ):
             roots.append(("focused application", focused))
         return roots
 
@@ -965,7 +1000,9 @@ class MacApplicationSession:
                 continue
             visited.add(key)
             yield depth, node
-            pending.extend((depth + 1, child) for child in self._children(node))
+            pending.extend(
+                (depth + 1, child) for child in self._children(node)
+            )
 
     @property
     def _success(self) -> int:

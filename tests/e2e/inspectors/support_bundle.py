@@ -7,10 +7,12 @@ from zipfile import BadZipFile, ZipFile
 
 
 class SupportBundleInspectionError(ValueError):
-    pass
+    """The bundle is unreadable or violates its content contract."""
 
 
 class SupportBundle:
+    """Read the contents of an exported diagnostic support bundle."""
+
     def __init__(self, path: Path) -> None:
         self.path = path
         try:
@@ -25,10 +27,12 @@ class SupportBundle:
             ) from error
 
     def entry_names(self) -> set[str]:
+        """Return the complete archive entry names."""
         with ZipFile(self.path) as archive:
             return set(archive.namelist())
 
     def environment_summary(self) -> str:
+        """Decode the required UTF-8 environment summary."""
         with ZipFile(self.path) as archive:
             return archive.read("environment.txt").decode("utf-8")
 
@@ -42,6 +46,7 @@ class SupportBundle:
             )
 
     def assert_private(self, forbidden_names: set[str] | None = None) -> None:
+        """Reject unexpected entries and private input names."""
         names = self.entry_names()
         permitted = {"environment.txt"}
         permitted.update(name for name in names if name.startswith("logs/"))
@@ -52,11 +57,16 @@ class SupportBundle:
             )
         forbidden_suffixes = {".edl", ".xlsx", ".env"}
         exposed = {
-            name for name in names if Path(name).suffix.lower() in forbidden_suffixes
+            name
+            for name in names
+            if Path(name).suffix.lower() in forbidden_suffixes
         }
         if forbidden_names:
-            exposed.update(name for name in names if Path(name).name in forbidden_names)
+            exposed.update(
+                name for name in names if Path(name).name in forbidden_names
+            )
         if exposed:
             raise SupportBundleInspectionError(
-                f"private input appeared in support bundle: {sorted(exposed)!r}"
+                "private input appeared in support bundle: "
+                f"{sorted(exposed)!r}"
             )

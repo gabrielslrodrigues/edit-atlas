@@ -1,15 +1,16 @@
-#include <edit_atlas/presentation/timeline_event_projection_model.hpp>
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
-#include <edit_atlas/core/timeline_projection.hpp>
-
-#include <QAbstractListModel>
-#include <QByteArray>
-#include <QHash>
-#include <QModelIndex>
-#include <QString>
-#include <QVariant>
-#include <Qt>
-#include <QtGlobal>
+#include "edit_atlas/presentation/timeline_event_projection_model.hpp"
 
 #include <algorithm>
 #include <array>
@@ -19,150 +20,160 @@
 #include <span>
 #include <vector>
 
+#include "QAbstractListModel"
+#include "QByteArray"
+#include "QHash"
+#include "QModelIndex"
+#include "QString"
+#include "QVariant"
+#include "Qt"
+#include "QtGlobal"
+
+#include "edit_atlas/core/timeline_projection.hpp"
+
 namespace edit_atlas::presentation {
 namespace {
 
 [[nodiscard]] QString FieldText(core::TimelineEventField field) {
-    switch (field) {
+  switch (field) {
     case core::TimelineEventField::kEventIdentifier:
-        return TimelineEventProjectionModel::tr("Event");
+      return TimelineEventProjectionModel::tr("Event");
     case core::TimelineEventField::kInitialFrame:
-        return TimelineEventProjectionModel::tr("Initial frame");
+      return TimelineEventProjectionModel::tr("Initial frame");
     case core::TimelineEventField::kReel:
-        return TimelineEventProjectionModel::tr("Reel");
+      return TimelineEventProjectionModel::tr("Reel");
     case core::TimelineEventField::kTrackKind:
-        return TimelineEventProjectionModel::tr("Track type");
+      return TimelineEventProjectionModel::tr("Track type");
     case core::TimelineEventField::kTrackIdentifier:
-        return TimelineEventProjectionModel::tr("Track");
+      return TimelineEventProjectionModel::tr("Track");
     case core::TimelineEventField::kEditType:
-        return TimelineEventProjectionModel::tr("Edit type");
+      return TimelineEventProjectionModel::tr("Edit type");
     case core::TimelineEventField::kTransitionIdentifier:
-        return TimelineEventProjectionModel::tr("Transition");
+      return TimelineEventProjectionModel::tr("Transition");
     case core::TimelineEventField::kTransitionDuration:
-        return TimelineEventProjectionModel::tr("Transition frames");
+      return TimelineEventProjectionModel::tr("Transition frames");
     case core::TimelineEventField::kSourceIn:
-        return TimelineEventProjectionModel::tr("Source in");
+      return TimelineEventProjectionModel::tr("Source in");
     case core::TimelineEventField::kSourceOut:
-        return TimelineEventProjectionModel::tr("Source out");
+      return TimelineEventProjectionModel::tr("Source out");
     case core::TimelineEventField::kRecordIn:
-        return TimelineEventProjectionModel::tr("Record in");
+      return TimelineEventProjectionModel::tr("Record in");
     case core::TimelineEventField::kRecordOut:
-        return TimelineEventProjectionModel::tr("Record out");
+      return TimelineEventProjectionModel::tr("Record out");
     case core::TimelineEventField::kDuration:
-        return TimelineEventProjectionModel::tr("Duration");
+      return TimelineEventProjectionModel::tr("Duration");
     case core::TimelineEventField::kDurationFrames:
-        return TimelineEventProjectionModel::tr("Duration frames");
+      return TimelineEventProjectionModel::tr("Duration frames");
     case core::TimelineEventField::kClipName:
-        return TimelineEventProjectionModel::tr("Clip name");
+      return TimelineEventProjectionModel::tr("Clip name");
     case core::TimelineEventField::kSourceFile:
-        return TimelineEventProjectionModel::tr("Source file");
+      return TimelineEventProjectionModel::tr("Source file");
     case core::TimelineEventField::kComments:
-        return TimelineEventProjectionModel::tr("Comments");
+      return TimelineEventProjectionModel::tr("Comments");
     case core::TimelineEventField::kSourceLine:
-        return TimelineEventProjectionModel::tr("Source line");
+      return TimelineEventProjectionModel::tr("Source line");
     case core::TimelineEventField::kCount:
-        break;
-    }
-    return {};
+      break;
+  }
+  return {};
 }
 
 [[nodiscard]] bool IsKnownField(core::TimelineEventField field) {
-    return field >= core::TimelineEventField::kEventIdentifier &&
-           field < core::TimelineEventField::kCount;
+  return field >= core::TimelineEventField::kEventIdentifier &&
+         field < core::TimelineEventField::kCount;
 }
 
 [[nodiscard]] std::optional<std::array<bool, core::kTimelineEventFieldCount>>
 SelectedFields(std::span<const core::TimelineEventField> projection) {
-    std::array<bool, core::kTimelineEventFieldCount> selected{};
-    for (const auto field : projection) {
-        if (!IsKnownField(field)) {
-            return std::nullopt;
-        }
-        const auto index = static_cast<std::size_t>(field);
-        if (selected[index]) {
-            return std::nullopt;
-        }
-        selected[index] = true;
+  std::array<bool, core::kTimelineEventFieldCount> selected{};
+  for (const auto field : projection) {
+    if (!IsKnownField(field)) {
+      return std::nullopt;
     }
-    return selected;
+    const auto index = static_cast<std::size_t>(field);
+    if (selected[index]) {
+      return std::nullopt;
+    }
+    selected[index] = true;
+  }
+  return selected;
 }
 
-} // namespace
+}  // namespace
 
-TimelineEventProjectionModel::TimelineEventProjectionModel(QObject *parent)
+TimelineEventProjectionModel::TimelineEventProjectionModel(QObject* parent)
     : QAbstractListModel{parent} {
-    static_cast<void>(SetProjection(core::DefaultTimelineEventProjection()));
+  static_cast<void>(SetProjection(core::DefaultTimelineEventProjection()));
 }
 
-int TimelineEventProjectionModel::rowCount(const QModelIndex &parent) const {
-    if (parent.isValid()) {
-        return 0;
-    }
-    const auto maximum =
-        static_cast<std::size_t>(std::numeric_limits<int>::max());
-    return static_cast<int>(std::min(rows_.size(), maximum));
+int TimelineEventProjectionModel::rowCount(const QModelIndex& parent) const {
+  if (parent.isValid()) {
+    return 0;
+  }
+  const auto maximum =
+      static_cast<std::size_t>(std::numeric_limits<int>::max());
+  return static_cast<int>(std::min(rows_.size(), maximum));
 }
 
-QVariant TimelineEventProjectionModel::data(const QModelIndex &index,
+QVariant TimelineEventProjectionModel::data(const QModelIndex& index,
                                             int role) const {
-    if (!index.isValid() || index.row() < 0 || index.row() >= rowCount()) {
-        return {};
-    }
-    const auto &row = rows_[static_cast<std::size_t>(index.row())];
-    switch (role) {
+  if (!index.isValid() || index.row() < 0 || index.row() >= rowCount()) {
+    return {};
+  }
+  const auto& row = rows_[static_cast<std::size_t>(index.row())];
+  switch (role) {
     case Qt::DisplayRole:
-        return FieldText(row.field);
+      return FieldText(row.field);
     case kIdentifierRole: {
-        const auto identifier = core::TimelineEventFieldIdentifier(row.field);
-        return QString::fromUtf8(identifier.data(),
-                                 static_cast<qsizetype>(identifier.size()));
+      const auto identifier = core::TimelineEventFieldIdentifier(row.field);
+      return QString::fromUtf8(identifier.data(),
+                               static_cast<qsizetype>(identifier.size()));
     }
     case kFieldRole:
-        return static_cast<int>(row.field);
+      return static_cast<int>(row.field);
     case kSelectedRole:
-        return row.selected;
+      return row.selected;
     default:
-        return {};
-    }
+      return {};
+  }
 }
 
-bool TimelineEventProjectionModel::setData(const QModelIndex &index,
-                                           const QVariant &value, int role) {
-    if (!index.isValid() || index.row() < 0 || index.row() >= rowCount() ||
-        role != kSelectedRole) {
-        return false;
-    }
-    auto &row = rows_[static_cast<std::size_t>(index.row())];
-    const auto selected = value.toBool();
-    if (row.selected == selected) {
-        return false;
-    }
-    row.selected = selected;
-    emit dataChanged(index, index, {kSelectedRole});
-    emit projectionChanged();
-    return true;
+bool TimelineEventProjectionModel::setData(const QModelIndex& index,
+                                           const QVariant& value, int role) {
+  if (!index.isValid() || index.row() < 0 || index.row() >= rowCount() ||
+      role != kSelectedRole) {
+    return false;
+  }
+  auto& row = rows_[static_cast<std::size_t>(index.row())];
+  const auto selected = value.toBool();
+  if (row.selected == selected) {
+    return false;
+  }
+  row.selected = selected;
+  emit dataChanged(index, index, {kSelectedRole});
+  emit projectionChanged();
+  return true;
 }
 
-Qt::ItemFlags
-TimelineEventProjectionModel::flags(const QModelIndex &index) const {
-    return index.isValid()
-               ? QAbstractListModel::flags(index) | Qt::ItemIsEditable
-               : QAbstractListModel::flags(index);
+Qt::ItemFlags TimelineEventProjectionModel::flags(
+    const QModelIndex& index) const {
+  return index.isValid() ? QAbstractListModel::flags(index) | Qt::ItemIsEditable
+                         : QAbstractListModel::flags(index);
 }
 
 QHash<int, QByteArray> TimelineEventProjectionModel::roleNames(void) const {
-    auto roles = QAbstractListModel::roleNames();
-    roles.insert(kIdentifierRole, "identifier");
-    roles.insert(kFieldRole, "field");
-    roles.insert(kSelectedRole, "selected");
-    return roles;
+  auto roles = QAbstractListModel::roleNames();
+  roles.insert(kIdentifierRole, "identifier");
+  roles.insert(kFieldRole, "field");
+  roles.insert(kSelectedRole, "selected");
+  return roles;
 }
 
 void TimelineEventProjectionModel::SetSelected(int row, bool selected) {
-    if (row < 0 || row >= rowCount()) {
-        return;
-    }
-    static_cast<void>(setData(index(row, 0), selected, kSelectedRole));
+  if (row < 0 || row >= rowCount()) {
+    return;
+  }
+  static_cast<void>(setData(index(row, 0), selected, kSelectedRole));
 }
 
 void TimelineEventProjectionModel::MoveUp(int row) { MoveByOffset(row, -1); }
@@ -170,82 +181,79 @@ void TimelineEventProjectionModel::MoveUp(int row) { MoveByOffset(row, -1); }
 void TimelineEventProjectionModel::MoveDown(int row) { MoveByOffset(row, 1); }
 
 void TimelineEventProjectionModel::Move(int source_row, int destination_row) {
-    if (source_row < 0 || source_row >= rowCount() || destination_row < 0 ||
-        destination_row >= rowCount() || source_row == destination_row) {
-        return;
-    }
-    const auto source = static_cast<std::size_t>(source_row);
-    const auto destination = static_cast<std::size_t>(destination_row);
-    beginMoveRows({}, source_row, source_row, {},
-                  destination_row > source_row ? destination_row + 1
-                                               : destination_row);
-    if (destination < source) {
-        std::rotate(rows_.begin() + static_cast<std::ptrdiff_t>(destination),
-                    rows_.begin() + static_cast<std::ptrdiff_t>(source),
-                    rows_.begin() + static_cast<std::ptrdiff_t>(source + 1));
-    } else {
-        std::rotate(rows_.begin() + static_cast<std::ptrdiff_t>(source),
-                    rows_.begin() + static_cast<std::ptrdiff_t>(source + 1),
-                    rows_.begin() +
-                        static_cast<std::ptrdiff_t>(destination + 1));
-    }
-    endMoveRows();
-    emit projectionChanged();
+  if (source_row < 0 || source_row >= rowCount() || destination_row < 0 ||
+      destination_row >= rowCount() || source_row == destination_row) {
+    return;
+  }
+  const auto source = static_cast<std::size_t>(source_row);
+  const auto destination = static_cast<std::size_t>(destination_row);
+  beginMoveRows(
+      {}, source_row, source_row, {},
+      destination_row > source_row ? destination_row + 1 : destination_row);
+  if (destination < source) {
+    std::rotate(rows_.begin() + static_cast<std::ptrdiff_t>(destination),
+                rows_.begin() + static_cast<std::ptrdiff_t>(source),
+                rows_.begin() + static_cast<std::ptrdiff_t>(source + 1));
+  } else {
+    std::rotate(rows_.begin() + static_cast<std::ptrdiff_t>(source),
+                rows_.begin() + static_cast<std::ptrdiff_t>(source + 1),
+                rows_.begin() + static_cast<std::ptrdiff_t>(destination + 1));
+  }
+  endMoveRows();
+  emit projectionChanged();
 }
 
 bool TimelineEventProjectionModel::SetProjection(
     std::span<const core::TimelineEventField> projection) {
-    const auto selected = SelectedFields(projection);
-    if (!selected.has_value()) {
-        return false;
+  const auto selected = SelectedFields(projection);
+  if (!selected.has_value()) {
+    return false;
+  }
+  beginResetModel();
+  rows_.clear();
+  rows_.reserve(core::kTimelineEventFieldCount);
+  for (const auto field : projection) {
+    rows_.push_back({.field = field, .selected = true});
+  }
+  for (const auto field : core::TimelineEventFields()) {
+    if (!(*selected)[static_cast<std::size_t>(field)]) {
+      rows_.push_back({.field = field, .selected = false});
     }
-    beginResetModel();
-    rows_.clear();
-    rows_.reserve(core::kTimelineEventFieldCount);
-    for (const auto field : projection) {
-        rows_.push_back({.field = field, .selected = true});
-    }
-    for (const auto field : core::TimelineEventFields()) {
-        if (!(*selected)[static_cast<std::size_t>(field)]) {
-            rows_.push_back({.field = field, .selected = false});
-        }
-    }
-    endResetModel();
-    emit projectionChanged();
-    return true;
+  }
+  endResetModel();
+  emit projectionChanged();
+  return true;
 }
 
-std::vector<core::TimelineEventField>
-TimelineEventProjectionModel::Projection(void) const {
-    std::vector<core::TimelineEventField> projection;
-    projection.reserve(rows_.size());
-    for (const auto &row : rows_) {
-        if (row.selected) {
-            projection.push_back(row.field);
-        }
+std::vector<core::TimelineEventField> TimelineEventProjectionModel::Projection(
+    void) const {
+  std::vector<core::TimelineEventField> projection;
+  projection.reserve(rows_.size());
+  for (const auto& row : rows_) {
+    if (row.selected) {
+      projection.push_back(row.field);
     }
-    return projection;
+  }
+  return projection;
 }
 
 int TimelineEventProjectionModel::SelectedCount(void) const noexcept {
-    return static_cast<int>(
-        std::ranges::count(rows_, true, &FieldRow::selected));
+  return static_cast<int>(std::ranges::count(rows_, true, &FieldRow::selected));
 }
 
 bool TimelineEventProjectionModel::IsValid(void) const noexcept {
-    return SelectedCount() != 0;
+  return SelectedCount() != 0;
 }
 
 void TimelineEventProjectionModel::Retranslate(void) {
-    if (!rows_.empty()) {
-        emit dataChanged(index(0, 0), index(rowCount() - 1, 0),
-                         {Qt::DisplayRole});
-    }
+  if (!rows_.empty()) {
+    emit dataChanged(index(0, 0), index(rowCount() - 1, 0), {Qt::DisplayRole});
+  }
 }
 
 void TimelineEventProjectionModel::MoveByOffset(int row, int offset) {
-    const auto target = row + offset;
-    Move(row, target);
+  const auto target = row + offset;
+  Move(row, target);
 }
 
-} // namespace edit_atlas::presentation
+}  // namespace edit_atlas::presentation

@@ -82,3 +82,8 @@ logs/
 # Coding-agent state (shared configuration is tracked; see CONTRIBUTING.md)
 .claude/settings.local.json
 .claude/projects/
+
+# Pinned style-tool environments
+/tools/style/.venv/
+/tools/style/modules/
+.ruff_cache/

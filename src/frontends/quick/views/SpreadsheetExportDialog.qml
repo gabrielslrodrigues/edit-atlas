@@ -121,8 +121,8 @@ Dialog {
             Accessible.name: qsTr("Workbook language")
             model: [
                 qsTr("Same as application"),
-                qsTr("English"),
-                qsTr("Português (Brasil)")
+                "English",
+                "Português (Brasil)"
             ]
             objectName: "workbookLanguageSelector"
         }

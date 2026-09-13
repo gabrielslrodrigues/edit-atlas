@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
+
 set -euo pipefail
+
+# Explain the manual macOS permissions required for packaged GUI testing.
 
 cat >&2 <<'EOF'
 macOS packaged E2E provisioning requires a trusted interactive host on Apple

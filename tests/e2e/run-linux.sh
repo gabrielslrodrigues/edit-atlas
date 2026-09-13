@@ -1,10 +1,16 @@
 #!/usr/bin/env bash
+
 set -euo pipefail
+
+# Run packaged CLI and GUI suites in a prepared Linux desktop session.
 
 script_directory="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 repository_root="$(cd -- "${script_directory}/../.." && pwd)"
 e2e_root="${EDIT_ATLAS_E2E_ROOT:-${repository_root}/build/e2e}"
-media_fixture_directory="${EDIT_ATLAS_E2E_MEDIA_FIXTURE_DIR:-${e2e_root}/media-fixtures}"
+media_fixture_directory="${EDIT_ATLAS_E2E_MEDIA_FIXTURE_DIR:-}"
+if [[ -z "${media_fixture_directory}" ]]; then
+  media_fixture_directory="${e2e_root}/media-fixtures"
+fi
 virtual_environment="${EDIT_ATLAS_E2E_VIRTUAL_ENVIRONMENT:-${e2e_root}/venv}"
 
 if ! command -v uv >/dev/null 2>&1; then
@@ -18,11 +24,11 @@ if [[ -z "${DISPLAY:-}" || -z "${DBUS_SESSION_BUS_ADDRESS:-}" ]]; then
 fi
 
 mkdir -p "${e2e_root}/reports" "${e2e_root}/output" "${e2e_root}/artifacts"
-export UV_PROJECT_ENVIRONMENT="${virtual_environment}"
-export NO_AT_BRIDGE=0
-export QT_LINUX_ACCESSIBILITY_ALWAYS_ON=1
-export QT_QPA_PLATFORM=xcb
-export XDG_SESSION_TYPE=x11
+declare -rx UV_PROJECT_ENVIRONMENT="${virtual_environment}"
+declare -rx NO_AT_BRIDGE=0
+declare -rx QT_LINUX_ACCESSIBILITY_ALWAYS_ON=1
+declare -rx QT_QPA_PLATFORM=xcb
+declare -rx XDG_SESSION_TYPE=x11
 exec uv run --locked --project "${script_directory}" python -m pytest \
   -c "${script_directory}/pytest.ini" \
   "${script_directory}/tests" \

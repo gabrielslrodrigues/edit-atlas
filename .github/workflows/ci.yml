@@ -24,6 +24,12 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  style:
+    name: Style
+    uses: ./.github/workflows/style.yml
+    permissions:
+      contents: read
+
   # Which frontend ships is a build option, so CI derives it instead of
   # assuming it. Everything else in the supported list is exercised on the
   # schedule, however many there are, which keeps any frontend from being
@@ -106,6 +112,7 @@ jobs:
     # validation fails, and it reports no quality signal.
     name: CI gate
     needs:
+      - style
       - packages
       - package-verification
       - packaged-e2e

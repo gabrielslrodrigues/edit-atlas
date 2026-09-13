@@ -2,7 +2,9 @@ QMainWindow {
   background-color: @window@;
 }
 
-QLabel#subtitleLabel, QLabel#emptyDescriptionLabel, QLabel#privacyLabel,
+QLabel#subtitleLabel,
+QLabel#emptyDescriptionLabel,
+QLabel#privacyLabel,
 QLabel#filterResultLabel {
   color: @textSecondary@;
 }
@@ -43,7 +45,8 @@ QWidget#filterConditionRow {
   border-radius: 6px;
 }
 
-QLabel#filterErrorLabel, QLabel#columnSelectionErrorLabel {
+QLabel#filterErrorLabel,
+QLabel#columnSelectionErrorLabel {
   color: @danger@;
 }
 
@@ -64,7 +67,9 @@ QComboBox::drop-down {
   width: 24px;
 }
 
-QLineEdit, QPushButton, QToolButton {
+QLineEdit,
+QPushButton,
+QToolButton {
   background-color: @control@;
   border: 1px solid @border@;
   border-radius: 6px;
@@ -76,22 +81,29 @@ QLineEdit:focus {
   border-color: @focus@;
 }
 
-QPushButton:hover, QToolButton:hover, QToolButton:checked {
+QPushButton:hover,
+QToolButton:hover,
+QToolButton:checked {
   border-color: @accent@;
 }
 
-QPushButton:pressed, QToolButton:pressed {
+QPushButton:pressed,
+QToolButton:pressed {
   background-color: @controlPressed@;
 }
 
-QComboBox:disabled, QLineEdit:disabled, QPushButton:disabled,
+QComboBox:disabled,
+QLineEdit:disabled,
+QPushButton:disabled,
 QToolButton:disabled {
   background-color: @controlPressed@;
   border-color: @controlPressed@;
   color: @disabled@;
 }
 
-QListWidget, QTableView, QTreeWidget {
+QListWidget,
+QTableView,
+QTreeWidget {
   border: 1px solid @border@;
   border-radius: 6px;
   gridline-color: @border@;

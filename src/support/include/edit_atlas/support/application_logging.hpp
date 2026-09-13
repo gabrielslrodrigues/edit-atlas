@@ -1,3 +1,15 @@
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #ifndef EDIT_ATLAS_SUPPORT_APPLICATION_LOGGING_HPP_
 #define EDIT_ATLAS_SUPPORT_APPLICATION_LOGGING_HPP_
 
@@ -23,29 +35,29 @@ inline constexpr std::chrono::hours kDefaultLogRetention =
 
 /// Controls persistent log rotation and age-based retention.
 struct LoggingOptions final {
-    /// Private directory in which logs are stored.
-    std::filesystem::path directory;
-    /// Maximum size of the active log before rotation.
-    std::uintmax_t maximum_file_size;
-    /// Maximum number of active and rotated log files.
-    std::size_t maximum_files;
-    /// Maximum age of a recognized application log.
-    std::chrono::seconds maximum_age;
+  /// Private directory in which logs are stored.
+  std::filesystem::path directory;
+  /// Maximum size of the active log before rotation.
+  std::uintmax_t maximum_file_size;
+  /// Maximum number of active and rotated log files.
+  std::size_t maximum_files;
+  /// Maximum age of a recognized application log.
+  std::chrono::seconds maximum_age;
 };
 
 /// Describes a recoverable failure to initialize persistent logging.
 struct LoggingInitializationFailure final {
-    /// The directory that could not be prepared for logging.
-    std::filesystem::path directory;
-    /// A human-readable description of the initialization failure.
-    std::string message;
+  /// The directory that could not be prepared for logging.
+  std::filesystem::path directory;
+  /// A human-readable description of the initialization failure.
+  std::string message;
 };
 
 /// Returns the private log directory below a platform application-data path.
 ///
 /// \param application_data_path Platform-owned application-data root.
-[[nodiscard]] std::filesystem::path
-ApplicationLogDirectory(const std::filesystem::path &application_data_path);
+[[nodiscard]] std::filesystem::path ApplicationLogDirectory(
+    const std::filesystem::path& application_data_path);
 
 /// Returns whether a filename belongs to Edit Atlas log rotation.
 ///
@@ -60,8 +72,8 @@ ApplicationLogDirectory(const std::filesystem::path &application_data_path);
 /// \param options Rotation, retention, and destination policy.
 /// \returns The active log path or a recoverable initialization failure.
 [[nodiscard]] std::expected<std::filesystem::path, LoggingInitializationFailure>
-InitializeApplicationLogging(const LoggingOptions &options);
+InitializeApplicationLogging(const LoggingOptions& options);
 
-} // namespace edit_atlas::support
+}  // namespace edit_atlas::support
 
-#endif // EDIT_ATLAS_SUPPORT_APPLICATION_LOGGING_HPP_
+#endif  // EDIT_ATLAS_SUPPORT_APPLICATION_LOGGING_HPP_

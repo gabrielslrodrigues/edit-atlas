@@ -1,8 +1,20 @@
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #ifndef EDIT_ATLAS_PRESENTATION_APPEARANCE_HPP_
 #define EDIT_ATLAS_PRESENTATION_APPEARANCE_HPP_
 
-#include <QObject>
-#include <QString>
+#include "QObject"
+#include "QString"
 
 namespace edit_atlas::presentation {
 
@@ -10,12 +22,12 @@ Q_NAMESPACE
 
 /// An interface appearance a user can select.
 enum class ApplicationAppearance {
-    /// Follow the platform color scheme, and keep following it as it changes.
-    kSystem,
-    /// Always present the light palette.
-    kLight,
-    /// Always present the dark palette.
-    kDark,
+  /// Follow the platform color scheme, and keep following it as it changes.
+  kSystem,
+  /// Always present the light palette.
+  kLight,
+  /// Always present the dark palette.
+  kDark,
 };
 Q_ENUM_NS(ApplicationAppearance)
 
@@ -25,10 +37,10 @@ Q_ENUM_NS(ApplicationAppearance)
 /// so it has no member here. Adding a palette, such as a high-contrast one,
 /// means adding a value here rather than reinterpreting a flag.
 enum class ResolvedAppearance {
-    /// Light palette.
-    kLight,
-    /// Dark palette.
-    kDark,
+  /// Light palette.
+  kLight,
+  /// Dark palette.
+  kDark,
 };
 Q_ENUM_NS(ResolvedAppearance)
 
@@ -38,74 +50,74 @@ Q_ENUM_NS(ResolvedAppearance)
 /// Qt Core only, and so both QML and Qt Style Sheets consume them directly.
 /// Both frontends read this table; neither owns a palette of its own.
 struct AppearancePalette final {
-    Q_GADGET
-    /// Primary interactive color, used for selection and emphasis.
-    Q_PROPERTY(QString accent MEMBER accent CONSTANT)
-    /// Accent under a hovered pointer.
-    Q_PROPERTY(QString accentHovered MEMBER accentHovered CONSTANT)
-    /// Accent while a control is pressed.
-    Q_PROPERTY(QString accentPressed MEMBER accentPressed CONSTANT)
-    /// Text and icons drawn on an accent-filled surface.
-    Q_PROPERTY(QString onAccent MEMBER onAccent CONSTANT)
-    /// Application window background.
-    Q_PROPERTY(QString window MEMBER window CONSTANT)
-    /// Raised panel and view background.
-    Q_PROPERTY(QString surface MEMBER surface CONSTANT)
-    /// Secondary surface, for alternating or nested panels.
-    Q_PROPERTY(QString surfaceAlternate MEMBER surfaceAlternate CONSTANT)
-    /// Control background, such as a button or a text field.
-    Q_PROPERTY(QString control MEMBER control CONSTANT)
-    /// Control background under a hovered pointer.
-    Q_PROPERTY(QString controlHovered MEMBER controlHovered CONSTANT)
-    /// Control background while pressed.
-    Q_PROPERTY(QString controlPressed MEMBER controlPressed CONSTANT)
-    /// Separator and control outline.
-    Q_PROPERTY(QString border MEMBER border CONSTANT)
-    /// Outline of the control holding keyboard focus.
-    Q_PROPERTY(QString focus MEMBER focus CONSTANT)
-    /// Text and outlines of a control that cannot be used.
-    Q_PROPERTY(QString disabled MEMBER disabled CONSTANT)
-    /// Body and heading text.
-    Q_PROPERTY(QString textPrimary MEMBER textPrimary CONSTANT)
-    /// Supporting text, such as descriptions and captions.
-    Q_PROPERTY(QString textSecondary MEMBER textSecondary CONSTANT)
-    /// Text drawn on an inverted surface.
-    Q_PROPERTY(QString textInverted MEMBER textInverted CONSTANT)
-    /// Text reporting a recoverable condition.
-    Q_PROPERTY(QString warning MEMBER warning CONSTANT)
-    /// Text reporting a failure.
-    Q_PROPERTY(QString danger MEMBER danger CONSTANT)
-    /// Tooltip background.
-    Q_PROPERTY(QString tooltipSurface MEMBER tooltipSurface CONSTANT)
-    /// Tooltip text.
-    Q_PROPERTY(QString tooltipText MEMBER tooltipText CONSTANT)
+  Q_GADGET
+  /// Primary interactive color, used for selection and emphasis.
+  Q_PROPERTY(QString accent MEMBER accent CONSTANT)
+  /// Accent under a hovered pointer.
+  Q_PROPERTY(QString accentHovered MEMBER accent_hovered CONSTANT)
+  /// Accent while a control is pressed.
+  Q_PROPERTY(QString accentPressed MEMBER accent_pressed CONSTANT)
+  /// Text and icons drawn on an accent-filled surface.
+  Q_PROPERTY(QString onAccent MEMBER on_accent CONSTANT)
+  /// Application window background.
+  Q_PROPERTY(QString window MEMBER window CONSTANT)
+  /// Raised panel and view background.
+  Q_PROPERTY(QString surface MEMBER surface CONSTANT)
+  /// Secondary surface, for alternating or nested panels.
+  Q_PROPERTY(QString surfaceAlternate MEMBER surface_alternate CONSTANT)
+  /// Control background, such as a button or a text field.
+  Q_PROPERTY(QString control MEMBER control CONSTANT)
+  /// Control background under a hovered pointer.
+  Q_PROPERTY(QString controlHovered MEMBER control_hovered CONSTANT)
+  /// Control background while pressed.
+  Q_PROPERTY(QString controlPressed MEMBER control_pressed CONSTANT)
+  /// Separator and control outline.
+  Q_PROPERTY(QString border MEMBER border CONSTANT)
+  /// Outline of the control holding keyboard focus.
+  Q_PROPERTY(QString focus MEMBER focus CONSTANT)
+  /// Text and outlines of a control that cannot be used.
+  Q_PROPERTY(QString disabled MEMBER disabled CONSTANT)
+  /// Body and heading text.
+  Q_PROPERTY(QString textPrimary MEMBER text_primary CONSTANT)
+  /// Supporting text, such as descriptions and captions.
+  Q_PROPERTY(QString textSecondary MEMBER text_secondary CONSTANT)
+  /// Text drawn on an inverted surface.
+  Q_PROPERTY(QString textInverted MEMBER text_inverted CONSTANT)
+  /// Text reporting a recoverable condition.
+  Q_PROPERTY(QString warning MEMBER warning CONSTANT)
+  /// Text reporting a failure.
+  Q_PROPERTY(QString danger MEMBER danger CONSTANT)
+  /// Tooltip background.
+  Q_PROPERTY(QString tooltipSurface MEMBER tooltip_surface CONSTANT)
+  /// Tooltip text.
+  Q_PROPERTY(QString tooltipText MEMBER tooltip_text CONSTANT)
 
-  public:
-    QString accent;
-    QString accentHovered;
-    QString accentPressed;
-    QString onAccent;
+ public:
+  QString accent;
+  QString accent_hovered;
+  QString accent_pressed;
+  QString on_accent;
 
-    QString window;
-    QString surface;
-    QString surfaceAlternate;
-    QString control;
-    QString controlHovered;
-    QString controlPressed;
+  QString window;
+  QString surface;
+  QString surface_alternate;
+  QString control;
+  QString control_hovered;
+  QString control_pressed;
 
-    QString border;
-    QString focus;
-    QString disabled;
+  QString border;
+  QString focus;
+  QString disabled;
 
-    QString textPrimary;
-    QString textSecondary;
-    QString textInverted;
+  QString text_primary;
+  QString text_secondary;
+  QString text_inverted;
 
-    QString warning;
-    QString danger;
+  QString warning;
+  QString danger;
 
-    QString tooltipSurface;
-    QString tooltipText;
+  QString tooltip_surface;
+  QString tooltip_text;
 };
 
 /// Returns the stable, nonlocalized code identifying an appearance.
@@ -116,11 +128,11 @@ struct AppearancePalette final {
 
 /// Returns the appearance a code identifies, or following the system when the
 /// code is unrecognized.
-[[nodiscard]] ApplicationAppearance AppearanceFromCode(const QString &code);
+[[nodiscard]] ApplicationAppearance AppearanceFromCode(const QString& code);
 
 /// Returns the shared palette of a resolved appearance.
-[[nodiscard]] const AppearancePalette &
-AppearancePaletteFor(ResolvedAppearance appearance);
+[[nodiscard]] const AppearancePalette& AppearancePaletteFor(
+    ResolvedAppearance appearance);
 
 /// Owns the appearance preference and the appearance actually presented.
 ///
@@ -130,53 +142,57 @@ AppearancePaletteFor(ResolvedAppearance appearance);
 /// selection change and a platform change are applied the same way, without
 /// restarting the application.
 class AppearanceController final : public QObject {
-    Q_OBJECT
-    /// Appearance the user selected.
-    Q_PROPERTY(edit_atlas::presentation::ApplicationAppearance appearance READ
-                   Appearance WRITE SetAppearance NOTIFY appearanceChanged)
-    /// Appearance currently presented.
-    Q_PROPERTY(edit_atlas::presentation::ResolvedAppearance resolvedAppearance
-                   READ ResolvedAppearanceValue NOTIFY
-                       resolvedAppearanceChanged)
-    /// Palette of the presented appearance.
-    Q_PROPERTY(edit_atlas::presentation::AppearancePalette palette READ Palette
-                   NOTIFY resolvedAppearanceChanged)
+  Q_OBJECT
+  /// Appearance the user selected.
+  Q_PROPERTY(edit_atlas::presentation::ApplicationAppearance appearance READ
+                 Appearance WRITE SetAppearance NOTIFY appearanceChanged)
+  /// Appearance currently presented.
+  Q_PROPERTY(edit_atlas::presentation::ResolvedAppearance resolvedAppearance
+                 READ ResolvedAppearanceValue NOTIFY resolvedAppearanceChanged)
+  /// Palette of the presented appearance.
+  Q_PROPERTY(edit_atlas::presentation::AppearancePalette palette READ Palette
+                 NOTIFY resolvedAppearanceChanged)
 
-  public:
-    /// Constructs a controller from the persisted preference.
-    ///
-    /// Requests the platform color scheme the preference implies, and follows
-    /// the platform from then on while the preference is to follow it.
-    explicit AppearanceController(QObject *parent = nullptr);
-    ~AppearanceController(void) override = default;
+ public:
+  /// Constructs a controller from the persisted preference.
+  ///
+  /// Requests the platform color scheme the preference implies, and follows
+  /// the platform from then on while the preference is to follow it.
+  explicit AppearanceController(QObject* parent = nullptr);
+  ~AppearanceController(void) override = default;
 
-    /// Returns the selected appearance.
-    [[nodiscard]] ApplicationAppearance Appearance(void) const;
+  AppearanceController(const AppearanceController&) = delete;
+  AppearanceController& operator=(const AppearanceController&) = delete;
+  AppearanceController(AppearanceController&&) = delete;
+  AppearanceController& operator=(AppearanceController&&) = delete;
 
-    /// Selects and persists an appearance, applying it immediately.
-    void SetAppearance(ApplicationAppearance appearance);
+  /// Returns the selected appearance.
+  [[nodiscard]] ApplicationAppearance Appearance(void) const;
 
-    /// Returns the appearance currently presented.
-    [[nodiscard]] ResolvedAppearance ResolvedAppearanceValue(void) const;
+  /// Selects and persists an appearance, applying it immediately.
+  void SetAppearance(ApplicationAppearance appearance);
 
-    /// Returns the palette of the presented appearance.
-    [[nodiscard]] const AppearancePalette &Palette(void) const;
+  /// Returns the appearance currently presented.
+  [[nodiscard]] ResolvedAppearance ResolvedAppearanceValue(void) const;
 
-  signals:
-    /// Emitted when the selected appearance changes.
-    void appearanceChanged(void);
+  /// Returns the palette of the presented appearance.
+  [[nodiscard]] const AppearancePalette& Palette(void) const;
 
-    /// Emitted when the presented appearance changes, whether because the
-    /// selection changed or because the platform scheme did.
-    void resolvedAppearanceChanged(void);
+ signals:
+  /// Emitted when the selected appearance changes.
+  void appearanceChanged(void);
 
-  private:
-    void RefreshResolvedAppearance(void);
+  /// Emitted when the presented appearance changes, whether because the
+  /// selection changed or because the platform scheme did.
+  void resolvedAppearanceChanged(void);
 
-    ApplicationAppearance appearance_;
-    ResolvedAppearance resolved_;
+ private:
+  void RefreshResolvedAppearance(void);
+
+  ApplicationAppearance appearance_;
+  ResolvedAppearance resolved_;
 };
 
-} // namespace edit_atlas::presentation
+}  // namespace edit_atlas::presentation
 
-#endif // EDIT_ATLAS_PRESENTATION_APPEARANCE_HPP_
+#endif  // EDIT_ATLAS_PRESENTATION_APPEARANCE_HPP_

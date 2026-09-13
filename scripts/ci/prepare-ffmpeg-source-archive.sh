@@ -2,6 +2,8 @@
 
 set -euo pipefail
 
+# Bundle the matching FFmpeg source and build material for a release.
+
 if (( $# != 2 )); then
   echo "Usage: $0 <release-tag> <output-directory>" >&2
   exit 2
@@ -21,7 +23,8 @@ project_version="$({
     vcpkg.json
 } | head -n 1)"
 if [[ "$release_version" != "$project_version" ]]; then
-  echo "Release tag $release_tag does not match project version $project_version." >&2
+  printf 'Release tag %s does not match project version %s.\n' \
+    "$release_tag" "$project_version" >&2
   exit 1
 fi
 

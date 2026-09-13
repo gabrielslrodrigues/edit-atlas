@@ -1,112 +1,108 @@
-#include "accessibility.hpp"
-
-#include <edit_atlas/frontends/widgets/application_style.hpp>
-#include <edit_atlas/frontends/widgets/main_window.hpp>
-#include <edit_atlas/presentation/appearance.hpp>
-#include <edit_atlas/presentation/application_state.hpp>
-#include <edit_atlas/presentation/diagnostic_support.hpp>
-#include <edit_atlas/presentation/translation.hpp>
-
-#include <edit_atlas/core/version.hpp>
-
-#include <edit_atlas/media/video_decoder.hpp>
-
-#include <edit_atlas/services/built_in_formats.hpp>
-
-#include <edit_atlas/support/application_logging.hpp>
-
-#include <QApplication>
-#include <QCoreApplication>
-#include <QGuiApplication>
-#include <QIcon>
-#include <QObject>
-#include <QString>
-#include <QTranslator>
-
-#include <spdlog/spdlog.h>
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 #include <cstdlib>
 #include <string>
 #include <utility>
 
-int main(int argc, char *argv[]) {
-    QApplication application{argc, argv};
-    edit_atlas::frontends::widgets::InstallApplicationAccessibility();
-    QCoreApplication::setApplicationName(QStringLiteral("Edit Atlas"));
-    QCoreApplication::setApplicationVersion(
-        QString::fromStdString(std::string{edit_atlas::core::Version()}));
-    QCoreApplication::setOrganizationName(QStringLiteral("Edit Atlas"));
-    edit_atlas::presentation::ConfigureApplicationState();
+#include "QApplication"
+#include "QCoreApplication"
+#include "QGuiApplication"
+#include "QIcon"
+#include "QObject"
+#include "QString"
+#include "QTranslator"
+#include "spdlog/spdlog.h"
 
-    QGuiApplication::setDesktopFileName(QStringLiteral("edit-atlas"));
-    QApplication::setWindowIcon(
-        QIcon{QStringLiteral(":/icons/edit_atlas.png")});
+#include "accessibility.hpp"
+#include "edit_atlas/core/version.hpp"
+#include "edit_atlas/frontends/widgets/application_style.hpp"
+#include "edit_atlas/frontends/widgets/main_window.hpp"
+#include "edit_atlas/media/video_decoder.hpp"
+#include "edit_atlas/presentation/appearance.hpp"
+#include "edit_atlas/presentation/application_state.hpp"
+#include "edit_atlas/presentation/diagnostic_support.hpp"
+#include "edit_atlas/presentation/translation.hpp"
+#include "edit_atlas/services/built_in_formats.hpp"
+#include "edit_atlas/support/application_logging.hpp"
 
-    const auto log_directory =
-        edit_atlas::presentation::ConfiguredLogDirectory();
-    const auto logging_result =
-        edit_atlas::support::InitializeApplicationLogging(
-            edit_atlas::support::LoggingOptions{
-                .directory = log_directory,
-                .maximum_file_size =
-                    edit_atlas::support::kDefaultMaximumLogFileSize,
-                .maximum_files = edit_atlas::support::kDefaultMaximumLogFiles,
-                .maximum_age = edit_atlas::support::kDefaultLogRetention,
-            });
-    if (!logging_result.has_value()) {
-        SPDLOG_WARN("Persistent logging is unavailable");
-    }
+int main(int argc, char* argv[]) {
+  QApplication application{argc, argv};
+  edit_atlas::frontends::widgets::InstallApplicationAccessibility();
+  QCoreApplication::setApplicationName(QStringLiteral("Edit Atlas"));
+  QCoreApplication::setApplicationVersion(
+      QString::fromStdString(std::string{edit_atlas::core::Version()}));
+  QCoreApplication::setOrganizationName(QStringLiteral("Edit Atlas"));
+  edit_atlas::presentation::ConfigureApplicationState();
 
-    // Appearance is a persisted preference, so read it after settings are
-    // configured. Apply styling after logging is initialized so typography
-    // resolution is recorded in diagnostic logs.
-    edit_atlas::presentation::AppearanceController appearance;
-    edit_atlas::frontends::widgets::ApplyApplicationStyle(
-        application, appearance.Palette());
-    QObject::connect(
-        &appearance,
-        &edit_atlas::presentation::AppearanceController::
-            resolvedAppearanceChanged,
-        &application, [&application, &appearance](void) {
-            edit_atlas::frontends::widgets::ApplyApplicationAppearance(
-                application, appearance.Palette());
-        });
+  QGuiApplication::setDesktopFileName(QStringLiteral("edit-atlas"));
+  QApplication::setWindowIcon(QIcon{QStringLiteral(":/icons/edit_atlas.png")});
 
-    const auto version = std::string{edit_atlas::core::Version()};
-    SPDLOG_INFO("Starting Edit Atlas {}", version);
-    const auto video_backend = edit_atlas::media::GetVideoBackendInformation();
-    SPDLOG_INFO("Video backend: {} {}", video_backend.name,
-                video_backend.version);
+  const auto log_directory = edit_atlas::presentation::ConfiguredLogDirectory();
+  const auto logging_result = edit_atlas::support::InitializeApplicationLogging(
+      edit_atlas::support::LoggingOptions{
+          .directory = log_directory,
+          .maximum_file_size = edit_atlas::support::kDefaultMaximumLogFileSize,
+          .maximum_files = edit_atlas::support::kDefaultMaximumLogFiles,
+          .maximum_age = edit_atlas::support::kDefaultLogRetention,
+      });
+  if (!logging_result.has_value()) {
+    SPDLOG_WARN("Persistent logging is unavailable");
+  }
 
-    QTranslator translator;
-    auto language = edit_atlas::presentation::ConfiguredApplicationLanguage();
-    if (!edit_atlas::presentation::SetApplicationLanguage(translator,
-                                                          language)) {
-        SPDLOG_WARN("Could not load the configured translation; using English");
-        language = edit_atlas::presentation::ApplicationLanguage::kEnglish;
-        static_cast<void>(edit_atlas::presentation::SetApplicationLanguage(
-            translator, language));
-    }
+  // Appearance is a persisted preference, so read it after settings are
+  // configured. Apply styling after logging is initialized so typography
+  // resolution is recorded in diagnostic logs.
+  edit_atlas::presentation::AppearanceController appearance;
+  edit_atlas::frontends::widgets::ApplyApplicationStyle(application,
+                                                        appearance.Palette());
+  QObject::connect(&appearance,
+                   &edit_atlas::presentation::AppearanceController::
+                       resolvedAppearanceChanged,
+                   &application, [&application, &appearance](void) {
+                     edit_atlas::frontends::widgets::ApplyApplicationAppearance(
+                         application, appearance.Palette());
+                   });
 
-    auto registry_result = edit_atlas::services::CreateBuiltInFormatRegistry();
-    if (!registry_result.has_value()) {
-        SPDLOG_CRITICAL("Could not register built-in formats (error {})",
-                        static_cast<int>(registry_result.error()));
-        return EXIT_FAILURE;
-    }
-    auto registry = std::move(*registry_result);
-    const auto diagnostic_environment =
-        edit_atlas::presentation::CreateDiagnosticEnvironment(registry);
-    edit_atlas::presentation::LogDiagnosticEnvironment(diagnostic_environment);
+  const auto version = std::string{edit_atlas::core::Version()};
+  SPDLOG_INFO("Starting Edit Atlas {}", version);
+  const auto video_backend = edit_atlas::media::GetVideoBackendInformation();
+  SPDLOG_INFO("Video backend: {} {}", video_backend.name,
+              video_backend.version);
 
-    edit_atlas::frontends::widgets::MainWindow window{
-        registry,
-        translator,
-        language,
-        log_directory,
-        diagnostic_environment,
-        appearance,
-    };
-    window.show();
-    return application.exec();
+  QTranslator translator;
+  auto language = edit_atlas::presentation::ConfiguredApplicationLanguage();
+  if (!edit_atlas::presentation::SetApplicationLanguage(translator, language)) {
+    SPDLOG_WARN("Could not load the configured translation; using English");
+    language = edit_atlas::presentation::ApplicationLanguage::kEnglish;
+    static_cast<void>(
+        edit_atlas::presentation::SetApplicationLanguage(translator, language));
+  }
+
+  auto registry_result = edit_atlas::services::CreateBuiltInFormatRegistry();
+  if (!registry_result.has_value()) {
+    SPDLOG_CRITICAL("Could not register built-in formats (error {})",
+                    static_cast<int>(registry_result.error()));
+    return EXIT_FAILURE;
+  }
+  auto registry = std::move(*registry_result);
+  const auto diagnostic_environment =
+      edit_atlas::presentation::CreateDiagnosticEnvironment(registry);
+  edit_atlas::presentation::LogDiagnosticEnvironment(diagnostic_environment);
+
+  edit_atlas::frontends::widgets::MainWindow window{
+      registry,   translator, language, log_directory, diagnostic_environment,
+      appearance,
+  };
+  window.show();
+  return application.exec();
 }

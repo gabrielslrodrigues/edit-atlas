@@ -1,12 +1,18 @@
-#include <edit_atlas/services/timeline_video_inspection_service.hpp>
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
-#include <edit_atlas/core/editorial_timeline.hpp>
-#include <edit_atlas/core/timecode.hpp>
+#include "edit_atlas/services/timeline_video_inspection_service.hpp"
 
-#include <edit_atlas/test/media_fixture.hpp>
-
-#include <gtest/gtest.h>
-
+#include <cstdint>
 #include <filesystem>
 #include <optional>
 #include <random>
@@ -15,93 +21,99 @@
 #include <system_error>
 #include <utility>
 
+#include "gtest/gtest.h"
+
+#include "edit_atlas/core/editorial_timeline.hpp"
+#include "edit_atlas/core/timecode.hpp"
+#include "edit_atlas/test/media_fixture.hpp"
+
 namespace edit_atlas::services {
 namespace {
 
-[[nodiscard]] std::filesystem::path
-UniqueTemporaryPath(std::string_view extension) {
-    std::random_device random;
-    return std::filesystem::temp_directory_path() /
-           ("edit-atlas-video-inspection-" +
-            std::to_string(static_cast<unsigned long long>(random())) + "." +
-            std::string{extension});
+[[nodiscard]] std::filesystem::path UniqueTemporaryPath(
+    std::string_view extension) {
+  std::random_device random;
+  return std::filesystem::temp_directory_path() /
+         ("edit-atlas-video-inspection-" +
+          std::to_string(static_cast<std::uint64_t>(random())) + "." +
+          std::string{extension});
 }
 
 class TemporaryMediaFile final {
-  public:
-    explicit TemporaryMediaFile(std::string_view extension)
-        : path_{UniqueTemporaryPath(extension)} {}
+ public:
+  explicit TemporaryMediaFile(std::string_view extension)
+      : path_{UniqueTemporaryPath(extension)} {}
 
-    ~TemporaryMediaFile(void) {
-        std::error_code error;
-        static_cast<void>(std::filesystem::remove(path_, error));
-    }
+  ~TemporaryMediaFile(void) {
+    std::error_code error;
+    static_cast<void>(std::filesystem::remove(path_, error));
+  }
 
-    TemporaryMediaFile(const TemporaryMediaFile &) = delete;
-    TemporaryMediaFile &operator=(const TemporaryMediaFile &) = delete;
-    TemporaryMediaFile(TemporaryMediaFile &&) = delete;
-    TemporaryMediaFile &operator=(TemporaryMediaFile &&) = delete;
+  TemporaryMediaFile(const TemporaryMediaFile&) = delete;
+  TemporaryMediaFile& operator=(const TemporaryMediaFile&) = delete;
+  TemporaryMediaFile(TemporaryMediaFile&&) = delete;
+  TemporaryMediaFile& operator=(TemporaryMediaFile&&) = delete;
 
-    [[nodiscard]] const std::filesystem::path &Path(void) const noexcept {
-        return path_;
-    }
+  [[nodiscard]] const std::filesystem::path& Path(void) const noexcept {
+    return path_;
+  }
 
-  private:
-    std::filesystem::path path_;
+ private:
+  std::filesystem::path path_;
 };
 
 [[nodiscard]] core::TimelineDocument Timeline(void) {
-    const auto rate = core::FrameRate::Create(25, 1).value();
-    auto source_start = core::Timecode::FromFrameCount(
-                            0, rate, core::TimecodeMode::kNonDropFrame)
-                            .value();
-    auto source_end = core::Timecode::FromFrameCount(
-                          3, rate, core::TimecodeMode::kNonDropFrame)
+  const auto rate = core::FrameRate::Create(25, 1).value();
+  auto source_start =
+      core::Timecode::FromFrameCount(0, rate, core::TimecodeMode::kNonDropFrame)
+          .value();
+  auto source_end =
+      core::Timecode::FromFrameCount(3, rate, core::TimecodeMode::kNonDropFrame)
+          .value();
+  auto record_start = core::Timecode::FromFrameCount(
+                          90'000, rate, core::TimecodeMode::kNonDropFrame)
                           .value();
-    auto record_start = core::Timecode::FromFrameCount(
-                            90'000, rate, core::TimecodeMode::kNonDropFrame)
-                            .value();
-    auto record_end = core::Timecode::FromFrameCount(
-                          90'003, rate, core::TimecodeMode::kNonDropFrame)
-                          .value();
-    return core::TimelineDocument{
-        .title = "Inspection integration fixture",
-        .frame_rate = rate,
-        .timecode_mode = core::TimecodeMode::kNonDropFrame,
-        .events =
-            {
-                core::EditEvent{
-                    .identifier = "001",
-                    .reel = "AX",
-                    .track =
-                        core::Track{
-                            .kind = core::TrackKind::kVideo,
-                            .identifier = "V",
-                        },
-                    .edit_type = core::EditType::kCut,
-                    .transition = std::nullopt,
-                    .source_range =
-                        core::TimecodeRange::Create(std::move(source_start),
-                                                    std::move(source_end))
-                            .value(),
-                    .record_range =
-                        core::TimecodeRange::Create(std::move(record_start),
-                                                    std::move(record_end))
-                            .value(),
-                    .comments = {},
-                    .metadata = {},
-                    .provenance = std::nullopt,
-                },
-            },
-        .metadata = {},
-        .diagnostics = {},
-        .provenance = std::nullopt,
-    };
+  auto record_end = core::Timecode::FromFrameCount(
+                        90'003, rate, core::TimecodeMode::kNonDropFrame)
+                        .value();
+  return core::TimelineDocument{
+      .title = "Inspection integration fixture",
+      .frame_rate = rate,
+      .timecode_mode = core::TimecodeMode::kNonDropFrame,
+      .events =
+          {
+              core::EditEvent{
+                  .identifier = "001",
+                  .reel = "AX",
+                  .track =
+                      core::Track{
+                          .kind = core::TrackKind::kVideo,
+                          .identifier = "V",
+                      },
+                  .edit_type = core::EditType::kCut,
+                  .transition = std::nullopt,
+                  .source_range =
+                      core::TimecodeRange::Create(std::move(source_start),
+                                                  std::move(source_end))
+                          .value(),
+                  .record_range =
+                      core::TimecodeRange::Create(std::move(record_start),
+                                                  std::move(record_end))
+                          .value(),
+                  .comments = {},
+                  .metadata = {},
+                  .provenance = std::nullopt,
+              },
+          },
+      .metadata = {},
+      .diagnostics = {},
+      .provenance = std::nullopt,
+  };
 }
 
 struct ContainerCase final {
-    std::string_view extension;
-    std::string_view muxer;
+  std::string_view extension;
+  std::string_view muxer;
 };
 
 class TimelineVideoContainerInspectionTest
@@ -109,25 +121,24 @@ class TimelineVideoContainerInspectionTest
 
 TEST_P(TimelineVideoContainerInspectionTest,
        AcceptsMatchingVideoWithEmbeddedTimecode) {
-    const auto &container = GetParam();
-    TemporaryMediaFile fixture{container.extension};
-    auto options = media::test::VideoFixtureOptions{};
-    options.starting_timecode = "01:00:00:00";
-    const auto fixture_result = media::test::WriteVideoFixture(
-        fixture.Path(), container.muxer, options);
-    ASSERT_TRUE(fixture_result.has_value())
-        << (fixture_result.has_value() ? "" : fixture_result.error());
-    const TimelineVideoInspectionService service;
+  const auto& container = GetParam();
+  TemporaryMediaFile fixture{container.extension};
+  auto options = media::test::VideoFixtureOptions{};
+  options.starting_timecode = "01:00:00:00";
+  const auto fixture_result =
+      media::test::WriteVideoFixture(fixture.Path(), container.muxer, options);
+  ASSERT_TRUE(fixture_result.has_value())
+      << (fixture_result.has_value() ? "" : fixture_result.error());
+  const TimelineVideoInspectionService service;
 
-    auto result = service.Inspect(fixture.Path(), Timeline());
+  auto result = service.Inspect(fixture.Path(), Timeline());
 
-    ASSERT_TRUE(result.has_value())
-        << (result.has_value() ? ""
-                               : result.error().diagnostics.front().message);
-    EXPECT_NE(result->decoder, nullptr);
-    EXPECT_EQ(result->mapping.video_start_timecode.ToFrameCount(), 90'000);
-    EXPECT_EQ(result->mapping.record_to_video_frame_offset, -90'000);
-    EXPECT_EQ(result->mapping.video_duration_frames, 3);
+  ASSERT_TRUE(result.has_value())
+      << (result.has_value() ? "" : result.error().diagnostics.front().message);
+  EXPECT_NE(result->decoder, nullptr);
+  EXPECT_EQ(result->mapping.video_start_timecode.ToFrameCount(), 90'000);
+  EXPECT_EQ(result->mapping.record_to_video_frame_offset, -90'000);
+  EXPECT_EQ(result->mapping.video_duration_frames, 3);
 }
 
 INSTANTIATE_TEST_SUITE_P(SupportedContainers,
@@ -138,38 +149,38 @@ INSTANTIATE_TEST_SUITE_P(SupportedContainers,
 
 TEST(TimelineVideoInspectionServiceIntegrationTest,
      RejectsVideoWithoutEmbeddedTimecode) {
-    TemporaryMediaFile fixture{"mov"};
-    const auto fixture_result = media::test::WriteVideoFixture(
-        fixture.Path(), "mov", media::test::VideoFixtureOptions{});
-    ASSERT_TRUE(fixture_result.has_value())
-        << (fixture_result.has_value() ? "" : fixture_result.error());
-    const TimelineVideoInspectionService service;
+  TemporaryMediaFile fixture{"mov"};
+  const auto fixture_result = media::test::WriteVideoFixture(
+      fixture.Path(), "mov", media::test::VideoFixtureOptions{});
+  ASSERT_TRUE(fixture_result.has_value())
+      << (fixture_result.has_value() ? "" : fixture_result.error());
+  const TimelineVideoInspectionService service;
 
-    const auto result = service.Inspect(fixture.Path(), Timeline());
+  const auto result = service.Inspect(fixture.Path(), Timeline());
 
-    ASSERT_FALSE(result.has_value());
-    ASSERT_EQ(result.error().diagnostics.size(), 1);
-    EXPECT_EQ(result.error().diagnostics.front().code,
-              timeline_video_diagnostic_code::kMissingTimecode);
+  ASSERT_FALSE(result.has_value());
+  ASSERT_EQ(result.error().diagnostics.size(), 1);
+  EXPECT_EQ(result.error().diagnostics.front().code,
+            timeline_video_diagnostic_code::kMissingTimecode);
 }
 
 TEST(TimelineVideoInspectionServiceIntegrationTest,
      PreservesStructuredDecoderFailure) {
-    const auto path = UniqueTemporaryPath("mov");
-    std::error_code error;
-    static_cast<void>(std::filesystem::remove(path, error));
-    const TimelineVideoInspectionService service;
+  const auto path = UniqueTemporaryPath("mov");
+  std::error_code error;
+  static_cast<void>(std::filesystem::remove(path, error));
+  const TimelineVideoInspectionService service;
 
-    const auto result = service.Inspect(path, Timeline());
+  const auto result = service.Inspect(path, Timeline());
 
-    ASSERT_FALSE(result.has_value());
-    ASSERT_TRUE(result.error().decoder_failure.has_value());
-    EXPECT_EQ(result.error().decoder_failure->kind,
-              media::VideoDecoderFailureKind::kOpenInput);
-    ASSERT_EQ(result.error().diagnostics.size(), 1);
-    EXPECT_EQ(result.error().diagnostics.front().code,
-              timeline_video_diagnostic_code::kOpenFailed);
+  ASSERT_FALSE(result.has_value());
+  ASSERT_TRUE(result.error().decoder_failure.has_value());
+  EXPECT_EQ(result.error().decoder_failure->kind,
+            media::VideoDecoderFailureKind::kOpenInput);
+  ASSERT_EQ(result.error().diagnostics.size(), 1);
+  EXPECT_EQ(result.error().diagnostics.front().code,
+            timeline_video_diagnostic_code::kOpenFailed);
 }
 
-} // namespace
-} // namespace edit_atlas::services
+}  // namespace
+}  // namespace edit_atlas::services

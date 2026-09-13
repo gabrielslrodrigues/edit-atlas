@@ -12,7 +12,7 @@ target_sources(
 
 target_include_directories(
     edit_atlas_media_fixture
-    PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include
+    PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include"
 )
 
 target_include_directories(

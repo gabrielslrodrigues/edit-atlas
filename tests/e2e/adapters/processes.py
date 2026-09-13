@@ -2,16 +2,18 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
 import os
-from pathlib import Path
 import subprocess
+from dataclasses import dataclass
+from pathlib import Path
 from threading import Lock
 from typing import IO, Mapping, Sequence
 
 
 @dataclass(frozen=True)
 class CommandResult:
+    """Captured command arguments, exit status, and output streams."""
+
     arguments: tuple[str, ...]
     exit_code: int
     standard_output: str
@@ -41,6 +43,7 @@ class ProcessRegistry:
         working_directory: Path | None = None,
         output_path: Path | None = None,
     ) -> subprocess.Popen[str]:
+        """Start a process, owning its optional output stream."""
         command = tuple(os.fspath(argument) for argument in arguments)
         stream = None
         if output_path is not None:
@@ -75,6 +78,7 @@ class ProcessRegistry:
         environment: Mapping[str, str] | None = None,
         working_directory: Path | None = None,
     ) -> CommandResult:
+        """Capture output, terminating the process on timeout."""
         if timeout <= 0:
             raise ValueError("timeout must be positive")
         command = tuple(os.fspath(argument) for argument in arguments)
@@ -111,18 +115,22 @@ class ProcessRegistry:
                 self._processes.discard(process)
 
     def close_all(self) -> None:
+        """Terminate owned processes and close their output streams."""
         with self._lock:
             processes = tuple(self._processes)
         for process in processes:
             self._terminate(process)
         with self._lock:
             self._processes.difference_update(processes)
-            streams = [self._streams.pop(process, None) for process in processes]
+            streams = [
+                self._streams.pop(process, None) for process in processes
+            ]
         for stream in streams:
             if stream is not None:
                 stream.close()
 
     def stop(self, process: subprocess.Popen[str]) -> None:
+        """Terminate one owned process and release its output stream."""
         self._terminate(process)
         with self._lock:
             self._processes.discard(process)

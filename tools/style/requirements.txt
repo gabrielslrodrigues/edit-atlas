@@ -1,0 +1,4 @@
+clang-format==23.1.0
+cpplint==2.0.2
+ruff==0.16.6
+shellcheck-py==0.11.0.1; sys_platform != 'win32'

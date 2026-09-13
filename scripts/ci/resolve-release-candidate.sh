@@ -32,7 +32,8 @@ commit="$(git rev-parse HEAD)"
 
 echo "Release candidate $candidate_tag at $commit." >&2
 if git rev-parse -q --verify "refs/tags/$candidate_tag" >/dev/null; then
-  echo "Note: tag $candidate_tag already exists; this run publishes nothing." >&2
+  printf 'Note: tag %s already exists; this run publishes nothing.\n' \
+    "$candidate_tag" >&2
 fi
 
 output="${1:-/dev/stdout}"

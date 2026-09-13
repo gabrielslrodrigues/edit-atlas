@@ -23,9 +23,9 @@ param(
 # The environment must already be disposable. This script installs Edit Atlas
 # and writes machine state, and never undoes that on a host it does not own.
 
-$ErrorActionPreference = "Stop"
+$ErrorActionPreference = 'Stop'
 
-function Resolve-Existing {
+function Resolve-ExistingPath {
   param([string] $Path, [string] $Description)
 
   if (-not (Test-Path -LiteralPath $Path)) {
@@ -34,62 +34,62 @@ function Resolve-Existing {
   return (Resolve-Path -LiteralPath $Path).ProviderPath
 }
 
-$RepositoryRoot = Resolve-Existing $RepositoryRoot "The repository"
-$Msi = Resolve-Existing $Msi "The MSI package"
-$MediaFixtureDir = Resolve-Existing `
-  $MediaFixtureDir "The media-fixture directory"
+$RepositoryRoot = Resolve-ExistingPath $RepositoryRoot 'The repository'
+$Msi = Resolve-ExistingPath $Msi 'The MSI package'
+$MediaFixtureDir = Resolve-ExistingPath `
+  $MediaFixtureDir 'The media-fixture directory'
 
-New-Item -ItemType Directory -Force $ArtifactRoot | Out-Null
+New-Item -ItemType Directory -Force -Path $ArtifactRoot | Out-Null
 $ArtifactRoot = (Resolve-Path -LiteralPath $ArtifactRoot).ProviderPath
 
-$InstallRoot = Join-Path $ArtifactRoot "install"
-$InstallLog = Join-Path $ArtifactRoot "msi-install.log"
-$UninstallLog = Join-Path $ArtifactRoot "msi-uninstall.log"
-$DumpDirectory = Join-Path $ArtifactRoot "crash-dumps"
+$InstallRoot = Join-Path $ArtifactRoot 'install'
+$InstallLog = Join-Path $ArtifactRoot 'msi-install.log'
+$UninstallLog = Join-Path $ArtifactRoot 'msi-uninstall.log'
+$DumpDirectory = Join-Path $ArtifactRoot 'crash-dumps'
 $WerRoot =
-  "HKCU:\Software\Microsoft\Windows\Windows Error Reporting\LocalDumps"
-$Executables = @("edit-atlas.exe", "edit-atlas-cli.exe")
+  'HKCU:\Software\Microsoft\Windows\Windows Error Reporting\LocalDumps'
+$Executables = @('edit-atlas.exe', 'edit-atlas-cli.exe')
 
 if (-not [Environment]::UserInteractive) {
-  throw "Windows packaged E2E requires an interactive desktop session"
+  throw 'Windows packaged E2E requires an interactive desktop session'
 }
 
 # The MSI is an input from the caller, so it is identified before being
 # installed rather than trusted by filename.
 $Installer = New-Object -ComObject WindowsInstaller.Installer
 $Database = $Installer.GetType().InvokeMember(
-  "OpenDatabase", "InvokeMethod", $null, $Installer, @($Msi, 0))
+  'OpenDatabase', 'InvokeMethod', $null, $Installer, @($Msi, 0))
 function Get-MsiProperty {
   param([string] $Name)
 
   $view = $Database.GetType().InvokeMember(
-    "OpenView", "InvokeMethod", $null, $Database,
+    'OpenView', 'InvokeMethod', $null, $Database,
     @("SELECT Value FROM Property WHERE Property = '$Name'"))
-  $view.GetType().InvokeMember("Execute", "InvokeMethod", $null, $view, $null)
+  $view.GetType().InvokeMember('Execute', 'InvokeMethod', $null, $view, $null)
   $record = $view.GetType().InvokeMember(
-    "Fetch", "InvokeMethod", $null, $view, $null)
+    'Fetch', 'InvokeMethod', $null, $view, $null)
   if ($null -eq $record) {
     return $null
   }
   return $record.GetType().InvokeMember(
-    "StringData", "GetProperty", $null, $record, @(1))
+    'StringData', 'GetProperty', $null, $record, @(1))
 }
 
-$ProductName = Get-MsiProperty "ProductName"
-if ($ProductName -notlike "Edit Atlas*") {
+$ProductName = Get-MsiProperty 'ProductName'
+if ($ProductName -notlike 'Edit Atlas*') {
   throw "The supplied MSI is not an Edit Atlas package: $ProductName"
 }
 
 # The target platform is summary-information property 7, as in "x64;0". It is
 # not a Property table row, so it cannot be read with Get-MsiProperty.
 $Summary = $Installer.GetType().InvokeMember(
-  "SummaryInformation", "GetProperty", $null, $Installer, @($Msi, 0))
+  'SummaryInformation', 'GetProperty', $null, $Installer, @($Msi, 0))
 $Template = $Summary.GetType().InvokeMember(
-  "Property", "GetProperty", $null, $Summary, @(7))
+  'Property', 'GetProperty', $null, $Summary, @(7))
 if ([string]::IsNullOrWhiteSpace($Template)) {
   throw "The supplied MSI declares no target platform: $Msi"
 }
-if ($Template -notlike "x64*") {
+if ($Template -notlike 'x64*') {
   throw "The supplied MSI does not target x64: $Template"
 }
 
@@ -101,12 +101,12 @@ foreach ($executable in $Executables) {
 
 $SuiteExitCode = 1
 try {
-  & (Join-Path $RepositoryRoot "scripts/ci/install-windows-dependencies.ps1")
+  & (Join-Path $RepositoryRoot 'scripts/ci/install-windows-dependencies.ps1')
 
   $process = Start-Process `
     -FilePath msiexec.exe `
     -ArgumentList @(
-      "/i", "`"$Msi`"", "/qn", "/norestart", "/L*V", "`"$InstallLog`"",
+      '/i', "`"$Msi`"", '/qn', '/norestart', '/L*V', "`"$InstallLog`"",
       "INSTALL_ROOT=`"$InstallRoot`""
     ) `
     -PassThru `
@@ -115,8 +115,8 @@ try {
     throw "MSI installation failed with exit code $($process.ExitCode)."
   }
 
-  $App = Join-Path $InstallRoot "bin/edit-atlas.exe"
-  $Cli = Join-Path $InstallRoot "bin/edit-atlas-cli.exe"
+  $App = Join-Path $InstallRoot 'bin/edit-atlas.exe'
+  $Cli = Join-Path $InstallRoot 'bin/edit-atlas-cli.exe'
   foreach ($path in @($App, $Cli)) {
     if (-not (Test-Path -LiteralPath $path)) {
       throw "The MSI did not install an expected executable: $path"
@@ -127,7 +127,7 @@ try {
   # its bundled Qt and FFmpeg libraries may still fail to load. Reporting that
   # here names it as an incompatible input instead of letting it surface as
   # unexplained failures across the suite.
-  $smokeLog = Join-Path $ArtifactRoot "package-smoke.log"
+  $smokeLog = Join-Path $ArtifactRoot 'package-smoke.log'
   & $Cli --version *> $smokeLog
   if ($LASTEXITCODE -ne 0) {
     Get-Content -LiteralPath $smokeLog |
@@ -139,7 +139,7 @@ produces.
 "@
   }
 
-  New-Item -ItemType Directory -Force $DumpDirectory | Out-Null
+  New-Item -ItemType Directory -Force -Path $DumpDirectory | Out-Null
   foreach ($executable in $Executables) {
     $registryPath = Join-Path $WerRoot $executable
     New-Item -Path $registryPath -Force | Out-Null
@@ -153,9 +153,9 @@ produces.
 
   $env:EDIT_ATLAS_E2E_ROOT = $ArtifactRoot
   $env:EDIT_ATLAS_E2E_MEDIA_FIXTURE_DIR = $MediaFixtureDir
-  $env:EDIT_ATLAS_E2E_VIRTUAL_ENVIRONMENT = Join-Path $ArtifactRoot "venv"
+  $env:EDIT_ATLAS_E2E_VIRTUAL_ENVIRONMENT = Join-Path $ArtifactRoot 'venv'
 
-  & (Join-Path $RepositoryRoot "tests/e2e/run-windows.ps1") `
+  & (Join-Path $RepositoryRoot 'tests/e2e/run-windows.ps1') `
     -App $App `
     -Cli $Cli `
     @PytestArguments
@@ -171,7 +171,7 @@ produces.
     $process = Start-Process `
       -FilePath msiexec.exe `
       -ArgumentList @(
-        "/x", "`"$Msi`"", "/qn", "/norestart", "/L*V", "`"$UninstallLog`""
+        '/x', "`"$Msi`"", '/qn', '/norestart', '/L*V', "`"$UninstallLog`""
       ) `
       -PassThru `
       -Wait
@@ -184,7 +184,7 @@ produces.
     Remove-Item (Join-Path $WerRoot $executable) -Recurse -Force `
       -ErrorAction SilentlyContinue
   }
-  Remove-Item (Join-Path $ArtifactRoot "state") -Recurse -Force `
+  Remove-Item (Join-Path $ArtifactRoot 'state') -Recurse -Force `
     -ErrorAction SilentlyContinue
 }
 
