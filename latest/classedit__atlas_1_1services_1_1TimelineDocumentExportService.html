@@ -109,6 +109,19 @@ Public Member Functions</h2></td></tr>
 &#160;</td><td class="memItemRight" valign="bottom"><b>TimelineDocumentExportService</b> (const <a class="el" href="classedit__atlas_1_1core_1_1FormatRegistry.html">core::FormatRegistry</a> &amp;registry) noexcept</td></tr>
 <tr class="memdesc:aa461ff52b6d08073768686311382f391"><td class="mdescLeft">&#160;</td><td class="mdescRight">Creates a service backed by a registry that must outlive it. <br /></td></tr>
 <tr class="separator:aa461ff52b6d08073768686311382f391"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3f6f0ef7bebf15073052458883f769f8" id="r_a3f6f0ef7bebf15073052458883f769f8"><td class="memItemLeft" align="right" valign="top"><a id="a3f6f0ef7bebf15073052458883f769f8" name="a3f6f0ef7bebf15073052458883f769f8"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>TimelineDocumentExportService</b> (const <a class="el" href="classedit__atlas_1_1services_1_1TimelineDocumentExportService.html">TimelineDocumentExportService</a> &amp;)=delete</td></tr>
+<tr class="memdesc:a3f6f0ef7bebf15073052458883f769f8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Services are non-copyable and non-movable: the owned pipeline holds a reference that cannot be reseated. <br /></td></tr>
+<tr class="separator:a3f6f0ef7bebf15073052458883f769f8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3813b1e1ce1bc0f09b98d3e3c7c48a55" id="r_a3813b1e1ce1bc0f09b98d3e3c7c48a55"><td class="memItemLeft" align="right" valign="top"><a id="a3813b1e1ce1bc0f09b98d3e3c7c48a55" name="a3813b1e1ce1bc0f09b98d3e3c7c48a55"></a>
+<a class="el" href="classedit__atlas_1_1services_1_1TimelineDocumentExportService.html">TimelineDocumentExportService</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>operator=</b> (const <a class="el" href="classedit__atlas_1_1services_1_1TimelineDocumentExportService.html">TimelineDocumentExportService</a> &amp;)=delete</td></tr>
+<tr class="separator:a3813b1e1ce1bc0f09b98d3e3c7c48a55"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a77ed6d88c889c015eb3aafbc71d4fef0" id="r_a77ed6d88c889c015eb3aafbc71d4fef0"><td class="memItemLeft" align="right" valign="top"><a id="a77ed6d88c889c015eb3aafbc71d4fef0" name="a77ed6d88c889c015eb3aafbc71d4fef0"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>TimelineDocumentExportService</b> (<a class="el" href="classedit__atlas_1_1services_1_1TimelineDocumentExportService.html">TimelineDocumentExportService</a> &amp;&amp;)=delete</td></tr>
+<tr class="separator:a77ed6d88c889c015eb3aafbc71d4fef0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a62a5a769b8a3f8b5efe2cc62b9dde235" id="r_a62a5a769b8a3f8b5efe2cc62b9dde235"><td class="memItemLeft" align="right" valign="top"><a id="a62a5a769b8a3f8b5efe2cc62b9dde235" name="a62a5a769b8a3f8b5efe2cc62b9dde235"></a>
+<a class="el" href="classedit__atlas_1_1services_1_1TimelineDocumentExportService.html">TimelineDocumentExportService</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>operator=</b> (<a class="el" href="classedit__atlas_1_1services_1_1TimelineDocumentExportService.html">TimelineDocumentExportService</a> &amp;&amp;)=delete</td></tr>
+<tr class="separator:a62a5a769b8a3f8b5efe2cc62b9dde235"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aeb93749d308ed69ff052cd3877490f39" id="r_aeb93749d308ed69ff052cd3877490f39"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceedit__atlas_1_1services.html#a8e3f7887f53fdd89a41d881d77944ee6">TimelineDocumentExportResult</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classedit__atlas_1_1services_1_1TimelineDocumentExportService.html#aeb93749d308ed69ff052cd3877490f39">Export</a> (<a class="el" href="structedit__atlas_1_1services_1_1TimelineDocumentExportRequest.html">TimelineDocumentExportRequest</a> request) const</td></tr>
 <tr class="memdesc:aeb93749d308ed69ff052cd3877490f39"><td class="mdescLeft">&#160;</td><td class="mdescRight">Exports and atomically commits a timeline according to <code>request</code>.  <br /></td></tr>
 <tr class="separator:aeb93749d308ed69ff052cd3877490f39"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -117,7 +130,7 @@ Public Member Functions</h2></td></tr>
 <div class="textblock"><p>Coordinates format-independent export with atomic local-file output. </p>
 <p>The registry must outlive the service. Scheduling, overwrite confirmation, and user feedback are responsibilities of the calling frontend. </p>
 
-<p class="definition">Definition at line <a class="el" href="timeline__document__export__service_8hpp_source.html#l00082">82</a> of file <a class="el" href="timeline__document__export__service_8hpp_source.html">timeline_document_export_service.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="timeline__document__export__service_8hpp_source.html#l00094">94</a> of file <a class="el" href="timeline__document__export__service_8hpp_source.html">timeline_document_export_service.hpp</a>.</p>
 </div><h2 class="groupheader">Member Function Documentation</h2>
 <a id="aeb93749d308ed69ff052cd3877490f39" name="aeb93749d308ed69ff052cd3877490f39"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#aeb93749d308ed69ff052cd3877490f39">&#9670;&#160;</a></span>Export()</h2>

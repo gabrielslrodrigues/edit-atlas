@@ -9,5 +9,6 @@ var searchData=
   ['start_5ftime_6',['start_time',['../structedit__atlas_1_1media_1_1MediaStreamInfo.html#a31bef291024700adb08a8140525f8553',1,'edit_atlas::media::MediaStreamInfo']]],
   ['start_5ftime_5fmicroseconds_7',['start_time_microseconds',['../structedit__atlas_1_1media_1_1VideoMediaInfo.html#ab39fdd81f062a5c8cd8acb29c7451a29',1,'edit_atlas::media::VideoMediaInfo']]],
   ['streams_8',['streams',['../structedit__atlas_1_1media_1_1VideoMediaInfo.html#a74f656e54ff926a97d6eb53f0a8ef72b',1,'edit_atlas::media::VideoMediaInfo']]],
-  ['suggested_5fextension_9',['suggested_extension',['../structedit__atlas_1_1core_1_1ExportArtifact.html#ae02e7edeb806b95c9ece332a44fec93b',1,'edit_atlas::core::ExportArtifact']]]
+  ['suggested_5fextension_9',['suggested_extension',['../structedit__atlas_1_1core_1_1ExportArtifact.html#ae02e7edeb806b95c9ece332a44fec93b',1,'edit_atlas::core::ExportArtifact']]],
+  ['surface_5falternate_10',['surface_alternate',['../structedit__atlas_1_1presentation_1_1AppearancePalette.html#a73480024fff1fcfa79db617c846f1d95',1,'edit_atlas::presentation::AppearancePalette']]]
 ];

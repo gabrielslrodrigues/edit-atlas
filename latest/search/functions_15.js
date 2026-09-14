@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['xlsxexporter_0',['XlsxExporter',['../classedit__atlas_1_1formats_1_1xlsx_1_1XlsxExporter.html#a144f1c66605e3ee284fd090943bf11e3',1,'edit_atlas::formats::xlsx::XlsxExporter']]]
+  ['xlsxexporter_0',['XlsxExporter',['../classedit__atlas_1_1formats_1_1xlsx_1_1XlsxExporter.html#afdad94740dd664144e7fb75282a116ef',1,'edit_atlas::formats::xlsx::XlsxExporter']]]
 ];

@@ -131,6 +131,18 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a4ae327ce0f70459acf8ac990b135fc6c" id="r_a4ae327ce0f70459acf8ac990b135fc6c"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classedit__atlas_1_1presentation_1_1AppearanceController.html#a4ae327ce0f70459acf8ac990b135fc6c">AppearanceController</a> (QObject *parent=nullptr)</td></tr>
 <tr class="memdesc:a4ae327ce0f70459acf8ac990b135fc6c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Constructs a controller from the persisted preference.  <br /></td></tr>
 <tr class="separator:a4ae327ce0f70459acf8ac990b135fc6c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a17e658055742a31e2125fba1ab185b3c" id="r_a17e658055742a31e2125fba1ab185b3c"><td class="memItemLeft" align="right" valign="top"><a id="a17e658055742a31e2125fba1ab185b3c" name="a17e658055742a31e2125fba1ab185b3c"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>AppearanceController</b> (const <a class="el" href="classedit__atlas_1_1presentation_1_1AppearanceController.html">AppearanceController</a> &amp;)=delete</td></tr>
+<tr class="separator:a17e658055742a31e2125fba1ab185b3c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa0dbca727879d13f4d0d33c6c42f7f67" id="r_aa0dbca727879d13f4d0d33c6c42f7f67"><td class="memItemLeft" align="right" valign="top"><a id="aa0dbca727879d13f4d0d33c6c42f7f67" name="aa0dbca727879d13f4d0d33c6c42f7f67"></a>
+<a class="el" href="classedit__atlas_1_1presentation_1_1AppearanceController.html">AppearanceController</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>operator=</b> (const <a class="el" href="classedit__atlas_1_1presentation_1_1AppearanceController.html">AppearanceController</a> &amp;)=delete</td></tr>
+<tr class="separator:aa0dbca727879d13f4d0d33c6c42f7f67"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a68debd106240236bea870e894074ce83" id="r_a68debd106240236bea870e894074ce83"><td class="memItemLeft" align="right" valign="top"><a id="a68debd106240236bea870e894074ce83" name="a68debd106240236bea870e894074ce83"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>AppearanceController</b> (<a class="el" href="classedit__atlas_1_1presentation_1_1AppearanceController.html">AppearanceController</a> &amp;&amp;)=delete</td></tr>
+<tr class="separator:a68debd106240236bea870e894074ce83"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6bd114790eddda6eefbaf89a7fbd95be" id="r_a6bd114790eddda6eefbaf89a7fbd95be"><td class="memItemLeft" align="right" valign="top"><a id="a6bd114790eddda6eefbaf89a7fbd95be" name="a6bd114790eddda6eefbaf89a7fbd95be"></a>
+<a class="el" href="classedit__atlas_1_1presentation_1_1AppearanceController.html">AppearanceController</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>operator=</b> (<a class="el" href="classedit__atlas_1_1presentation_1_1AppearanceController.html">AppearanceController</a> &amp;&amp;)=delete</td></tr>
+<tr class="separator:a6bd114790eddda6eefbaf89a7fbd95be"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:adb77a4b762d8c519a4b1674047a4e867" id="r_adb77a4b762d8c519a4b1674047a4e867"><td class="memItemLeft" align="right" valign="top"><a id="adb77a4b762d8c519a4b1674047a4e867" name="adb77a4b762d8c519a4b1674047a4e867"></a>
 ApplicationAppearance&#160;</td><td class="memItemRight" valign="bottom"><b>Appearance</b> (void) const</td></tr>
 <tr class="memdesc:adb77a4b762d8c519a4b1674047a4e867"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the selected appearance. <br /></td></tr>
@@ -164,7 +176,7 @@ Properties</h2></td></tr>
 <div class="textblock"><p>Owns the appearance preference and the appearance actually presented. </p>
 <p>This is the whole appearance API. The preference is persisted here and nowhere else, so a frontend cannot change it without the change being reported. Frontends bind to this rather than reading settings, so a selection change and a platform change are applied the same way, without restarting the application. </p>
 
-<p class="definition">Definition at line <a class="el" href="appearance_8hpp_source.html#l00132">132</a> of file <a class="el" href="appearance_8hpp_source.html">appearance.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="appearance_8hpp_source.html#l00164">164</a> of file <a class="el" href="appearance_8hpp_source.html">appearance.hpp</a>.</p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="a4ae327ce0f70459acf8ac990b135fc6c" name="a4ae327ce0f70459acf8ac990b135fc6c"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a4ae327ce0f70459acf8ac990b135fc6c">&#9670;&#160;</a></span>AppearanceController()</h2>
@@ -218,7 +230,7 @@ Properties</h2></td></tr>
 
 <p>Appearance the user selected. </p>
 
-<p class="definition">Definition at line <a class="el" href="appearance_8hpp_source.html#l00135">135</a> of file <a class="el" href="appearance_8hpp_source.html">appearance.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="appearance_8hpp_source.html#l00167">167</a> of file <a class="el" href="appearance_8hpp_source.html">appearance.hpp</a>.</p>
 
 </div>
 </div>
@@ -244,7 +256,7 @@ Properties</h2></td></tr>
 
 <p>Palette of the presented appearance. </p>
 
-<p class="definition">Definition at line <a class="el" href="appearance_8hpp_source.html#l00142">142</a> of file <a class="el" href="appearance_8hpp_source.html">appearance.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="appearance_8hpp_source.html#l00173">173</a> of file <a class="el" href="appearance_8hpp_source.html">appearance.hpp</a>.</p>
 
 </div>
 </div>
@@ -270,7 +282,7 @@ Properties</h2></td></tr>
 
 <p>Appearance currently presented. </p>
 
-<p class="definition">Definition at line <a class="el" href="appearance_8hpp_source.html#l00138">138</a> of file <a class="el" href="appearance_8hpp_source.html">appearance.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="appearance_8hpp_source.html#l00170">170</a> of file <a class="el" href="appearance_8hpp_source.html">appearance.hpp</a>.</p>
 
 </div>
 </div>

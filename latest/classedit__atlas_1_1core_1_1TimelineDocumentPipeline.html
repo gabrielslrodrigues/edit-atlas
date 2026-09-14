@@ -108,6 +108,19 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a9d69b032afea20afdadf2720350e395a" id="r_a9d69b032afea20afdadf2720350e395a"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classedit__atlas_1_1core_1_1TimelineDocumentPipeline.html#a9d69b032afea20afdadf2720350e395a">TimelineDocumentPipeline</a> (const <a class="el" href="classedit__atlas_1_1core_1_1FormatRegistry.html">FormatRegistry</a> &amp;registry) noexcept</td></tr>
 <tr class="memdesc:a9d69b032afea20afdadf2720350e395a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Creates a pipeline that borrows <code>registry</code>.  <br /></td></tr>
 <tr class="separator:a9d69b032afea20afdadf2720350e395a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8dc77ed204912d0cbc3861c490795d90" id="r_a8dc77ed204912d0cbc3861c490795d90"><td class="memItemLeft" align="right" valign="top"><a id="a8dc77ed204912d0cbc3861c490795d90" name="a8dc77ed204912d0cbc3861c490795d90"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>TimelineDocumentPipeline</b> (const <a class="el" href="classedit__atlas_1_1core_1_1TimelineDocumentPipeline.html">TimelineDocumentPipeline</a> &amp;)=delete</td></tr>
+<tr class="memdesc:a8dc77ed204912d0cbc3861c490795d90"><td class="mdescLeft">&#160;</td><td class="mdescRight">Pipelines are non-copyable and non-movable: the reference member cannot be reseated. <br /></td></tr>
+<tr class="separator:a8dc77ed204912d0cbc3861c490795d90"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aeed5a88fd72405b27f9c0ff6831278be" id="r_aeed5a88fd72405b27f9c0ff6831278be"><td class="memItemLeft" align="right" valign="top"><a id="aeed5a88fd72405b27f9c0ff6831278be" name="aeed5a88fd72405b27f9c0ff6831278be"></a>
+<a class="el" href="classedit__atlas_1_1core_1_1TimelineDocumentPipeline.html">TimelineDocumentPipeline</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>operator=</b> (const <a class="el" href="classedit__atlas_1_1core_1_1TimelineDocumentPipeline.html">TimelineDocumentPipeline</a> &amp;)=delete</td></tr>
+<tr class="separator:aeed5a88fd72405b27f9c0ff6831278be"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8d7ee59044e618618bfb2d126510a76e" id="r_a8d7ee59044e618618bfb2d126510a76e"><td class="memItemLeft" align="right" valign="top"><a id="a8d7ee59044e618618bfb2d126510a76e" name="a8d7ee59044e618618bfb2d126510a76e"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>TimelineDocumentPipeline</b> (<a class="el" href="classedit__atlas_1_1core_1_1TimelineDocumentPipeline.html">TimelineDocumentPipeline</a> &amp;&amp;)=delete</td></tr>
+<tr class="separator:a8d7ee59044e618618bfb2d126510a76e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0899a26dc204d939696a2fbc197b36a8" id="r_a0899a26dc204d939696a2fbc197b36a8"><td class="memItemLeft" align="right" valign="top"><a id="a0899a26dc204d939696a2fbc197b36a8" name="a0899a26dc204d939696a2fbc197b36a8"></a>
+<a class="el" href="classedit__atlas_1_1core_1_1TimelineDocumentPipeline.html">TimelineDocumentPipeline</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>operator=</b> (<a class="el" href="classedit__atlas_1_1core_1_1TimelineDocumentPipeline.html">TimelineDocumentPipeline</a> &amp;&amp;)=delete</td></tr>
+<tr class="separator:a0899a26dc204d939696a2fbc197b36a8"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a106cc5cb28bb0ccdd2f297d3c17268a6" id="r_a106cc5cb28bb0ccdd2f297d3c17268a6"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structedit__atlas_1_1core_1_1ImportResult.html">ImportResult</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classedit__atlas_1_1core_1_1TimelineDocumentPipeline.html#a106cc5cb28bb0ccdd2f297d3c17268a6">Import</a> (const <a class="el" href="structedit__atlas_1_1core_1_1ImportRequest.html">ImportRequest</a> &amp;request, std::optional&lt; std::string_view &gt; format_identifier=std::nullopt) const</td></tr>
 <tr class="memdesc:a106cc5cb28bb0ccdd2f297d3c17268a6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Imports content using an explicit format or automatic discovery.  <br /></td></tr>
 <tr class="separator:a106cc5cb28bb0ccdd2f297d3c17268a6"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -119,7 +132,7 @@ Public Member Functions</h2></td></tr>
 <div class="textblock"><p>Selects registered handlers and contains failures at the application edge. </p>
 <p>The registry must outlive the pipeline. Handler exceptions are converted to structured diagnostics instead of escaping through the pipeline interface. </p>
 
-<p class="definition">Definition at line <a class="el" href="timeline__document__pipeline_8hpp_source.html#l00046">46</a> of file <a class="el" href="timeline__document__pipeline_8hpp_source.html">timeline_document_pipeline.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="timeline__document__pipeline_8hpp_source.html#l00058">58</a> of file <a class="el" href="timeline__document__pipeline_8hpp_source.html">timeline_document_pipeline.hpp</a>.</p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="a9d69b032afea20afdadf2720350e395a" name="a9d69b032afea20afdadf2720350e395a"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a9d69b032afea20afdadf2720350e395a">&#9670;&#160;</a></span>TimelineDocumentPipeline()</h2>

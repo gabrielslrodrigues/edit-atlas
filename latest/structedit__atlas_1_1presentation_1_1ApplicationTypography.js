@@ -1,10 +1,10 @@
 var structedit__atlas_1_1presentation_1_1ApplicationTypography =
 [
-    [ "bodyPointSize", "structedit__atlas_1_1presentation_1_1ApplicationTypography.html#aa6ef78dc48c5d671c834598f985d7888", null ],
-    [ "bodyWeight", "structedit__atlas_1_1presentation_1_1ApplicationTypography.html#a688549951b9bbc768e03616c3e1b3a22", null ],
+    [ "body_point_size", "structedit__atlas_1_1presentation_1_1ApplicationTypography.html#a88e6f05965e6e87dd982ab6d9ed556e5", null ],
+    [ "body_weight", "structedit__atlas_1_1presentation_1_1ApplicationTypography.html#a3e93a206213472c0da8252d8d2bbdb15", null ],
     [ "family", "structedit__atlas_1_1presentation_1_1ApplicationTypography.html#ab212488508f0fa7ac8ad58dda087d982", null ],
-    [ "headingPointSize", "structedit__atlas_1_1presentation_1_1ApplicationTypography.html#a4b7a7e8a2d63b36e26a47ebe87c333c1", null ],
-    [ "headingWeight", "structedit__atlas_1_1presentation_1_1ApplicationTypography.html#a8c3f1f982ad4e1f637c1d96094951e61", null ],
-    [ "titlePointSize", "structedit__atlas_1_1presentation_1_1ApplicationTypography.html#af261e0b66311fe8d8bf4677afccb08ec", null ],
-    [ "titleWeight", "structedit__atlas_1_1presentation_1_1ApplicationTypography.html#a3d0394f56fd68945923cc2654dfaf427", null ]
+    [ "heading_point_size", "structedit__atlas_1_1presentation_1_1ApplicationTypography.html#a6d7dddf66a3a1273787c10496b58bf99", null ],
+    [ "heading_weight", "structedit__atlas_1_1presentation_1_1ApplicationTypography.html#af9c88c9183418cfb9cc84b05cd246e60", null ],
+    [ "title_point_size", "structedit__atlas_1_1presentation_1_1ApplicationTypography.html#acc7e373ed8c6572dd07226ddf3edbeea", null ],
+    [ "title_weight", "structedit__atlas_1_1presentation_1_1ApplicationTypography.html#a08c9a126a35b4edfe22952d402658979", null ]
 ];

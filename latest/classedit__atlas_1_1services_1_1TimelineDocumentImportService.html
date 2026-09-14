@@ -109,6 +109,19 @@ Public Member Functions</h2></td></tr>
 &#160;</td><td class="memItemRight" valign="bottom"><b>TimelineDocumentImportService</b> (const <a class="el" href="classedit__atlas_1_1core_1_1FormatRegistry.html">core::FormatRegistry</a> &amp;registry) noexcept</td></tr>
 <tr class="memdesc:a342f21182fa672da31bb85deb1e861bc"><td class="mdescLeft">&#160;</td><td class="mdescRight">Creates a service backed by a registry that must outlive it. <br /></td></tr>
 <tr class="separator:a342f21182fa672da31bb85deb1e861bc"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a69ba8d3585669844b75c67f253da7312" id="r_a69ba8d3585669844b75c67f253da7312"><td class="memItemLeft" align="right" valign="top"><a id="a69ba8d3585669844b75c67f253da7312" name="a69ba8d3585669844b75c67f253da7312"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>TimelineDocumentImportService</b> (const <a class="el" href="classedit__atlas_1_1services_1_1TimelineDocumentImportService.html">TimelineDocumentImportService</a> &amp;)=delete</td></tr>
+<tr class="memdesc:a69ba8d3585669844b75c67f253da7312"><td class="mdescLeft">&#160;</td><td class="mdescRight">Services are non-copyable and non-movable: the owned pipeline holds a reference that cannot be reseated. <br /></td></tr>
+<tr class="separator:a69ba8d3585669844b75c67f253da7312"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af6205ede97f260b2e979fa3abbedff67" id="r_af6205ede97f260b2e979fa3abbedff67"><td class="memItemLeft" align="right" valign="top"><a id="af6205ede97f260b2e979fa3abbedff67" name="af6205ede97f260b2e979fa3abbedff67"></a>
+<a class="el" href="classedit__atlas_1_1services_1_1TimelineDocumentImportService.html">TimelineDocumentImportService</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>operator=</b> (const <a class="el" href="classedit__atlas_1_1services_1_1TimelineDocumentImportService.html">TimelineDocumentImportService</a> &amp;)=delete</td></tr>
+<tr class="separator:af6205ede97f260b2e979fa3abbedff67"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a70f4fc16a1106f8ccdcd3d2f4977ceda" id="r_a70f4fc16a1106f8ccdcd3d2f4977ceda"><td class="memItemLeft" align="right" valign="top"><a id="a70f4fc16a1106f8ccdcd3d2f4977ceda" name="a70f4fc16a1106f8ccdcd3d2f4977ceda"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>TimelineDocumentImportService</b> (<a class="el" href="classedit__atlas_1_1services_1_1TimelineDocumentImportService.html">TimelineDocumentImportService</a> &amp;&amp;)=delete</td></tr>
+<tr class="separator:a70f4fc16a1106f8ccdcd3d2f4977ceda"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a86e0f3104c23449261ac641bbc31103e" id="r_a86e0f3104c23449261ac641bbc31103e"><td class="memItemLeft" align="right" valign="top"><a id="a86e0f3104c23449261ac641bbc31103e" name="a86e0f3104c23449261ac641bbc31103e"></a>
+<a class="el" href="classedit__atlas_1_1services_1_1TimelineDocumentImportService.html">TimelineDocumentImportService</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>operator=</b> (<a class="el" href="classedit__atlas_1_1services_1_1TimelineDocumentImportService.html">TimelineDocumentImportService</a> &amp;&amp;)=delete</td></tr>
+<tr class="separator:a86e0f3104c23449261ac641bbc31103e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a3a5b7ec2b093aae8bd4f73b2fe1ba1c3" id="r_a3a5b7ec2b093aae8bd4f73b2fe1ba1c3"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceedit__atlas_1_1services.html#af20261a97560bf1f4d7037f72577677e">TimelineDocumentImportResult</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classedit__atlas_1_1services_1_1TimelineDocumentImportService.html#a3a5b7ec2b093aae8bd4f73b2fe1ba1c3">Import</a> (<a class="el" href="structedit__atlas_1_1services_1_1TimelineDocumentImportRequest.html">TimelineDocumentImportRequest</a> request) const</td></tr>
 <tr class="memdesc:a3a5b7ec2b093aae8bd4f73b2fe1ba1c3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reads and imports the local timeline described by <code>request</code>.  <br /></td></tr>
 <tr class="separator:a3a5b7ec2b093aae8bd4f73b2fe1ba1c3"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -117,7 +130,7 @@ Public Member Functions</h2></td></tr>
 <div class="textblock"><p>Coordinates filesystem input with the format-independent import pipeline. </p>
 <p>The registry must outlive the service. Scheduling and user interaction are responsibilities of the calling frontend. </p>
 
-<p class="definition">Definition at line <a class="el" href="timeline__document__import__service_8hpp_source.html#l00067">67</a> of file <a class="el" href="timeline__document__import__service_8hpp_source.html">timeline_document_import_service.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="timeline__document__import__service_8hpp_source.html#l00079">79</a> of file <a class="el" href="timeline__document__import__service_8hpp_source.html">timeline_document_import_service.hpp</a>.</p>
 </div><h2 class="groupheader">Member Function Documentation</h2>
 <a id="a3a5b7ec2b093aae8bd4f73b2fe1ba1c3" name="a3a5b7ec2b093aae8bd4f73b2fe1ba1c3"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a3a5b7ec2b093aae8bd4f73b2fe1ba1c3">&#9670;&#160;</a></span>Import()</h2>

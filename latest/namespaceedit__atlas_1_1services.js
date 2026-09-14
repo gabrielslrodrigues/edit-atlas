@@ -54,7 +54,7 @@ var namespaceedit__atlas_1_1services =
     [ "TimelineEventSelection", "namespaceedit__atlas_1_1services.html#aa1ea8b9848e624b54ce625d826a79ad2", null ],
     [ "TimelineFilterCondition", "namespaceedit__atlas_1_1services.html#a1b72f32b86fa278303665df2b69bb2f5", null ],
     [ "TimelineFilterResult", "namespaceedit__atlas_1_1services.html#ab697ed6d82e68747bc181eed79e8dfd0", null ],
-    [ "TimelineFrameExtractionProgressCallback", "namespaceedit__atlas_1_1services.html#a92d9e26c06d8fb544575d4633c4e4915", null ],
+    [ "TimelineFrameExtractionProgressCallback", "namespaceedit__atlas_1_1services.html#a3b3431daadfd72b9746ce109444079da", null ],
     [ "TimelineFrameExtractionResult", "namespaceedit__atlas_1_1services.html#a0794e68aa066fdf0683927c146df523d", null ],
     [ "TimelineRenderedVideoExportResult", "namespaceedit__atlas_1_1services.html#a1e0f7e3c656537061aad7acb4b89a174", null ],
     [ "TimelineTemplateLoadResult", "namespaceedit__atlas_1_1services.html#a0c0aabf992515a713b9e0441efab6b0b", null ],

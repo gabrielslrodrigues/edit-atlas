@@ -1,5 +1,16 @@
 var structedit__atlas_1_1presentation_1_1AppearancePalette =
 [
+    [ "accent_hovered", "structedit__atlas_1_1presentation_1_1AppearancePalette.html#a2c55885678f67ec2b22c7c8e7d0acef7", null ],
+    [ "accent_pressed", "structedit__atlas_1_1presentation_1_1AppearancePalette.html#ac248af35c8ffe8f86e95a65ca21e85e6", null ],
+    [ "control_hovered", "structedit__atlas_1_1presentation_1_1AppearancePalette.html#ae60665718a5296bc3092dc8f95c239b6", null ],
+    [ "control_pressed", "structedit__atlas_1_1presentation_1_1AppearancePalette.html#a44eee4fe9e951c9ecc61510f46c26efc", null ],
+    [ "on_accent", "structedit__atlas_1_1presentation_1_1AppearancePalette.html#ab6d2aa7b79cc24695009f383964aa913", null ],
+    [ "surface_alternate", "structedit__atlas_1_1presentation_1_1AppearancePalette.html#a73480024fff1fcfa79db617c846f1d95", null ],
+    [ "text_inverted", "structedit__atlas_1_1presentation_1_1AppearancePalette.html#a39bc7845b0b2d5f70d3b349f5a895911", null ],
+    [ "text_primary", "structedit__atlas_1_1presentation_1_1AppearancePalette.html#a2d611dfdf5d7402eb9f2940b55d884e8", null ],
+    [ "text_secondary", "structedit__atlas_1_1presentation_1_1AppearancePalette.html#a39b5d65a743f285517fac33e3a023b71", null ],
+    [ "tooltip_surface", "structedit__atlas_1_1presentation_1_1AppearancePalette.html#a765ab7f86b0b14d947526ec5bc178a88", null ],
+    [ "tooltip_text", "structedit__atlas_1_1presentation_1_1AppearancePalette.html#a60c6020e5bde01efb9977f8a381f46be", null ],
     [ "accent", "structedit__atlas_1_1presentation_1_1AppearancePalette.html#ad046136f0fdf00bb458179d80964f9de", null ],
     [ "accentHovered", "structedit__atlas_1_1presentation_1_1AppearancePalette.html#a3833787cbbaaf374b11ad4b3ad41355b", null ],
     [ "accentPressed", "structedit__atlas_1_1presentation_1_1AppearancePalette.html#ab407d4266c01d205f5de5efeab14195b", null ],
