@@ -20,24 +20,25 @@ production="$(
   }' CMakeLists.txt | head -n 1
 )"
 
-supported="$(
+supported_line="$(
   sed -nE 's/^[[:space:]]*PROPERTY STRINGS ([a-z ]+)$/\1/p' CMakeLists.txt |
     head -n 1
 )"
+read -ra supported <<< "$supported_line"
 
 if [[ -z "$production" ]]; then
   echo "Could not determine the default frontend from CMakeLists.txt." >&2
   exit 1
 fi
 
-if [[ -z "$supported" ]]; then
+if (( ${#supported[@]} == 0 )); then
   echo "Could not determine the supported frontends from CMakeLists.txt." >&2
   exit 1
 fi
 
 others=()
 found=0
-for frontend in $supported; do
+for frontend in "${supported[@]}"; do
   if [[ "$frontend" == "$production" ]]; then
     found=1
   else
@@ -47,13 +48,14 @@ done
 
 if (( found == 0 )); then
   echo "Default frontend '$production' is not in the supported set:" >&2
-  echo "  $supported" >&2
+  echo "  ${supported[*]}" >&2
   exit 1
 fi
 
 others_json="[]"
 if (( ${#others[@]} > 0 )); then
-  others_json="[$(printf '"%s",' "${others[@]}" | sed 's/,$//')]"
+  others_joined="$(printf '"%s",' "${others[@]}")"
+  others_json="[${others_joined%,}]"
 fi
 
 echo "Production frontend: $production" >&2

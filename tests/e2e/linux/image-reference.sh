@@ -12,6 +12,11 @@ set -euo pipefail
 # The image holds only the E2E environment. It never contains Edit Atlas, and
 # ordinary runs supply the package and fixtures as inputs.
 
+if (( $# != 0 )); then
+  echo "Usage: $0" >&2
+  exit 2
+fi
+
 script_directory="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 repository_root="$(cd -- "${script_directory}/../../.." && pwd)"
 
@@ -48,7 +53,8 @@ while read -r copied; do
     fi
   done
   echo "The Containerfile copies ${copied}, which does not determine the" >&2
-  echo "image tag. Add it to image_inputs in $(basename "${BASH_SOURCE[0]}")." >&2
+  printf 'image tag. Add it to image_inputs in %s.\n' \
+    "${BASH_SOURCE[0]##*/}" >&2
   exit 1
 done < <(
   awk '$1 == "COPY" && $2 !~ /^--/ {
@@ -68,7 +74,7 @@ for image_input in "${image_inputs[@]}"; do
   relative="${image_input#"${repository_root}/"}"
   if ! printf '%s\n' "${publish_paths}" | grep -qxF -- "${relative}"; then
     echo "${relative} determines the image tag but does not trigger" >&2
-    echo "$(basename "${publish_workflow}"), so its image would never be" >&2
+    echo "${publish_workflow##*/}, so its image would never be" >&2
     echo "published. Add it to that workflow's paths." >&2
     exit 1
   fi

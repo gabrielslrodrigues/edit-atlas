@@ -1,22 +1,23 @@
 """Linux desktop automation through dogtail and AT-SPI.
 
-This module uses accessibility actions, selection, and editable-text interfaces.
-Pointer input derived from accessible bounds is a fallback for controls that
-expose no action of their own, which now means Qt's built-in file chooser
-rather than anything this project owns.
+This module uses accessibility actions, selection, and editable-text
+interfaces. Pointer input derived from accessible bounds is a
+fallback for controls that expose no action of their own, which now
+means Qt's built-in file chooser rather than anything this project
+owns.
 """
 
 from __future__ import annotations
 
-from collections import deque
 import ctypes
 import ctypes.util
 import logging
 import os
-from pathlib import Path
 import shutil
 import subprocess
 import threading
+from collections import deque
+from pathlib import Path
 from typing import Any, Iterable, Mapping, Sequence
 
 from adapters.processes import ProcessRegistry
@@ -24,11 +25,13 @@ from application.polling import PollTimeoutError, wait_until
 
 
 class AccessibilityBackendError(RuntimeError):
-    """Raised when the required Linux accessibility session is unavailable."""
+    """Raised when the required Linux accessibility session is
+    unavailable.
+    """
 
 
 class ElementNotFoundError(LookupError):
-    """Raised when a semantic element is absent after bounded polling."""
+    """Raised when an element is absent after bounded polling."""
 
 
 class StartupNotReadyError(ElementNotFoundError):
@@ -40,7 +43,7 @@ class ActionNotSupportedError(RuntimeError):
 
 
 class _X11PointerInput:
-    """Send pointer input through XTest at accessibility-derived bounds."""
+    """Send pointer input via XTest at accessibility-derived bounds."""
 
     def __init__(self) -> None:
         x11_name = ctypes.util.find_library("X11")
@@ -126,16 +129,17 @@ class LinuxAtspiAdapter:
                 + ", ".join(missing)
             )
         if os.environ.get("XDG_SESSION_TYPE", "x11").lower() != "x11":
-            raise AccessibilityBackendError("Linux E2E requires an X11 session")
+            raise AccessibilityBackendError(
+                "Linux E2E requires an X11 session"
+            )
 
         try:
             import gi
 
             gi.require_version("Atspi", "2.0")
-            from gi.repository import Atspi
-
             from dogtail import rawinput, tree
             from dogtail.config import config
+            from gi.repository import Atspi
         except (ImportError, ValueError) as error:
             raise AccessibilityBackendError(
                 f"dogtail/AT-SPI backend could not be loaded: {error}"
@@ -365,7 +369,8 @@ class LinuxApplicationSession:
     def focus(self, identifier: str, *, showing: bool = False) -> None:
         # A virtualized row must actually be brought into view before a
         # click at its accessible bounds can land anywhere meaningful.
-        # Qt's accessibility bridge maps "SetFocus" to forceActiveFocus(),
+        # Qt's accessibility bridge maps "SetFocus" to
+        # forceActiveFocus(),
         # which pulls the target back into the viewport the same way
         # keyboard navigation would.
         node = self.element(identifier, showing=showing)
@@ -383,7 +388,8 @@ class LinuxApplicationSession:
         node = self._find_named(root, names)
         if node is None:
             raise ElementNotFoundError(
-                f"could not find a showing accessible named one of {tuple(names)!r}"
+                "could not find a showing accessible named one of "
+                f"{tuple(names)!r}"
             )
         self._activate_node(node)
 
@@ -416,9 +422,9 @@ class LinuxApplicationSession:
             self._activate_node(node)
 
         def checked_or_closed() -> bool:
-            return self._checked_state(node) == checked or not self._is_showing(
+            return self._checked_state(
                 node
-            )
+            ) == checked or not self._is_showing(node)
 
         wait_until(
             checked_or_closed,
@@ -438,7 +444,9 @@ class LinuxApplicationSession:
         if identifier == "eventColumnsList":
             indexed_items: list[tuple[int, str]] = []
             for node in self._walk(control):
-                node_identifier = self._node_identifier(node).rsplit(".", 1)[-1]
+                node_identifier = self._node_identifier(node).rsplit(".", 1)[
+                    -1
+                ]
                 prefix = "eventColumn"
                 suffix = "CheckBox"
                 if not (
@@ -459,8 +467,10 @@ class LinuxApplicationSession:
         ]
 
     def current_list_item(self, identifier: str) -> str | None:
-        # The controls beside a list act on its current row, which AT-SPI
-        # reports as the focused descendant rather than the selected one.
+        # The controls beside a list act on its current row, which
+        # AT-SPI
+        # reports as the focused descendant rather than the selected
+        # one.
         control = self.element(identifier)
         for node in self._walk(control):
             if str(getattr(node, "role_name", "")).casefold() not in (
@@ -494,12 +504,13 @@ class LinuxApplicationSession:
             description=f"list item {name!r} to become selected",
         )
 
-    def move_list_item(
-        self, identifier: str, name: str, control: str
-    ) -> None:
-        # Both elements are resolved before either is used, so no accessible
-        # enumeration falls between selecting a row and acting on it. AT-SPI
-        # has not shown the current-row reset Windows does, and the ordering
+    def move_list_item(self, identifier: str, name: str, control: str) -> None:
+        # Both elements are resolved before either is used, so no
+        # accessible
+        # enumeration falls between selecting a row and acting on it.
+        # AT-SPI
+        # has not shown the current-row reset Windows does, and the
+        # ordering
         # costs nothing here.
         button = self.element(control)
         list_control = self.element(identifier)
@@ -547,7 +558,9 @@ class LinuxApplicationSession:
             lambda: self._checked_state(node),
             lambda value: value == checked,
             timeout=self._timeout,
-            description=f"list item {name!r} checked state to become {checked}",
+            description=(
+                f"list item {name!r} checked state to become {checked}"
+            ),
         )
 
     def select_option(self, identifier: str, option: str) -> None:
@@ -614,11 +627,11 @@ class LinuxApplicationSession:
             )
         target_index = None
         for index, node in enumerate(tuple(option_list.children)):
-            if (
-                str(getattr(node, "role_name", "")).casefold() == "list item"
-                and self._normalized_name(str(getattr(node, "name", "")))
-                == self._normalized_name(option)
-            ):
+            if str(
+                getattr(node, "role_name", "")
+            ).casefold() == "list item" and self._normalized_name(
+                str(getattr(node, "name", ""))
+            ) == self._normalized_name(option):
                 target_index = index
                 break
         if target_index is None:
@@ -660,8 +673,10 @@ class LinuxApplicationSession:
         self._invoke_or_click(node, f"option {option!r}")
         wait_until(
             lambda: self.selected_option(identifier),
-            lambda selected: self._normalized_name(selected)
-            == self._normalized_name(option),
+            lambda selected: (
+                self._normalized_name(selected)
+                == self._normalized_name(option)
+            ),
             timeout=self._timeout,
             description=f"option {option!r} to become selected",
         )
@@ -676,9 +691,7 @@ class LinuxApplicationSession:
             for node in children:
                 if not self._is_showing(node):
                     continue
-                value = self._node_text(node) or str(
-                    getattr(node, "name", "")
-                )
+                value = self._node_text(node) or str(getattr(node, "name", ""))
                 if value:
                     return value
         for node in self._walk(control):
@@ -719,9 +732,7 @@ class LinuxApplicationSession:
         if editor is None:
             editor = quick_filename_editor
         editors = [
-            node
-            for node in self._walk(dialog)
-            if self._is_editable(node)
+            node for node in self._walk(dialog) if self._is_editable(node)
         ]
         if editor is None and not editors:
             raise ElementNotFoundError(
@@ -746,12 +757,16 @@ class LinuxApplicationSession:
                 "native file chooser rejected filename input"
             ) from error
         if result is False:
-            raise ActionNotSupportedError("native file chooser rejected the path")
+            raise ActionNotSupportedError(
+                "native file chooser rejected the path"
+            )
         wait_until(
             lambda: self._node_text(editor),
             lambda text: text == expected_path,
             timeout=self._timeout,
-            description=f"native file chooser path to become {expected_path!r}",
+            description=(
+                f"native file chooser path to become {expected_path!r}"
+            ),
         )
 
         self._activate_file_dialog_accept(dialog)
@@ -767,7 +782,9 @@ class LinuxApplicationSession:
             ),
             lambda state: not state[0] or state[1] is not None,
             timeout=self._timeout,
-            description="file chooser to close or request overwrite confirmation",
+            description=(
+                "file chooser to close or request overwrite confirmation"
+            ),
         )
         if showing and confirmation is not None:
             return
@@ -798,7 +815,9 @@ class LinuxApplicationSession:
             editor.text = path
             result = True
         if result is False:
-            raise ActionNotSupportedError("native file chooser rejected the path")
+            raise ActionNotSupportedError(
+                "native file chooser rejected the path"
+            )
         wait_until(
             lambda: self._node_text(editor),
             lambda text: text == path,
@@ -814,11 +833,16 @@ class LinuxApplicationSession:
             for component in directory.parts
             if component not in (directory.anchor, "", "/")
         )
-        # The packaged tests select files below the checkout, which is also
-        # the dialog's initial folder. Start from the first target component
-        # that is an actual visible child of that folder instead of walking
-        # down again from '/'. The captured Qt tree proves those children are
-        # exposed as list items, while Ctrl+L never reveals the hidden path
+        # The packaged tests select files below the checkout, which is
+        # also
+        # the dialog's initial folder. Start from the first target
+        # component
+        # that is an actual visible child of that folder instead of
+        # walking
+        # down again from '/'. The captured Qt tree proves those
+        # children are
+        # exposed as list items, while Ctrl+L never reveals the hidden
+        # path
         # editor under AT-SPI.
         start = next(
             (
@@ -889,7 +913,9 @@ class LinuxApplicationSession:
                 showing_only=True,
             )
             if root_button is None:
-                raise ElementNotFoundError("file chooser root location is absent")
+                raise ElementNotFoundError(
+                    "file chooser root location is absent"
+                )
             self._activate_node(root_button)
             start = 0
 
@@ -897,8 +923,10 @@ class LinuxApplicationSession:
             entry = self._file_dialog_entry(dialog, component)
             self._activate_file_dialog_entry(entry, component)
             try:
-                # Trigger on the row itself: it is the leading signal that
-                # the click only selected the folder. Breadcrumb depth lags
+                # Trigger on the row itself: it is the leading signal
+                # that
+                # the click only selected the folder. Breadcrumb depth
+                # lags
                 # behind the click, so triggering on depth presses the
                 # accept button before the selection has registered.
                 visible_entry, accept_enabled = wait_until(
@@ -923,10 +951,13 @@ class LinuxApplicationSession:
                 if visible_entry is not None and accept_enabled:
                     self._activate_file_dialog_accept(dialog)
                 # Entering a folder clears the selection, so the accept
-                # button goes insensitive again. Accept that as confirmation
-                # alongside the row disappearing: a repeated path component
+                # button goes insensitive again. Accept that as
+                # confirmation
+                # alongside the row disappearing: a repeated path
+                # component
                 # keeps a row of the same name in the new listing -- the
-                # runner checkout lives at .../edit-atlas/edit-atlas -- so
+                # runner checkout lives at .../edit-atlas/edit-atlas --
+                # so
                 # absence alone never settles there.
                 wait_until(
                     lambda: (
@@ -967,11 +998,13 @@ class LinuxApplicationSession:
         self._click_accessible_bounds(entry, f"file chooser entry {name!r}")
 
     def _invoke_or_click(self, node: Any, description: str) -> None:
-        """Act through the node's own action, or its bounds when it has none.
+        """Act through the node's own action, or its bounds when it has
+        none.
 
-        Bounds-derived input depends on stable geometry, so a layout defect
-        turns into automation flakiness rather than surfacing as a layout
-        defect. It is kept only for controls this project does not own.
+        Bounds-derived input depends on stable geometry, so a layout
+        defect turns into automation flakiness rather than surfacing
+        as a layout defect. It is kept only for controls this project
+        does not own.
         """
         try:
             self._activate_node(node)
@@ -1034,12 +1067,14 @@ class LinuxApplicationSession:
 
     def _file_dialog(self, dialog_identifier: str) -> Any:
         def by_top_level_identifier() -> Any | None:
-            """Find a chooser that is its own window, as Qt Widgets shows.
+            """Find a chooser that is its own window, as Qt Widgets
+            shows.
 
-            Only the application's own windows are inspected. Searching the
-            whole tree for the identifier costs seconds on a populated
-            window, which turns a bounded wait into a single blocking scan
-            that cannot observe a chooser opening while it runs.
+            Only the application's own windows are inspected.
+            Searching the whole tree for the identifier costs seconds
+            on a populated window, which turns a bounded wait into a
+            single blocking scan that cannot observe a chooser
+            opening while it runs.
             """
             self._ensure_running()
             try:
@@ -1048,10 +1083,9 @@ class LinuxApplicationSession:
                 return None
             for window in windows:
                 try:
-                    if (
-                        self._node_identifier(window) == dialog_identifier
-                        and self._is_showing(window)
-                    ):
+                    if self._node_identifier(
+                        window
+                    ) == dialog_identifier and self._is_showing(window):
                         return window
                 except Exception:
                     continue
@@ -1085,8 +1119,10 @@ class LinuxApplicationSession:
             pass
 
         # Qt Quick renders its chooser in-scene, where it carries the
-        # dialog's own object name rather than the semantic identifier, so
-        # fall back to the dialog that owns the chooser's filename field.
+        # dialog's own object name rather than the semantic identifier,
+        # so
+        # fall back to the dialog that owns the chooser's filename
+        # field.
         try:
             return wait_until(
                 by_filename_field,
@@ -1111,11 +1147,16 @@ class LinuxApplicationSession:
             self._normalized_action_name(str(name)): str(name)
             for name in actions
         }
-        action = normalized.get(self._normalized_action_name(action_identifier))
+        action = normalized.get(
+            self._normalized_action_name(action_identifier)
+        )
         if action is None:
-            # A prior interaction with this same menu (e.g. toggling one of
-            # its own checkable items) may have left it open. Clicking the
-            # menu bar item again would toggle it closed instead of opening
+            # A prior interaction with this same menu (e.g. toggling one
+            # of
+            # its own checkable items) may have left it open. Clicking
+            # the
+            # menu bar item again would toggle it closed instead of
+            # opening
             # it, so only click when the target action is not already
             # showing.
             if not self.has_element(action_identifier):
@@ -1145,7 +1186,9 @@ class LinuxApplicationSession:
         return [
             text
             for node in self._walk(self.element(identifier))
-            if (text := self._node_text(node) or str(getattr(node, "name", "")))
+            if (
+                text := self._node_text(node) or str(getattr(node, "name", ""))
+            )
         ]
 
     def visible_text(self, identifier: str) -> list[str]:
@@ -1153,7 +1196,9 @@ class LinuxApplicationSession:
             text
             for node in self._walk(self.element(identifier))
             if self._is_showing(node)
-            if (text := self._node_text(node) or str(getattr(node, "name", "")))
+            if (
+                text := self._node_text(node) or str(getattr(node, "name", ""))
+            )
         ]
 
     def wait_name_contains(self, identifier: str, expected: str) -> str:
@@ -1178,8 +1223,10 @@ class LinuxApplicationSession:
     def wait_selected_option(self, identifier: str, expected: str) -> str:
         return wait_until(
             lambda: self.selected_option(identifier),
-            lambda selected: self._normalized_name(selected)
-            == self._normalized_name(expected),
+            lambda selected: (
+                self._normalized_name(selected)
+                == self._normalized_name(expected)
+            ),
             timeout=self._timeout,
             description=f"{identifier!r} selection to become {expected!r}",
         )
@@ -1282,7 +1329,8 @@ class LinuxApplicationSession:
             )
         # Wait for a popup this node owns to open regardless of which
         # action name Qt happened to expose for it. Qt Widgets menu bar
-        # items expose "ShowMenu", but Qt Quick's MenuBarItem exposes only
+        # items expose "ShowMenu", but Qt Quick's MenuBarItem exposes
+        # only
         # "Press"/"SetFocus" for the same open-a-dropdown behavior, so
         # gating this wait on the literal action name misses Quick menus
         # entirely and lets callers race the popup's creation.
@@ -1309,8 +1357,10 @@ class LinuxApplicationSession:
                     f"accessibility action {action!r} failed"
                 )
         except Exception as error:
-            # Qt can apply a modal menu action before its AT-SPI D-Bus call
-            # times out. Callers verify the resulting UI state separately.
+            # Qt can apply a modal menu action before its AT-SPI D-Bus
+            # call
+            # times out. Callers verify the resulting UI state
+            # separately.
             if self._is_no_reply_error(error):
                 return
             failure = ActionNotSupportedError(
@@ -1491,7 +1541,8 @@ class LinuxApplicationSession:
             ) from error
         if result is False:
             raise ActionNotSupportedError(
-                f"accessibility scroll failed for {getattr(node, 'name', '')!r}"
+                "accessibility scroll failed for "
+                f"{getattr(node, 'name', '')!r}"
             )
         wait_until(
             lambda: self._is_showing(node),
@@ -1542,8 +1593,7 @@ class LinuxApplicationSession:
                 continue
             node_identifier = self._node_identifier(node)
             if any(
-                node_identifier == leaf
-                or node_identifier.endswith(f".{leaf}")
+                node_identifier == leaf or node_identifier.endswith(f".{leaf}")
                 for leaf in descendant_leaves
             ):
                 continue
@@ -1616,10 +1666,10 @@ class LinuxApplicationSession:
                     return True
             except Exception:
                 continue
-        current = self._node_text(control) or str(
-            getattr(control, "name", "")
+        current = self._node_text(control) or str(getattr(control, "name", ""))
+        return self._normalized_name(current) == self._normalized_name(
+            expected
         )
-        return self._normalized_name(current) == self._normalized_name(expected)
 
     @staticmethod
     def _node_identifier(node: Any) -> str:
@@ -1649,9 +1699,7 @@ class LinuxApplicationSession:
     @staticmethod
     def _normalized_action_name(name: str) -> str:
         return "".join(
-            character
-            for character in name.casefold()
-            if character.isalnum()
+            character for character in name.casefold() if character.isalnum()
         )
 
     @staticmethod

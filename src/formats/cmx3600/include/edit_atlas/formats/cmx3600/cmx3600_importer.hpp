@@ -1,9 +1,21 @@
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #ifndef EDIT_ATLAS_FORMATS_CMX3600_CMX3600_IMPORTER_HPP_
 #define EDIT_ATLAS_FORMATS_CMX3600_CMX3600_IMPORTER_HPP_
 
-#include <edit_atlas/core/format.hpp>
-
 #include <string_view>
+
+#include "edit_atlas/core/format.hpp"
 
 namespace edit_atlas::formats::cmx3600 {
 
@@ -35,7 +47,7 @@ inline constexpr std::string_view kUnknownContent = "cmx3600.unknown_content";
 /// A continuation record does not follow an event.
 inline constexpr std::string_view kOrphanRecord = "cmx3600.orphan_record";
 
-} // namespace diagnostic_code
+}  // namespace diagnostic_code
 
 /// Imports CMX 3600 edit decision lists into the shared timeline model.
 ///
@@ -43,22 +55,25 @@ inline constexpr std::string_view kOrphanRecord = "cmx3600.orphan_record";
 /// value such as `24`, `25`, or `30000/1001`. Drop-frame files default to
 /// 30000/1001 when the option is omitted.
 class Cmx3600Importer final : public core::Importer {
-  public:
-    /// Creates a stateless CMX 3600 importer.
-    Cmx3600Importer(void) = default;
-    /// Destroys the importer.
-    ~Cmx3600Importer(void) override = default;
+ public:
+  /// Creates a CMX 3600 importer with its stable format description.
+  Cmx3600Importer(void);
+  /// Destroys the importer.
+  ~Cmx3600Importer(void) override = default;
 
-    [[nodiscard]] const core::FormatDescriptor &
-    descriptor(void) const noexcept override;
+  [[nodiscard]] const core::FormatDescriptor& descriptor(
+      void) const noexcept override;
 
-    [[nodiscard]] core::ProbeConfidence
-    Probe(const core::ImportRequest &request) const override;
+  [[nodiscard]] core::ProbeConfidence Probe(
+      const core::ImportRequest& request) const override;
 
-    [[nodiscard]] core::ImportResult
-    Import(const core::ImportRequest &request) const override;
+  [[nodiscard]] core::ImportResult Import(
+      const core::ImportRequest& request) const override;
+
+ private:
+  const core::FormatDescriptor descriptor_;
 };
 
-} // namespace edit_atlas::formats::cmx3600
+}  // namespace edit_atlas::formats::cmx3600
 
-#endif // EDIT_ATLAS_FORMATS_CMX3600_CMX3600_IMPORTER_HPP_
+#endif  // EDIT_ATLAS_FORMATS_CMX3600_CMX3600_IMPORTER_HPP_

@@ -8,8 +8,11 @@ insert_final_newline = true
 trim_trailing_whitespace = true
 indent_style = space
 
-[*.{cpp,hpp,cmake,txt,qml,py}]
+[*.{cmake,txt,qml,py}]
 indent_size = 4
 
-[*.{json,yaml,yml,sh,ps1,md}]
+[*.{cpp,hpp,json,yaml,yml,sh,ps1,psd1,qss,md}]
 indent_size = 2
+
+[*.py]
+max_line_length = 79

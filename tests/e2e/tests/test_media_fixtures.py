@@ -44,7 +44,8 @@ def test_digest_changes_with_any_input(tmp_path: Path) -> None:
 
 def test_digest_ignores_the_checkout_line_endings(tmp_path: Path) -> None:
     # Windows checkouts convert to CRLF, and one platform's fixtures are
-    # consumed by another, so the digest must not depend on the conversion.
+    # consumed by another, so the digest must not depend on the
+    # conversion.
     unix_root, _ = _tree(tmp_path / "unix")
     windows_root, _ = _tree(tmp_path / "windows")
     for relative in GENERATOR_INPUTS:

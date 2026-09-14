@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
+
 set -euo pipefail
+
+# Run packaged suites after checking macOS accessibility permissions.
 
 script_directory="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 repository_root="$(cd -- "${script_directory}/../.." && pwd)"
@@ -12,7 +15,7 @@ if ! command -v uv >/dev/null 2>&1; then
 fi
 
 mkdir -p "${e2e_root}/reports" "${e2e_root}/output" "${e2e_root}/artifacts"
-export UV_PROJECT_ENVIRONMENT="${virtual_environment}"
+declare -rx UV_PROJECT_ENVIRONMENT="${virtual_environment}"
 uv run --locked --project "${script_directory}" \
   python "${script_directory}/preflight_macos.py"
 exec uv run --locked --project "${script_directory}" python -m pytest \

@@ -1,14 +1,16 @@
 """Runner-independent provenance checks for generated media fixtures.
 
-The rendered-video fixtures are produced by a built generator rather than
-committed, so a checkout can hold fixtures from an older generator revision.
-CI regenerates them whenever the inputs that determine their content change,
-because its fixture cache key hashes those inputs. Nothing local does.
+The rendered-video fixtures are produced by a built generator rather
+than committed, so a checkout can hold fixtures from an older
+generator revision. CI regenerates them whenever the inputs that
+determine their content change, because its fixture cache key hashes
+those inputs. Nothing local does.
 
-A fixture directory therefore records the digest of the inputs that produced
-it, and the suite refuses to run against a directory whose recorded digest is
-absent or no longer matches the tree. The digest covers the same inputs as the
-CI cache key, so both agree on what counts as fresh.
+A fixture directory therefore records the digest of the inputs that
+produced it, and the suite refuses to run against a directory whose
+recorded digest is absent or no longer matches the tree. The digest
+covers the same inputs as the CI cache key, so both agree on what
+counts as fresh.
 """
 
 from __future__ import annotations
@@ -16,12 +18,11 @@ from __future__ import annotations
 import argparse
 import hashlib
 import os
-from pathlib import Path
 import sys
+from pathlib import Path
 
-
-#: Inputs that determine generated fixture content. Kept identical to the
-#: fixture cache key in `.github/workflows/build-and-package.yml`.
+#: Keep these inputs identical to the fixture cache key in
+#: `.github/workflows/build-and-package.yml`.
 GENERATOR_INPUTS = (
     Path("tests/integration/media/e2e_fixture_generator.cpp"),
     Path("tests/integration/media/media_fixture.cpp"),
@@ -35,7 +36,7 @@ GENERATOR_NAME = "edit_atlas_e2e_media_fixture_generator"
 
 
 def regeneration_command(fixture_directory: Path) -> str:
-    """Spell the entry-point invocation that refreshes a fixture directory."""
+    """Return the fixture regeneration entry-point command."""
     generator = "build/<preset>/tests/integration/media/" + GENERATOR_NAME
     if os.name == "nt":
         windows_generator = generator.replace("/", "\\")
@@ -56,12 +57,13 @@ def generator_digest(repository_root: Path) -> str | None:
 
     Line endings are normalized because the fixtures travel between
     platforms: one job generates them and others consume them, and a
-    checkout that converts to CRLF must still agree with one that does not.
-    Paths are hashed in their POSIX spelling for the same reason.
+    checkout that converts to CRLF must still agree with one that
+    does not. Paths are hashed in their POSIX spelling for the same
+    reason.
 
-    Returns None when an input is absent, such as a run from a tree without
-    the generator sources, so provenance is reported as unknown rather than
-    as a mismatch.
+    Returns None when an input is absent, such as a run from a tree
+    without the generator sources, so provenance is reported as
+    unknown rather than as a mismatch.
     """
     digest = hashlib.sha256()
     for relative in GENERATOR_INPUTS:
@@ -76,7 +78,7 @@ def generator_digest(repository_root: Path) -> str | None:
 
 
 def read_recorded_digest(fixture_directory: Path) -> str | None:
-    """Return the digest a fixture directory records, if it records one."""
+    """Return the fixture directory's recorded digest, if any."""
     stamp = fixture_directory / STAMP_NAME
     if not stamp.is_file():
         return None
@@ -85,7 +87,7 @@ def read_recorded_digest(fixture_directory: Path) -> str | None:
 
 
 def record_digest(repository_root: Path, fixture_directory: Path) -> str:
-    """Record the tree's generator digest against a fixture directory."""
+    """Record the tree's generator digest in a fixture directory."""
     digest = generator_digest(repository_root)
     if digest is None:
         raise FileNotFoundError(
@@ -100,7 +102,7 @@ def record_digest(repository_root: Path, fixture_directory: Path) -> str:
 def stale_fixture_reason(
     repository_root: Path, fixture_directory: Path
 ) -> str | None:
-    """Describe why a fixture directory is not current, or return None."""
+    """Describe why a fixture directory is stale, or return None."""
     expected = generator_digest(repository_root)
     if expected is None:
         return None

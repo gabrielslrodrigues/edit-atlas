@@ -1,6 +1,16 @@
-#include <edit_atlas/storage/local_file.hpp>
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
-#include <gtest/gtest.h>
+#include "edit_atlas/storage/local_file.hpp"
 
 #include <cstddef>
 #include <filesystem>
@@ -10,87 +20,86 @@
 #include <system_error>
 #include <vector>
 
+#include "gtest/gtest.h"
+
 namespace edit_atlas::storage {
 namespace {
 
 class TemporaryDirectory final {
-  public:
-    TemporaryDirectory(void)
-        : path_{
-              std::filesystem::path{testing::TempDir()} /
+ public:
+  TemporaryDirectory(void)
+      : path_{std::filesystem::path{testing::TempDir()} /
               (std::string{"edit-atlas-storage-"} +
                testing::UnitTest::GetInstance()->current_test_info()->name())} {
-        std::error_code error;
-        std::filesystem::remove_all(path_, error);
-        std::filesystem::create_directories(path_);
-    }
+    std::error_code error;
+    std::filesystem::remove_all(path_, error);
+    std::filesystem::create_directories(path_);
+  }
 
-    ~TemporaryDirectory(void) {
-        std::error_code error;
-        std::filesystem::remove_all(path_, error);
-    }
+  ~TemporaryDirectory(void) {
+    std::error_code error;
+    std::filesystem::remove_all(path_, error);
+  }
 
-    TemporaryDirectory(const TemporaryDirectory &) = delete;
-    TemporaryDirectory &operator=(const TemporaryDirectory &) = delete;
-    TemporaryDirectory(TemporaryDirectory &&) = delete;
-    TemporaryDirectory &operator=(TemporaryDirectory &&) = delete;
+  TemporaryDirectory(const TemporaryDirectory&) = delete;
+  TemporaryDirectory& operator=(const TemporaryDirectory&) = delete;
+  TemporaryDirectory(TemporaryDirectory&&) = delete;
+  TemporaryDirectory& operator=(TemporaryDirectory&&) = delete;
 
-    [[nodiscard]] const std::filesystem::path &path(void) const noexcept {
-        return path_;
-    }
+  [[nodiscard]] const std::filesystem::path& path(void) const noexcept {
+    return path_;
+  }
 
-  private:
-    std::filesystem::path path_;
+ private:
+  std::filesystem::path path_;
 };
 
 [[nodiscard]] std::span<const std::byte> Bytes(std::string_view text) {
-    return std::as_bytes(std::span{text});
+  return std::as_bytes(std::span{text});
 }
 
 TEST(LocalFileTest, WritesAndReadsAllBytes) {
-    const TemporaryDirectory directory;
-    const auto path = directory.path() / "content.bin";
+  const TemporaryDirectory directory;
+  const auto path = directory.path() / "content.bin";
 
-    ASSERT_TRUE(WriteLocalFileAtomically(path, Bytes("one two"),
-                                         ExistingFilePolicy::kPreserve)
-                    .has_value());
-    const auto result = ReadLocalFile(path);
+  ASSERT_TRUE(WriteLocalFileAtomically(path, Bytes("one two"),
+                                       ExistingFilePolicy::kPreserve)
+                  .has_value());
+  const auto result = ReadLocalFile(path);
 
-    ASSERT_TRUE(result.has_value());
-    const auto expected = Bytes("one two");
-    EXPECT_EQ(*result,
-              std::vector<std::byte>(expected.begin(), expected.end()));
+  ASSERT_TRUE(result.has_value());
+  const auto expected = Bytes("one two");
+  EXPECT_EQ(*result, std::vector<std::byte>(expected.begin(), expected.end()));
 }
 
 TEST(LocalFileTest, PreservesOrReplacesAnExistingDestination) {
-    const TemporaryDirectory directory;
-    const auto path = directory.path() / "content.bin";
-    ASSERT_TRUE(WriteLocalFileAtomically(path, Bytes("first"),
-                                         ExistingFilePolicy::kPreserve)
-                    .has_value());
+  const TemporaryDirectory directory;
+  const auto path = directory.path() / "content.bin";
+  ASSERT_TRUE(WriteLocalFileAtomically(path, Bytes("first"),
+                                       ExistingFilePolicy::kPreserve)
+                  .has_value());
 
-    const auto preserved = WriteLocalFileAtomically(
-        path, Bytes("second"), ExistingFilePolicy::kPreserve);
-    ASSERT_FALSE(preserved.has_value());
-    EXPECT_EQ(preserved.error().kind, LocalFileFailureKind::kDestinationExists);
-    ASSERT_TRUE(WriteLocalFileAtomically(path, Bytes("second"),
-                                         ExistingFilePolicy::kReplace)
-                    .has_value());
-    const auto result = ReadLocalFile(path);
-    ASSERT_TRUE(result.has_value());
-    const auto expected = Bytes("second");
-    EXPECT_EQ(*result,
-              std::vector<std::byte>(expected.begin(), expected.end()));
+  const auto preserved = WriteLocalFileAtomically(
+      path, Bytes("second"), ExistingFilePolicy::kPreserve);
+  ASSERT_FALSE(preserved.has_value());
+  EXPECT_EQ(preserved.error().kind, LocalFileFailureKind::kDestinationExists);
+  ASSERT_TRUE(WriteLocalFileAtomically(path, Bytes("second"),
+                                       ExistingFilePolicy::kReplace)
+                  .has_value());
+  const auto result = ReadLocalFile(path);
+  ASSERT_TRUE(result.has_value());
+  const auto expected = Bytes("second");
+  EXPECT_EQ(*result, std::vector<std::byte>(expected.begin(), expected.end()));
 }
 
 TEST(LocalFileTest, ReportsAMissingSource) {
-    const TemporaryDirectory directory;
+  const TemporaryDirectory directory;
 
-    const auto result = ReadLocalFile(directory.path() / "missing.bin");
+  const auto result = ReadLocalFile(directory.path() / "missing.bin");
 
-    ASSERT_FALSE(result.has_value());
-    EXPECT_EQ(result.error().kind, LocalFileFailureKind::kOpenFailed);
+  ASSERT_FALSE(result.has_value());
+  EXPECT_EQ(result.error().kind, LocalFileFailureKind::kOpenFailed);
 }
 
-} // namespace
-} // namespace edit_atlas::storage
+}  // namespace
+}  // namespace edit_atlas::storage

@@ -2,6 +2,8 @@
 
 set -euo pipefail
 
+# Collect application crash reports newer than a verification marker.
+
 if (( $# != 2 )); then
   echo "Usage: $0 <marker-file> <destination-directory>" >&2
   exit 2

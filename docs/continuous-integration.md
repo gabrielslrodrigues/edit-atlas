@@ -10,6 +10,7 @@ triggers and permissions.
 | Workflow | Trigger | Responsibility |
 | --- | --- | --- |
 | `ci.yml` | `master`, pull requests, daily schedule, manual dispatch | Orchestrate ordinary package validation and the packaged E2E of every supported frontend, report the single required gate, then delete transient package-transfer artifacts |
+| `style.yml` | Reusable only | Check pinned language tools and repository text conventions on Linux and Windows |
 | `build-and-package.yml` | Reusable only | Build and test every supported triplet, package Widgets and Quick, and create universal macOS packages |
 | `package-verification.yml` | Reusable only | Install and verify both frontend packages on every supported clean verification system |
 | `packaged-e2e.yml` | Reusable only | Install the selected frontend package and run CLI and graphical E2E on Linux and Windows; retain the disabled macOS implementation |
@@ -215,7 +216,7 @@ another.
 `master` requires exactly one status check, `CI gate`. Nothing else belongs
 in the ruleset.
 
-The gate job in `ci.yml` depends on package production, package
+The gate job in `ci.yml` depends on style checks, package production, package
 verification, and the packaged E2E of every supported frontend, runs with
 `if: always()`, and fails unless every dependency concluded `success`. Making
 a job mandatory therefore means adding it to the gate's `needs:` list, which

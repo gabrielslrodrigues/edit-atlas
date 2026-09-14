@@ -1,15 +1,32 @@
-#include <edit_atlas/core/timeline_projection.hpp>
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+#include "edit_atlas/core/timeline_projection.hpp"
 
 #include <algorithm>
 #include <array>
 #include <cstddef>
 #include <iterator>
-#include <utility>
+#include <optional>
+#include <span>
+#include <string_view>
 
 namespace edit_atlas::core {
 namespace {
 
-using FieldIdentifier = std::pair<TimelineEventField, std::string_view>;
+struct FieldIdentifier final {
+  TimelineEventField field;
+  std::string_view identifier;
+};
 
 constexpr std::array kFieldIdentifiers{
     FieldIdentifier{TimelineEventField::kEventIdentifier, "event"},
@@ -36,62 +53,63 @@ constexpr std::array kFieldIdentifiers{
 static_assert(kFieldIdentifiers.size() == kTimelineEventFieldCount);
 
 constexpr auto kAllFields = [] {
-    std::array<TimelineEventField, kFieldIdentifiers.size()> fields{};
-    for (std::size_t index = 0; index < kFieldIdentifiers.size(); ++index) {
-        fields[index] = kFieldIdentifiers[index].first;
-    }
-    return fields;
+  std::array<TimelineEventField, kFieldIdentifiers.size()> fields{};
+  for (std::size_t index = 0; index < kFieldIdentifiers.size(); ++index) {
+    fields[index] = kFieldIdentifiers[index].field;
+  }
+  return fields;
 }();
 
 constexpr auto kDefaultProjection = [] {
-    std::array<TimelineEventField, kFieldIdentifiers.size() - 1> projection{};
-    std::size_t output_index = 0;
-    for (const auto field : kAllFields) {
-        if (field != TimelineEventField::kInitialFrame) {
-            projection[output_index++] = field;
-        }
+  std::array<TimelineEventField, kFieldIdentifiers.size() - 1> projection{};
+  std::size_t output_index = 0;
+  for (const auto field : kAllFields) {
+    if (field != TimelineEventField::kInitialFrame) {
+      projection[output_index++] = field;
     }
-    return projection;
+  }
+  return projection;
 }();
 
-} // namespace
+}  // namespace
 
-std::string_view
-TimelineEventFieldIdentifier(TimelineEventField field) noexcept {
-    const auto item =
-        std::ranges::find(kFieldIdentifiers, field, &FieldIdentifier::first);
-    return item == kFieldIdentifiers.end() ? std::string_view{} : item->second;
+std::string_view TimelineEventFieldIdentifier(
+    TimelineEventField field) noexcept {
+  const auto item =
+      std::ranges::find(kFieldIdentifiers, field, &FieldIdentifier::field);
+  return item == kFieldIdentifiers.end() ? std::string_view{}
+                                         : item->identifier;
 }
 
-std::optional<TimelineEventField>
-TimelineEventFieldFromIdentifier(std::string_view identifier) noexcept {
-    const auto item = std::ranges::find(kFieldIdentifiers, identifier,
-                                        &FieldIdentifier::second);
-    if (item == kFieldIdentifiers.end()) {
-        return std::nullopt;
-    }
-    return item->first;
+std::optional<TimelineEventField> TimelineEventFieldFromIdentifier(
+    std::string_view identifier) noexcept {
+  const auto item = std::ranges::find(kFieldIdentifiers, identifier,
+                                      &FieldIdentifier::identifier);
+  if (item == kFieldIdentifiers.end()) {
+    return std::nullopt;
+  }
+  return item->field;
 }
 
 std::span<const TimelineEventField> TimelineEventFields(void) noexcept {
-    return kAllFields;
+  return kAllFields;
 }
 
-std::span<const TimelineEventField>
-DefaultTimelineEventProjection(void) noexcept {
-    return kDefaultProjection;
+std::span<const TimelineEventField> DefaultTimelineEventProjection(
+    void) noexcept {
+  return kDefaultProjection;
 }
 
 bool IsValidTimelineEventProjection(
     std::span<const TimelineEventField> projection) noexcept {
-    for (auto item = projection.begin(); item != projection.end(); ++item) {
-        if (TimelineEventFieldIdentifier(*item).empty() ||
-            std::find(std::next(item), projection.end(), *item) !=
-                projection.end()) {
-            return false;
-        }
+  for (auto item = projection.begin(); item != projection.end(); ++item) {
+    if (TimelineEventFieldIdentifier(*item).empty() ||
+        std::find(std::next(item), projection.end(), *item) !=
+            projection.end()) {
+      return false;
     }
-    return !projection.empty();
+  }
+  return !projection.empty();
 }
 
-} // namespace edit_atlas::core
+}  // namespace edit_atlas::core

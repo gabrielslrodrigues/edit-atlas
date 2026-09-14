@@ -1,10 +1,22 @@
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #ifndef EDIT_ATLAS_FORMATS_XLSX_XLSX_EXPORTER_HPP_
 #define EDIT_ATLAS_FORMATS_XLSX_XLSX_EXPORTER_HPP_
 
-#include <edit_atlas/core/format.hpp>
-
 #include <cstdint>
 #include <string_view>
+
+#include "edit_atlas/core/format.hpp"
 
 namespace edit_atlas::formats::xlsx {
 
@@ -26,22 +38,22 @@ inline constexpr std::int32_t kInitialFrameMaximumHeight = 180;
 
 /// A presentation language supported by the XLSX report.
 enum class WorkbookLanguage {
-    /// English workbook labels and document properties.
-    kEnglish,
-    /// Brazilian Portuguese workbook labels and document properties.
-    kBrazilianPortuguese,
+  /// English workbook labels and document properties.
+  kEnglish,
+  /// Brazilian Portuguese workbook labels and document properties.
+  kBrazilianPortuguese,
 };
 
 /// Returns the stable IETF language tag stored in export options.
-[[nodiscard]] constexpr std::string_view
-WorkbookLanguageTag(WorkbookLanguage language) noexcept {
-    switch (language) {
+[[nodiscard]] constexpr std::string_view WorkbookLanguageTag(
+    WorkbookLanguage language) noexcept {
+  switch (language) {
     case WorkbookLanguage::kEnglish:
-        return "en";
+      return "en";
     case WorkbookLanguage::kBrazilianPortuguese:
-        return "pt-BR";
-    }
-    return "en";
+      return "pt-BR";
+  }
+  return "en";
 }
 
 /// Stable diagnostic codes emitted by the XLSX exporter.
@@ -59,25 +71,28 @@ inline constexpr std::string_view kInvalidEventProjection =
 /// Initial-frame data could not be encoded or embedded in the workbook.
 inline constexpr std::string_view kImageWriteFailed = "xlsx.image_write_failed";
 
-} // namespace diagnostic_code
+}  // namespace diagnostic_code
 
 /// Exports an editorial timeline as a structured Microsoft Excel workbook.
 class XlsxExporter final : public core::Exporter {
-  public:
-    /// Creates a stateless XLSX exporter.
-    XlsxExporter(void) = default;
-    /// Destroys the exporter.
-    ~XlsxExporter(void) override = default;
+ public:
+  /// Creates an XLSX exporter with its stable format description.
+  XlsxExporter(void);
+  /// Destroys the exporter.
+  ~XlsxExporter(void) override = default;
 
-    [[nodiscard]] const core::FormatDescriptor &
-    descriptor(void) const noexcept override;
+  [[nodiscard]] const core::FormatDescriptor& descriptor(
+      void) const noexcept override;
 
-    /// Returns workbook bytes without relying on caller-managed filesystem
-    /// state.
-    [[nodiscard]] core::ExportResult
-    Export(const core::ExportRequest &request) const override;
+  /// Returns workbook bytes without relying on caller-managed filesystem
+  /// state.
+  [[nodiscard]] core::ExportResult Export(
+      const core::ExportRequest& request) const override;
+
+ private:
+  const core::FormatDescriptor descriptor_;
 };
 
-} // namespace edit_atlas::formats::xlsx
+}  // namespace edit_atlas::formats::xlsx
 
-#endif // EDIT_ATLAS_FORMATS_XLSX_XLSX_EXPORTER_HPP_
+#endif  // EDIT_ATLAS_FORMATS_XLSX_XLSX_EXPORTER_HPP_

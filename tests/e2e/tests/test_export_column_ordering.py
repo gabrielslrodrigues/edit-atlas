@@ -5,7 +5,6 @@ import pytest
 from application.gui import EditAtlasApplication
 from application.polling import PollTimeoutError
 
-
 DEFAULT_COLUMNS = [
     "Event",
     "Reel",
@@ -18,10 +17,11 @@ DEFAULT_COLUMNS = [
 class ProjectionSession:
     """A projection list whose current row is lost when it is read.
 
-    Reading the list pages it, and paging moves the current row the movement
-    control acts on, so clicking a row and then reading destroys the
-    precondition for the move. `current_override` additionally models a
-    control that acts on a row other than the current one.
+    Reading the list pages it, and paging moves the current row the
+    movement control acts on, so clicking a row and then reading
+    destroys the precondition for the move. `current_override`
+    additionally models a control that acts on a row other than the
+    current one.
     """
 
     def __init__(self, *, current_override: str | None = None) -> None:
@@ -60,9 +60,7 @@ class ProjectionSession:
         )
         self.current = moving
 
-    def move_list_item(
-        self, identifier: str, name: str, control: str
-    ) -> None:
+    def move_list_item(self, identifier: str, name: str, control: str) -> None:
         self.select_list_item(identifier, name)
         self.activate(control)
 

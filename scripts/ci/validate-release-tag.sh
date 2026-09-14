@@ -2,6 +2,13 @@
 
 set -euo pipefail
 
+# Validate the release tag against the manifest and checked-out commit.
+
+if (( $# != 0 )); then
+  echo "Usage: $0" >&2
+  exit 2
+fi
+
 tag="${GITHUB_REF_NAME:-}"
 commit="${GITHUB_SHA:-}"
 
@@ -34,5 +41,6 @@ fi
 if git verify-tag "$tag" >/dev/null 2>&1; then
   echo "Validated signed release tag $tag."
 else
-  echo "Validated unsigned release tag $tag; the protected release environment provides explicit approval."
+  printf 'Validated unsigned release tag %s; %s\n' "$tag" \
+    'the protected release environment provides explicit approval.'
 fi

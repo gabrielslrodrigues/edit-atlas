@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+
 set -euo pipefail
 
 # Generates the rendered-video E2E fixtures and records the generator identity
@@ -6,7 +7,7 @@ set -euo pipefail
 # record, so fixtures must be produced through this entry point rather than by
 # invoking the generator directly.
 
-if [ "$#" -ne 2 ]; then
+if (( $# != 2 )); then
   echo "usage: $0 <generator-executable> <fixture-directory>" >&2
   exit 64
 fi
@@ -16,7 +17,7 @@ fixture_directory="$2"
 script_directory="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 repository_root="$(cd -- "${script_directory}/../.." && pwd)"
 
-if [ ! -x "${generator}" ]; then
+if [[ ! -x "${generator}" ]]; then
   echo "generator is not an executable: ${generator}" >&2
   exit 66
 fi

@@ -36,7 +36,7 @@ jobs:
             triplet: x64-linux
             debug_preset: debug-x64-linux
             release_preset: release-x64-linux
-            package_generators: 'TGZ;DEB;RPM'
+            package_generators: TGZ;DEB;RPM
             selected_frontend_executable_suffix: edit-atlas
             widgets_debug_executable_suffix: edit-atlas-widgets
             quick_debug_executable_suffix: edit-atlas

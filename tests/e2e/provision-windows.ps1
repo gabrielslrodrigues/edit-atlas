@@ -30,17 +30,17 @@ param(
 # trading isolation for the ability to run locally what CI runs. It is never
 # selected automatically: installing on the host has to be asked for.
 
-$ErrorActionPreference = "Stop"
+$ErrorActionPreference = 'Stop'
 $ScriptDirectory = Split-Path -Parent $MyInvocation.MyCommand.Path
 $RepositoryRoot = [IO.Path]::GetFullPath(
-  (Resolve-Path (Join-Path $ScriptDirectory "../..")).ProviderPath
+  (Resolve-Path (Join-Path $ScriptDirectory '../..')).ProviderPath
 )
 
-if ($env:OS -ne "Windows_NT") {
-  throw "Windows Sandbox provisioning requires Windows"
+if ($env:OS -ne 'Windows_NT') {
+  throw 'Windows Sandbox provisioning requires Windows'
 }
 
-$SandboxExecutable = Join-Path $env:SystemRoot "System32/WindowsSandbox.exe"
+$SandboxExecutable = Join-Path $env:SystemRoot 'System32/WindowsSandbox.exe'
 if (-not $AllowHostInstall) {
   if (-not (Test-Path -LiteralPath $SandboxExecutable)) {
     throw @"
@@ -70,10 +70,10 @@ Close it and run this script again.
 # UNC target. A sandbox additionally cannot map one, so every mapped folder
 # must be local there. A checkout reached over \\wsl.localhost is the common
 # way to hit this.
-function Assert-LocalPath {
+function Test-LocalPath {
   param([string] $Path, [string] $Description)
 
-  if ($Path.StartsWith("\\")) {
+  if ($Path.StartsWith('\\')) {
     throw @"
 $Description must be a local path, not a network path: $Path
 Windows Installer cannot install to one, and Windows Sandbox cannot map one.
@@ -85,20 +85,20 @@ if (-not (Test-Path -LiteralPath $Msi)) {
   throw "The MSI package does not exist: $Msi"
 }
 if ([bool] $MediaFixtureDir -eq [bool] $FixtureGenerator) {
-  throw "Supply exactly one of -MediaFixtureDir and -FixtureGenerator"
+  throw 'Supply exactly one of -MediaFixtureDir and -FixtureGenerator'
 }
 
 $Msi = (Resolve-Path -LiteralPath $Msi).ProviderPath
 if (-not $ArtifactDir) {
-  $ArtifactDir = Join-Path $RepositoryRoot "build/e2e"
+  $ArtifactDir = Join-Path $RepositoryRoot 'build/e2e'
 }
-New-Item -ItemType Directory -Force $ArtifactDir | Out-Null
+New-Item -ItemType Directory -Force -Path $ArtifactDir | Out-Null
 $ArtifactDir = (Resolve-Path -LiteralPath $ArtifactDir).ProviderPath
 
-Assert-LocalPath $ArtifactDir "The artifact directory"
+Test-LocalPath $ArtifactDir 'The artifact directory'
 if (-not $AllowHostInstall) {
-  Assert-LocalPath $RepositoryRoot "The repository"
-  Assert-LocalPath (Split-Path -Parent $Msi) "The MSI's directory"
+  Test-LocalPath $RepositoryRoot 'The repository'
+  Test-LocalPath (Split-Path -Parent $Msi) 'The MSI''s directory'
 }
 
 if ($FixtureGenerator) {
@@ -107,8 +107,8 @@ if ($FixtureGenerator) {
   if (-not (Test-Path -LiteralPath $FixtureGenerator -PathType Leaf)) {
     throw "The fixture generator does not exist: $FixtureGenerator"
   }
-  $MediaFixtureDir = Join-Path $ArtifactDir "media-fixtures"
-  & (Join-Path $ScriptDirectory "generate-media-fixtures.ps1") `
+  $MediaFixtureDir = Join-Path $ArtifactDir 'media-fixtures'
+  & (Join-Path $ScriptDirectory 'generate-media-fixtures.ps1') `
     -Generator $FixtureGenerator `
     -FixtureDirectory $MediaFixtureDir
 } elseif (-not (Test-Path -LiteralPath $MediaFixtureDir)) {
@@ -116,10 +116,10 @@ if ($FixtureGenerator) {
 }
 $MediaFixtureDir = (Resolve-Path -LiteralPath $MediaFixtureDir).ProviderPath
 if (-not $AllowHostInstall) {
-  Assert-LocalPath $MediaFixtureDir "The media-fixture directory"
+  Test-LocalPath $MediaFixtureDir 'The media-fixture directory'
 }
 
-$Harness = Join-Path $ScriptDirectory "windows/run-provisioned.ps1"
+$Harness = Join-Path $ScriptDirectory 'windows/run-provisioned.ps1'
 
 if ($AllowHostInstall) {
   # The package installs per-machine, so a silent install needs elevation.
@@ -138,11 +138,11 @@ per-machine, so msiexec cannot install it silently otherwise.
   # then uninstall what it upgraded. Refusing leaves that decision with the
   # person who owns the installation.
   $uninstallKeys = @(
-    "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*",
-    "HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*"
+    'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*',
+    'HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*'
   )
   $installed = Get-ItemProperty $uninstallKeys -ErrorAction SilentlyContinue |
-    Where-Object { $_.DisplayName -like "Edit Atlas*" } |
+    Where-Object { $_.DisplayName -like 'Edit Atlas*' } |
     Select-Object -First 1
   if ($installed) {
     throw @"
@@ -173,7 +173,7 @@ the artifacts under $ArtifactDir remain, and no Edit Atlas stays installed.
 $PackageDirectory = Split-Path -Parent $Msi
 $MsiName = Split-Path -Leaf $Msi
 
-$GuestRoot = "C:\edit-atlas"
+$GuestRoot = 'C:\edit-atlas'
 $GuestSource = "$GuestRoot\source"
 $GuestPackage = "$GuestRoot\package"
 $GuestFixtures = "$GuestRoot\media-fixtures"
@@ -181,19 +181,19 @@ $GuestResults = "$GuestRoot\results"
 
 # The sandbox reports no exit status to the host, so the bootstrap records the
 # suite's status in the mapped result directory and the host waits for it.
-$StatusFile = Join-Path $ArtifactDir "sandbox-exit-code.txt"
-$TranscriptFile = Join-Path $ArtifactDir "sandbox-harness.log"
+$StatusFile = Join-Path $ArtifactDir 'sandbox-exit-code.txt'
+$TranscriptFile = Join-Path $ArtifactDir 'sandbox-harness.log'
 Remove-Item -LiteralPath $StatusFile -Force -ErrorAction SilentlyContinue
 
-$EncodedPytestArguments = ""
+$EncodedPytestArguments = ''
 if ($PytestArguments) {
   $quoted = $PytestArguments | ForEach-Object {
-    "'" + ($_ -replace "'", "''") + "'"
+    '''' + ($_ -replace '''', '''''') + ''''
   }
-  $EncodedPytestArguments = " " + ($quoted -join " ")
+  $EncodedPytestArguments = ' ' + ($quoted -join ' ')
 }
 
-$BootstrapFile = Join-Path $ArtifactDir "sandbox-bootstrap.ps1"
+$BootstrapFile = Join-Path $ArtifactDir 'sandbox-bootstrap.ps1'
 @"
 `$ErrorActionPreference = 'Continue'
 Start-Transcript -Path '$GuestResults\sandbox-harness.log' -Force | Out-Null
@@ -213,10 +213,10 @@ Set-Content -Path '$GuestResults\sandbox-exit-code.txt' -Value `$code
 "@ | Set-Content -LiteralPath $BootstrapFile -Encoding UTF8
 
 $BootstrapCommand =
-  "powershell.exe -ExecutionPolicy Bypass -NoProfile " +
-  "-File $GuestResults\sandbox-bootstrap.ps1"
+'powershell.exe -ExecutionPolicy Bypass -NoProfile ' +
+"-File $GuestResults\sandbox-bootstrap.ps1"
 
-$ConfigurationFile = Join-Path $ArtifactDir "sandbox.wsb"
+$ConfigurationFile = Join-Path $ArtifactDir 'sandbox.wsb'
 @"
 <Configuration>
   <VGpu>Disable</VGpu>
@@ -249,7 +249,7 @@ $ConfigurationFile = Join-Path $ArtifactDir "sandbox.wsb"
 </Configuration>
 "@ | Set-Content -LiteralPath $ConfigurationFile -Encoding UTF8
 
-Write-Host "Starting Windows Sandbox for the packaged E2E suite."
+Write-Host 'Starting Windows Sandbox for the packaged E2E suite.'
 Start-Process -FilePath $SandboxExecutable `
   -ArgumentList $ConfigurationFile | Out-Null
 

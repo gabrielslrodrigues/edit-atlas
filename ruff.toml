@@ -1,0 +1,32 @@
+required-version = "==0.16.6"
+target-version = "py312"
+line-length = 79
+
+[lint]
+select = ["E", "W", "F", "N", "I"]
+
+[lint.isort]
+known-first-party = ["adapters", "application", "inspectors"]
+
+[lint.pep8-naming]
+# Test doubles must expose the names called by the native accessibility APIs.
+extend-ignore-names = [
+    "AXUIElement*",
+    "CGEvent*",
+    "Expand",
+    "GetItem",
+    "Invoke",
+    "Select",
+    "SetValue",
+    "Toggle",
+    "kAX*",
+    "kCG*",
+]
+
+[lint.pycodestyle]
+max-doc-length = 72
+
+[format]
+indent-style = "space"
+docstring-code-format = true
+docstring-code-line-length = 79

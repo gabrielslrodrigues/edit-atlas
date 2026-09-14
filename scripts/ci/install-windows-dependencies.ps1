@@ -26,12 +26,12 @@ param(
   [switch]$Force
 )
 
-$ErrorActionPreference = "Stop"
+$ErrorActionPreference = 'Stop'
 
 # Kept in step with `required-version` in tests/e2e/pyproject.toml, which is
 # what the suite enforces at run time, and with the pinned action version used
 # by the hosted workflows.
-$RequiredUvVersion = "0.12.3"
+$RequiredUvVersion = '0.12.3'
 
 function Get-InstalledUvVersion {
   $command = Get-Command uv -ErrorAction SilentlyContinue
@@ -55,9 +55,9 @@ function Install-Uv {
 
   # The standalone installer is used rather than a package manager so the
   # exact version is selected identically wherever this runs.
-  $installer = Join-Path $env:TEMP "install-uv.ps1"
+  $installer = Join-Path $env:TEMP 'install-uv.ps1'
   $uri = "https://astral.sh/uv/$Version/install.ps1"
-  Write-Host "Installing uv $Version"
+  Write-Information "Installing uv $Version" -InformationAction Continue
   Invoke-WebRequest -Uri $uri -OutFile $installer -UseBasicParsing
   try {
     & powershell -ExecutionPolicy Bypass -File $installer
@@ -69,7 +69,7 @@ function Install-Uv {
   }
 
   # The installer extends PATH for later sessions; make it usable in this one.
-  $uvDirectory = Join-Path $env:USERPROFILE ".local\bin"
+  $uvDirectory = Join-Path $env:USERPROFILE '.local\bin'
   if (Test-Path $uvDirectory) {
     $env:PATH = "$uvDirectory;$env:PATH"
   }
@@ -93,11 +93,11 @@ Write-Host "uv $installed is installed"
 # Reported rather than installed. These belong to the environment, and the
 # packaged suite fails clearly on its own when a desktop is unavailable.
 if ([Environment]::UserInteractive) {
-  Write-Host "Interactive desktop session: available"
+  Write-Host 'Interactive desktop session: available'
 } else {
   Write-Warning (
-    "No interactive desktop session was detected. Packaged Windows E2E " +
-    "drives the application through UI Automation and requires one."
+    'No interactive desktop session was detected. Packaged Windows E2E ' +
+    'drives the application through UI Automation and requires one.'
   )
 }
 Write-Host "PowerShell: $($PSVersionTable.PSVersion)"

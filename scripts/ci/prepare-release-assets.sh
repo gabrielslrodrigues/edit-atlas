@@ -2,6 +2,8 @@
 
 set -euo pipefail
 
+# Collect the required packages, source archives, and checksums for release.
+
 if (( $# != 2 )); then
   echo "Usage: $0 <downloaded-artifact-directory> <release-directory>" >&2
   exit 2
@@ -69,7 +71,7 @@ cp -- THIRD_PARTY_NOTICES.md "$release_dir/THIRD_PARTY_NOTICES.md"
 
 (
   cd -- "$release_dir"
-  sha256sum -- *.tar.gz *.tar.xz *.deb *.rpm *.pkg *.msi > SHA256SUMS
+  sha256sum -- ./*.tar.gz ./*.tar.xz ./*.deb ./*.rpm ./*.pkg ./*.msi > SHA256SUMS
 )
 
 echo \

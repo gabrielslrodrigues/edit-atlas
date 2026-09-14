@@ -1,3 +1,15 @@
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #ifndef EDIT_ATLAS_CORE_TIMELINE_PROJECTION_HPP_
 #define EDIT_ATLAS_CORE_TIMELINE_PROJECTION_HPP_
 
@@ -10,44 +22,44 @@ namespace edit_atlas::core {
 
 /// Identifies one exportable field of an editorial timeline event.
 enum class TimelineEventField {
-    /// Source event identifier.
-    kEventIdentifier,
-    /// Initial rendered-video frame associated with the event.
-    kInitialFrame,
-    /// Source reel identifier.
-    kReel,
-    /// Domain track kind.
-    kTrackKind,
-    /// Source track identifier.
-    kTrackIdentifier,
-    /// Editorial operation type.
-    kEditType,
-    /// Transition identifier.
-    kTransitionIdentifier,
-    /// Transition duration in frames.
-    kTransitionDuration,
-    /// Inclusive source timecode.
-    kSourceIn,
-    /// Exclusive source timecode.
-    kSourceOut,
-    /// Inclusive record timecode.
-    kRecordIn,
-    /// Exclusive record timecode.
-    kRecordOut,
-    /// Formatted record duration.
-    kDuration,
-    /// Record duration in frames.
-    kDurationFrames,
-    /// Imported clip name.
-    kClipName,
-    /// Imported source filename.
-    kSourceFile,
-    /// Human-authored comments.
-    kComments,
-    /// Original source line number.
-    kSourceLine,
-    /// Number of defined timeline event fields.
-    kCount,
+  /// Source event identifier.
+  kEventIdentifier,
+  /// Initial rendered-video frame associated with the event.
+  kInitialFrame,
+  /// Source reel identifier.
+  kReel,
+  /// Domain track kind.
+  kTrackKind,
+  /// Source track identifier.
+  kTrackIdentifier,
+  /// Editorial operation type.
+  kEditType,
+  /// Transition identifier.
+  kTransitionIdentifier,
+  /// Transition duration in frames.
+  kTransitionDuration,
+  /// Inclusive source timecode.
+  kSourceIn,
+  /// Exclusive source timecode.
+  kSourceOut,
+  /// Inclusive record timecode.
+  kRecordIn,
+  /// Exclusive record timecode.
+  kRecordOut,
+  /// Formatted record duration.
+  kDuration,
+  /// Record duration in frames.
+  kDurationFrames,
+  /// Imported clip name.
+  kClipName,
+  /// Imported source filename.
+  kSourceFile,
+  /// Human-authored comments.
+  kComments,
+  /// Original source line number.
+  kSourceLine,
+  /// Number of defined timeline event fields.
+  kCount,
 };
 
 /// Number of known timeline event fields, including optional fields.
@@ -58,8 +70,8 @@ inline constexpr std::size_t kTimelineEventFieldCount =
 ///
 /// The returned view has static storage duration. An unknown enum value returns
 /// an empty view.
-[[nodiscard]] std::string_view
-TimelineEventFieldIdentifier(TimelineEventField field) noexcept;
+[[nodiscard]] std::string_view TimelineEventFieldIdentifier(
+    TimelineEventField field) noexcept;
 
 /// Resolves the stable timeline event field \p identifier.
 [[nodiscard]] std::optional<TimelineEventField>
@@ -68,8 +80,8 @@ TimelineEventFieldFromIdentifier(std::string_view identifier) noexcept;
 /// Returns every known timeline event field in standard selection order.
 ///
 /// The returned view has static storage duration.
-[[nodiscard]] std::span<const TimelineEventField>
-TimelineEventFields(void) noexcept;
+[[nodiscard]] std::span<const TimelineEventField> TimelineEventFields(
+    void) noexcept;
 
 /// Returns every timeline event field in the default export order.
 ///
@@ -84,6 +96,6 @@ DefaultTimelineEventProjection(void) noexcept;
 [[nodiscard]] bool IsValidTimelineEventProjection(
     std::span<const TimelineEventField> projection) noexcept;
 
-} // namespace edit_atlas::core
+}  // namespace edit_atlas::core
 
-#endif // EDIT_ATLAS_CORE_TIMELINE_PROJECTION_HPP_
+#endif  // EDIT_ATLAS_CORE_TIMELINE_PROJECTION_HPP_

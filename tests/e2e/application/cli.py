@@ -2,16 +2,18 @@
 
 from __future__ import annotations
 
-from itertools import count
 import os
-from pathlib import Path
 import shlex
+from itertools import count
+from pathlib import Path
 from typing import Iterable
 
 from adapters.processes import CommandResult, ProcessRegistry
 
 
 class InstalledCli:
+    """Invoke an installed CLI with isolated state, capturing output."""
+
     def __init__(
         self,
         executable: Path,
@@ -31,15 +33,17 @@ class InstalledCli:
 
     @property
     def executable(self) -> Path:
+        """Return the installed executable path."""
         return self._executable
 
     def installed_license_directory(self) -> Path | None:
-        """Locates the licensing material installed beside the application.
+        """Locate licensing material installed beside the application.
 
-        The layout differs per platform: a macOS bundle keeps it under
-        `Contents/Resources`, while Linux and Windows follow the data
-        directory. Returns None when no candidate exists, so a test can
-        report a missing directory rather than an attribute error.
+        The layout differs per platform: a macOS bundle keeps it
+        under `Contents/Resources`, while Linux and Windows follow
+        the data directory. Returns None when no candidate exists, so
+        a test can report a missing directory rather than an
+        attribute error.
         """
         prefix = self._executable.parent.parent
         candidates = (
@@ -52,7 +56,10 @@ class InstalledCli:
                 return candidate
         return None
 
-    def invoke(self, arguments: Iterable[str | os.PathLike[str]]) -> CommandResult:
+    def invoke(
+        self, arguments: Iterable[str | os.PathLike[str]]
+    ) -> CommandResult:
+        """Run isolated CLI arguments and record the result."""
         command = (self._executable, *arguments)
         environment = os.environ.copy()
         environment["EDIT_ATLAS_TEST_STATE_ROOT"] = os.fspath(self._state_root)
@@ -72,6 +79,7 @@ class InstalledCli:
         destination: Path,
         *options: str,
     ) -> CommandResult:
+        """Convert a source file using the supplied CLI options."""
         return self.invoke(("convert", *options, source, destination))
 
     def _record(self, result: CommandResult) -> None:

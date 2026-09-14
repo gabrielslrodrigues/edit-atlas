@@ -79,7 +79,9 @@ class InertInvokePattern:
 
 
 class InertExpandCollapsePattern:
-    """Accepts Expand without opening, as Qt's provider does for Qt Quick."""
+    """Accepts Expand without opening, as Qt's provider does for Qt
+    Quick.
+    """
 
     def __init__(self) -> None:
         self.CurrentExpandCollapseState = 0
@@ -257,14 +259,12 @@ def test_combo_selection_uses_accessible_item_bounds(
     session = application_session(tmp_path)
     opened = Event()
     display = Node("Event", "Text")
-    control = Node(
-        "Field", "ComboBox", children=(display,), click=opened.set
-    )
+    control = Node("Field", "ComboBox", children=(display,), click=opened.set)
     reel = Node("Reel", "ListItem")
     reel._click = lambda: setattr(display.element_info, "name", "Reel")
     session.element = lambda identifier: control
-    session._find_named = (
-        lambda *args, root=None, **kwargs: reel if root is None else None
+    session._find_named = lambda *args, root=None, **kwargs: (
+        reel if root is None else None
     )
 
     session.select_option("filterCondition0Field", "Reel")
@@ -276,16 +276,16 @@ def test_combo_selection_uses_accessible_item_bounds(
 def test_combo_selection_pages_to_an_unrealized_option(
     tmp_path: Path,
 ) -> None:
-    # A native combo popup realizes only the items in its viewport, so the
-    # option below the fold is absent from the tree until the popup is paged.
+    # A native combo popup realizes only the items in its viewport, so
+    # the
+    # option below the fold is absent from the tree until the popup is
+    # paged.
     session = application_session(tmp_path)
     opened = Event()
     display = Node("Event", "Text")
     control = Node("Field", "ComboBox", children=(display,), click=opened.set)
     option = Node("Track type", "ListItem")
-    option._click = lambda: setattr(
-        display.element_info, "name", "Track type"
-    )
+    option._click = lambda: setattr(display.element_info, "name", "Track type")
 
     class Popup(Node):
         def __init__(self) -> None:
@@ -322,25 +322,23 @@ def test_combo_selection_pages_to_an_unrealized_option(
 def test_combo_popup_opens_through_invoke_when_expand_does_nothing(
     tmp_path: Path,
 ) -> None:
-    # Qt offers an ExpandCollapse provider for every combo box, but fulfils
-    # Expand with a ShowMenu action a Qt Quick item cannot declare, so taking
+    # Qt offers an ExpandCollapse provider for every combo box, but
+    # fulfils
+    # Expand with a ShowMenu action a Qt Quick item cannot declare, so
+    # taking
     # that pattern accepts the request and opens nothing.
     session = application_session(tmp_path)
     clicked = Event()
     opened = Event()
     display = Node("Event", "Text")
-    control = Node(
-        "Field", "ComboBox", children=(display,), click=clicked.set
-    )
+    control = Node("Field", "ComboBox", children=(display,), click=clicked.set)
     control.iface_expand_collapse = InertExpandCollapsePattern()
     control.iface_invoke = InvokePattern(opened.set)
     option = Node("Reel", "ListItem")
     option._click = lambda: setattr(display.element_info, "name", "Reel")
     session.element = lambda identifier: control
-    session._find_named = (
-        lambda *args, root=None, **kwargs: option
-        if opened.is_set() and root is None
-        else None
+    session._find_named = lambda *args, root=None, **kwargs: (
+        option if opened.is_set() and root is None else None
     )
 
     session.select_option("filterCondition0Field", "Reel")
@@ -354,9 +352,12 @@ def test_combo_popup_opens_through_invoke_when_expand_does_nothing(
 def test_activating_a_menu_bar_item_takes_its_pattern(
     tmp_path: Path,
 ) -> None:
-    # A menu bar item carries the same control type as the actions inside the
-    # menu it opens, and Qt Quick fulfils its press action by opening that
-    # menu. Deciding on the control type alone would click it instead, which
+    # A menu bar item carries the same control type as the actions
+    # inside the
+    # menu it opens, and Qt Quick fulfils its press action by opening
+    # that
+    # menu. Deciding on the control type alone would click it instead,
+    # which
     # opens nothing.
     session = application_session(tmp_path)
     clicked = Event()
@@ -374,8 +375,10 @@ def test_activating_a_menu_bar_item_takes_its_pattern(
 def test_menu_action_is_clicked_without_reopening_an_open_menu(
     tmp_path: Path,
 ) -> None:
-    # Reaching an action whose menu a prior interaction left open must not
-    # act on the menu again, which would close it, but still has to click the
+    # Reaching an action whose menu a prior interaction left open must
+    # not
+    # act on the menu again, which would close it, but still has to
+    # click the
     # action so the menu is dismissed afterwards.
     session = application_session(tmp_path)
     clicked: list[str] = []
@@ -399,13 +402,17 @@ def test_menu_action_is_clicked_without_reopening_an_open_menu(
 def test_menu_action_opens_menu_through_effective_pattern(
     tmp_path: Path,
 ) -> None:
-    # Qt Quick's menu bar items implement their press action. The requested
-    # action appearing proves that Invoke worked, so no click fallback should
+    # Qt Quick's menu bar items implement their press action. The
+    # requested
+    # action appearing proves that Invoke worked, so no click fallback
+    # should
     # disturb the menu before its leaf action is clicked.
     session = application_session(tmp_path)
     clicked: list[str] = []
     opened = Event()
-    action = Node("English", "MenuItem", click=lambda: clicked.append("action"))
+    action = Node(
+        "English", "MenuItem", click=lambda: clicked.append("action")
+    )
     menu = Node("Language", "MenuItem", click=lambda: clicked.append("menu"))
     menu.iface_invoke = InvokePattern(opened.set)
     nodes = {"languageSelector": menu, "englishLanguageAction": action}
@@ -460,20 +467,20 @@ def test_menu_action_dismisses_a_blocking_invoke_before_click_fallback(
 def test_combo_option_click_commits_when_invoke_selects_nothing(
     tmp_path: Path,
 ) -> None:
-    # Qt Widgets names only a toggle action on a combo popup item, so the
-    # Invoke provider Windows offers for it is accepted and selects nothing.
+    # Qt Widgets names only a toggle action on a combo popup item, so
+    # the
+    # Invoke provider Windows offers for it is accepted and selects
+    # nothing.
     session = application_session(tmp_path, timeout=0.5)
     display = Node("Event", "Text")
     opened = Event()
     option = Node("Reel", "ListItem")
     option._click = lambda: setattr(display.element_info, "name", "Reel")
     option.iface_invoke = InertInvokePattern()
-    control = Node(
-        "Field", "ComboBox", children=(display,), click=opened.set
-    )
+    control = Node("Field", "ComboBox", children=(display,), click=opened.set)
     session.element = lambda identifier: control
-    session._find_named = (
-        lambda *args, root=None, **kwargs: option if root is None else None
+    session._find_named = lambda *args, root=None, **kwargs: (
+        option if root is None else None
     )
 
     session.select_option("filterCondition0Field", "Reel")
@@ -485,9 +492,12 @@ def test_combo_option_click_commits_when_invoke_selects_nothing(
 def test_menu_action_clicks_both_the_menu_and_the_action(
     tmp_path: Path,
 ) -> None:
-    # Qt Widgets exposes menu titles as QAction. Its accepted pattern does not
-    # provide a usable complete interaction, and invoking the leaf triggers it
-    # without dismissing the menu, so both steps deliberately use clicks.
+    # Qt Widgets exposes menu titles as QAction. Its accepted pattern
+    # does not
+    # provide a usable complete interaction, and invoking the leaf
+    # triggers it
+    # without dismissing the menu, so both steps deliberately use
+    # clicks.
     session = application_session(tmp_path, timeout=1.0)
     clicked: list[str] = []
     opened = Event()
@@ -533,9 +543,12 @@ def test_selecting_a_list_item_clicks_to_make_it_current(
 def test_selecting_a_list_item_rejects_a_click_on_another_row(
     tmp_path: Path,
 ) -> None:
-    # The shared movement buttons act on the current row, and their enabled
-    # state is true for any current row above the first, so a click one row
-    # off would otherwise reorder the wrong column and surface as a timeout
+    # The shared movement buttons act on the current row, and their
+    # enabled
+    # state is true for any current row above the first, so a click one
+    # row
+    # off would otherwise reorder the wrong column and surface as a
+    # timeout
     # while the caller waits for an order that can no longer occur.
     session = application_session(tmp_path, timeout=0.3)
     requested = Node("Comments", "ListItem")
@@ -575,7 +588,8 @@ def test_checked_list_item_is_clicked_when_uia_reports_it_selected(
 def test_combo_selection_prefers_items_exposed_while_collapsed(
     tmp_path: Path,
 ) -> None:
-    # Qt Quick's in-scene popup exposes its delegates without opening, so no
+    # Qt Quick's in-scene popup exposes its delegates without opening,
+    # so no
     # pointer input and no paging should be needed.
     session = application_session(tmp_path)
     opened = Event()
@@ -644,8 +658,10 @@ def test_table_text_includes_virtualized_uia_grid_cells(
 
 
 def test_reading_a_list_that_fits_does_not_page_it(tmp_path: Path) -> None:
-    # Paging sends Page Down and Page Up, which move the current row that the
-    # controls beside a list act on. A control reporting nothing to scroll has
+    # Paging sends Page Down and Page Up, which move the current row
+    # that the
+    # controls beside a list act on. A control reporting nothing to
+    # scroll has
     # no rows to reveal, so the keys would only do that damage.
     session = application_session(tmp_path)
     rows = [Node(f"Field {index}", "ListItem") for index in range(3)]
@@ -752,9 +768,7 @@ def test_list_items_include_flattened_quick_checkboxes(tmp_path: Path) -> None:
         )
         for index in range(3)
     )
-    field_4 = Node(
-        "Field 4", "CheckBox", automation_id="eventColumn4CheckBox"
-    )
+    field_4 = Node("Field 4", "CheckBox", automation_id="eventColumn4CheckBox")
     field_4.iface_toggle = TogglePattern()
     flattened = (
         field_4,
@@ -819,9 +833,7 @@ def test_menu_action_uses_accessible_item_bounds(tmp_path: Path) -> None:
 def test_menu_action_waits_for_the_dropdown_to_expand(tmp_path: Path) -> None:
     session = application_session(tmp_path, timeout=1.0)
     clicked: list[str] = []
-    action = Node(
-        "Open", "MenuItem", click=lambda: clicked.append("action")
-    )
+    action = Node("Open", "MenuItem", click=lambda: clicked.append("action"))
     expand = InertExpandCollapsePattern()
 
     def open_after_delay() -> None:
@@ -852,9 +864,7 @@ def test_menu_action_skips_reclicking_an_already_open_menu(
     session = application_session(tmp_path)
     clicked: list[str] = []
     menu = Node("File", "MenuItem", click=lambda: clicked.append("menu"))
-    action = Node(
-        "Open", "MenuItem", click=lambda: clicked.append("action")
-    )
+    action = Node("Open", "MenuItem", click=lambda: clicked.append("action"))
     nodes = {"fileMenu": menu, "openDocumentAction": action}
     session.element = lambda identifier: nodes[identifier]
     session.has_element = lambda identifier: identifier == "openDocumentAction"
@@ -1113,9 +1123,7 @@ def test_native_save_dialog_accepts_shell_overwrite_confirmation(
     destination = tmp_path / "existing.xlsx"
     destination.touch()
 
-    session.open_file_dialog(
-        "spreadsheetSaveFileDialog", destination
-    )
+    session.open_file_dialog("spreadsheetSaveFileDialog", destination)
 
     assert not confirmation_open.is_set()
 
@@ -1140,7 +1148,8 @@ def test_uia_actions_do_not_block_the_driver(tmp_path: Path) -> None:
 
 
 def test_startup_readiness_uses_the_startup_budget(tmp_path: Path) -> None:
-    # A desktop with no windows models a UIA tree that is not enumerable yet.
+    # A desktop with no windows models a UIA tree that is not enumerable
+    # yet.
     session = application_session(
         tmp_path,
         desktop=EmptyDesktop(),
@@ -1160,9 +1169,7 @@ def test_startup_readiness_uses_the_startup_budget(tmp_path: Path) -> None:
 
 
 def test_startup_readiness_foregrounds_the_main_window(tmp_path: Path) -> None:
-    main_window = Node(
-        "Edit Atlas", "Window", automation_id="mainWindow"
-    )
+    main_window = Node("Edit Atlas", "Window", automation_id="mainWindow")
 
     class Desktop:
         @staticmethod

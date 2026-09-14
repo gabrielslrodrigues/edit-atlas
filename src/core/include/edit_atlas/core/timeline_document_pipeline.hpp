@@ -1,11 +1,23 @@
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #ifndef EDIT_ATLAS_CORE_TIMELINE_DOCUMENT_PIPELINE_HPP_
 #define EDIT_ATLAS_CORE_TIMELINE_DOCUMENT_PIPELINE_HPP_
 
-#include <edit_atlas/core/format.hpp>
-#include <edit_atlas/core/format_registry.hpp>
-
 #include <optional>
 #include <string_view>
+
+#include "edit_atlas/core/format.hpp"
+#include "edit_atlas/core/format_registry.hpp"
 
 namespace edit_atlas::core {
 
@@ -37,43 +49,50 @@ inline constexpr std::string_view kExportException =
 inline constexpr std::string_view kExportProducedNoArtifact =
     "pipeline.export.no_artifact";
 
-} // namespace pipeline_diagnostic_code
+}  // namespace pipeline_diagnostic_code
 
 /// Selects registered handlers and contains failures at the application edge.
 ///
 /// The registry must outlive the pipeline. Handler exceptions are converted to
 /// structured diagnostics instead of escaping through the pipeline interface.
 class TimelineDocumentPipeline final {
-  public:
-    /// Creates a pipeline that borrows \p registry.
-    ///
-    /// \param registry Registry that must outlive the pipeline.
-    explicit TimelineDocumentPipeline(const FormatRegistry &registry) noexcept;
+ public:
+  /// Creates a pipeline that borrows \p registry.
+  ///
+  /// \param registry Registry that must outlive the pipeline.
+  explicit TimelineDocumentPipeline(const FormatRegistry& registry) noexcept;
 
-    /// Imports content using an explicit format or automatic discovery.
-    ///
-    /// Without \p format_identifier, content probes take precedence and a
-    /// unique matching extension breaks equal-confidence ties.
-    ///
-    /// \param request Source bytes and format-specific options.
-    /// \param format_identifier Explicit format key, or no value to probe.
-    /// \returns The imported document and structured diagnostics.
-    [[nodiscard]] ImportResult Import(
-        const ImportRequest &request,
-        std::optional<std::string_view> format_identifier = std::nullopt) const;
+  /// Pipelines are non-copyable and non-movable: the reference member cannot
+  /// be reseated.
+  TimelineDocumentPipeline(const TimelineDocumentPipeline&) = delete;
+  TimelineDocumentPipeline& operator=(const TimelineDocumentPipeline&) = delete;
+  TimelineDocumentPipeline(TimelineDocumentPipeline&&) = delete;
+  TimelineDocumentPipeline& operator=(TimelineDocumentPipeline&&) = delete;
 
-    /// Exports a document using a stable format identifier.
-    ///
-    /// \param request Document and format-specific options.
-    /// \param format_identifier Stable key of a registered exporter.
-    /// \returns The generated artifact and structured diagnostics.
-    [[nodiscard]] ExportResult Export(const ExportRequest &request,
-                                      std::string_view format_identifier) const;
+  /// Imports content using an explicit format or automatic discovery.
+  ///
+  /// Without \p format_identifier, content probes take precedence and a
+  /// unique matching extension breaks equal-confidence ties.
+  ///
+  /// \param request Source bytes and format-specific options.
+  /// \param format_identifier Explicit format key, or no value to probe.
+  /// \returns The imported document and structured diagnostics.
+  [[nodiscard]] ImportResult Import(
+      const ImportRequest& request,
+      std::optional<std::string_view> format_identifier = std::nullopt) const;
 
-  private:
-    const FormatRegistry &registry_;
+  /// Exports a document using a stable format identifier.
+  ///
+  /// \param request Document and format-specific options.
+  /// \param format_identifier Stable key of a registered exporter.
+  /// \returns The generated artifact and structured diagnostics.
+  [[nodiscard]] ExportResult Export(const ExportRequest& request,
+                                    std::string_view format_identifier) const;
+
+ private:
+  const FormatRegistry& registry_;
 };
 
-} // namespace edit_atlas::core
+}  // namespace edit_atlas::core
 
-#endif // EDIT_ATLAS_CORE_TIMELINE_DOCUMENT_PIPELINE_HPP_
+#endif  // EDIT_ATLAS_CORE_TIMELINE_DOCUMENT_PIPELINE_HPP_

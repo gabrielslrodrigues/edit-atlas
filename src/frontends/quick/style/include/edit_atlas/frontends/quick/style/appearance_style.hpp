@@ -1,11 +1,23 @@
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #ifndef EDIT_ATLAS_FRONTENDS_QUICK_STYLE_APPEARANCE_STYLE_HPP_
 #define EDIT_ATLAS_FRONTENDS_QUICK_STYLE_APPEARANCE_STYLE_HPP_
 
-#include <edit_atlas/presentation/appearance.hpp>
+#include "QObject"
+#include "QString"
+#include "QtQmlIntegration"
 
-#include <QObject>
-#include <QString>
-#include <QtQmlIntegration>
+#include "edit_atlas/presentation/appearance.hpp"
 
 namespace edit_atlas::frontends::quick::style {
 
@@ -18,9 +30,9 @@ namespace edit_atlas::frontends::quick::style {
 // type, so marking one final fails to compile under MSVC. The application's
 // other QML types avoid this by being QML_UNCREATABLE.
 struct AppearancePaletteForeign {
-    Q_GADGET
-    QML_FOREIGN(edit_atlas::presentation::AppearancePalette)
-    QML_VALUE_TYPE(appearancePalette)
+  Q_GADGET
+  QML_FOREIGN(edit_atlas::presentation::AppearancePalette)
+  QML_VALUE_TYPE(appearancePalette)
 };
 
 /// Exposes the shared appearance state to QML as `Appearance`.
@@ -29,42 +41,47 @@ struct AppearancePaletteForeign {
 /// `edit_atlas::presentation`, so both frontends present the same colors and
 /// a change reaches every binding through the property system.
 class AppearanceStyle : public QObject {
-    Q_OBJECT
-    QML_NAMED_ELEMENT(Appearance)
-    QML_SINGLETON
-    Q_PROPERTY(QString appearanceCode READ AppearanceCode WRITE
-                   SetAppearanceCode NOTIFY appearanceChanged)
-    Q_PROPERTY(edit_atlas::presentation::AppearancePalette palette READ Palette
-                   NOTIFY paletteChanged)
+  Q_OBJECT
+  QML_NAMED_ELEMENT(Appearance)
+  QML_SINGLETON
+  Q_PROPERTY(QString appearanceCode READ AppearanceCode WRITE SetAppearanceCode
+                 NOTIFY appearanceChanged)
+  Q_PROPERTY(edit_atlas::presentation::AppearancePalette palette READ Palette
+                 NOTIFY paletteChanged)
 
-  public:
-    explicit AppearanceStyle(QObject *parent = nullptr);
-    ~AppearanceStyle(void) override = default;
+ public:
+  explicit AppearanceStyle(QObject* parent = nullptr);
+  ~AppearanceStyle(void) override = default;
 
-    /// Returns the stable code of the selected appearance.
-    ///
-    /// Views select an appearance by code rather than by enumerator, as they
-    /// select a language, so no enumeration has to be registered with QML.
-    [[nodiscard]] QString AppearanceCode(void) const;
+  AppearanceStyle(const AppearanceStyle&) = delete;
+  AppearanceStyle& operator=(const AppearanceStyle&) = delete;
+  AppearanceStyle(AppearanceStyle&&) = delete;
+  AppearanceStyle& operator=(AppearanceStyle&&) = delete;
 
-    /// Selects an appearance by code and persists it.
-    void SetAppearanceCode(const QString &code);
+  /// Returns the stable code of the selected appearance.
+  ///
+  /// Views select an appearance by code rather than by enumerator, as they
+  /// select a language, so no enumeration has to be registered with QML.
+  [[nodiscard]] QString AppearanceCode(void) const;
 
-    /// Returns the palette of the presented appearance.
-    [[nodiscard]] presentation::AppearancePalette Palette(void) const;
+  /// Selects an appearance by code and persists it.
+  void SetAppearanceCode(const QString& code);
 
-  signals:
-    /// Emitted when the selected appearance changes.
-    void appearanceChanged(void);
+  /// Returns the palette of the presented appearance.
+  [[nodiscard]] presentation::AppearancePalette Palette(void) const;
 
-    /// Emitted when the presented palette changes, whether because the
-    /// selection changed or because the platform scheme did.
-    void paletteChanged(void);
+ signals:
+  /// Emitted when the selected appearance changes.
+  void appearanceChanged(void);
 
-  private:
-    presentation::AppearanceController controller_;
+  /// Emitted when the presented palette changes, whether because the
+  /// selection changed or because the platform scheme did.
+  void paletteChanged(void);
+
+ private:
+  presentation::AppearanceController controller_;
 };
 
-} // namespace edit_atlas::frontends::quick::style
+}  // namespace edit_atlas::frontends::quick::style
 
-#endif // EDIT_ATLAS_FRONTENDS_QUICK_STYLE_APPEARANCE_STYLE_HPP_
+#endif  // EDIT_ATLAS_FRONTENDS_QUICK_STYLE_APPEARANCE_STYLE_HPP_

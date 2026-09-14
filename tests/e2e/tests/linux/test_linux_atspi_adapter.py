@@ -291,7 +291,9 @@ def application_session(
     )
 
 
-def test_identifier_lookup_prioritizes_the_newest_window(tmp_path: Path) -> None:
+def test_identifier_lookup_prioritizes_the_newest_window(
+    tmp_path: Path,
+) -> None:
     session = application_session(tmp_path)
     inactive = UnexpectedTraversalNode()
     dialog = AccessibilityNode("progressDialog")
@@ -390,9 +392,7 @@ def test_native_file_dialog_keeps_direct_path_entry(tmp_path: Path) -> None:
     timeline = tmp_path / "timeline.edl"
     session.open_file_dialog("timelineOpenFileDialog", timeline)
 
-    assert completed == [
-        (dialog, "timelineOpenFileDialog", str(timeline))
-    ]
+    assert completed == [(dialog, "timelineOpenFileDialog", str(timeline))]
 
 
 def test_quick_file_dialog_starts_from_visible_descendant() -> None:
@@ -502,9 +502,10 @@ def test_quick_file_dialog_uses_deepest_shared_breadcrumb() -> None:
 def test_quick_file_dialog_enters_a_repeated_path_component() -> None:
     """The runner checkout lives at .../edit-atlas/edit-atlas.
 
-    Entering the first component leaves a row of the same name in the new
-    listing, so confirmation cannot depend on that row disappearing. The
-    accept button going insensitive again is what settles it.
+    Entering the first component leaves a row of the same name in the
+    new listing, so confirmation cannot depend on that row
+    disappearing. The accept button going insensitive again is what
+    settles it.
     """
     session = application_session(Path("/tmp"))
     session._process = RunningProcess()
@@ -530,7 +531,8 @@ def test_quick_file_dialog_enters_a_repeated_path_component() -> None:
         accepted.append("accept")
         sensitive[0] = False
 
-    # The clicked row never disappears: both folders list one edit-atlas,
+    # The clicked row never disappears: both folders list one
+    # edit-atlas,
     # which is also what makes /home/runner/work the starting folder.
     def find_named(root, names, **kwargs):
         return object() if next(iter(names)) == "edit-atlas" else None
@@ -572,24 +574,18 @@ def test_quick_open_dialog_navigates_and_selects_existing_file(
     session._file_dialog = lambda identifier: dialog
     session._find_identifier = lambda *args, **kwargs: editor
     session._file_dialog_accept_button = lambda found_dialog: button
-    session._navigate_file_dialog = (
-        lambda found_dialog, directory: operations.append(
-            ("navigate", directory)
-        )
+    session._navigate_file_dialog = lambda found_dialog, directory: (
+        operations.append(("navigate", directory))
     )
-    session._file_dialog_entry = (
-        lambda found_dialog, name: file_entry
+    session._file_dialog_entry = lambda found_dialog, name: file_entry
+    session._activate_file_dialog_entry = lambda entry, name: (
+        operations.append(("activate", name))
     )
-    session._activate_file_dialog_entry = (
-        lambda entry, name: operations.append(("activate", name))
+    session._activate_file_dialog_accept = lambda found_dialog: (
+        operations.append(("accept", found_dialog))
     )
-    session._activate_file_dialog_accept = (
-        lambda found_dialog: operations.append(("accept", found_dialog))
-    )
-    session._wait_file_dialog_closed = (
-        lambda found_dialog, identifier: operations.append(
-            ("close", identifier)
-        )
+    session._wait_file_dialog_closed = lambda found_dialog, identifier: (
+        operations.append(("close", identifier))
     )
 
     timeline = tmp_path / "timeline.edl"
@@ -690,7 +686,9 @@ def test_asynchronous_action_failure_surfaces_on_next_interaction(
         description="synthetic action failure to be recorded",
     )
 
-    with pytest.raises(ActionNotSupportedError, match="synthetic AT-SPI failure"):
+    with pytest.raises(
+        ActionNotSupportedError, match="synthetic AT-SPI failure"
+    ):
         session._ensure_running()
 
 
@@ -742,8 +740,8 @@ def test_menu_action_skips_reclicking_an_already_open_menu(
     action = SuccessfulActionNode("Open", "Press")
     nodes = {"fileMenu": menu, "openDocumentAction": action}
     session.element = lambda identifier, *, showing=True: nodes[identifier]
-    session.has_element = (
-        lambda identifier, *, showing=True: identifier == "openDocumentAction"
+    session.has_element = lambda identifier, *, showing=True: (
+        identifier == "openDocumentAction"
     )
 
     session.activate_menu_action("fileMenu", "openDocumentAction")
@@ -762,7 +760,9 @@ def test_selecting_the_current_option_is_idempotent(tmp_path: Path) -> None:
     assert not control.invoked.is_set()
 
 
-def test_combo_selected_option_uses_visible_child_label(tmp_path: Path) -> None:
+def test_combo_selected_option_uses_visible_child_label(
+    tmp_path: Path,
+) -> None:
     session = application_session(tmp_path)
     label = AccessibilityNode("comboLabel", name="B-roll", role_name="label")
     control = AccessibilityNode(
@@ -848,9 +848,7 @@ def test_option_selection_does_not_wait_for_qt_to_hide_the_option_node(
 
 def test_startup_readiness_uses_the_startup_budget(tmp_path: Path) -> None:
     # A tree that never yields the application models a cold launch.
-    session = application_session(
-        tmp_path, timeout=0.05, startup_timeout=0.4
-    )
+    session = application_session(tmp_path, timeout=0.05, startup_timeout=0.4)
     session._process = RunningProcess()
 
     started = monotonic()
@@ -865,9 +863,7 @@ def test_startup_readiness_uses_the_startup_budget(tmp_path: Path) -> None:
 
 
 def test_element_lookup_uses_the_operation_budget(tmp_path: Path) -> None:
-    session = application_session(
-        tmp_path, timeout=0.1, startup_timeout=30.0
-    )
+    session = application_session(tmp_path, timeout=0.1, startup_timeout=30.0)
     session._process = RunningProcess()
     session._application = AccessibilityNode("application")
 
@@ -884,9 +880,7 @@ def test_element_lookup_uses_the_operation_budget(tmp_path: Path) -> None:
 def test_element_lookup_accepts_a_longer_per_call_budget(
     tmp_path: Path,
 ) -> None:
-    session = application_session(
-        tmp_path, timeout=0.05, startup_timeout=1.0
-    )
+    session = application_session(tmp_path, timeout=0.05, startup_timeout=1.0)
     session._process = RunningProcess()
     session._application = AccessibilityNode("application")
 
