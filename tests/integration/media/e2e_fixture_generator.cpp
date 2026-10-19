@@ -27,19 +27,23 @@
 namespace edit_atlas::media::test {
 namespace {
 
-[[nodiscard]] bool WriteFixture(const std::filesystem::path& directory,
-                                std::string_view filename,
-                                std::int32_t frame_count,
-                                std::string_view starting_timecode) {
-  const auto options = VideoFixtureOptions{
+[[nodiscard]] VideoFixtureOptions RenderOptions(
+    std::int32_t frame_count, std::string_view starting_timecode) {
+  return VideoFixtureOptions{
       .codec = FixtureVideoCodec::kMpeg2Video,
       .frame_rate_numerator = 24,
       .frame_rate_denominator = 1,
       .frame_count = frame_count,
+      .final_frame_duration_percent = 100,
       .starting_timecode = starting_timecode.empty()
                                ? std::optional<std::string>{}
                                : std::optional<std::string>{starting_timecode},
   };
+}
+
+[[nodiscard]] bool WriteFixture(const std::filesystem::path& directory,
+                                std::string_view filename,
+                                const VideoFixtureOptions& options) {
   const auto result = WriteVideoFixture(directory / filename, "mov", options);
   if (!result.has_value()) {
     std::cerr << "Could not generate " << filename << ": " << result.error()
@@ -104,18 +108,32 @@ int main(int argc, char* argv[]) {
     return EXIT_FAILURE;
   }
 
+  using edit_atlas::media::test::RenderOptions;
   using edit_atlas::media::test::WriteCancellationEdl;
   using edit_atlas::media::test::WriteFixture;
   constexpr auto kValidationFrameCount = 96;
   constexpr auto kCancellationFrameCount = 1'200;
+  // A writer's approximation of 23.976 fps.
+  auto approximated_rate = RenderOptions(kValidationFrameCount, "01:00:00:00");
+  approximated_rate.frame_rate_numerator = 2'997;
+  approximated_rate.frame_rate_denominator = 125;
+  // A 23.976 fps render whose short final frame skews its average rate.
+  auto short_final_frame = RenderOptions(kValidationFrameCount, "01:00:00:00");
+  short_final_frame.frame_rate_numerator = 24'000;
+  short_final_frame.frame_rate_denominator = 1'001;
+  short_final_frame.final_frame_duration_percent = 25;
   if (!WriteFixture(output_directory, "matching-render.mov",
-                    kValidationFrameCount, "01:00:00:00") ||
+                    RenderOptions(kValidationFrameCount, "01:00:00:00")) ||
       !WriteFixture(output_directory, "missing-timecode.mov",
-                    kValidationFrameCount, std::string_view{}) ||
+                    RenderOptions(kValidationFrameCount, std::string_view{})) ||
       !WriteFixture(output_directory, "incompatible-timecode.mov",
-                    kValidationFrameCount, "00:00:00:00") ||
+                    RenderOptions(kValidationFrameCount, "00:00:00:00")) ||
+      !WriteFixture(output_directory, "approximated-rate-render.mov",
+                    approximated_rate) ||
+      !WriteFixture(output_directory, "short-final-frame-render.mov",
+                    short_final_frame) ||
       !WriteFixture(output_directory, "cancellation-render.mov",
-                    kCancellationFrameCount, "01:00:00:00") ||
+                    RenderOptions(kCancellationFrameCount, "01:00:00:00")) ||
       !WriteCancellationEdl(output_directory, kCancellationFrameCount)) {
     return EXIT_FAILURE;
   }

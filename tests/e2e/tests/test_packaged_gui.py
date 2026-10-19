@@ -249,6 +249,45 @@ def test_rendered_video_export_embeds_matching_event_frames(
     assert workbook.has_event_drawing_relationship()
 
 
+@pytest.mark.parametrize(
+    "video_name",
+    ["approximated-rate-render.mov", "short-final-frame-render.mov"],
+)
+def test_rendered_video_export_accepts_ntsc_render_variants(
+    edit_atlas_application: EditAtlasApplication,
+    fixture_directory: Path,
+    media_fixture_directory: Path,
+    output_directory: Path,
+    video_name: str,
+) -> None:
+    app = edit_atlas_application
+    app.switch_language("English")
+    app.open_timeline(
+        fixture_directory / "mixed_tracks.edl", frame_rate="23.976 fps"
+    )
+
+    destination = output_directory / f"gui-{Path(video_name).stem}.xlsx"
+    destination.unlink(missing_ok=True)
+    app.begin_spreadsheet_export()
+    app.set_export_columns(
+        {"Initial frame", "Event"}, ["Initial frame", "Event"]
+    )
+    app.select_rendered_video(media_fixture_directory / video_name)
+    app.session.wait_sensitive("continueSpreadsheetExportButton", True)
+    app.continue_spreadsheet_export(destination)
+    app.session.element("spreadsheetExportResultDialog")
+    assert any(
+        "decoded 4 unique frame(s)" in text
+        for text in app.session.visible_text("spreadsheetExportResultDialog")
+    )
+    app.finish_spreadsheet_export()
+
+    workbook = XlsxWorkbook(destination)
+    assert workbook.event_row_count() == 4
+    assert workbook.event_images_are_png()
+    assert len(set(workbook.event_image_hashes())) == 4
+
+
 def test_rendered_video_export_requires_a_video(
     edit_atlas_application: EditAtlasApplication,
     fixture_directory: Path,
@@ -292,6 +331,33 @@ def test_rendered_video_export_rejects_unmatched_timecode(
         {"Initial frame", "Event"}, ["Initial frame", "Event"]
     )
     app.select_rendered_video(media_fixture_directory / video_name)
+    app.continue_spreadsheet_export(destination)
+    description = app.finish_rendered_video_export_failure()
+
+    assert any("could not be validated" in text for text in description)
+    assert not destination.exists()
+
+
+def test_rendered_video_export_rejects_a_neighbouring_frame_rate(
+    edit_atlas_application: EditAtlasApplication,
+    fixture_directory: Path,
+    media_fixture_directory: Path,
+    output_directory: Path,
+) -> None:
+    app = edit_atlas_application
+    app.switch_language("English")
+    # The 24 fps render is close to 23.976 fps but is a different rate.
+    app.open_timeline(
+        fixture_directory / "mixed_tracks.edl", frame_rate="23.976 fps"
+    )
+
+    destination = output_directory / "gui-neighbouring-frame-rate.xlsx"
+    destination.unlink(missing_ok=True)
+    app.begin_spreadsheet_export()
+    app.set_export_columns(
+        {"Initial frame", "Event"}, ["Initial frame", "Event"]
+    )
+    app.select_rendered_video(media_fixture_directory / "matching-render.mov")
     app.continue_spreadsheet_export(destination)
     description = app.finish_rendered_video_export_failure()
 
