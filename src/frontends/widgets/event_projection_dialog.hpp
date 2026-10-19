@@ -16,9 +16,9 @@
 #include <span>
 #include <vector>
 
-#include "QDialog"
-#include "QPushButton"
-#include "QWidget"
+#include <QDialog>
+#include <QPushButton>
+#include <QWidget>
 
 #include "edit_atlas/core/timeline_projection.hpp"
 

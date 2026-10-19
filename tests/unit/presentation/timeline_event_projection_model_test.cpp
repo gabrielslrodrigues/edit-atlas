@@ -15,8 +15,8 @@
 #include <array>
 #include <vector>
 
-#include "QString"
-#include "gtest/gtest.h"
+#include <QString>
+#include <gtest/gtest.h>
 
 #include "edit_atlas/core/timeline_projection.hpp"
 

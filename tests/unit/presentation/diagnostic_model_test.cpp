@@ -15,10 +15,10 @@
 #include <optional>
 #include <vector>
 
-#include "QString"
-#include "QVariant"
-#include "Qt"
-#include "gtest/gtest.h"
+#include <QString>
+#include <QVariant>
+#include <Qt>
+#include <gtest/gtest.h>
 
 #include "edit_atlas/core/editorial_timeline.hpp"
 

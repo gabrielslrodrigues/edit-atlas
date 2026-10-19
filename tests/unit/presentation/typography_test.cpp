@@ -12,8 +12,8 @@
 
 #include "edit_atlas/presentation/typography.hpp"
 
-#include "QString"
-#include "gtest/gtest.h"
+#include <QString>
+#include <gtest/gtest.h>
 
 namespace edit_atlas::presentation {
 namespace {

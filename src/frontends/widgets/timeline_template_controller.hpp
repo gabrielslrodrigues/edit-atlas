@@ -18,9 +18,9 @@
 #include <string>
 #include <vector>
 
-#include "QObject"
-#include "QString"
-#include "QWidget"
+#include <QObject>
+#include <QString>
+#include <QWidget>
 
 #include "edit_atlas/core/timeline_projection.hpp"
 #include "edit_atlas/presentation/timeline_template_view_model.hpp"

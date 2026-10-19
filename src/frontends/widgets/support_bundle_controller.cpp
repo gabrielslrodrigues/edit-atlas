@@ -17,13 +17,13 @@
 #include <string>
 #include <utility>
 
-#include "QDialog"
-#include "QFileDialog"
-#include "QFileInfo"
-#include "QMessageBox"
-#include "QPushButton"
-#include "QString"
-#include "QWidget"
+#include <QDialog>
+#include <QFileDialog>
+#include <QFileInfo>
+#include <QMessageBox>
+#include <QPushButton>
+#include <QString>
+#include <QWidget>
 
 #include "accessibility.hpp"
 #include "edit_atlas/presentation/desktop_integration.hpp"

@@ -15,18 +15,18 @@
 #include <filesystem>
 #include <functional>
 
-#include "QAbstractItemModel"
-#include "QCoreApplication"
-#include "QElapsedTimer"
-#include "QEventLoop"
-#include "QSettings"
-#include "QSignalSpy"
-#include "QString"
-#include "QStringList"
-#include "QTranslator"
-#include "QUrl"
-#include "QtGlobal"
-#include "gtest/gtest.h"
+#include <QAbstractItemModel>
+#include <QCoreApplication>
+#include <QElapsedTimer>
+#include <QEventLoop>
+#include <QSettings>
+#include <QSignalSpy>
+#include <QString>
+#include <QStringList>
+#include <QTranslator>
+#include <QUrl>
+#include <QtGlobal>
+#include <gtest/gtest.h>
 
 #include "edit_atlas/core/format_registry.hpp"
 #include "edit_atlas/presentation/application_state.hpp"

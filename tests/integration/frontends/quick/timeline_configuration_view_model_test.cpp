@@ -17,13 +17,13 @@
 #include <string>
 #include <utility>
 
-#include "QAbstractItemModel"
-#include "QCoreApplication"
-#include "QElapsedTimer"
-#include "QEventLoop"
-#include "QString"
-#include "QtGlobal"
-#include "gtest/gtest.h"
+#include <QAbstractItemModel>
+#include <QCoreApplication>
+#include <QElapsedTimer>
+#include <QEventLoop>
+#include <QString>
+#include <QtGlobal>
+#include <gtest/gtest.h>
 
 #include "edit_atlas/core/editorial_timeline.hpp"
 #include "edit_atlas/core/format_registry.hpp"

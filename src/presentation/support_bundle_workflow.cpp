@@ -14,9 +14,9 @@
 
 #include <utility>
 
-#include "QFutureWatcher"
-#include "QObject"
-#include "QtConcurrentRun"
+#include <QFutureWatcher>
+#include <QObject>
+#include <QtConcurrentRun>
 
 #include "edit_atlas/support/support_bundle.hpp"
 

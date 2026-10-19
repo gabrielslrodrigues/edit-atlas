@@ -19,9 +19,9 @@
 #include <variant>
 #include <vector>
 
-#include "QSignalSpy"
-#include "QString"
-#include "gtest/gtest.h"
+#include <QSignalSpy>
+#include <QString>
+#include <gtest/gtest.h>
 
 #include "edit_atlas/core/editorial_timeline.hpp"
 #include "edit_atlas/core/timeline_projection.hpp"

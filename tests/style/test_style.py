@@ -107,6 +107,45 @@ class StyleCommandTest(unittest.TestCase):
                 self.assertEqual(self.snapshot(), before)
                 path.unlink()
 
+    def test_include_spelling_separates_project_and_third_party(
+        self,
+    ) -> None:
+        header = self.root / "src/core/include/edit_atlas/core/sample.hpp"
+        header.parent.mkdir(parents=True)
+        guard = "EDIT_ATLAS_CORE_SAMPLE_HPP_"
+        header.write_text(
+            BOILERPLATE
+            + f"#ifndef {guard}\n#define {guard}\n\n#endif  // {guard}\n",
+            encoding="utf-8",
+            newline="\n",
+        )
+        own = '#include "edit_atlas/core/sample.hpp"\n\n'
+        cases = {
+            own + "#include <gtest/gtest.h>\n": None,
+            own + '#include "gtest/gtest.h"\n': (
+                "include third-party header gtest/gtest.h with angle brackets"
+            ),
+            "#include <edit_atlas/core/sample.hpp>\n": (
+                "include project header edit_atlas/core/sample.hpp with quotes"
+            ),
+            "#include <sample.hpp>\n": (
+                "include project header sample.hpp with quotes"
+            ),
+        }
+        source = self.root / "src/core/sample.cpp"
+        for includes, problem in cases.items():
+            with self.subTest(includes=includes):
+                source.write_text(
+                    BOILERPLATE + includes, encoding="utf-8", newline="\n"
+                )
+                result = self.invoke("check")
+                output = result.stdout + result.stderr
+                if problem is None:
+                    self.assertEqual(result.returncode, 0, output)
+                else:
+                    self.assertNotEqual(result.returncode, 0)
+                    self.assertIn(problem, output)
+
     def test_inventory_includes_dotfiles_and_preserves_fixtures(self) -> None:
         fixture = self.root / "tests/fixtures/cmx3600/bytes.edl"
         fixture.parent.mkdir(parents=True)

@@ -25,8 +25,8 @@
 #include <system_error>
 #include <vector>
 
-#include "gtest/gtest.h"
-#include "minizip/unzip.h"
+#include <gtest/gtest.h>
+#include <minizip/unzip.h>
 
 namespace edit_atlas::support {
 namespace {

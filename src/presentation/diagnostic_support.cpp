@@ -19,11 +19,11 @@
 #include <utility>
 #include <vector>
 
-#include "QCoreApplication"
-#include "QGuiApplication"
-#include "QSysInfo"
-#include "QtGlobal"
-#include "spdlog/spdlog.h"
+#include <QCoreApplication>
+#include <QGuiApplication>
+#include <QSysInfo>
+#include <QtGlobal>
+#include <spdlog/spdlog.h>
 
 #include "edit_atlas/core/format.hpp"
 #include "edit_atlas/core/format_registry.hpp"

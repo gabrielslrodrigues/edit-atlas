@@ -20,7 +20,7 @@
 #include <system_error>
 #include <vector>
 
-#include "gtest/gtest.h"
+#include <gtest/gtest.h>
 
 namespace edit_atlas::storage {
 namespace {

@@ -18,13 +18,13 @@
 #include <string>
 #include <vector>
 
-#include "QByteArray"
-#include "QSettings"
-#include "QStandardPaths"
-#include "QString"
-#include "QStringList"
-#include "QVariant"
-#include "QtGlobal"
+#include <QByteArray>
+#include <QSettings>
+#include <QStandardPaths>
+#include <QString>
+#include <QStringList>
+#include <QVariant>
+#include <QtGlobal>
 
 namespace edit_atlas::presentation {
 namespace {

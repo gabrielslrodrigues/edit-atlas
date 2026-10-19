@@ -30,7 +30,7 @@
 #include <variant>
 #include <vector>
 
-#include "xlsxwriter.h"
+#include <xlsxwriter.h>
 
 #include "edit_atlas/core/editorial_timeline.hpp"
 #include "edit_atlas/core/format.hpp"

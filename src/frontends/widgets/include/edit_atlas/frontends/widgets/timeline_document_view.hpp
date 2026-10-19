@@ -19,15 +19,15 @@
 #include <string_view>
 #include <vector>
 
-#include "QGroupBox"
-#include "QLabel"
-#include "QPushButton"
-#include "QSortFilterProxyModel"
-#include "QStackedWidget"
-#include "QString"
-#include "QTableView"
-#include "QTreeWidget"
-#include "QWidget"
+#include <QGroupBox>
+#include <QLabel>
+#include <QPushButton>
+#include <QSortFilterProxyModel>
+#include <QStackedWidget>
+#include <QString>
+#include <QTableView>
+#include <QTreeWidget>
+#include <QWidget>
 
 #include "edit_atlas/core/editorial_timeline.hpp"
 #include "edit_atlas/presentation/timeline_event_model.hpp"

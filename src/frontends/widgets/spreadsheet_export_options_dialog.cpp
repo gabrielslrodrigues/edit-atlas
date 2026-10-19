@@ -17,18 +17,18 @@
 #include <string>
 #include <vector>
 
-#include "QCheckBox"
-#include "QComboBox"
-#include "QDialogButtonBox"
-#include "QFileDialog"
-#include "QGroupBox"
-#include "QHBoxLayout"
-#include "QLabel"
-#include "QLineEdit"
-#include "QPushButton"
-#include "QString"
-#include "QVBoxLayout"
-#include "QWidget"
+#include <QCheckBox>
+#include <QComboBox>
+#include <QDialogButtonBox>
+#include <QFileDialog>
+#include <QGroupBox>
+#include <QHBoxLayout>
+#include <QLabel>
+#include <QLineEdit>
+#include <QPushButton>
+#include <QString>
+#include <QVBoxLayout>
+#include <QWidget>
 
 #include "accessibility.hpp"
 #include "edit_atlas/core/editorial_timeline.hpp"

@@ -16,14 +16,14 @@
 #include <span>
 #include <vector>
 
-#include "QCheckBox"
-#include "QComboBox"
-#include "QDialog"
-#include "QGroupBox"
-#include "QLineEdit"
-#include "QPushButton"
-#include "QString"
-#include "QWidget"
+#include <QCheckBox>
+#include <QComboBox>
+#include <QDialog>
+#include <QGroupBox>
+#include <QLineEdit>
+#include <QPushButton>
+#include <QString>
+#include <QWidget>
 
 #include "edit_atlas/core/editorial_timeline.hpp"
 #include "edit_atlas/core/timeline_projection.hpp"

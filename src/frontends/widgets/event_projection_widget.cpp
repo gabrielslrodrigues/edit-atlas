@@ -16,16 +16,16 @@
 #include <span>
 #include <vector>
 
-#include "QHBoxLayout"
-#include "QLabel"
-#include "QListWidget"
-#include "QListWidgetItem"
-#include "QPushButton"
-#include "QString"
-#include "QVBoxLayout"
-#include "QVariant"
-#include "QWidget"
-#include "Qt"
+#include <QHBoxLayout>
+#include <QLabel>
+#include <QListWidget>
+#include <QListWidgetItem>
+#include <QPushButton>
+#include <QString>
+#include <QVBoxLayout>
+#include <QVariant>
+#include <QWidget>
+#include <Qt>
 
 #include "accessibility.hpp"
 #include "edit_atlas/core/timeline_projection.hpp"

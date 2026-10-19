@@ -12,8 +12,8 @@
 
 #include "edit_atlas/frontends/quick/style/typography_style.hpp"
 
-#include "QObject"
-#include "QString"
+#include <QObject>
+#include <QString>
 
 #include "edit_atlas/presentation/typography.hpp"
 

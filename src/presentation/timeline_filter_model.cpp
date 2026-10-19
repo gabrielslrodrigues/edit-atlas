@@ -24,15 +24,15 @@
 #include <variant>
 #include <vector>
 
-#include "QAbstractListModel"
-#include "QByteArray"
-#include "QHash"
-#include "QModelIndex"
-#include "QString"
-#include "QStringList"
-#include "QVariant"
-#include "Qt"
-#include "QtGlobal"
+#include <QAbstractListModel>
+#include <QByteArray>
+#include <QHash>
+#include <QModelIndex>
+#include <QString>
+#include <QStringList>
+#include <QVariant>
+#include <Qt>
+#include <QtGlobal>
 
 #include "edit_atlas/core/editorial_timeline.hpp"
 #include "edit_atlas/services/timeline_filter.hpp"

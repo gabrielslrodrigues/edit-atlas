@@ -19,13 +19,13 @@
 #include <string>
 #include <string_view>
 
-#include "QDir"
-#include "QSettings"
-#include "QSignalSpy"
-#include "QString"
-#include "QTemporaryDir"
-#include "QUrl"
-#include "gtest/gtest.h"
+#include <QDir>
+#include <QSettings>
+#include <QSignalSpy>
+#include <QString>
+#include <QTemporaryDir>
+#include <QUrl>
+#include <gtest/gtest.h>
 
 #include "edit_atlas/presentation/diagnostic_support.hpp"
 #include "edit_atlas/services/built_in_formats.hpp"

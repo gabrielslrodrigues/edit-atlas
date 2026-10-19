@@ -17,7 +17,7 @@
 #include <string>
 #include <utility>
 
-#include "gtest/gtest.h"
+#include <gtest/gtest.h>
 
 #include "edit_atlas/core/format.hpp"
 #include "format_test_doubles.hpp"

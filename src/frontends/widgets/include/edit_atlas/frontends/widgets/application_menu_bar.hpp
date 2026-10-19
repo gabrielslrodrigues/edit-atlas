@@ -13,11 +13,11 @@
 #ifndef EDIT_ATLAS_FRONTENDS_WIDGETS_APPLICATION_MENU_BAR_HPP_
 #define EDIT_ATLAS_FRONTENDS_WIDGETS_APPLICATION_MENU_BAR_HPP_
 
-#include "QAction"
-#include "QMenu"
-#include "QMenuBar"
-#include "QString"
-#include "QWidget"
+#include <QAction>
+#include <QMenu>
+#include <QMenuBar>
+#include <QString>
+#include <QWidget>
 
 #include "edit_atlas/presentation/translation.hpp"
 

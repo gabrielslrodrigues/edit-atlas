@@ -15,12 +15,12 @@
 
 #include <filesystem>
 
-#include "QDragEnterEvent"
-#include "QDropEvent"
-#include "QEvent"
-#include "QMainWindow"
-#include "QTranslator"
-#include "QWidget"
+#include <QDragEnterEvent>
+#include <QDropEvent>
+#include <QEvent>
+#include <QMainWindow>
+#include <QTranslator>
+#include <QWidget>
 
 #include "edit_atlas/core/format_registry.hpp"
 #include "edit_atlas/presentation/appearance.hpp"

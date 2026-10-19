@@ -10,12 +10,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "QCoreApplication"
-#include "QDir"
-#include "QString"
-#include "QTemporaryDir"
-#include "QtGlobal"
-#include "gtest/gtest.h"
+#include <QCoreApplication>
+#include <QDir>
+#include <QString>
+#include <QTemporaryDir>
+#include <QtGlobal>
+#include <gtest/gtest.h>
 
 #include "edit_atlas/presentation/application_state.hpp"
 

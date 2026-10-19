@@ -16,13 +16,13 @@
 #include <filesystem>
 #include <string>
 
-#include "QAction"
-#include "QActionGroup"
-#include "QFileInfo"
-#include "QKeySequence"
-#include "QMenu"
-#include "QString"
-#include "QWidget"
+#include <QAction>
+#include <QActionGroup>
+#include <QFileInfo>
+#include <QKeySequence>
+#include <QMenu>
+#include <QString>
+#include <QWidget>
 
 #include "accessibility.hpp"
 #include "edit_atlas/presentation/application_state.hpp"

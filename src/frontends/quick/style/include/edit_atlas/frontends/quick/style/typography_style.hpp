@@ -13,9 +13,9 @@
 #ifndef EDIT_ATLAS_FRONTENDS_QUICK_STYLE_TYPOGRAPHY_STYLE_HPP_
 #define EDIT_ATLAS_FRONTENDS_QUICK_STYLE_TYPOGRAPHY_STYLE_HPP_
 
-#include "QObject"
-#include "QString"
-#include "QtQmlIntegration"
+#include <QObject>
+#include <QString>
+#include <QtQmlIntegration>
 
 #include "edit_atlas/presentation/typography.hpp"
 

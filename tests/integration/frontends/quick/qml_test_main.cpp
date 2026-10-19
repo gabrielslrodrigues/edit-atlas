@@ -14,20 +14,20 @@
 #include <optional>
 #include <utility>
 
-#include "QByteArray"
-#include "QCoreApplication"
-#include "QDir"
-#include "QObject"
-#include "QQmlContext"
-#include "QQmlEngine"
-#include "QQuickStyle"
-#include "QString"
-#include "QTemporaryDir"
-#include "QTranslator"
-#include "QtGlobal"
-#include "QtLogging"
-#include "QtQuickTest/quicktest.h"
-#include "QtTest/qtest.h"
+#include <QByteArray>
+#include <QCoreApplication>
+#include <QDir>
+#include <QObject>
+#include <QQmlContext>
+#include <QQmlEngine>
+#include <QQuickStyle>
+#include <QString>
+#include <QTemporaryDir>
+#include <QTranslator>
+#include <QtGlobal>
+#include <QtLogging>
+#include <QtQuickTest/quicktest.h>
+#include <QtTest/qtest.h>
 
 #include "edit_atlas/core/format_registry.hpp"
 #include "edit_atlas/frontends/quick/application_shell_view_model.hpp"

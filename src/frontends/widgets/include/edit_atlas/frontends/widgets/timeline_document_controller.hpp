@@ -16,10 +16,10 @@
 #include <optional>
 #include <string>
 
-#include "QObject"
-#include "QProgressDialog"
-#include "QString"
-#include "QWidget"
+#include <QObject>
+#include <QProgressDialog>
+#include <QString>
+#include <QWidget>
 
 #include "edit_atlas/core/format_registry.hpp"
 #include "edit_atlas/presentation/timeline_document_view_model.hpp"

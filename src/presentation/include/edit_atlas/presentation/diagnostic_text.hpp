@@ -15,7 +15,7 @@
 
 #include <vector>
 
-#include "QString"
+#include <QString>
 
 #include "edit_atlas/core/editorial_timeline.hpp"
 

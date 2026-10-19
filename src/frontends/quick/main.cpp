@@ -14,18 +14,18 @@
 #include <string>
 #include <utility>
 
-#include "QCoreApplication"
-#include "QGuiApplication"
-#include "QIcon"
-#include "QObject"
-#include "QQmlApplicationEngine"
-#include "QQuickStyle"
-#include "QString"
-#include "QTranslator"
-#include "QVariant"
-#include "QVariantMap"
-#include "Qt"
-#include "spdlog/spdlog.h"
+#include <QCoreApplication>
+#include <QGuiApplication>
+#include <QIcon>
+#include <QObject>
+#include <QQmlApplicationEngine>
+#include <QQuickStyle>
+#include <QString>
+#include <QTranslator>
+#include <QVariant>
+#include <QVariantMap>
+#include <Qt>
+#include <spdlog/spdlog.h>
 
 #include "edit_atlas/core/version.hpp"
 #include "edit_atlas/frontends/quick/application_shell_view_model.hpp"

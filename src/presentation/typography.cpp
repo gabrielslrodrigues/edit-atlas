@@ -12,14 +12,14 @@
 
 #include "edit_atlas/presentation/typography.hpp"
 
-#include "QCoreApplication"
-#include "QFont"
-#include "QFontDatabase"
-#include "QGuiApplication"
-#include "QString"
-#include "QStringList"
-#include "Qt"
-#include "spdlog/spdlog.h"
+#include <QCoreApplication>
+#include <QFont>
+#include <QFontDatabase>
+#include <QGuiApplication>
+#include <QString>
+#include <QStringList>
+#include <Qt>
+#include <spdlog/spdlog.h>
 
 namespace edit_atlas::presentation {
 namespace {

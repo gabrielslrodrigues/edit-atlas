@@ -25,7 +25,7 @@
 #include <utility>
 #include <vector>
 
-#include "gtest/gtest.h"
+#include <gtest/gtest.h>
 
 #include "edit_atlas/core/editorial_timeline.hpp"
 #include "edit_atlas/core/rgb_image.hpp"

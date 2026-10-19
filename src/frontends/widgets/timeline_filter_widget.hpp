@@ -18,18 +18,18 @@
 #include <string_view>
 #include <vector>
 
-#include "QAction"
-#include "QComboBox"
-#include "QIntValidator"
-#include "QLabel"
-#include "QLineEdit"
-#include "QPushButton"
-#include "QScrollArea"
-#include "QString"
-#include "QToolButton"
-#include "QVBoxLayout"
-#include "QVariant"
-#include "QWidget"
+#include <QAction>
+#include <QComboBox>
+#include <QIntValidator>
+#include <QLabel>
+#include <QLineEdit>
+#include <QPushButton>
+#include <QScrollArea>
+#include <QString>
+#include <QToolButton>
+#include <QVBoxLayout>
+#include <QVariant>
+#include <QWidget>
 
 #include "edit_atlas/presentation/timeline_filter_model.hpp"
 #include "edit_atlas/services/timeline_filter.hpp"

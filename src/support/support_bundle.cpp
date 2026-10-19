@@ -30,9 +30,9 @@
 #include <utility>
 #include <vector>
 
-#include "minizip/ioapi.h"
-#include "minizip/zip.h"
-#include "zlib.h"
+#include <minizip/ioapi.h>
+#include <minizip/zip.h>
+#include <zlib.h>
 
 #include "edit_atlas/storage/local_file.hpp"
 #include "edit_atlas/support/application_logging.hpp"

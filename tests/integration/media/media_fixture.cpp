@@ -13,17 +13,17 @@
 #include "edit_atlas/test/media_fixture.hpp"
 
 extern "C" {
-#include "libavcodec/avcodec.h"
-#include "libavcodec/defs.h"
-#include "libavcodec/packet.h"
-#include "libavformat/avformat.h"
-#include "libavformat/avio.h"
-#include "libavutil/dict.h"
-#include "libavutil/error.h"
-#include "libavutil/frame.h"
-#include "libavutil/mathematics.h"
-#include "libavutil/pixfmt.h"
-#include "libavutil/rational.h"
+#include <libavcodec/avcodec.h>
+#include <libavcodec/defs.h>
+#include <libavcodec/packet.h>
+#include <libavformat/avformat.h>
+#include <libavformat/avio.h>
+#include <libavutil/dict.h>
+#include <libavutil/error.h>
+#include <libavutil/frame.h>
+#include <libavutil/mathematics.h>
+#include <libavutil/pixfmt.h>
+#include <libavutil/rational.h>
 }
 
 #include <array>

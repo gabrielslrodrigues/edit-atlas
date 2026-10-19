@@ -13,8 +13,8 @@
 #ifndef EDIT_ATLAS_PRESENTATION_DESKTOP_INTEGRATION_HPP_
 #define EDIT_ATLAS_PRESENTATION_DESKTOP_INTEGRATION_HPP_
 
-#include "QString"
-#include "QUrl"
+#include <QString>
+#include <QUrl>
 
 namespace edit_atlas::presentation::desktop_integration {
 

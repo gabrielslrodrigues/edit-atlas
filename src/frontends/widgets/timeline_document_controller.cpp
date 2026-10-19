@@ -22,21 +22,21 @@
 #include <utility>
 #include <vector>
 
-#include "QChar"
-#include "QComboBox"
-#include "QDialog"
-#include "QDir"
-#include "QFileDialog"
-#include "QFileInfo"
-#include "QInputDialog"
-#include "QMessageBox"
-#include "QProgressDialog"
-#include "QPushButton"
-#include "QSettings"
-#include "QString"
-#include "QStringList"
-#include "QWidget"
-#include "Qt"
+#include <QChar>
+#include <QComboBox>
+#include <QDialog>
+#include <QDir>
+#include <QFileDialog>
+#include <QFileInfo>
+#include <QInputDialog>
+#include <QMessageBox>
+#include <QProgressDialog>
+#include <QPushButton>
+#include <QSettings>
+#include <QString>
+#include <QStringList>
+#include <QWidget>
+#include <Qt>
 
 #include "accessibility.hpp"
 #include "edit_atlas/core/editorial_timeline.hpp"

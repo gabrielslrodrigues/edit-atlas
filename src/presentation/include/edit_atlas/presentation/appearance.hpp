@@ -13,8 +13,8 @@
 #ifndef EDIT_ATLAS_PRESENTATION_APPEARANCE_HPP_
 #define EDIT_ATLAS_PRESENTATION_APPEARANCE_HPP_
 
-#include "QObject"
-#include "QString"
+#include <QObject>
+#include <QString>
 
 namespace edit_atlas::presentation {
 

@@ -32,12 +32,12 @@
 #include <utility>
 #include <vector>
 
-#include "spdlog/common.h"
-#include "spdlog/details/log_msg.h"
-#include "spdlog/logger.h"
-#include "spdlog/sinks/base_sink.h"
-#include "spdlog/sinks/stdout_color_sinks.h"
-#include "spdlog/spdlog.h"
+#include <spdlog/common.h>
+#include <spdlog/details/log_msg.h>
+#include <spdlog/logger.h>
+#include <spdlog/sinks/base_sink.h>
+#include <spdlog/sinks/stdout_color_sinks.h>
+#include <spdlog/spdlog.h>
 
 namespace edit_atlas::support {
 namespace {

@@ -22,15 +22,15 @@
 #include <variant>
 #include <vector>
 
-#include "QDialog"
-#include "QInputDialog"
-#include "QLineEdit"
-#include "QMessageBox"
-#include "QPushButton"
-#include "QString"
-#include "QStringList"
-#include "QWidget"
-#include "spdlog/spdlog.h"
+#include <QDialog>
+#include <QInputDialog>
+#include <QLineEdit>
+#include <QMessageBox>
+#include <QPushButton>
+#include <QString>
+#include <QStringList>
+#include <QWidget>
+#include <spdlog/spdlog.h>
 
 #include "accessibility.hpp"
 #include "edit_atlas/core/timeline_projection.hpp"

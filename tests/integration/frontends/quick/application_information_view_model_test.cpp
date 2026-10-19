@@ -12,9 +12,9 @@
 
 #include "edit_atlas/frontends/quick/application_information_view_model.hpp"
 
-#include "QString"
-#include "QStringList"
-#include "gtest/gtest.h"
+#include <QString>
+#include <QStringList>
+#include <gtest/gtest.h>
 
 #include "edit_atlas/services/built_in_formats.hpp"
 

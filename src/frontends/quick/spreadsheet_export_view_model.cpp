@@ -22,14 +22,14 @@
 #include <system_error>
 #include <utility>
 
-#include "QChar"
-#include "QDir"
-#include "QFileInfo"
-#include "QObject"
-#include "QSettings"
-#include "QString"
-#include "QUrl"
-#include "QtGlobal"
+#include <QChar>
+#include <QDir>
+#include <QFileInfo>
+#include <QObject>
+#include <QSettings>
+#include <QString>
+#include <QUrl>
+#include <QtGlobal>
 
 #include "edit_atlas/core/editorial_timeline.hpp"
 #include "edit_atlas/core/format.hpp"

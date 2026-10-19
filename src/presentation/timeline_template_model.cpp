@@ -20,14 +20,14 @@
 #include <span>
 #include <string_view>
 
-#include "QAbstractListModel"
-#include "QByteArray"
-#include "QHash"
-#include "QModelIndex"
-#include "QString"
-#include "QVariant"
-#include "Qt"
-#include "QtGlobal"
+#include <QAbstractListModel>
+#include <QByteArray>
+#include <QHash>
+#include <QModelIndex>
+#include <QString>
+#include <QVariant>
+#include <Qt>
+#include <QtGlobal>
 
 #include "edit_atlas/services/timeline_template.hpp"
 

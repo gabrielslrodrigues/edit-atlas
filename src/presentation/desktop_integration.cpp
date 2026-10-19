@@ -12,12 +12,12 @@
 
 #include "edit_atlas/presentation/desktop_integration.hpp"
 
-#include "QDesktopServices"
-#include "QDir"
-#include "QFileInfo"
-#include "QProcess"
-#include "QString"
-#include "QUrl"
+#include <QDesktopServices>
+#include <QDir>
+#include <QFileInfo>
+#include <QProcess>
+#include <QString>
+#include <QUrl>
 
 namespace edit_atlas::presentation::desktop_integration {
 

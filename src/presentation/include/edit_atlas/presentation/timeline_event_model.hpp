@@ -16,12 +16,12 @@
 #include <cstddef>
 #include <vector>
 
-#include "QAbstractTableModel"
-#include "QModelIndex"
-#include "QObject"
-#include "QString"
-#include "QVariant"
-#include "Qt"
+#include <QAbstractTableModel>
+#include <QModelIndex>
+#include <QObject>
+#include <QString>
+#include <QVariant>
+#include <Qt>
 
 #include "edit_atlas/core/editorial_timeline.hpp"
 

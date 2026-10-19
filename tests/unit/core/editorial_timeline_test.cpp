@@ -17,7 +17,7 @@
 #include <string>
 #include <variant>
 
-#include "gtest/gtest.h"
+#include <gtest/gtest.h>
 
 #include "edit_atlas/core/timecode.hpp"
 

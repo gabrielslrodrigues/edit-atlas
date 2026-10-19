@@ -18,11 +18,11 @@
 #include <string>
 #include <string_view>
 
-#include "QSignalSpy"
-#include "QString"
-#include "QTemporaryDir"
-#include "QVariant"
-#include "gtest/gtest.h"
+#include <QSignalSpy>
+#include <QString>
+#include <QTemporaryDir>
+#include <QVariant>
+#include <gtest/gtest.h>
 
 #include "edit_atlas/core/editorial_timeline.hpp"
 #include "edit_atlas/core/timeline_projection.hpp"

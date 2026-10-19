@@ -22,7 +22,7 @@
 #include <variant>
 #include <vector>
 
-#include "QObject"
+#include <QObject>
 
 #include "edit_atlas/core/timeline_projection.hpp"
 #include "edit_atlas/presentation/timeline_template_model.hpp"

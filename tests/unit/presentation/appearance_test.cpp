@@ -12,10 +12,10 @@
 
 #include "edit_atlas/presentation/appearance.hpp"
 
-#include "QObject"
-#include "QSettings"
-#include "QString"
-#include "gtest/gtest.h"
+#include <QObject>
+#include <QSettings>
+#include <QString>
+#include <gtest/gtest.h>
 
 namespace edit_atlas::presentation {
 namespace {

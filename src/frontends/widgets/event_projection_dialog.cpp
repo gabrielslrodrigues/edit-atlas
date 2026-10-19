@@ -15,10 +15,10 @@
 #include <span>
 #include <vector>
 
-#include "QDialogButtonBox"
-#include "QPushButton"
-#include "QVBoxLayout"
-#include "QWidget"
+#include <QDialogButtonBox>
+#include <QPushButton>
+#include <QVBoxLayout>
+#include <QWidget>
 
 #include "accessibility.hpp"
 #include "edit_atlas/core/timeline_projection.hpp"
