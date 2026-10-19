@@ -49,6 +49,10 @@ MXF format. The video must have a constant frame rate and readable embedded
 starting timecode. Its timecode mode, frame rate, start, and duration must
 match the EDL record timeline.
 
+A video frame rate stored as an approximation of a standard rate, such as
+2997/125 for 23.976 fps, matches a timeline at that standard rate. A 23.976
+fps video still does not match a 24 fps timeline, nor 29.97 fps a 30 fps one.
+
 Edit Atlas validates the video before export, extracts the frame at each
 exported event's Record In timecode, and embeds the images in the workbook.
 Extraction can be cancelled. Ordinary exports do not require a video.

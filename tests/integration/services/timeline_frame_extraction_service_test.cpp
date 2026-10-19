@@ -180,6 +180,8 @@ INSTANTIATE_TEST_SUITE_P(
     testing::Values(FrameRateCase{24, 1, 24, 1, 86'400, 100},
                     FrameRateCase{25, 1, 25, 1, 90'000, 100},
                     FrameRateCase{24'000, 1'001, 24'000, 1'001, 86'400, 100},
+                    // A writer's approximation of 23.976 fps.
+                    FrameRateCase{2'997, 125, 24'000, 1'001, 86'400, 100},
                     // A short final frame skews the average rate.
                     FrameRateCase{24'000, 1'001, 24'000, 1'001, 86'400, 25}));
 

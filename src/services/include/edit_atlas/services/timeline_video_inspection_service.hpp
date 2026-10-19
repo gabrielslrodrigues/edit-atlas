@@ -57,7 +57,11 @@ inline constexpr std::string_view kMissingFrameRate =
 /// at all when no duration is known.
 inline constexpr std::string_view kVariableFrameRate =
     "video.variable_frame_rate";
-/// The constant video frame rate differs from the timeline frame rate.
+/// The video's nominal frame rate neither equals the timeline frame rate nor
+/// resolves to the same standard rate.
+///
+/// Its arguments are the video rate and then the timeline rate, each written
+/// as `N` or `N/D`.
 inline constexpr std::string_view kFrameRateMismatch =
     "video.frame_rate_mismatch";
 /// No embedded starting timecode was found.

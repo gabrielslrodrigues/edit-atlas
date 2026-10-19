@@ -244,6 +244,103 @@ TEST(TimelineVideoInspectionServiceTest, RejectsFrameRateMismatch) {
 
   ExpectOnlyDiagnostic(result,
                        timeline_video_diagnostic_code::kFrameRateMismatch);
+  const auto& diagnostic = result.error().diagnostics.front();
+  EXPECT_EQ(diagnostic.arguments, (std::vector<std::string>{"24", "25"}));
+  EXPECT_NE(diagnostic.message.find("24"), std::string::npos);
+  EXPECT_NE(diagnostic.message.find("25"), std::string::npos);
+}
+
+struct EquivalentRateCase final {
+  media::Rational video_rate;
+  std::int64_t timeline_numerator;
+  std::int64_t timeline_denominator;
+  std::int64_t one_hour_frame;
+};
+
+class TimelineVideoEquivalentRateTest
+    : public testing::TestWithParam<EquivalentRateCase> {};
+
+TEST_P(TimelineVideoEquivalentRateTest, AcceptsAnEquivalentVideoRate) {
+  const auto& rate_case = GetParam();
+  const auto timeline_rate =
+      Rate(rate_case.timeline_numerator, rate_case.timeline_denominator);
+  const TimelineVideoInspectionService service;
+
+  const auto result = service.Validate(
+      MediaInformation("01:00:00:00", rate_case.video_rate,
+                       rate_case.video_rate),
+      Timeline(timeline_rate, core::TimecodeMode::kNonDropFrame,
+               rate_case.one_hour_frame));
+
+  ASSERT_TRUE(result.has_value())
+      << (result.has_value() ? "" : result.error().diagnostics.front().message);
+  EXPECT_EQ(result->video_start_timecode.rate(), timeline_rate);
+  EXPECT_EQ(result->video_start_timecode.ToFrameCount(),
+            rate_case.one_hour_frame);
+}
+
+INSTANTIATE_TEST_SUITE_P(
+    ApproximatedAndExactRates, TimelineVideoEquivalentRateTest,
+    testing::Values(EquivalentRateCase{{2'997, 125}, 24'000, 1'001, 86'400},
+                    EquivalentRateCase{{1'199, 50}, 24'000, 1'001, 86'400},
+                    EquivalentRateCase{{24'000, 1'001}, 2'997, 125, 86'400},
+                    EquivalentRateCase{{2'997, 100}, 30'000, 1'001, 108'000},
+                    EquivalentRateCase{{2'997, 50}, 60'000, 1'001, 216'000},
+                    EquivalentRateCase{{48, 1}, 48, 1, 172'800}));
+
+struct DistinctRateCase final {
+  media::Rational video_rate;
+  std::int64_t timeline_numerator;
+  std::int64_t timeline_denominator;
+  std::int64_t one_hour_frame;
+  std::string_view video_rate_text;
+  std::string_view timeline_rate_text;
+};
+
+class TimelineVideoDistinctRateTest
+    : public testing::TestWithParam<DistinctRateCase> {};
+
+TEST_P(TimelineVideoDistinctRateTest, RejectsTheNeighbouringStandardRate) {
+  const auto& rate_case = GetParam();
+  const TimelineVideoInspectionService service;
+
+  const auto result = service.Validate(
+      MediaInformation("01:00:00:00", rate_case.video_rate,
+                       rate_case.video_rate),
+      Timeline(
+          Rate(rate_case.timeline_numerator, rate_case.timeline_denominator),
+          core::TimecodeMode::kNonDropFrame, rate_case.one_hour_frame));
+
+  ExpectOnlyDiagnostic(result,
+                       timeline_video_diagnostic_code::kFrameRateMismatch);
+  EXPECT_EQ(
+      result.error().diagnostics.front().arguments,
+      (std::vector<std::string>{std::string{rate_case.video_rate_text},
+                                std::string{rate_case.timeline_rate_text}}));
+}
+
+INSTANTIATE_TEST_SUITE_P(
+    NtscAndIntegerRates, TimelineVideoDistinctRateTest,
+    testing::Values(
+        DistinctRateCase{{24, 1}, 24'000, 1'001, 86'400, "24", "24000/1001"},
+        DistinctRateCase{{30, 1}, 30'000, 1'001, 108'000, "30", "30000/1001"},
+        DistinctRateCase{{2'997, 125}, 24, 1, 86'400, "2997/125", "24"}));
+
+TEST(TimelineVideoInspectionServiceTest,
+     ParsesDropFrameTimecodeAtTheTimelineRate) {
+  const auto rate = Rate(30'000, 1'001);
+  const TimelineVideoInspectionService service;
+
+  const auto result = service.Validate(
+      MediaInformation("01:00:00;00", {2'997, 100}, {2'997, 100}),
+      Timeline(rate, core::TimecodeMode::kDropFrame, 107'892));
+
+  ASSERT_TRUE(result.has_value())
+      << (result.has_value() ? "" : result.error().diagnostics.front().message);
+  EXPECT_EQ(result->video_start_timecode.rate(), rate);
+  EXPECT_EQ(result->video_start_timecode.mode(),
+            core::TimecodeMode::kDropFrame);
+  EXPECT_EQ(result->record_start_frame, 107'892);
 }
 
 TEST(TimelineVideoInspectionServiceTest, RejectsTimecodeModeMismatch) {

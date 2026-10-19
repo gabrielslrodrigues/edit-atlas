@@ -46,14 +46,14 @@ struct MediaDuration final {
 
 constexpr std::int32_t kMicrosecondsPerSecond = 1'000'000;
 
-[[nodiscard]] core::Diagnostic Error(std::string_view code,
-                                     std::string message) {
+[[nodiscard]] core::Diagnostic Error(std::string_view code, std::string message,
+                                     std::vector<std::string> arguments = {}) {
   return core::Diagnostic{
       .severity = core::DiagnosticSeverity::kError,
       .code = std::string{code},
       .message = std::move(message),
       .location = std::nullopt,
-      .arguments = {},
+      .arguments = std::move(arguments),
   };
 }
 
@@ -294,6 +294,25 @@ void AppendTimecodes(const std::vector<media::MediaMetadataEntry>& metadata,
          difference <= kVideoDurationToleranceFrames;
 }
 
+[[nodiscard]] bool FrameRatesMatch(const core::FrameRate& video_rate,
+                                   const core::FrameRate& timeline_rate) {
+  if (video_rate == timeline_rate) {
+    return true;
+  }
+  const auto video_standard_rate = media::NearestStandardFrameRate(video_rate);
+  return video_standard_rate.has_value() &&
+         video_standard_rate == media::NearestStandardFrameRate(timeline_rate);
+}
+
+[[nodiscard]] std::string FrameRateText(const core::FrameRate& rate) {
+  auto text = std::to_string(rate.numerator());
+  if (rate.denominator() != 1) {
+    text.push_back('/');
+    text.append(std::to_string(rate.denominator()));
+  }
+  return text;
+}
+
 [[nodiscard]] TimelineVideoValidationFailure Failure(
     std::vector<core::Diagnostic> diagnostics) {
   return TimelineVideoValidationFailure{
@@ -353,13 +372,19 @@ TimelineVideoValidationResult TimelineVideoInspectionService::Validate(
               "required."));
     return std::unexpected(Failure(std::move(diagnostics)));
   }
-  if (*nominal_rate != timeline.frame_rate) {
+  if (!FrameRatesMatch(*nominal_rate, timeline.frame_rate)) {
+    const auto video_rate_text = FrameRateText(*nominal_rate);
+    const auto timeline_rate_text = FrameRateText(timeline.frame_rate);
     diagnostics.push_back(
         Error(timeline_video_diagnostic_code::kFrameRateMismatch,
-              "The video frame rate does not match the imported timeline frame "
-              "rate."));
+              "The video frame rate " + video_rate_text +
+                  " does not match the imported timeline frame rate " +
+                  timeline_rate_text + ".",
+              {video_rate_text, timeline_rate_text}));
     return std::unexpected(Failure(std::move(diagnostics)));
   }
+  // The rates are equivalent, so timing is evaluated at the timeline's exact
+  // rate: drop-frame numbering is defined only for exact NTSC rates.
   const auto& frame_rate = timeline.frame_rate;
 
   const auto timecode_values = EmbeddedTimecodeValues(information);
