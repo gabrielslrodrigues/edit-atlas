@@ -21,15 +21,15 @@
 #include <string_view>
 #include <utility>
 
-#include "QAbstractItemModel"
-#include "QFileInfo"
-#include "QObject"
-#include "QSortFilterProxyModel"
-#include "QString"
-#include "QStringList"
-#include "QTranslator"
-#include "QUrl"
-#include "QtGlobal"
+#include <QAbstractItemModel>
+#include <QFileInfo>
+#include <QObject>
+#include <QSortFilterProxyModel>
+#include <QString>
+#include <QStringList>
+#include <QTranslator>
+#include <QUrl>
+#include <QtGlobal>
 
 #include "edit_atlas/core/editorial_timeline.hpp"
 #include "edit_atlas/core/format_registry.hpp"

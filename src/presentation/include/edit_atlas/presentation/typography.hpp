@@ -13,8 +13,8 @@
 #ifndef EDIT_ATLAS_PRESENTATION_TYPOGRAPHY_HPP_
 #define EDIT_ATLAS_PRESENTATION_TYPOGRAPHY_HPP_
 
-#include "QString"
-#include "QStringList"
+#include <QString>
+#include <QStringList>
 
 namespace edit_atlas::presentation {
 

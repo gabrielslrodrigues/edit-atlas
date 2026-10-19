@@ -12,14 +12,14 @@
 
 #include "edit_atlas/presentation/typography.hpp"
 
-#include "QApplication"
-#include "QFont"
-#include "QFontDatabase"
-#include "QFontInfo"
-#include "QFontMetrics"
-#include "QString"
-#include "QtGlobal"
-#include "gtest/gtest.h"
+#include <QApplication>
+#include <QFont>
+#include <QFontDatabase>
+#include <QFontInfo>
+#include <QFontMetrics>
+#include <QString>
+#include <QtGlobal>
+#include <gtest/gtest.h>
 
 namespace edit_atlas::frontends::widgets {
 namespace {

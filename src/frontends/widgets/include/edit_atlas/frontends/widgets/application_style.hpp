@@ -13,9 +13,9 @@
 #ifndef EDIT_ATLAS_FRONTENDS_WIDGETS_APPLICATION_STYLE_HPP_
 #define EDIT_ATLAS_FRONTENDS_WIDGETS_APPLICATION_STYLE_HPP_
 
-#include "QApplication"
-#include "QPalette"
-#include "QString"
+#include <QApplication>
+#include <QPalette>
+#include <QString>
 
 #include "edit_atlas/presentation/appearance.hpp"
 

@@ -19,13 +19,13 @@
 #include <string_view>
 #include <vector>
 
-#include "QAbstractListModel"
-#include "QByteArray"
-#include "QHash"
-#include "QModelIndex"
-#include "QObject"
-#include "QVariant"
-#include "Qt"
+#include <QAbstractListModel>
+#include <QByteArray>
+#include <QHash>
+#include <QModelIndex>
+#include <QObject>
+#include <QVariant>
+#include <Qt>
 
 #include "edit_atlas/services/timeline_template.hpp"
 

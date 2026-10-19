@@ -13,11 +13,11 @@
 #ifndef EDIT_ATLAS_FRONTENDS_QUICK_SUPPORT_BUNDLE_VIEW_MODEL_HPP_
 #define EDIT_ATLAS_FRONTENDS_QUICK_SUPPORT_BUNDLE_VIEW_MODEL_HPP_
 
-#include "QObject"
-#include "QString"
-#include "QUrl"
-#include "QtGlobal"
-#include "QtQmlIntegration/qqmlintegration.h"
+#include <QObject>
+#include <QString>
+#include <QUrl>
+#include <QtGlobal>
+#include <QtQmlIntegration/qqmlintegration.h>
 
 #include "edit_atlas/core/format_registry.hpp"
 #include "edit_atlas/presentation/support_bundle_view_model.hpp"

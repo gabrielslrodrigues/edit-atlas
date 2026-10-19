@@ -95,6 +95,17 @@ with these custom rules:
   `.cpp` includes its own header, but must still directly include the header
   for any other symbol it uses, even one that header happens to pull in
   transitively.
+- Group includes in Google's order, each group separated by a blank line and
+  sorted: the related header, C system headers, C++ standard library headers,
+  third-party headers, then this project's headers. `.clang-format` enforces
+  the grouping.
+- Include standard library, system, and every third-party header with angle
+  brackets, overriding Google's quoted default for third-party libraries.
+  Include this project's headers, including AUTOMOC `.moc` files, with
+  quotes. The style check enforces the spelling.
+- Include public headers by their `edit_atlas/` path. Private headers, which
+  sit beside their sources rather than under `include/edit_atlas/`, are
+  included by bare file name rather than by a path from the source root.
 
 Formatting follows Google's two-space, 80-column style. Formatting and
 linting do not establish semantic compliance: review headers, dependencies,

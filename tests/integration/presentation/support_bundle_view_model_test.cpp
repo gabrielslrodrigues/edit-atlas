@@ -19,10 +19,10 @@
 #include <string>
 #include <string_view>
 
-#include "QSignalSpy"
-#include "QString"
-#include "QTemporaryDir"
-#include "gtest/gtest.h"
+#include <QSignalSpy>
+#include <QString>
+#include <QTemporaryDir>
+#include <gtest/gtest.h>
 
 #include "edit_atlas/support/support_bundle.hpp"
 

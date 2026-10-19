@@ -22,7 +22,7 @@
 #include <system_error>
 #include <utility>
 
-#include "gtest/gtest.h"
+#include <gtest/gtest.h>
 
 #include "edit_atlas/core/timecode.hpp"
 #include "edit_atlas/test/media_fixture.hpp"

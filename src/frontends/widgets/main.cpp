@@ -14,14 +14,14 @@
 #include <string>
 #include <utility>
 
-#include "QApplication"
-#include "QCoreApplication"
-#include "QGuiApplication"
-#include "QIcon"
-#include "QObject"
-#include "QString"
-#include "QTranslator"
-#include "spdlog/spdlog.h"
+#include <QApplication>
+#include <QCoreApplication>
+#include <QGuiApplication>
+#include <QIcon>
+#include <QObject>
+#include <QString>
+#include <QTranslator>
+#include <spdlog/spdlog.h>
 
 #include "accessibility.hpp"
 #include "edit_atlas/core/version.hpp"

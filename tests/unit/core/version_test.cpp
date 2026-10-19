@@ -14,7 +14,7 @@
 
 #include <string_view>
 
-#include "gtest/gtest.h"
+#include <gtest/gtest.h>
 
 namespace edit_atlas::core {
 namespace {

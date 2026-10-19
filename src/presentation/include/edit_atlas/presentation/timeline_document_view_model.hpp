@@ -21,8 +21,8 @@
 #include <string>
 #include <vector>
 
-#include "QObject"
-#include "QtGlobal"
+#include <QObject>
+#include <QtGlobal>
 
 #include "edit_atlas/core/editorial_timeline.hpp"
 #include "edit_atlas/core/format_registry.hpp"

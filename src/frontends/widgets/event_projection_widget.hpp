@@ -16,10 +16,10 @@
 #include <span>
 #include <vector>
 
-#include "QLabel"
-#include "QListWidget"
-#include "QPushButton"
-#include "QWidget"
+#include <QLabel>
+#include <QListWidget>
+#include <QPushButton>
+#include <QWidget>
 
 #include "edit_atlas/core/timeline_projection.hpp"
 

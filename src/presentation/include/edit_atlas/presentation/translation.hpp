@@ -13,7 +13,7 @@
 #ifndef EDIT_ATLAS_PRESENTATION_TRANSLATION_HPP_
 #define EDIT_ATLAS_PRESENTATION_TRANSLATION_HPP_
 
-#include "QTranslator"
+#include <QTranslator>
 
 namespace edit_atlas::presentation {
 

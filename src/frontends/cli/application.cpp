@@ -23,7 +23,7 @@
 #include <utility>
 #include <vector>
 
-#include "CLI/CLI.hpp"
+#include <CLI/CLI.hpp>
 
 #include "diagnostic_output.hpp"
 #include "edit_atlas/core/editorial_timeline.hpp"

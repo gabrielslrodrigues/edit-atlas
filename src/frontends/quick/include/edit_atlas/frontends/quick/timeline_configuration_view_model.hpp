@@ -15,11 +15,11 @@
 
 #include <filesystem>
 
-#include "QAbstractItemModel"
-#include "QObject"
-#include "QString"
-#include "QStringList"
-#include "QtQmlIntegration/qqmlintegration.h"
+#include <QAbstractItemModel>
+#include <QObject>
+#include <QString>
+#include <QStringList>
+#include <QtQmlIntegration/qqmlintegration.h>
 
 #include "edit_atlas/presentation/timeline_document_view_model.hpp"
 #include "edit_atlas/presentation/timeline_event_projection_model.hpp"

@@ -28,12 +28,12 @@
 #include <utility>
 #include <vector>
 
-#include "QSignalSpy"
-#include "QString"
-#include "QTemporaryDir"
-#include "QTemporaryFile"
-#include "gtest/gtest.h"
-#include "minizip/unzip.h"
+#include <QSignalSpy>
+#include <QString>
+#include <QTemporaryDir>
+#include <QTemporaryFile>
+#include <gtest/gtest.h>
+#include <minizip/unzip.h>
 
 #include "edit_atlas/core/editorial_timeline.hpp"
 #include "edit_atlas/core/format.hpp"

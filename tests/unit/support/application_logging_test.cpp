@@ -23,8 +23,8 @@
 #include <system_error>
 #include <utility>
 
-#include "gtest/gtest.h"
-#include "spdlog/spdlog.h"
+#include <gtest/gtest.h>
+#include <spdlog/spdlog.h>
 
 namespace edit_atlas::support {
 namespace {

@@ -22,7 +22,7 @@
 #include <string_view>
 #include <system_error>
 
-#include "gtest/gtest.h"
+#include <gtest/gtest.h>
 
 #include "edit_atlas/core/editorial_timeline.hpp"
 #include "edit_atlas/formats/cmx3600/cmx3600_importer.hpp"

@@ -18,12 +18,12 @@
 #include <system_error>
 #include <vector>
 
-#include "QAction"
-#include "QSettings"
-#include "QString"
-#include "QStringList"
-#include "QtGlobal"
-#include "gtest/gtest.h"
+#include <QAction>
+#include <QSettings>
+#include <QString>
+#include <QStringList>
+#include <QtGlobal>
+#include <gtest/gtest.h>
 
 #include "edit_atlas/core/timeline_projection.hpp"
 #include "edit_atlas/frontends/widgets/application_menu_bar.hpp"

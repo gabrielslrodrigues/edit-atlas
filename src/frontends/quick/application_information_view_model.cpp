@@ -18,10 +18,10 @@
 #include <string>
 #include <vector>
 
-#include "QObject"
-#include "QString"
-#include "QStringList"
-#include "QUrl"
+#include <QObject>
+#include <QString>
+#include <QStringList>
+#include <QUrl>
 
 #include "edit_atlas/core/format_registry.hpp"
 #include "edit_atlas/media/video_decoder.hpp"

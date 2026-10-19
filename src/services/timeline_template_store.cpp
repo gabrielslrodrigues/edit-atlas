@@ -31,7 +31,7 @@
 #include <variant>
 #include <vector>
 
-#include "nlohmann/json.hpp"
+#include <nlohmann/json.hpp>
 
 #include "edit_atlas/core/editorial_timeline.hpp"
 #include "edit_atlas/core/timeline_projection.hpp"

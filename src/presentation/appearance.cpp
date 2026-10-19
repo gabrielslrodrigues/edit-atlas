@@ -12,12 +12,12 @@
 
 #include "edit_atlas/presentation/appearance.hpp"
 
-#include "QCoreApplication"
-#include "QGuiApplication"
-#include "QSettings"
-#include "QString"
-#include "QStyleHints"
-#include "Qt"
+#include <QCoreApplication>
+#include <QGuiApplication>
+#include <QSettings>
+#include <QString>
+#include <QStyleHints>
+#include <Qt>
 
 namespace edit_atlas::presentation {
 namespace {

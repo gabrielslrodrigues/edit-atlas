@@ -27,8 +27,8 @@
 #include <system_error>
 #include <vector>
 
-#include "gtest/gtest.h"
-#include "minizip/unzip.h"
+#include <gtest/gtest.h>
+#include <minizip/unzip.h>
 
 #include "edit_atlas/test/media_fixture.hpp"
 

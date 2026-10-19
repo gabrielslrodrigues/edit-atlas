@@ -15,12 +15,12 @@
 #include <stop_token>
 #include <utility>
 
-#include "QFutureWatcher"
-#include "QMetaObject"
-#include "QObject"
-#include "QPointer"
-#include "Qt"
-#include "QtConcurrentRun"
+#include <QFutureWatcher>
+#include <QMetaObject>
+#include <QObject>
+#include <QPointer>
+#include <Qt>
+#include <QtConcurrentRun>
 
 #include "edit_atlas/core/format_registry.hpp"
 #include "edit_atlas/services/timeline_document_export_service.hpp"

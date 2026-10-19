@@ -20,7 +20,7 @@
 #include <utility>
 #include <vector>
 
-#include "png.h"
+#include <png.h>
 
 #include "edit_atlas/core/rgb_image.hpp"
 

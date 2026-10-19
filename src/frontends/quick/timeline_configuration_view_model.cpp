@@ -19,13 +19,13 @@
 #include <utility>
 #include <variant>
 
-#include "QAbstractItemModel"
-#include "QByteArray"
-#include "QModelIndex"
-#include "QObject"
-#include "QString"
-#include "QStringList"
-#include "QtGlobal"
+#include <QAbstractItemModel>
+#include <QByteArray>
+#include <QModelIndex>
+#include <QObject>
+#include <QString>
+#include <QStringList>
+#include <QtGlobal>
 
 #include "edit_atlas/presentation/timeline_document_view_model.hpp"
 #include "edit_atlas/presentation/timeline_event_projection_model.hpp"

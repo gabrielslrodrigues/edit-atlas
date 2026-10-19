@@ -13,8 +13,8 @@
 #ifndef EDIT_ATLAS_PRESENTATION_SUPPORT_BUNDLE_WORKFLOW_HPP_
 #define EDIT_ATLAS_PRESENTATION_SUPPORT_BUNDLE_WORKFLOW_HPP_
 
-#include "QFutureWatcher"
-#include "QObject"
+#include <QFutureWatcher>
+#include <QObject>
 
 #include "edit_atlas/support/support_bundle.hpp"
 

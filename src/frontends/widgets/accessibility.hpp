@@ -13,10 +13,10 @@
 #ifndef EDIT_ATLAS_FRONTENDS_WIDGETS_ACCESSIBILITY_HPP_
 #define EDIT_ATLAS_FRONTENDS_WIDGETS_ACCESSIBILITY_HPP_
 
-#include "QAction"
-#include "QInputDialog"
-#include "QStringView"
-#include "QWidget"
+#include <QAction>
+#include <QInputDialog>
+#include <QStringView>
+#include <QWidget>
 
 namespace edit_atlas::frontends::widgets {
 

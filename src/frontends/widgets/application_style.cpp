@@ -15,21 +15,21 @@
 #include <utility>
 #include <vector>
 
-#include "QApplication"
-#include "QColor"
-#include "QDebug"
-#include "QFile"
-#include "QFont"
-#include "QIODevice"
-#include "QPalette"
-#include "QProxyStyle"
-#include "QResource"
-#include "QString"
-#include "QStyle"
-#include "QStyleHintReturn"
-#include "QStyleOption"
-#include "QWidget"
-#include "Qt"
+#include <QApplication>
+#include <QColor>
+#include <QDebug>
+#include <QFile>
+#include <QFont>
+#include <QIODevice>
+#include <QPalette>
+#include <QProxyStyle>
+#include <QResource>
+#include <QString>
+#include <QStyle>
+#include <QStyleHintReturn>
+#include <QStyleOption>
+#include <QWidget>
+#include <Qt>
 
 #include "edit_atlas/presentation/appearance.hpp"
 #include "edit_atlas/presentation/typography.hpp"

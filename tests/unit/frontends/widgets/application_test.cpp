@@ -13,12 +13,12 @@
 #include <optional>
 #include <string>
 
-#include "QColor"
-#include "QCoreApplication"
-#include "QPalette"
-#include "QString"
-#include "QTranslator"
-#include "gtest/gtest.h"
+#include <QColor>
+#include <QCoreApplication>
+#include <QPalette>
+#include <QString>
+#include <QTranslator>
+#include <gtest/gtest.h>
 
 #include "edit_atlas/core/editorial_timeline.hpp"
 #include "edit_atlas/formats/cmx3600/cmx3600_importer.hpp"

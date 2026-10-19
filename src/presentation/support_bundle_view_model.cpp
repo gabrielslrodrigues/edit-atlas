@@ -17,8 +17,8 @@
 #include <optional>
 #include <utility>
 
-#include "QObject"
-#include "spdlog/spdlog.h"
+#include <QObject>
+#include <spdlog/spdlog.h>
 
 #include "edit_atlas/presentation/support_bundle_workflow.hpp"
 #include "edit_atlas/support/support_bundle.hpp"

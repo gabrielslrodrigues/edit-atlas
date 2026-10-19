@@ -17,7 +17,7 @@
 #include <filesystem>
 #include <optional>
 
-#include "QObject"
+#include <QObject>
 
 #include "edit_atlas/presentation/support_bundle_workflow.hpp"
 #include "edit_atlas/support/support_bundle.hpp"

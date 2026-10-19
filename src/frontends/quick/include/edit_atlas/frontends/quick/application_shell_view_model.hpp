@@ -16,15 +16,15 @@
 #include <optional>
 #include <string>
 
-#include "QAbstractItemModel"
-#include "QObject"
-#include "QSortFilterProxyModel"
-#include "QString"
-#include "QStringList"
-#include "QTranslator"
-#include "QUrl"
-#include "QtGlobal"
-#include "QtQmlIntegration/qqmlintegration.h"
+#include <QAbstractItemModel>
+#include <QObject>
+#include <QSortFilterProxyModel>
+#include <QString>
+#include <QStringList>
+#include <QTranslator>
+#include <QUrl>
+#include <QtGlobal>
+#include <QtQmlIntegration/qqmlintegration.h>
 
 #include "edit_atlas/core/format_registry.hpp"
 #include "edit_atlas/frontends/quick/application_information_view_model.hpp"

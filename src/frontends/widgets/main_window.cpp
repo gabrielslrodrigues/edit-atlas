@@ -17,17 +17,17 @@
 #include <string>
 #include <utility>
 
-#include "QAbstractButton"
-#include "QDragEnterEvent"
-#include "QDropEvent"
-#include "QEvent"
-#include "QMessageBox"
-#include "QMimeData"
-#include "QStatusBar"
-#include "QString"
-#include "QTranslator"
-#include "QUrl"
-#include "QWidget"
+#include <QAbstractButton>
+#include <QDragEnterEvent>
+#include <QDropEvent>
+#include <QEvent>
+#include <QMessageBox>
+#include <QMimeData>
+#include <QStatusBar>
+#include <QString>
+#include <QTranslator>
+#include <QUrl>
+#include <QWidget>
 
 #include "accessibility.hpp"
 #include "edit_atlas/core/format_registry.hpp"

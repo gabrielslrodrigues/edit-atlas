@@ -22,13 +22,13 @@
 #include <variant>
 #include <vector>
 
-#include "QAbstractTableModel"
-#include "QChar"
-#include "QModelIndex"
-#include "QString"
-#include "QStringList"
-#include "QVariant"
-#include "Qt"
+#include <QAbstractTableModel>
+#include <QChar>
+#include <QModelIndex>
+#include <QString>
+#include <QStringList>
+#include <QVariant>
+#include <Qt>
 
 #include "edit_atlas/core/editorial_timeline.hpp"
 #include "edit_atlas/core/timecode.hpp"

@@ -20,14 +20,14 @@
 #include <span>
 #include <vector>
 
-#include "QAbstractListModel"
-#include "QByteArray"
-#include "QHash"
-#include "QModelIndex"
-#include "QString"
-#include "QVariant"
-#include "Qt"
-#include "QtGlobal"
+#include <QAbstractListModel>
+#include <QByteArray>
+#include <QHash>
+#include <QModelIndex>
+#include <QString>
+#include <QVariant>
+#include <Qt>
+#include <QtGlobal>
 
 #include "edit_atlas/core/timeline_projection.hpp"
 

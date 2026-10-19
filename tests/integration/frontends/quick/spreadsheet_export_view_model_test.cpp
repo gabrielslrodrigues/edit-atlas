@@ -16,11 +16,11 @@
 #include <filesystem>
 #include <string>
 
-#include "QSignalSpy"
-#include "QString"
-#include "QTemporaryDir"
-#include "QUrl"
-#include "gtest/gtest.h"
+#include <QSignalSpy>
+#include <QString>
+#include <QTemporaryDir>
+#include <QUrl>
+#include <gtest/gtest.h>
 
 #include "edit_atlas/core/format.hpp"
 #include "edit_atlas/core/timeline_projection.hpp"

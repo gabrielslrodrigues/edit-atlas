@@ -48,6 +48,7 @@ TEXT_NAMES = {
     "Containerfile",
     "CPPLINT.cfg",
 }
+INCLUDE = re.compile(r'#include ([<"])([^>"]+)[>"]')
 
 
 def run(arguments: list[str]) -> bool:
@@ -147,7 +148,28 @@ def tools() -> dict[str, str]:
     return result
 
 
-def check_text(name: str) -> bool:
+def project_headers(files: dict[str, str]) -> set[str]:
+    """Return each include spelling naming an inventory header."""
+    result = set()
+    for name in files:
+        if name.endswith(".hpp"):
+            parts = name.split("/")
+            result.update(
+                "/".join(parts[index:]) for index in range(len(parts))
+            )
+    return result
+
+
+def is_project_header(include: str, headers: set[str]) -> bool:
+    """Report whether an include names a project or generated header."""
+    return (
+        include.startswith("edit_atlas/")
+        or include.endswith(".moc")
+        or include in headers
+    )
+
+
+def check_text(name: str, headers: set[str]) -> bool:
     """Enforce text invariants without rewriting content or literals."""
     data = (ROOT / name).read_bytes()
     text = data.decode("utf-8")
@@ -168,6 +190,22 @@ def check_text(name: str) -> bool:
             "// Licensed under the Apache License, Version 2.0"
         ):
             problems.append("missing Apache 2.0 licence boilerplate")
+        for number, line in enumerate(text.splitlines(), 1):
+            match = INCLUDE.match(line)
+            if match is None:
+                continue
+            quoted = match.group(1) == '"'
+            include = match.group(2)
+            if quoted and not is_project_header(include, headers):
+                problems.append(
+                    f"line {number}: include third-party header {include} "
+                    "with angle brackets"
+                )
+            elif not quoted and is_project_header(include, headers):
+                problems.append(
+                    f"line {number}: include project header {include} "
+                    "with quotes"
+                )
     if name.endswith(".hpp"):
         logical = (
             name.split("/include/", 1)[1]
@@ -198,12 +236,13 @@ def main() -> int:
         return 0
     commands = tools()
     checking = arguments.mode == "check"
+    headers = project_headers(files)
     success = True
     for name, kind in files.items():
         if kind.startswith("preserved:"):
             continue
         if checking:
-            success = check_text(name) and success
+            success = check_text(name, headers) and success
         if kind == "cpp":
             options = ["--dry-run", "--Werror"] if checking else ["-i"]
             success = (

@@ -15,9 +15,9 @@
 
 #include <filesystem>
 
-#include "QObject"
-#include "QString"
-#include "QWidget"
+#include <QObject>
+#include <QString>
+#include <QWidget>
 
 #include "edit_atlas/presentation/support_bundle_view_model.hpp"
 #include "edit_atlas/support/support_bundle.hpp"

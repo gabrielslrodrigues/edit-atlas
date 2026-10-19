@@ -16,29 +16,29 @@
 #include <utility>
 #include <vector>
 
-#include "QAbstractItemView"
-#include "QAccessible"
-#include "QAccessibleWidget"
-#include "QAction"
-#include "QComboBox"
-#include "QCoreApplication"
-#include "QDialogButtonBox"
-#include "QInputDialog"
-#include "QItemSelectionModel"
-#include "QKeySequence"
-#include "QLineEdit"
-#include "QListWidget"
-#include "QListWidgetItem"
-#include "QMenu"
-#include "QPushButton"
-#include "QRect"
-#include "QString"
-#include "QStringList"
-#include "QStringView"
-#include "QTimer"
-#include "QToolButton"
-#include "QVariant"
-#include "QWidget"
+#include <QAbstractItemView>
+#include <QAccessible>
+#include <QAccessibleWidget>
+#include <QAction>
+#include <QComboBox>
+#include <QCoreApplication>
+#include <QDialogButtonBox>
+#include <QInputDialog>
+#include <QItemSelectionModel>
+#include <QKeySequence>
+#include <QLineEdit>
+#include <QListWidget>
+#include <QListWidgetItem>
+#include <QMenu>
+#include <QPushButton>
+#include <QRect>
+#include <QString>
+#include <QStringList>
+#include <QStringView>
+#include <QTimer>
+#include <QToolButton>
+#include <QVariant>
+#include <QWidget>
 
 namespace edit_atlas::frontends::widgets {
 
