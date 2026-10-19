@@ -14,6 +14,7 @@
 
 extern "C" {
 #include "libavcodec/avcodec.h"
+#include "libavcodec/defs.h"
 #include "libavcodec/packet.h"
 #include "libavformat/avformat.h"
 #include "libavformat/avio.h"
@@ -205,6 +206,9 @@ std::expected<void, std::string> WriteVideoFixture(
     codec_context->bit_rate = 1'000'000;
     codec_context->gop_size = 1;
     codec_context->max_b_frames = 0;
+    // Lets the container carry a rate the MPEG-2 sequence header cannot
+    // encode, such as 2997/125, as approximated renders do.
+    codec_context->strict_std_compliance = FF_COMPLIANCE_EXPERIMENTAL;
   }
   if ((format_context->oformat->flags & AVFMT_GLOBALHEADER) != 0) {
     codec_context->flags |= AV_CODEC_FLAG_GLOBAL_HEADER;

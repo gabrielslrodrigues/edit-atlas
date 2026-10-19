@@ -43,9 +43,15 @@ extern "C" {
 #include <vector>
 
 #include "edit_atlas/core/rgb_image.hpp"
+#include "edit_atlas/core/timecode.hpp"
 
 namespace edit_atlas::media {
 namespace {
+
+// The bounds FFmpeg's stream probing applies when it rounds a measured rate to
+// a standard one: strictly within 1% of that rate.
+constexpr AVRational kStandardRateLowerRatio{99, 100};
+constexpr AVRational kStandardRateUpperRatio{101, 100};
 
 class FormatContext final {
  public:
@@ -224,6 +230,10 @@ using ScaleContextPointer = std::unique_ptr<SwsContext, ScaleContextDeleter>;
     return MediaContainer::kMp4;
   }
   return MediaContainer::kOther;
+}
+
+[[nodiscard]] AVRational ToAvRational(const core::FrameRate& rate) noexcept {
+  return AVRational{rate.numerator(), rate.denominator()};
 }
 
 [[nodiscard]] MediaStreamInfo StreamInformation(AVFormatContext& context,
@@ -697,6 +707,27 @@ VideoDecoder::Open(const std::filesystem::path& path) {
         codec_name, "could not allocate video decoding buffers"));
   }
   return std::unique_ptr<VideoDecoder>{std::move(decoder)};
+}
+
+std::optional<core::FrameRate> NearestStandardFrameRate(
+    const core::FrameRate& rate) {
+  const auto standard_rates = core::FrameRate::StandardRates();
+  std::vector<AVRational> candidates;
+  candidates.reserve(standard_rates.size() + 1);
+  for (const auto& standard_rate : standard_rates) {
+    candidates.push_back(ToAvRational(standard_rate));
+  }
+  candidates.push_back(AVRational{0, 0});
+
+  const auto value = ToAvRational(rate);
+  const auto nearest_index = av_find_nearest_q_idx(value, candidates.data());
+  const auto& nearest = standard_rates[static_cast<std::size_t>(nearest_index)];
+  const auto ratio = av_div_q(value, ToAvRational(nearest));
+  if (av_cmp_q(ratio, kStandardRateLowerRatio) <= 0 ||
+      av_cmp_q(ratio, kStandardRateUpperRatio) >= 0) {
+    return std::nullopt;
+  }
+  return nearest;
 }
 
 VideoBackendInformation GetVideoBackendInformation(void) {

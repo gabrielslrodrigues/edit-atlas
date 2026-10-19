@@ -15,13 +15,16 @@
 #include <array>
 #include <cstdint>
 #include <filesystem>
+#include <optional>
 #include <random>
 #include <string>
 #include <string_view>
 #include <system_error>
+#include <utility>
 
 #include "gtest/gtest.h"
 
+#include "edit_atlas/core/timecode.hpp"
 #include "edit_atlas/test/media_fixture.hpp"
 
 namespace edit_atlas::media {
@@ -170,6 +173,25 @@ TEST(VideoDecoderTest, ReturnsActionableFailureForUnsupportedCodec) {
   EXPECT_NE(result.error().message.find("supported codecs"), std::string::npos);
 }
 
+TEST(VideoDecoderTest, ReportsAnApproximatedRateAsWritten) {
+  TemporaryMediaFile fixture{"mov"};
+  auto options = test::VideoFixtureOptions{};
+  options.frame_rate_numerator = 2'997;
+  options.frame_rate_denominator = 125;
+  const auto fixture_result =
+      test::WriteVideoFixture(fixture.Path(), "mov", options);
+  ASSERT_TRUE(fixture_result.has_value())
+      << (fixture_result.has_value() ? "" : fixture_result.error());
+
+  const auto decoder = VideoDecoder::Open(fixture.Path());
+
+  ASSERT_TRUE(decoder.has_value()) << decoder.error().message;
+  const auto& information = (*decoder)->Information();
+  const auto& stream = information.streams[information.selected_video_stream];
+  EXPECT_EQ(stream.average_frame_rate, (Rational{2'997, 125}));
+  EXPECT_EQ(stream.nominal_frame_rate, (Rational{2'997, 125}));
+}
+
 TEST(VideoDecoderTest, IndexesFramesByNominalRateWhenTheFinalFrameIsShort) {
   constexpr std::int32_t kFrameCount = 48;
   TemporaryMediaFile fixture{"mov"};
@@ -199,6 +221,44 @@ TEST(VideoDecoderTest, IndexesFramesByNominalRateWhenTheFinalFrameIsShort) {
     EXPECT_EQ((*frame)->frame_index, expected_index);
   }
 }
+
+struct StandardRateCase final {
+  std::int64_t numerator;
+  std::int64_t denominator;
+  std::optional<std::pair<std::int64_t, std::int64_t>> expected;
+};
+
+class NearestStandardFrameRateTest
+    : public testing::TestWithParam<StandardRateCase> {};
+
+TEST_P(NearestStandardFrameRateTest, ResolvesRatesWithinOnePercent) {
+  const auto& rate_case = GetParam();
+  const auto rate =
+      core::FrameRate::Create(rate_case.numerator, rate_case.denominator)
+          .value();
+
+  const auto resolved = NearestStandardFrameRate(rate);
+
+  if (!rate_case.expected.has_value()) {
+    EXPECT_FALSE(resolved.has_value());
+    return;
+  }
+  ASSERT_TRUE(resolved.has_value());
+  EXPECT_EQ(*resolved, core::FrameRate::Create(rate_case.expected->first,
+                                               rate_case.expected->second)
+                           .value());
+}
+
+INSTANTIATE_TEST_SUITE_P(
+    ApproximatedAndExactRates, NearestStandardFrameRateTest,
+    testing::Values(StandardRateCase{2'997, 125, std::pair{24'000, 1'001}},
+                    StandardRateCase{1'199, 50, std::pair{24'000, 1'001}},
+                    StandardRateCase{24'000, 1'001, std::pair{24'000, 1'001}},
+                    StandardRateCase{24, 1, std::pair{24, 1}},
+                    StandardRateCase{2'997, 100, std::pair{30'000, 1'001}},
+                    StandardRateCase{2'997, 50, std::pair{60'000, 1'001}},
+                    StandardRateCase{48, 1, std::nullopt},
+                    StandardRateCase{47, 2, std::nullopt}));
 
 TEST(FfmpegComplianceTest, UsesAnLgplBuildWithoutForbiddenFeatures) {
   const auto information = GetVideoBackendInformation();
