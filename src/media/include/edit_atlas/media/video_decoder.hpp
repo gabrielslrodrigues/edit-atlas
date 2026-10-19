@@ -88,7 +88,10 @@ struct MediaStreamInfo final {
   std::optional<Rational> time_base;
   /// The average frame rate reported for a video stream, when valid.
   std::optional<Rational> average_frame_rate;
-  /// The nominal frame rate reported for a video stream, when valid.
+  /// The nominal frame rate of a video stream, when valid.
+  ///
+  /// The backend corrects known container quirks, such as a doubled rate on
+  /// field-coded streams, so this is the rate frame indices are counted in.
   std::optional<Rational> nominal_frame_rate;
   /// The stream duration expressed in units of `time_base`.
   std::optional<std::int64_t> duration;

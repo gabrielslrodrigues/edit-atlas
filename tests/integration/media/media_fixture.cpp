@@ -20,6 +20,7 @@ extern "C" {
 #include "libavutil/dict.h"
 #include "libavutil/error.h"
 #include "libavutil/frame.h"
+#include "libavutil/mathematics.h"
 #include "libavutil/pixfmt.h"
 #include "libavutil/rational.h"
 }
@@ -85,7 +86,11 @@ using PacketPointer = std::unique_ptr<AVPacket, PacketDeleter>;
 
 [[nodiscard]] std::expected<void, std::string> WriteAvailablePackets(
     AVFormatContext& format_context, AVCodecContext& codec_context,
-    AVStream& stream, AVPacket& packet) {
+    AVStream& stream, AVPacket& packet, const VideoFixtureOptions& options,
+    std::int32_t& packets_written) {
+  // Every fixture codec emits one packet per frame in presentation order.
+  const auto frame_duration =
+      av_rescale_q(1, codec_context.time_base, stream.time_base);
   while (true) {
     const auto receive_result = avcodec_receive_packet(&codec_context, &packet);
     if (receive_result == AVERROR(EAGAIN) || receive_result == AVERROR_EOF) {
@@ -97,6 +102,10 @@ using PacketPointer = std::unique_ptr<AVPacket, PacketDeleter>;
     }
 
     av_packet_rescale_ts(&packet, codec_context.time_base, stream.time_base);
+    packet.duration =
+        packets_written + 1 == options.frame_count
+            ? frame_duration * options.final_frame_duration_percent / 100
+            : frame_duration;
     packet.stream_index = stream.index;
     const auto write_result =
         av_interleaved_write_frame(&format_context, &packet);
@@ -105,6 +114,7 @@ using PacketPointer = std::unique_ptr<AVPacket, PacketDeleter>;
       return std::unexpected(
           Failure("could not write a fixture packet", write_result));
     }
+    ++packets_written;
   }
 }
 
@@ -145,7 +155,9 @@ std::expected<void, std::string> WriteVideoFixture(
     const std::filesystem::path& path, std::string_view container_name,
     const VideoFixtureOptions& options) {
   if (options.frame_rate_numerator <= 0 ||
-      options.frame_rate_denominator <= 0 || options.frame_count <= 0) {
+      options.frame_rate_denominator <= 0 || options.frame_count <= 0 ||
+      options.final_frame_duration_percent <= 0 ||
+      options.final_frame_duration_percent > 100) {
     return std::unexpected("the fixture timing must be positive");
   }
   AVFormatContext* raw_format_context = nullptr;
@@ -249,6 +261,7 @@ std::expected<void, std::string> WriteVideoFixture(
         Failure("could not allocate the fixture frame", frame_buffer_result));
   }
 
+  std::int32_t packets_written = 0;
   for (int frame_index = 0; frame_index < options.frame_count; ++frame_index) {
     const auto writable_result = av_frame_make_writable(frame.get());
     if (writable_result < 0) {
@@ -263,8 +276,9 @@ std::expected<void, std::string> WriteVideoFixture(
       return std::unexpected(
           Failure("could not encode a fixture frame", send_result));
     }
-    auto write_result = WriteAvailablePackets(*format_context, *codec_context,
-                                              *stream, *packet);
+    auto write_result =
+        WriteAvailablePackets(*format_context, *codec_context, *stream, *packet,
+                              options, packets_written);
     if (!write_result.has_value()) {
       return write_result;
     }
@@ -276,7 +290,8 @@ std::expected<void, std::string> WriteVideoFixture(
         Failure("could not drain the fixture encoder", drain_result));
   }
   auto write_result =
-      WriteAvailablePackets(*format_context, *codec_context, *stream, *packet);
+      WriteAvailablePackets(*format_context, *codec_context, *stream, *packet,
+                            options, packets_written);
   if (!write_result.has_value()) {
     return write_result;
   }

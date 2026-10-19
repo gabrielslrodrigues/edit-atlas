@@ -32,6 +32,9 @@ struct VideoFixtureOptions final {
   std::int32_t frame_rate_numerator = 25;
   std::int32_t frame_rate_denominator = 1;
   std::int32_t frame_count = 3;
+  // Shortens the final frame, as some renders do, which skews the average
+  // rate a demuxer derives from the total duration. Must lie in (0, 100].
+  std::int32_t final_frame_duration_percent = 100;
   std::optional<std::string> starting_timecode;
 };
 

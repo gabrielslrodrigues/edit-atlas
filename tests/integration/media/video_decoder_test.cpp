@@ -170,6 +170,36 @@ TEST(VideoDecoderTest, ReturnsActionableFailureForUnsupportedCodec) {
   EXPECT_NE(result.error().message.find("supported codecs"), std::string::npos);
 }
 
+TEST(VideoDecoderTest, IndexesFramesByNominalRateWhenTheFinalFrameIsShort) {
+  constexpr std::int32_t kFrameCount = 48;
+  TemporaryMediaFile fixture{"mov"};
+  auto options = test::VideoFixtureOptions{};
+  options.frame_rate_numerator = 24'000;
+  options.frame_rate_denominator = 1'001;
+  options.frame_count = kFrameCount;
+  options.final_frame_duration_percent = 25;
+  const auto fixture_result =
+      test::WriteVideoFixture(fixture.Path(), "mov", options);
+  ASSERT_TRUE(fixture_result.has_value())
+      << (fixture_result.has_value() ? "" : fixture_result.error());
+
+  auto decoder = VideoDecoder::Open(fixture.Path());
+
+  ASSERT_TRUE(decoder.has_value()) << decoder.error().message;
+  const auto& information = (*decoder)->Information();
+  const auto& stream = information.streams[information.selected_video_stream];
+  EXPECT_EQ(stream.nominal_frame_rate, (Rational{24'000, 1'001}));
+  EXPECT_NE(stream.average_frame_rate, stream.nominal_frame_rate);
+  // Counted at the skewed average rate, the last frame's index would be 48.
+  for (std::int64_t expected_index = 0; expected_index < kFrameCount;
+       ++expected_index) {
+    auto frame = (*decoder)->ReadFrame();
+    ASSERT_TRUE(frame.has_value()) << frame.error().message;
+    ASSERT_TRUE(frame->has_value());
+    EXPECT_EQ((*frame)->frame_index, expected_index);
+  }
+}
+
 TEST(FfmpegComplianceTest, UsesAnLgplBuildWithoutForbiddenFeatures) {
   const auto information = GetVideoBackendInformation();
   EXPECT_EQ(information.name, "FFmpeg");
