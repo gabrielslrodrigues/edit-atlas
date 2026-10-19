@@ -78,6 +78,7 @@ TEST(EditorialTimelineTest, HoldsFormatIndependentEditorialData) {
                   .code = "example.warning",
                   .message = "Example diagnostic",
                   .location = provenance.location,
+                  .arguments = {},
               },
           },
       .provenance = provenance,

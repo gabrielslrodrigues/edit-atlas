@@ -297,6 +297,7 @@ void AddDiagnostic(std::vector<Diagnostic>& diagnostics,
       .location = line == 0
                       ? std::nullopt
                       : std::optional<SourceLocation>{Location(request, line)},
+      .arguments = {},
   });
 }
 

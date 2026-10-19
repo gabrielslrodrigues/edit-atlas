@@ -14,7 +14,6 @@
 
 #include <algorithm>
 #include <charconv>
-#include <cmath>
 #include <cstddef>
 #include <cstdint>
 #include <expected>
@@ -39,14 +38,39 @@ struct TimelineSpan final {
   std::int64_t end_exclusive;
 };
 
-[[nodiscard]] core::Diagnostic Error(std::string_view code,
-                                     std::string message) {
+// A positive media duration in units of a positive time base.
+struct MediaDuration final {
+  std::int64_t ticks;
+  media::Rational time_base;
+};
+
+constexpr std::int32_t kMicrosecondsPerSecond = 1'000'000;
+
+[[nodiscard]] core::Diagnostic Error(std::string_view code, std::string message,
+                                     std::vector<std::string> arguments = {}) {
   return core::Diagnostic{
       .severity = core::DiagnosticSeverity::kError,
       .code = std::string{code},
       .message = std::move(message),
       .location = std::nullopt,
+      .arguments = std::move(arguments),
   };
+}
+
+[[nodiscard]] std::optional<std::int64_t> CheckedMultiply(
+    std::int64_t left, std::int64_t right) noexcept {
+  if (right != 0 && left > std::numeric_limits<std::int64_t>::max() / right) {
+    return std::nullopt;
+  }
+  return left * right;
+}
+
+[[nodiscard]] std::optional<std::int64_t> CheckedAdd(
+    std::int64_t left, std::int64_t right) noexcept {
+  if (left > std::numeric_limits<std::int64_t>::max() - right) {
+    return std::nullopt;
+  }
+  return left + right;
 }
 
 [[nodiscard]] bool EqualsAsciiCaseInsensitive(std::string_view left,
@@ -185,6 +209,47 @@ void AppendTimecodes(const std::vector<media::MediaMetadataEntry>& metadata,
   return TimelineSpan{.start = start, .end_exclusive = end};
 }
 
+[[nodiscard]] std::optional<MediaDuration> SelectedStreamDuration(
+    const media::VideoMediaInfo& information) noexcept {
+  const auto& stream = information.streams[information.selected_video_stream];
+  if (stream.duration.has_value() && *stream.duration > 0 &&
+      stream.time_base.has_value() && stream.time_base->numerator > 0 &&
+      stream.time_base->denominator > 0) {
+    return MediaDuration{.ticks = *stream.duration,
+                         .time_base = *stream.time_base};
+  }
+  if (information.duration_microseconds.has_value() &&
+      *information.duration_microseconds > 0) {
+    return MediaDuration{
+        .ticks = *information.duration_microseconds,
+        .time_base = media::Rational{.numerator = 1,
+                                     .denominator = kMicrosecondsPerSecond},
+    };
+  }
+  return std::nullopt;
+}
+
+// Rounds the number of frames `rate` fits into `duration` to the nearest
+// integer, exactly, or returns nothing when an intermediate overflows.
+[[nodiscard]] std::optional<std::int64_t> FramesInDuration(
+    const MediaDuration& duration, const core::FrameRate& rate) noexcept {
+  const auto scale = static_cast<std::int64_t>(duration.time_base.numerator) *
+                     rate.numerator();
+  const auto divisor =
+      static_cast<std::int64_t>(duration.time_base.denominator) *
+      rate.denominator();
+  const auto whole = CheckedMultiply(duration.ticks / divisor, scale);
+  const auto part = CheckedMultiply(duration.ticks % divisor, scale);
+  if (!whole.has_value() || !part.has_value()) {
+    return std::nullopt;
+  }
+  const auto rounded_part = CheckedAdd(*part, divisor / 2);
+  if (!rounded_part.has_value()) {
+    return std::nullopt;
+  }
+  return CheckedAdd(*whole, *rounded_part / divisor);
+}
+
 [[nodiscard]] std::optional<std::int64_t> DurationFrames(
     const media::VideoMediaInfo& information,
     const core::FrameRate& frame_rate) noexcept {
@@ -192,30 +257,60 @@ void AppendTimecodes(const std::vector<media::MediaMetadataEntry>& metadata,
   if (stream.frame_count.has_value() && *stream.frame_count > 0) {
     return stream.frame_count;
   }
-
-  long double seconds = 0.0L;
-  if (stream.duration.has_value() && *stream.duration > 0 &&
-      stream.time_base.has_value()) {
-    seconds = static_cast<long double>(*stream.duration) *
-              static_cast<long double>(stream.time_base->numerator) /
-              static_cast<long double>(stream.time_base->denominator);
-  } else if (information.duration_microseconds.has_value()) {
-    constexpr long double kMicrosecondsPerSecond = 1'000'000.0L;
-    seconds = static_cast<long double>(*information.duration_microseconds) /
-              kMicrosecondsPerSecond;
-  } else {
+  const auto duration = SelectedStreamDuration(information);
+  if (!duration.has_value()) {
     return std::nullopt;
   }
-
-  const auto frames = seconds *
-                      static_cast<long double>(frame_rate.numerator()) /
-                      static_cast<long double>(frame_rate.denominator());
-  if (!std::isfinite(frames) || frames <= 0.0L ||
-      frames >
-          static_cast<long double>(std::numeric_limits<std::int64_t>::max())) {
+  const auto frames = FramesInDuration(*duration, frame_rate);
+  if (!frames.has_value() || *frames <= 0) {
     return std::nullopt;
   }
-  return static_cast<std::int64_t>(std::llround(frames));
+  return frames;
+}
+
+// A constant-rate file can still report an average rate that differs from
+// its nominal rate, because a shorter final frame or an edit list changes the
+// total duration the average is derived from. The two rates are accepted when
+// they count the same frames over the video's duration, within the tolerance
+// the duration check applies.
+[[nodiscard]] bool IsConstantFrameRate(
+    const media::VideoMediaInfo& information,
+    const core::FrameRate& average_rate,
+    const core::FrameRate& nominal_rate) noexcept {
+  if (average_rate == nominal_rate) {
+    return true;
+  }
+  const auto duration = SelectedStreamDuration(information);
+  if (!duration.has_value()) {
+    return false;
+  }
+  const auto average_frames = FramesInDuration(*duration, average_rate);
+  const auto nominal_frames = FramesInDuration(*duration, nominal_rate);
+  if (!average_frames.has_value() || !nominal_frames.has_value()) {
+    return false;
+  }
+  const auto difference = *average_frames - *nominal_frames;
+  return difference >= -kVideoDurationToleranceFrames &&
+         difference <= kVideoDurationToleranceFrames;
+}
+
+[[nodiscard]] bool FrameRatesMatch(const core::FrameRate& video_rate,
+                                   const core::FrameRate& timeline_rate) {
+  if (video_rate == timeline_rate) {
+    return true;
+  }
+  const auto video_standard_rate = media::NearestStandardFrameRate(video_rate);
+  return video_standard_rate.has_value() &&
+         video_standard_rate == media::NearestStandardFrameRate(timeline_rate);
+}
+
+[[nodiscard]] std::string FrameRateText(const core::FrameRate& rate) {
+  auto text = std::to_string(rate.numerator());
+  if (rate.denominator() != 1) {
+    text.push_back('/');
+    text.append(std::to_string(rate.denominator()));
+  }
+  return text;
 }
 
 [[nodiscard]] TimelineVideoValidationFailure Failure(
@@ -269,20 +364,28 @@ TimelineVideoValidationResult TimelineVideoInspectionService::Validate(
               "rates, so constant-frame-rate timing cannot be verified."));
     return std::unexpected(Failure(std::move(diagnostics)));
   }
-  if (*average_rate != *nominal_rate) {
+  if (!IsConstantFrameRate(information, *average_rate, *nominal_rate)) {
     diagnostics.push_back(
         Error(timeline_video_diagnostic_code::kVariableFrameRate,
-              "The video's average and nominal frame rates differ; a "
-              "constant-frame-rate render is required."));
+              "The video's average and nominal frame rates differ by more "
+              "than the duration tolerance; a constant-frame-rate render is "
+              "required."));
     return std::unexpected(Failure(std::move(diagnostics)));
   }
-  if (*average_rate != timeline.frame_rate) {
+  if (!FrameRatesMatch(*nominal_rate, timeline.frame_rate)) {
+    const auto video_rate_text = FrameRateText(*nominal_rate);
+    const auto timeline_rate_text = FrameRateText(timeline.frame_rate);
     diagnostics.push_back(
         Error(timeline_video_diagnostic_code::kFrameRateMismatch,
-              "The video frame rate does not match the imported timeline frame "
-              "rate."));
+              "The video frame rate " + video_rate_text +
+                  " does not match the imported timeline frame rate " +
+                  timeline_rate_text + ".",
+              {video_rate_text, timeline_rate_text}));
     return std::unexpected(Failure(std::move(diagnostics)));
   }
+  // The rates are equivalent, so timing is evaluated at the timeline's exact
+  // rate: drop-frame numbering is defined only for exact NTSC rates.
+  const auto& frame_rate = timeline.frame_rate;
 
   const auto timecode_values = EmbeddedTimecodeValues(information);
   if (timecode_values.empty()) {
@@ -297,7 +400,7 @@ TimelineVideoValidationResult TimelineVideoInspectionService::Validate(
               "The video reports conflicting embedded timecode values."));
     return std::unexpected(Failure(std::move(diagnostics)));
   }
-  auto start_timecode = ParseTimecode(timecode_values.front(), *average_rate);
+  auto start_timecode = ParseTimecode(timecode_values.front(), frame_rate);
   if (!start_timecode.has_value()) {
     diagnostics.push_back(
         Error(timeline_video_diagnostic_code::kInvalidTimecode,
@@ -320,7 +423,7 @@ TimelineVideoValidationResult TimelineVideoInspectionService::Validate(
     return std::unexpected(Failure(std::move(diagnostics)));
   }
 
-  const auto duration = DurationFrames(information, *average_rate);
+  const auto duration = DurationFrames(information, frame_rate);
   if (!duration.has_value()) {
     diagnostics.push_back(
         Error(timeline_video_diagnostic_code::kMissingDuration,

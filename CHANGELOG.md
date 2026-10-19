@@ -4,6 +4,15 @@ This file records user-facing Edit Atlas changes beginning with version 0.2.0.
 
 ## [Unreleased]
 
+### Fixed
+
+- A rendered video whose frame rate is stored as an approximation of the
+  timeline's standard rate, such as 2997/125 for 23.976 fps, is no longer
+  rejected as a frame-rate mismatch, and initial frames are extracted from it.
+- A constant-frame-rate render whose shorter final frame skews its reported
+  average rate is no longer rejected as variable-frame-rate.
+- The frame-rate mismatch message now names the video and timeline rates.
+
 ## [0.4.0]
 
 ### Added

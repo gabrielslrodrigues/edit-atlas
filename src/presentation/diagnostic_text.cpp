@@ -172,6 +172,14 @@ QString Message(const core::Diagnostic& diagnostic) {
         "rate."));
   }
   if (code == video::kFrameRateMismatch) {
+    // A diagnostic that does not carry both rates keeps the general text.
+    if (diagnostic.arguments.size() == 2) {
+      return Translate(QT_TRANSLATE_NOOP(
+                           "edit_atlas::presentation::DiagnosticText",
+                           "The rendered-video frame rate %1 does not match "
+                           "the timeline frame rate %2."))
+          .arg(Utf8(diagnostic.arguments[0]), Utf8(diagnostic.arguments[1]));
+    }
     return Translate(QT_TRANSLATE_NOOP(
         "edit_atlas::presentation::DiagnosticText",
         "The rendered-video frame rate does not match the timeline."));

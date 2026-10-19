@@ -210,6 +210,10 @@
         <translation>A taxa de quadros do vídeo renderizado não corresponde à linha do tempo.</translation>
     </message>
     <message>
+        <source>The rendered-video frame rate %1 does not match the timeline frame rate %2.</source>
+        <translation>A taxa de quadros do vídeo renderizado, %1, não corresponde à taxa de quadros da linha do tempo, %2.</translation>
+    </message>
+    <message>
         <source>The rendered video has no readable embedded starting timecode.</source>
         <translation>O vídeo renderizado não possui timecode inicial incorporado legível.</translation>
     </message>

@@ -251,6 +251,7 @@ class TemporaryWorkbook final {
                           .line = 8,
                           .column = 1,
                       },
+                  .arguments = {},
               },
           },
       .provenance = std::nullopt,

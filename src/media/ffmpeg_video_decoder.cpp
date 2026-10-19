@@ -21,6 +21,7 @@ extern "C" {
 #include "libavutil/dict.h"
 #include "libavutil/error.h"
 #include "libavutil/frame.h"
+#include "libavutil/mathematics.h"
 #include "libavutil/pixfmt.h"
 #include "libavutil/rational.h"
 #include "libswscale/swscale.h"
@@ -42,9 +43,15 @@ extern "C" {
 #include <vector>
 
 #include "edit_atlas/core/rgb_image.hpp"
+#include "edit_atlas/core/timecode.hpp"
 
 namespace edit_atlas::media {
 namespace {
+
+// The bounds FFmpeg's stream probing applies when it rounds a measured rate to
+// a standard one: strictly within 1% of that rate.
+constexpr AVRational kStandardRateLowerRatio{99, 100};
+constexpr AVRational kStandardRateUpperRatio{101, 100};
 
 class FormatContext final {
  public:
@@ -225,7 +232,12 @@ using ScaleContextPointer = std::unique_ptr<SwsContext, ScaleContextDeleter>;
   return MediaContainer::kOther;
 }
 
-[[nodiscard]] MediaStreamInfo StreamInformation(const AVStream& stream) {
+[[nodiscard]] AVRational ToAvRational(const core::FrameRate& rate) noexcept {
+  return AVRational{rate.numerator(), rate.denominator()};
+}
+
+[[nodiscard]] MediaStreamInfo StreamInformation(AVFormatContext& context,
+                                                AVStream& stream) {
   const auto& parameters = *stream.codecpar;
   const auto* descriptor = avcodec_descriptor_get(parameters.codec_id);
   return MediaStreamInfo{
@@ -238,7 +250,8 @@ using ScaleContextPointer = std::unique_ptr<SwsContext, ScaleContextDeleter>;
               : std::string{descriptor->long_name},
       .time_base = OptionalRational(stream.time_base),
       .average_frame_rate = OptionalRational(stream.avg_frame_rate),
-      .nominal_frame_rate = OptionalRational(stream.r_frame_rate),
+      .nominal_frame_rate =
+          OptionalRational(av_guess_frame_rate(&context, &stream, nullptr)),
       .duration = OptionalTimestamp(stream.duration),
       .start_time = OptionalTimestamp(stream.start_time),
       .frame_count = stream.nb_frames > 0
@@ -298,9 +311,9 @@ class FfmpegVideoDecoder final : public VideoDecoder {
       std::int64_t frame_index) override {
     const auto* stream =
         format_context_->Get()->streams[selected_video_stream_];
-    if (frame_index < 0 || stream->avg_frame_rate.num <= 0 ||
-        stream->avg_frame_rate.den <= 0 || stream->time_base.num <= 0 ||
-        stream->time_base.den <= 0) {
+    const auto frame_rate = NominalFrameRate();
+    if (frame_index < 0 || frame_rate.num <= 0 || frame_rate.den <= 0 ||
+        stream->time_base.num <= 0 || stream->time_base.den <= 0) {
       return std::unexpected(
           MakeFailure(path_, VideoDecoderFailureKind::kSeek, 0,
                       information_.streams[selected_video_stream_].codec_name,
@@ -310,8 +323,8 @@ class FfmpegVideoDecoder final : public VideoDecoder {
     const auto stream_start = stream->start_time == AV_NOPTS_VALUE
                                   ? std::int64_t{0}
                                   : stream->start_time;
-    const auto timestamp_offset = av_rescale_q(
-        frame_index, av_inv_q(stream->avg_frame_rate), stream->time_base);
+    const auto timestamp_offset =
+        av_rescale_q(frame_index, av_inv_q(frame_rate), stream->time_base);
     if (timestamp_offset < 0 ||
         stream_start >
             std::numeric_limits<std::int64_t>::max() - timestamp_offset) {
@@ -535,8 +548,9 @@ class FfmpegVideoDecoder final : public VideoDecoder {
       std::int64_t timestamp) const noexcept {
     const auto* stream =
         format_context_->Get()->streams[selected_video_stream_];
-    if (timestamp == AV_NOPTS_VALUE || stream->avg_frame_rate.num <= 0 ||
-        stream->avg_frame_rate.den <= 0 || stream->time_base.num <= 0 ||
+    const auto frame_rate = NominalFrameRate();
+    if (timestamp == AV_NOPTS_VALUE || frame_rate.num <= 0 ||
+        frame_rate.den <= 0 || stream->time_base.num <= 0 ||
         stream->time_base.den <= 0) {
       return std::nullopt;
     }
@@ -553,10 +567,20 @@ class FfmpegVideoDecoder final : public VideoDecoder {
     if (timestamp_offset < 0) {
       return std::nullopt;
     }
-    const auto frame_index = av_rescale_q(timestamp_offset, stream->time_base,
-                                          av_inv_q(stream->avg_frame_rate));
+    const auto frame_index =
+        av_rescale_q(timestamp_offset, stream->time_base, av_inv_q(frame_rate));
     return frame_index < 0 ? std::nullopt
                            : std::optional<std::int64_t>{frame_index};
+  }
+
+  // Frame indices follow the nominal rate rather than the average rate, which
+  // a shorter final frame or an edit list skews enough to drift an index
+  // across a long file.
+  [[nodiscard]] AVRational NominalFrameRate(void) const noexcept {
+    const auto& rate =
+        information_.streams[selected_video_stream_].nominal_frame_rate;
+    return rate.has_value() ? AVRational{rate->numerator, rate->denominator}
+                            : AVRational{0, 0};
   }
 
   std::filesystem::path path_;
@@ -652,8 +676,8 @@ VideoDecoder::Open(const std::filesystem::path& path) {
   streams.reserve(format_context->Get()->nb_streams);
   for (unsigned int index = 0; index < format_context->Get()->nb_streams;
        ++index) {
-    streams.push_back(
-        StreamInformation(*format_context->Get()->streams[index]));
+    streams.push_back(StreamInformation(
+        *format_context->Get(), *format_context->Get()->streams[index]));
   }
 
   const auto* input_format = format_context->Get()->iformat;
@@ -683,6 +707,27 @@ VideoDecoder::Open(const std::filesystem::path& path) {
         codec_name, "could not allocate video decoding buffers"));
   }
   return std::unique_ptr<VideoDecoder>{std::move(decoder)};
+}
+
+std::optional<core::FrameRate> NearestStandardFrameRate(
+    const core::FrameRate& rate) {
+  const auto standard_rates = core::FrameRate::StandardRates();
+  std::vector<AVRational> candidates;
+  candidates.reserve(standard_rates.size() + 1);
+  for (const auto& standard_rate : standard_rates) {
+    candidates.push_back(ToAvRational(standard_rate));
+  }
+  candidates.push_back(AVRational{0, 0});
+
+  const auto value = ToAvRational(rate);
+  const auto nearest_index = av_find_nearest_q_idx(value, candidates.data());
+  const auto& nearest = standard_rates[static_cast<std::size_t>(nearest_index)];
+  const auto ratio = av_div_q(value, ToAvRational(nearest));
+  if (av_cmp_q(ratio, kStandardRateLowerRatio) <= 0 ||
+      av_cmp_q(ratio, kStandardRateUpperRatio) >= 0) {
+    return std::nullopt;
+  }
+  return nearest;
 }
 
 VideoBackendInformation GetVideoBackendInformation(void) {

@@ -103,10 +103,11 @@ edit-atlas-cli convert \
 
 The video must be a constant-frame-rate MOV, MP4, or MXF file with readable
 embedded starting timecode. Its timecode mode, frame rate, starting frame, and
-duration must match the imported EDL record timeline. A video without usable
-embedded timecode is rejected even when its visual content or duration appears
-to match. `--video` is required when `initial-frame` is selected and rejected
-when that column is absent.
+duration must match the imported EDL record timeline. A frame rate stored as
+an approximation of a standard rate, such as 2997/125 for 24000/1001, matches
+that standard rate. A video without usable embedded timecode is rejected even
+when its visual content or duration appears to match. `--video` is required
+when `initial-frame` is selected and rejected when that column is absent.
 
 Each exported event receives the frame at its Record In timecode. Filtering and
 column reordering do not change the event-to-frame mapping. Images are resized

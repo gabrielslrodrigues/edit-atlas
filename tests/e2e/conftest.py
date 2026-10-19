@@ -126,11 +126,13 @@ def media_fixture_directory(pytestconfig: pytest.Config) -> Path:
             f"rendered-video fixture directory does not exist: {path}"
         )
     required = {
+        "approximated-rate-render.mov",
         "cancellation-render.mov",
         "cancellation.edl",
         "incompatible-timecode.mov",
         "matching-render.mov",
         "missing-timecode.mov",
+        "short-final-frame-render.mov",
     }
     missing = sorted(name for name in required if not (path / name).is_file())
     if missing:

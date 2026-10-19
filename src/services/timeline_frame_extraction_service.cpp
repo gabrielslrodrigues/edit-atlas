@@ -41,6 +41,7 @@ namespace {
       .code = std::string{code},
       .message = std::move(message),
       .location = std::nullopt,
+      .arguments = {},
   };
 }
 

@@ -101,6 +101,7 @@ class BlockingImporter final : public core::Importer {
                     .code = "test.released",
                     .message = "The blocking importer was released.",
                     .location = std::nullopt,
+                    .arguments = {},
                 },
             },
     };

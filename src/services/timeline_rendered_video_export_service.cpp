@@ -43,6 +43,7 @@ namespace {
           "A validated rendered video is required when the Initial Frame "
           "field is selected.",
       .location = std::nullopt,
+      .arguments = {},
   };
 }
 
@@ -53,6 +54,7 @@ namespace {
           std::string{timeline_frame_extraction_diagnostic_code::kCancelled},
       .message = "Initial-frame extraction was cancelled.",
       .location = std::nullopt,
+      .arguments = {},
   };
 }
 

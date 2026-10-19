@@ -115,9 +115,12 @@ class TemporaryMediaFile final {
 }
 
 struct FrameRateCase final {
-  std::int32_t numerator;
-  std::int32_t denominator;
+  std::int32_t video_numerator;
+  std::int32_t video_denominator;
+  std::int32_t timeline_numerator;
+  std::int32_t timeline_denominator;
   std::int64_t one_hour_frame;
+  std::int32_t final_frame_duration_percent;
 };
 
 class TimelineFrameExtractionIntegrationTest
@@ -128,16 +131,18 @@ TEST_P(TimelineFrameExtractionIntegrationTest,
   const auto& frame_rate = GetParam();
   TemporaryMediaFile fixture;
   auto fixture_options = media::test::VideoFixtureOptions{};
-  fixture_options.frame_rate_numerator = frame_rate.numerator;
-  fixture_options.frame_rate_denominator = frame_rate.denominator;
+  fixture_options.frame_rate_numerator = frame_rate.video_numerator;
+  fixture_options.frame_rate_denominator = frame_rate.video_denominator;
+  fixture_options.final_frame_duration_percent =
+      frame_rate.final_frame_duration_percent;
   fixture_options.starting_timecode = "01:00:00:00";
   const auto fixture_result =
       media::test::WriteVideoFixture(fixture.Path(), "mov", fixture_options);
   ASSERT_TRUE(fixture_result.has_value())
       << (fixture_result.has_value() ? "" : fixture_result.error());
-  const auto rate =
-      core::FrameRate::Create(frame_rate.numerator, frame_rate.denominator)
-          .value();
+  const auto rate = core::FrameRate::Create(frame_rate.timeline_numerator,
+                                            frame_rate.timeline_denominator)
+                        .value();
   const auto timeline = Timeline(rate, frame_rate.one_hour_frame);
   const TimelineVideoInspectionService inspection_service;
   auto inspection = inspection_service.Inspect(fixture.Path(), timeline);
@@ -170,10 +175,15 @@ TEST_P(TimelineFrameExtractionIntegrationTest,
   EXPECT_NE(result->frames[0].image->pixels, result->frames[1].image->pixels);
 }
 
-INSTANTIATE_TEST_SUITE_P(SupportedFrameRates,
-                         TimelineFrameExtractionIntegrationTest,
-                         testing::Values(FrameRateCase{24, 1, 86'400},
-                                         FrameRateCase{25, 1, 90'000}));
+INSTANTIATE_TEST_SUITE_P(
+    SupportedFrameRates, TimelineFrameExtractionIntegrationTest,
+    testing::Values(FrameRateCase{24, 1, 24, 1, 86'400, 100},
+                    FrameRateCase{25, 1, 25, 1, 90'000, 100},
+                    FrameRateCase{24'000, 1'001, 24'000, 1'001, 86'400, 100},
+                    // A writer's approximation of 23.976 fps.
+                    FrameRateCase{2'997, 125, 24'000, 1'001, 86'400, 100},
+                    // A short final frame skews the average rate.
+                    FrameRateCase{24'000, 1'001, 24'000, 1'001, 86'400, 25}));
 
 }  // namespace
 }  // namespace edit_atlas::services
