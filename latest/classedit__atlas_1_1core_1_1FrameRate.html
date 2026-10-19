@@ -124,12 +124,15 @@ Static Public Member Functions</h2></td></tr>
 <tr class="memitem:ad62d139de684fe9abb7a97dfc27f4cf1" id="r_ad62d139de684fe9abb7a97dfc27f4cf1"><td class="memItemLeft" align="right" valign="top">static std::expected&lt; <a class="el" href="classedit__atlas_1_1core_1_1FrameRate.html">FrameRate</a>, <a class="el" href="namespaceedit__atlas_1_1core.html#a5c286fbaa273f973bb9ecdce7fa9281b">FrameRateError</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classedit__atlas_1_1core_1_1FrameRate.html#ad62d139de684fe9abb7a97dfc27f4cf1">Create</a> (std::int64_t <a class="el" href="classedit__atlas_1_1core_1_1FrameRate.html#a748d80d1027a731e35eabe0ccf664210">numerator</a>, std::int64_t <a class="el" href="classedit__atlas_1_1core_1_1FrameRate.html#abdf74ccd7b14dc623ab0d7956d3700bb">denominator</a>) noexcept</td></tr>
 <tr class="memdesc:ad62d139de684fe9abb7a97dfc27f4cf1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Creates and normalizes a frame rate.  <br /></td></tr>
 <tr class="separator:ad62d139de684fe9abb7a97dfc27f4cf1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a271987558766948e89d0f3e90b026ba3" id="r_a271987558766948e89d0f3e90b026ba3"><td class="memItemLeft" align="right" valign="top">static std::span&lt; const <a class="el" href="classedit__atlas_1_1core_1_1FrameRate.html">FrameRate</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classedit__atlas_1_1core_1_1FrameRate.html#a271987558766948e89d0f3e90b026ba3">StandardRates</a> (void) noexcept</td></tr>
+<tr class="memdesc:a271987558766948e89d0f3e90b026ba3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the standard editorial rates in ascending order: 24000/1001, 24, 25, 30000/1001, 30, 50, 60000/1001, and 60.  <br /></td></tr>
+<tr class="separator:a271987558766948e89d0f3e90b026ba3"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>An exact, positive rational number of frames per second. </p>
 <p>Frame rates are reduced to their canonical form, so equivalent rates such as 48000/2002 and 24000/1001 compare equal. The type deliberately provides no floating-point conversion because editorial frame arithmetic must remain exact. </p>
 
-<p class="definition">Definition at line <a class="el" href="timecode_8hpp_source.html#l00038">38</a> of file <a class="el" href="timecode_8hpp_source.html">timecode.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="timecode_8hpp_source.html#l00039">39</a> of file <a class="el" href="timecode_8hpp_source.html">timecode.hpp</a>.</p>
 </div><h2 class="groupheader">Member Function Documentation</h2>
 <a id="ad62d139de684fe9abb7a97dfc27f4cf1" name="ad62d139de684fe9abb7a97dfc27f4cf1"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ad62d139de684fe9abb7a97dfc27f4cf1">&#9670;&#160;</a></span>Create()</h2>
@@ -167,6 +170,35 @@ Static Public Member Functions</h2></td></tr>
 
 <p>Creates and normalizes a frame rate. </p>
 <dl class="section return"><dt>Returns</dt><dd>A frame rate, or an error when either component is non-positive or cannot be represented by the type. </dd></dl>
+
+</div>
+</div>
+<a id="a271987558766948e89d0f3e90b026ba3" name="a271987558766948e89d0f3e90b026ba3"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a271987558766948e89d0f3e90b026ba3">&#9670;&#160;</a></span>StandardRates()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">static std::span&lt; const <a class="el" href="classedit__atlas_1_1core_1_1FrameRate.html">FrameRate</a> &gt; edit_atlas::core::FrameRate::StandardRates </td>
+          <td>(</td>
+          <td class="paramtype">void&#160;</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Returns the standard editorial rates in ascending order: 24000/1001, 24, 25, 30000/1001, 30, 50, 60000/1001, and 60. </p>
+<p>The returned storage is static and lives for the whole program. </p>
 
 </div>
 </div>

@@ -95,8 +95,8 @@ var NAVTREEINDEX =
 "classedit__atlas_1_1presentation_1_1TimelineDocumentViewModel.html#af6d9945748fbd132a4d44865a8c3db76",
 "functions.html",
 "namespaceedit__atlas_1_1services.html#ae172b346ed16079935468b7631c2058f",
-"structedit__atlas_1_1media_1_1MediaStreamInfo.html#ab92802e6df6cc4dddcb4ca5c0f41bf01",
-"structedit__atlas_1_1services_1_1TimelineTemplateFailure.html#a4e723bba1e4a13e0fe0ac931017f069f"
+"structedit__atlas_1_1media_1_1MediaStreamInfo.html#ab061a935db78441def26e67514fffaf7",
+"structedit__atlas_1_1services_1_1TimelineTemplateFailure.html#a41413a523c00f59ad4c561a69fcbc1e7"
 ];
 
 var SYNCONMSG = 'click to disable panel synchronisation';

@@ -118,10 +118,10 @@ Variables</h2></td></tr>
 <tr class="memdesc:a375937fd29cbfacf7684408244adb0b9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Complete average and nominal frame rates are unavailable.  <br /></td></tr>
 <tr class="separator:a375937fd29cbfacf7684408244adb0b9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0e234874f8b1944d209408095f63e7dd" id="r_a0e234874f8b1944d209408095f63e7dd"><td class="memItemLeft" align="right" valign="top">constexpr std::string_view&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceedit__atlas_1_1services_1_1timeline__video__diagnostic__code.html#a0e234874f8b1944d209408095f63e7dd">kVariableFrameRate</a></td></tr>
-<tr class="memdesc:a0e234874f8b1944d209408095f63e7dd"><td class="mdescLeft">&#160;</td><td class="mdescRight">Average and nominal frame rates disagree.  <br /></td></tr>
+<tr class="memdesc:a0e234874f8b1944d209408095f63e7dd"><td class="mdescLeft">&#160;</td><td class="mdescRight">Average and nominal frame rates differ by more than <code>kVideoDurationToleranceFrames</code> frames over the video's duration, or differ at all when no duration is known.  <br /></td></tr>
 <tr class="separator:a0e234874f8b1944d209408095f63e7dd"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a906bad123cc304930e5303fad4071973" id="r_a906bad123cc304930e5303fad4071973"><td class="memItemLeft" align="right" valign="top">constexpr std::string_view&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceedit__atlas_1_1services_1_1timeline__video__diagnostic__code.html#a906bad123cc304930e5303fad4071973">kFrameRateMismatch</a></td></tr>
-<tr class="memdesc:a906bad123cc304930e5303fad4071973"><td class="mdescLeft">&#160;</td><td class="mdescRight">The constant video frame rate differs from the timeline frame rate.  <br /></td></tr>
+<tr class="memdesc:a906bad123cc304930e5303fad4071973"><td class="mdescLeft">&#160;</td><td class="mdescRight">The video's nominal frame rate neither equals the timeline frame rate nor resolves to the same standard rate.  <br /></td></tr>
 <tr class="separator:a906bad123cc304930e5303fad4071973"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a18d43152b607c8b1583b04ed4a17c560" id="r_a18d43152b607c8b1583b04ed4a17c560"><td class="memItemLeft" align="right" valign="top">constexpr std::string_view&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceedit__atlas_1_1services_1_1timeline__video__diagnostic__code.html#a18d43152b607c8b1583b04ed4a17c560">kMissingTimecode</a> = &quot;video.missing_timecode&quot;</td></tr>
 <tr class="memdesc:a18d43152b607c8b1583b04ed4a17c560"><td class="mdescLeft">&#160;</td><td class="mdescRight">No embedded starting timecode was found.  <br /></td></tr>
@@ -167,7 +167,7 @@ Variables</h2></td></tr>
 
 <p>Video and record-timeline durations differ beyond the accepted tolerance. </p>
 
-<p class="definition">Definition at line <a class="el" href="timeline__video__inspection__service_8hpp_source.html#l00074">74</a> of file <a class="el" href="timeline__video__inspection__service_8hpp_source.html">timeline_video_inspection_service.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="timeline__video__inspection__service_8hpp_source.html#l00080">80</a> of file <a class="el" href="timeline__video__inspection__service_8hpp_source.html">timeline_video_inspection_service.hpp</a>.</p>
 
 </div>
 </div>
@@ -219,9 +219,10 @@ Variables</h2></td></tr>
 <b>Initial value:</b><div class="fragment"><div class="line">=</div>
 <div class="line">    <span class="stringliteral">&quot;video.frame_rate_mismatch&quot;</span></div>
 </div><!-- fragment -->
-<p>The constant video frame rate differs from the timeline frame rate. </p>
+<p>The video's nominal frame rate neither equals the timeline frame rate nor resolves to the same standard rate. </p>
+<p>Its arguments are the video rate and then the timeline rate, each written as <code>N</code> or <code>N/D</code>. </p>
 
-<p class="definition">Definition at line <a class="el" href="timeline__video__inspection__service_8hpp_source.html#l00059">59</a> of file <a class="el" href="timeline__video__inspection__service_8hpp_source.html">timeline_video_inspection_service.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="timeline__video__inspection__service_8hpp_source.html#l00065">65</a> of file <a class="el" href="timeline__video__inspection__service_8hpp_source.html">timeline_video_inspection_service.hpp</a>.</p>
 
 </div>
 </div>
@@ -275,7 +276,7 @@ Variables</h2></td></tr>
 
 <p>Embedded timecode is malformed, ambiguous, or invalid for the frame rate. </p>
 
-<p class="definition">Definition at line <a class="el" href="timeline__video__inspection__service_8hpp_source.html#l00064">64</a> of file <a class="el" href="timeline__video__inspection__service_8hpp_source.html">timeline_video_inspection_service.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="timeline__video__inspection__service_8hpp_source.html#l00070">70</a> of file <a class="el" href="timeline__video__inspection__service_8hpp_source.html">timeline_video_inspection_service.hpp</a>.</p>
 
 </div>
 </div>
@@ -301,7 +302,7 @@ Variables</h2></td></tr>
 
 <p>No reliable video duration could be resolved. </p>
 
-<p class="definition">Definition at line <a class="el" href="timeline__video__inspection__service_8hpp_source.html#l00072">72</a> of file <a class="el" href="timeline__video__inspection__service_8hpp_source.html">timeline_video_inspection_service.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="timeline__video__inspection__service_8hpp_source.html#l00078">78</a> of file <a class="el" href="timeline__video__inspection__service_8hpp_source.html">timeline_video_inspection_service.hpp</a>.</p>
 
 </div>
 </div>
@@ -355,7 +356,7 @@ Variables</h2></td></tr>
 
 <p>No embedded starting timecode was found. </p>
 
-<p class="definition">Definition at line <a class="el" href="timeline__video__inspection__service_8hpp_source.html#l00062">62</a> of file <a class="el" href="timeline__video__inspection__service_8hpp_source.html">timeline_video_inspection_service.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="timeline__video__inspection__service_8hpp_source.html#l00068">68</a> of file <a class="el" href="timeline__video__inspection__service_8hpp_source.html">timeline_video_inspection_service.hpp</a>.</p>
 
 </div>
 </div>
@@ -409,7 +410,7 @@ Variables</h2></td></tr>
 </div><!-- fragment -->
 <p>Embedded timecode uses a different drop-frame mode from the timeline. </p>
 
-<p class="definition">Definition at line <a class="el" href="timeline__video__inspection__service_8hpp_source.html#l00066">66</a> of file <a class="el" href="timeline__video__inspection__service_8hpp_source.html">timeline_video_inspection_service.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="timeline__video__inspection__service_8hpp_source.html#l00072">72</a> of file <a class="el" href="timeline__video__inspection__service_8hpp_source.html">timeline_video_inspection_service.hpp</a>.</p>
 
 </div>
 </div>
@@ -437,7 +438,7 @@ Variables</h2></td></tr>
 </div><!-- fragment -->
 <p>Embedded timecode does not identify the first required record frame. </p>
 
-<p class="definition">Definition at line <a class="el" href="timeline__video__inspection__service_8hpp_source.html#l00069">69</a> of file <a class="el" href="timeline__video__inspection__service_8hpp_source.html">timeline_video_inspection_service.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="timeline__video__inspection__service_8hpp_source.html#l00075">75</a> of file <a class="el" href="timeline__video__inspection__service_8hpp_source.html">timeline_video_inspection_service.hpp</a>.</p>
 
 </div>
 </div>
@@ -491,9 +492,9 @@ Variables</h2></td></tr>
 <b>Initial value:</b><div class="fragment"><div class="line">=</div>
 <div class="line">    <span class="stringliteral">&quot;video.variable_frame_rate&quot;</span></div>
 </div><!-- fragment -->
-<p>Average and nominal frame rates disagree. </p>
+<p>Average and nominal frame rates differ by more than <code>kVideoDurationToleranceFrames</code> frames over the video's duration, or differ at all when no duration is known. </p>
 
-<p class="definition">Definition at line <a class="el" href="timeline__video__inspection__service_8hpp_source.html#l00056">56</a> of file <a class="el" href="timeline__video__inspection__service_8hpp_source.html">timeline_video_inspection_service.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="timeline__video__inspection__service_8hpp_source.html#l00058">58</a> of file <a class="el" href="timeline__video__inspection__service_8hpp_source.html">timeline_video_inspection_service.hpp</a>.</p>
 
 </div>
 </div>

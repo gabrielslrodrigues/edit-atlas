@@ -1,7 +1,10 @@
 <map id="edit_atlas::core::Diagnostic" name="edit_atlas::core::Diagnostic">
-<area shape="rect" id="Node000001" title="A machine&#45;identifiable diagnostic with a human&#45;readable explanation." alt="" coords="5,197,204,223"/>
+<area shape="rect" id="Node000001" title="A machine&#45;identifiable diagnostic with a human&#45;readable explanation." alt="" coords="5,275,204,300"/>
 <area shape="rect" id="Node000002" title=" " alt="" coords="61,95,148,120"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="107,134,107,197,102,197,102,134"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="103,134,98,183,100,234,105,274,100,275,94,234,93,183,98,133"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="167,185,354,210"/>
+<area shape="poly" id="edge4_Node000004_Node000002" title=" " alt="" coords="138,124,242,182,239,187,136,129"/>
 <area shape="rect" id="Node000003" title=" " alt="" coords="35,5,174,45"/>
 <area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="107,59,107,94,102,94,102,59"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="230,219,126,277,124,272,227,214"/>
 </map>
