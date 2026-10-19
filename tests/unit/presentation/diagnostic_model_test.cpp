@@ -37,12 +37,14 @@ TEST(DiagnosticModelTest, PresentsLocalizedDiagnosticsAndStableSortValues) {
                   .line = 17,
                   .column = 3,
               },
+          .arguments = {},
       },
       core::Diagnostic{
           .severity = core::DiagnosticSeverity::kInfo,
           .code = "test.info",
           .message = "Imported metadata",
           .location = std::nullopt,
+          .arguments = {},
       },
   };
   DiagnosticModel model;

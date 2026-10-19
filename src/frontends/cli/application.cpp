@@ -138,6 +138,7 @@ void ParseArguments(CLI::App& application,
               .line = 0,
               .column = 0,
           },
+      .arguments = {},
   };
 }
 
@@ -313,6 +314,7 @@ EventProjection(const Options& options) {
                          .code = "cli.registry.initialization_failed",
                          .message = std::string{kMessage},
                          .location = std::nullopt,
+                         .arguments = {},
                      },
                  },
                  error);
@@ -440,6 +442,7 @@ ExitCode Run(std::span<const std::string_view> arguments, std::ostream& output,
                          .code = "cli.operation.exception",
                          .message = exception.what(),
                          .location = std::nullopt,
+                         .arguments = {},
                      },
                  },
                  error);
@@ -454,6 +457,7 @@ ExitCode Run(std::span<const std::string_view> arguments, std::ostream& output,
                          .code = "cli.operation.exception",
                          .message = std::string{kMessage},
                          .location = std::nullopt,
+                         .arguments = {},
                      },
                  },
                  error);

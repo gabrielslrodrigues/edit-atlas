@@ -133,6 +133,7 @@ TEST(ApplicationTest, LoadsBrazilianPortugueseTranslations) {
       .code = std::string{formats::cmx3600::diagnostic_code::kMissingFrameRate},
       .message = "untranslated fallback",
       .location = std::nullopt,
+      .arguments = {},
   };
   EXPECT_EQ(presentation::diagnostic_text::Message(diagnostic),
             QStringLiteral("Uma taxa de quadros é necessária para esta EDL "
@@ -144,6 +145,7 @@ TEST(ApplicationTest, LoadsBrazilianPortugueseTranslations) {
               services::timeline_video_diagnostic_code::kMissingTimecode},
       .message = "untranslated fallback",
       .location = std::nullopt,
+      .arguments = {},
   };
   EXPECT_EQ(presentation::diagnostic_text::Message(video_diagnostic),
             QStringLiteral("O vídeo renderizado não possui timecode inicial "

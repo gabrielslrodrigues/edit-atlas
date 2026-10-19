@@ -97,6 +97,11 @@ struct Diagnostic final {
   /// The relevant source position, when one is known.
   std::optional<SourceLocation> location;
 
+  /// Values, such as frame rates, that a presentation substitutes into its
+  /// localized text for this diagnostic; each `code` defines their order and
+  /// meaning.
+  std::vector<std::string> arguments;
+
   /// Compares every diagnostic component.
   bool operator==(const Diagnostic&) const = default;
 };
