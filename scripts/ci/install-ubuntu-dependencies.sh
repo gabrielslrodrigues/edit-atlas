@@ -33,6 +33,7 @@ main() {
         bison
         clang-20
         clang-tools-20
+        libclang-20-dev
         dpkg-dev
         libc6-dev
         libegl1-mesa-dev
@@ -48,6 +49,7 @@ main() {
         libxkbcommon-x11-dev
         libxrender-dev
         libxtst-dev
+        llvm-20-dev
         libxcb-cursor-dev
         libxcb-glx0-dev
         libxcb-icccm4-dev

@@ -13,9 +13,11 @@
 #include "edit_atlas/presentation/diagnostic_model.hpp"
 
 #include <optional>
+#include <string>
 #include <vector>
 
 #include <QString>
+#include <QStringLiteral>
 #include <QVariant>
 #include <Qt>
 #include <gtest/gtest.h>

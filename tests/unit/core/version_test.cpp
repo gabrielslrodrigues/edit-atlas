@@ -12,6 +12,7 @@
 
 #include "edit_atlas/core/version.hpp"
 
+#include <string>
 #include <string_view>
 
 #include <gtest/gtest.h>

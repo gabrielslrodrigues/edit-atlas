@@ -21,6 +21,7 @@
 
 #include <QGroupBox>
 #include <QLabel>
+#include <QObject>
 #include <QPushButton>
 #include <QSortFilterProxyModel>
 #include <QStackedWidget>

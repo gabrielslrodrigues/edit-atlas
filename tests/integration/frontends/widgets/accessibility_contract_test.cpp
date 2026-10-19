@@ -12,13 +12,19 @@
 
 #include <algorithm>
 #include <array>
+#include <expected>
 #include <filesystem>
 #include <functional>
 #include <optional>
+#include <span>
 #include <string>
 #include <variant>
+#include <vector>
 
 #include <QAccessible>
+#include <QAccessibleActionInterface>
+#include <QAccessibleInterface>
+#include <QAccessibleSelectionInterface>
 #include <QAction>
 #include <QCheckBox>
 #include <QComboBox>
@@ -29,8 +35,11 @@
 #include <QEvent>
 #include <QEventLoop>
 #include <QLineEdit>
+#include <QList>
 #include <QListWidget>
+#include <QListWidgetItem>
 #include <QMimeData>
+#include <QObject>
 #include <QPoint>
 #include <QPointF>
 #include <QPushButton>
@@ -41,14 +50,17 @@
 #include <QSettings>
 #include <QSignalSpy>
 #include <QString>
+#include <QStringLiteral>
 #include <QTranslator>
 #include <QUrl>
 #include <QVariant>
 #include <QWidget>
 #include <Qt>
+#include <QtSystemDetection>
 #include <gtest/gtest.h>
 
 #include "edit_atlas/core/editorial_timeline.hpp"
+#include "edit_atlas/core/format_registry.hpp"
 #include "edit_atlas/core/timecode.hpp"
 #include "edit_atlas/core/timeline_projection.hpp"
 #include "edit_atlas/formats/xlsx/xlsx_exporter.hpp"

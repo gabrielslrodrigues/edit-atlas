@@ -12,6 +12,7 @@
 
 #include "edit_atlas/frontends/quick/application_shell_view_model.hpp"
 
+#include <expected>
 #include <filesystem>
 #include <functional>
 
@@ -19,13 +20,15 @@
 #include <QCoreApplication>
 #include <QElapsedTimer>
 #include <QEventLoop>
+#include <QList>
 #include <QSettings>
 #include <QSignalSpy>
 #include <QString>
 #include <QStringList>
+#include <QStringLiteral>
 #include <QTranslator>
 #include <QUrl>
-#include <QtGlobal>
+#include <QVariant>
 #include <gtest/gtest.h>
 
 #include "edit_atlas/core/format_registry.hpp"

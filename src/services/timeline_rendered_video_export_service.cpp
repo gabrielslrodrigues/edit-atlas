@@ -16,6 +16,7 @@
 #include <cstddef>
 #include <expected>
 #include <filesystem>
+#include <memory>
 #include <optional>
 #include <stop_token>
 #include <string>

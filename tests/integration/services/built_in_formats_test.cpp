@@ -12,8 +12,12 @@
 
 #include "edit_atlas/services/built_in_formats.hpp"
 
+#include <string>
+#include <vector>
+
 #include <gtest/gtest.h>
 
+#include "edit_atlas/core/format.hpp"
 #include "edit_atlas/formats/cmx3600/cmx3600_importer.hpp"
 #include "edit_atlas/formats/xlsx/xlsx_exporter.hpp"
 

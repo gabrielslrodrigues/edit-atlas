@@ -13,6 +13,7 @@
 #include "edit_atlas/core/editorial_timeline.hpp"
 
 #include <cstdint>
+#include <expected>
 #include <optional>
 #include <string>
 #include <variant>

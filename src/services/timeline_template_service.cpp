@@ -15,6 +15,7 @@
 #include <algorithm>
 #include <expected>
 #include <filesystem>
+#include <functional>
 #include <span>
 #include <string>
 #include <string_view>

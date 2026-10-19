@@ -23,6 +23,7 @@
 #include <QIntValidator>
 #include <QLabel>
 #include <QLineEdit>
+#include <QObject>
 #include <QPushButton>
 #include <QScrollArea>
 #include <QString>

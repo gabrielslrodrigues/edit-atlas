@@ -15,9 +15,7 @@
 
 #include <QObject>
 #include <QString>
-#include <QtQmlIntegration>
-
-#include "edit_atlas/presentation/typography.hpp"
+#include <QtQmlIntegration/qqmlintegration.h>
 
 namespace edit_atlas::frontends::quick::style {
 

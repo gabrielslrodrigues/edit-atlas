@@ -17,6 +17,8 @@
 #include <string_view>
 
 #include <QString>
+#include <QStringLiteral>
+#include <QVariant>
 #include <gtest/gtest.h>
 
 #include "edit_atlas/services/timeline_template.hpp"

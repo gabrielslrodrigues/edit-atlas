@@ -17,6 +17,7 @@
 #include <span>
 #include <string>
 #include <string_view>
+#include <system_error>
 #include <utility>
 #include <vector>
 
@@ -27,6 +28,7 @@
 #include <QHBoxLayout>
 #include <QHeaderView>
 #include <QLabel>
+#include <QList>
 #include <QProgressBar>
 #include <QPushButton>
 #include <QSignalBlocker>
@@ -34,12 +36,14 @@
 #include <QSortFilterProxyModel>
 #include <QStackedWidget>
 #include <QString>
+#include <QStringLiteral>
 #include <QTableView>
 #include <QTreeWidget>
 #include <QTreeWidgetItem>
 #include <QVBoxLayout>
 #include <QWidget>
 #include <Qt>
+#include <QtTypes>
 
 #include "accessibility.hpp"
 #include "edit_atlas/core/editorial_timeline.hpp"

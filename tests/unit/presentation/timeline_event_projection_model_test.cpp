@@ -13,9 +13,12 @@
 #include "edit_atlas/presentation/timeline_event_projection_model.hpp"
 
 #include <array>
+#include <string>
 #include <vector>
 
 #include <QString>
+#include <QStringLiteral>
+#include <QVariant>
 #include <gtest/gtest.h>
 
 #include "edit_atlas/core/timeline_projection.hpp"

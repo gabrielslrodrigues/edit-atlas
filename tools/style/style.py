@@ -25,6 +25,7 @@ PRESERVED = {
 BINARY_SUFFIXES = {".ttf", ".icns", ".ico", ".png"}
 TEXT_SUFFIXES = {
     ".cmake",
+    ".imp",
     ".in",
     ".ini",
     ".json",

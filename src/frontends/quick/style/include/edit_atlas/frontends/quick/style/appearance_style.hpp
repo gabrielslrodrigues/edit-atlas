@@ -15,7 +15,7 @@
 
 #include <QObject>
 #include <QString>
-#include <QtQmlIntegration>
+#include <QtQmlIntegration/qqmlintegration.h>
 
 #include "edit_atlas/presentation/appearance.hpp"
 

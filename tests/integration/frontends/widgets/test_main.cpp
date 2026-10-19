@@ -12,10 +12,14 @@
 
 #include <QApplication>
 #include <QByteArray>
+#include <QByteArrayView>
 #include <QCoreApplication>
 #include <QDir>
+#include <QString>
+#include <QStringLiteral>
 #include <QTemporaryDir>
-#include <QtGlobal>
+#include <QtEnvironmentVariables>
+#include <QtSystemDetection>
 #include <gtest/gtest.h>
 
 #include "accessibility.hpp"

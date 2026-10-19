@@ -27,12 +27,13 @@
 #include <QAbstractListModel>
 #include <QByteArray>
 #include <QHash>
+#include <QList>
 #include <QModelIndex>
 #include <QString>
 #include <QStringList>
 #include <QVariant>
 #include <Qt>
-#include <QtGlobal>
+#include <QtTypes>
 
 #include "edit_atlas/core/editorial_timeline.hpp"
 #include "edit_atlas/services/timeline_filter.hpp"

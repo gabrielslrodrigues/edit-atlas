@@ -21,6 +21,7 @@
 #include <vector>
 
 #include <png.h>
+#include <pngconf.h>
 
 #include "edit_atlas/core/rgb_image.hpp"
 

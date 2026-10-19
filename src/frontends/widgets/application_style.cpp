@@ -16,20 +16,20 @@
 #include <vector>
 
 #include <QApplication>
+#include <QByteArray>
+#include <QChar>
 #include <QColor>
 #include <QDebug>
 #include <QFile>
-#include <QFont>
 #include <QIODevice>
 #include <QPalette>
 #include <QProxyStyle>
-#include <QResource>
 #include <QString>
+#include <QStringLiteral>
 #include <QStyle>
-#include <QStyleHintReturn>
-#include <QStyleOption>
-#include <QWidget>
 #include <Qt>
+#include <QtLogging>
+#include <QtResource>
 
 #include "edit_atlas/presentation/appearance.hpp"
 #include "edit_atlas/presentation/typography.hpp"

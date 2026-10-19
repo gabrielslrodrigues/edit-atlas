@@ -13,16 +13,21 @@
 #include "edit_atlas/frontends/quick/spreadsheet_export_view_model.hpp"
 
 #include <cstddef>
+#include <expected>
 #include <filesystem>
+#include <optional>
 #include <string>
+#include <vector>
 
+#include <QByteArray>
 #include <QSignalSpy>
 #include <QString>
+#include <QStringLiteral>
 #include <QTemporaryDir>
 #include <QUrl>
 #include <gtest/gtest.h>
 
-#include "edit_atlas/core/format.hpp"
+#include "edit_atlas/core/editorial_timeline.hpp"
 #include "edit_atlas/core/timeline_projection.hpp"
 #include "edit_atlas/formats/cmx3600/cmx3600_importer.hpp"
 #include "edit_atlas/presentation/timeline_document_view_model.hpp"

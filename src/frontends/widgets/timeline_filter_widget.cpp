@@ -17,6 +17,7 @@
 #include <limits>
 #include <optional>
 #include <span>
+#include <string>
 #include <string_view>
 #include <utility>
 
@@ -24,23 +25,27 @@
 #include <QAbstractScrollArea>
 #include <QAction>
 #include <QComboBox>
+#include <QDebug>
 #include <QFrame>
 #include <QHBoxLayout>
 #include <QIntValidator>
 #include <QLabel>
 #include <QLayout>
 #include <QLineEdit>
+#include <QList>
 #include <QMenu>
 #include <QModelIndex>
 #include <QPushButton>
 #include <QScrollArea>
 #include <QSignalBlocker>
+#include <QSize>
 #include <QString>
+#include <QStringLiteral>
 #include <QToolButton>
 #include <QVBoxLayout>
 #include <QVariant>
 #include <Qt>
-#include <QtGlobal>
+#include <QtTypes>
 
 #include "accessibility.hpp"
 #include "edit_atlas/presentation/timeline_filter_model.hpp"

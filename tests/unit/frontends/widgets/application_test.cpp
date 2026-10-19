@@ -10,13 +10,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include <initializer_list>
 #include <optional>
 #include <string>
+#include <vector>
 
+#include <QChar>
 #include <QColor>
 #include <QCoreApplication>
+#include <QLatin1Char>
 #include <QPalette>
 #include <QString>
+#include <QStringLiteral>
 #include <QTranslator>
 #include <gtest/gtest.h>
 

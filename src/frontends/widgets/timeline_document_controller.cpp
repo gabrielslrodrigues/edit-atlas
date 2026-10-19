@@ -17,11 +17,14 @@
 #include <cstddef>
 #include <filesystem>
 #include <optional>
+#include <span>
 #include <string>
 #include <string_view>
+#include <system_error>
 #include <utility>
 #include <vector>
 
+#include <QByteArray>
 #include <QChar>
 #include <QComboBox>
 #include <QDialog>
@@ -29,17 +32,22 @@
 #include <QFileDialog>
 #include <QFileInfo>
 #include <QInputDialog>
+#include <QList>
 #include <QMessageBox>
 #include <QProgressDialog>
 #include <QPushButton>
 #include <QSettings>
 #include <QString>
 #include <QStringList>
+#include <QStringLiteral>
+#include <QVariant>
 #include <QWidget>
 #include <Qt>
+#include <QtTypes>
 
 #include "accessibility.hpp"
 #include "edit_atlas/core/editorial_timeline.hpp"
+#include "edit_atlas/core/format.hpp"
 #include "edit_atlas/core/format_registry.hpp"
 #include "edit_atlas/core/timecode.hpp"
 #include "edit_atlas/core/timeline_projection.hpp"
@@ -47,14 +55,17 @@
 #include "edit_atlas/frontends/widgets/application_menu_bar.hpp"
 #include "edit_atlas/frontends/widgets/spreadsheet_export_options_dialog.hpp"
 #include "edit_atlas/frontends/widgets/timeline_document_view.hpp"
+#include "edit_atlas/media/video_decoder.hpp"
 #include "edit_atlas/presentation/desktop_integration.hpp"
 #include "edit_atlas/presentation/diagnostic_text.hpp"
 #include "edit_atlas/presentation/timeline_document_view_model.hpp"
 #include "edit_atlas/presentation/translation.hpp"
 #include "edit_atlas/services/timeline_document_export_service.hpp"
 #include "edit_atlas/services/timeline_document_import_service.hpp"
+#include "edit_atlas/services/timeline_filter.hpp"
 #include "edit_atlas/services/timeline_frame_extraction_service.hpp"
 #include "edit_atlas/services/timeline_rendered_video_export_service.hpp"
+#include "edit_atlas/services/timeline_video_inspection_service.hpp"
 #include "timeline_template_controller.hpp"
 
 namespace edit_atlas::frontends::widgets {

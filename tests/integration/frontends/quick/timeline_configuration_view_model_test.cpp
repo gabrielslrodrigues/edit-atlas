@@ -12,17 +12,23 @@
 
 #include "edit_atlas/frontends/quick/timeline_configuration_view_model.hpp"
 
+#include <expected>
 #include <filesystem>
 #include <functional>
+#include <optional>
+#include <span>
 #include <string>
 #include <utility>
+#include <vector>
 
 #include <QAbstractItemModel>
 #include <QCoreApplication>
 #include <QElapsedTimer>
 #include <QEventLoop>
+#include <QList>
 #include <QString>
-#include <QtGlobal>
+#include <QStringLiteral>
+#include <QtTypes>
 #include <gtest/gtest.h>
 
 #include "edit_atlas/core/editorial_timeline.hpp"

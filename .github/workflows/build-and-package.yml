@@ -35,6 +35,8 @@ jobs:
             source_dir: .
             triplet: x64-linux
             debug_preset: debug-x64-linux
+            # One platform enforces Include What You Use for the shared code.
+            debug_configure_options: -DEDIT_ATLAS_INCLUDE_WHAT_YOU_USE=ON
             release_preset: release-x64-linux
             package_generators: TGZ;DEB;RPM
             selected_frontend_executable_suffix: edit-atlas
@@ -217,12 +219,35 @@ jobs:
             -Password "$GITHUB_TOKEN"
           mono "$nuget_path" setapikey "$GITHUB_TOKEN" -Source "$FEED_URL"
 
+      - name: Restore include-what-you-use build
+        if: runner.os == 'Linux'
+        id: include-what-you-use-cache
+        uses: actions/cache/restore@v6
+        with:
+          path: build/include-what-you-use
+          key: >-
+            include-what-you-use-v1-${{ matrix.os }}-${{ hashFiles(
+              'cmake/BuildIncludeWhatYouUse.cmake',
+              'cmake/EditAtlasIncludeWhatYouUse.cmake',
+              'scripts/ci/install-ubuntu-dependencies.sh'
+            ) }}
+
       # The shared Debug build exercises both graphical frontends and the CLI.
       - name: Configure Debug
         id: configure
         run: >-
           cmake -S "${{ matrix.source_dir }}"
           --preset ${{ matrix.debug_preset }}
+          ${{ matrix.debug_configure_options }}
+
+      - name: Save include-what-you-use build
+        if: >-
+          runner.os == 'Linux' &&
+          steps.include-what-you-use-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v6
+        with:
+          path: build/include-what-you-use
+          key: ${{ steps.include-what-you-use-cache.outputs.cache-primary-key }}
 
       - name: Report vcpkg binary package activity
         if: always()

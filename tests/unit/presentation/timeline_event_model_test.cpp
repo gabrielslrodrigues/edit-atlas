@@ -12,9 +12,13 @@
 
 #include "edit_atlas/presentation/timeline_event_model.hpp"
 
+#include <expected>
 #include <optional>
+#include <string>
 
 #include <QString>
+#include <QStringLiteral>
+#include <QVariant>
 #include <gtest/gtest.h>
 
 #include "edit_atlas/core/editorial_timeline.hpp"

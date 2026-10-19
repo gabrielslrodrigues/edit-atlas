@@ -23,8 +23,8 @@
 #include <QStringList>
 #include <QTranslator>
 #include <QUrl>
-#include <QtGlobal>
 #include <QtQmlIntegration/qqmlintegration.h>
+#include <QtTypes>
 
 #include "edit_atlas/core/format_registry.hpp"
 #include "edit_atlas/frontends/quick/application_information_view_model.hpp"

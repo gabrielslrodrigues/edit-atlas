@@ -15,6 +15,7 @@
 #include <algorithm>
 #include <cstddef>
 #include <limits>
+#include <optional>
 #include <span>
 #include <string>
 
@@ -23,7 +24,7 @@
 #include <QString>
 #include <QVariant>
 #include <Qt>
-#include <QtGlobal>
+#include <QtTypes>
 
 #include "edit_atlas/core/editorial_timeline.hpp"
 #include "edit_atlas/presentation/diagnostic_text.hpp"

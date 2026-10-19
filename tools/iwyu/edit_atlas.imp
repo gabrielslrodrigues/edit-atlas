@@ -1,0 +1,30 @@
+# include-what-you-use mappings for what the generated Qt mapping and IWYU's
+# built-in mappings leave unresolved. A private header listed here is never
+# suggested; its public header is.
+[
+  # Qt declares global facilities in internal headers that its fine-grained
+  # forwarding headers export; the generated mapping covers only classes.
+  { "include": ["<qdebug.h>", "private", "<QDebug>", "public"] },
+  { "include": ["<qlogging.h>", "private", "<QtLogging>", "public"] },
+  { "include": ["<qmetatype.h>", "private", "<QMetaType>", "public"] },
+  { "include": ["<qstring.h>", "private", "<QString>", "public"] },
+  { "include": ["<qsystemdetection.h>", "private", "<QtSystemDetection>", "public"] },
+  { "include": ["<qtenvironmentvariables.h>", "private", "<QtEnvironmentVariables>", "public"] },
+  { "include": ["<qtresource.h>", "private", "<QtResource>", "public"] },
+  { "include": ["<qttranslation.h>", "private", "<QtTranslation>", "public"] },
+  { "include": ["<qtversion.h>", "private", "<QtVersion>", "public"] },
+  { "include": ["<qtypes.h>", "private", "<QtTypes>", "public"] },
+  { "include": ["<qqmlintegration.h>", "private", "<QtQmlIntegration/qqmlintegration.h>", "public"] },
+
+  # libstdc++ defines the common std::ranges algorithms in a header that both
+  # <algorithm> and <ranges> include; the standard declares them in
+  # <algorithm>.
+  { "include": ["<bits/ranges_util.h>", "private", "<algorithm>", "public"] },
+  { "include": ["<bits/ranges_util.h>", "private", "<ranges>", "public"] },
+
+  # Libraries whose documented interface is one umbrella header.
+  { "include": ["<libavcodec/codec.h>", "private", "<libavcodec/avcodec.h>", "public"] },
+  { "include": ["<libavcodec/codec_id.h>", "private", "<libavcodec/avcodec.h>", "public"] },
+  { "include": ["@<xlsxwriter/.*>", "private", "<xlsxwriter.h>", "public"] },
+  { "include": ["<zconf.h>", "private", "<zlib.h>", "public"] }
+]

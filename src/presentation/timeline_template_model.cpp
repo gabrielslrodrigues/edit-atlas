@@ -23,11 +23,12 @@
 #include <QAbstractListModel>
 #include <QByteArray>
 #include <QHash>
+#include <QList>
 #include <QModelIndex>
 #include <QString>
 #include <QVariant>
 #include <Qt>
-#include <QtGlobal>
+#include <QtTypes>
 
 #include "edit_atlas/services/timeline_template.hpp"
 

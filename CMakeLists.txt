@@ -76,6 +76,11 @@ option(
     "Treat compiler warnings from Edit Atlas targets as errors"
     OFF
 )
+option(
+    EDIT_ATLAS_INCLUDE_WHAT_YOU_USE
+    "Fail the build when include-what-you-use reports an include change"
+    OFF
+)
 
 set(
     EDIT_ATLAS_DEFAULT_FRONTEND
@@ -220,6 +225,11 @@ if(NOT EXISTS "${edit_atlas_ffmpeg_copyright}")
         "The resolved FFmpeg copyright file was not found at "
         "${edit_atlas_ffmpeg_copyright}."
     )
+endif()
+
+if(EDIT_ATLAS_INCLUDE_WHAT_YOU_USE)
+    include(EditAtlasIncludeWhatYouUse)
+    edit_atlas_enable_include_what_you_use()
 endif()
 
 add_subdirectory(src/core)

@@ -16,6 +16,7 @@
 #include <QAction>
 #include <QMenu>
 #include <QMenuBar>
+#include <QObject>
 #include <QString>
 #include <QWidget>
 

@@ -21,15 +21,18 @@
 #include <string_view>
 #include <system_error>
 #include <utility>
+#include <vector>
 
+#include <QByteArray>
 #include <QChar>
 #include <QDir>
 #include <QFileInfo>
 #include <QObject>
 #include <QSettings>
 #include <QString>
+#include <QStringLiteral>
 #include <QUrl>
-#include <QtGlobal>
+#include <QVariant>
 
 #include "edit_atlas/core/editorial_timeline.hpp"
 #include "edit_atlas/core/format.hpp"
@@ -37,11 +40,14 @@
 #include "edit_atlas/core/timecode.hpp"
 #include "edit_atlas/core/timeline_projection.hpp"
 #include "edit_atlas/formats/xlsx/xlsx_exporter.hpp"
+#include "edit_atlas/media/video_decoder.hpp"
 #include "edit_atlas/presentation/desktop_integration.hpp"
 #include "edit_atlas/presentation/diagnostic_text.hpp"
 #include "edit_atlas/presentation/timeline_document_view_model.hpp"
+#include "edit_atlas/services/timeline_document_export_service.hpp"
 #include "edit_atlas/services/timeline_frame_extraction_service.hpp"
 #include "edit_atlas/services/timeline_rendered_video_export_service.hpp"
+#include "edit_atlas/services/timeline_video_inspection_service.hpp"
 
 namespace edit_atlas::frontends::quick {
 namespace {

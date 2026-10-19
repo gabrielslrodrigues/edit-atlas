@@ -14,6 +14,7 @@
 
 #include <algorithm>
 #include <cstddef>
+#include <expected>
 #include <memory>
 #include <optional>
 #include <span>
