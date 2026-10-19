@@ -13,6 +13,7 @@
 #include "edit_atlas/core/timecode.hpp"
 
 #include <array>
+#include <cstddef>
 #include <cstdint>
 #include <limits>
 #include <utility>
@@ -56,6 +57,21 @@ TEST(FrameRateTest, RejectsInvalidValues) {
                               1)
                 .error(),
             FrameRateError::kValueOutOfRange);
+}
+
+TEST(FrameRateTest, ListsStandardRatesInAscendingOrder) {
+  const std::array expected{
+      Rate(24'000, 1'001), Rate(24, 1), Rate(25, 1),
+      Rate(30'000, 1'001), Rate(30, 1), Rate(50, 1),
+      Rate(60'000, 1'001), Rate(60, 1),
+  };
+
+  const auto rates = FrameRate::StandardRates();
+
+  ASSERT_EQ(rates.size(), expected.size());
+  for (std::size_t index = 0; index < expected.size(); ++index) {
+    EXPECT_EQ(rates[index], expected[index]) << "index " << index;
+  }
 }
 
 TEST(TimecodeTest, SupportsCommonEditorialRatesWithoutDrift) {

@@ -18,6 +18,7 @@
 #include <expected>
 #include <limits>
 #include <numeric>
+#include <span>
 #include <string>
 #include <utility>
 
@@ -90,6 +91,15 @@ std::expected<FrameRate, FrameRateError> FrameRate::Create(
   const auto divisor = std::gcd(numerator, denominator);
   return FrameRate{static_cast<std::int32_t>(numerator / divisor),
                    static_cast<std::int32_t>(denominator / divisor)};
+}
+
+std::span<const FrameRate> FrameRate::StandardRates(void) noexcept {
+  static const std::array<FrameRate, 8> kRates{
+      FrameRate{24'000, 1'001}, FrameRate{24, 1}, FrameRate{25, 1},
+      FrameRate{30'000, 1'001}, FrameRate{30, 1}, FrameRate{50, 1},
+      FrameRate{60'000, 1'001}, FrameRate{60, 1},
+  };
+  return kRates;
 }
 
 FrameRate::FrameRate(std::int32_t numerator, std::int32_t denominator) noexcept

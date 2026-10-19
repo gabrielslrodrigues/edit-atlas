@@ -15,6 +15,7 @@
 
 #include <cstdint>
 #include <expected>
+#include <span>
 #include <string>
 
 namespace edit_atlas::core {
@@ -43,6 +44,12 @@ class FrameRate final {
   /// or cannot be represented by the type.
   [[nodiscard]] static std::expected<FrameRate, FrameRateError> Create(
       std::int64_t numerator, std::int64_t denominator) noexcept;
+
+  /// Returns the standard editorial rates in ascending order: 24000/1001, 24,
+  /// 25, 30000/1001, 30, 50, 60000/1001, and 60.
+  ///
+  /// The returned storage is static and lives for the whole program.
+  [[nodiscard]] static std::span<const FrameRate> StandardRates(void) noexcept;
 
   /// Returns the normalized numerator.
   [[nodiscard]] std::int32_t numerator(void) const noexcept;
