@@ -4,6 +4,11 @@ This file records user-facing Edit Atlas changes beginning with version 0.2.0.
 
 ## [Unreleased]
 
+### Fixed
+
+- A constant-frame-rate render whose shorter final frame skews its reported
+  average rate is no longer rejected as variable-frame-rate.
+
 ## [0.4.0]
 
 ### Added

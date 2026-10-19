@@ -183,7 +183,43 @@ TEST(TimelineVideoInspectionServiceTest, RejectsVariableFrameRateMetadata) {
   const TimelineVideoInspectionService service;
 
   const auto result = service.Validate(
-      MediaInformation("01:00:00:00", {25, 1}, {24, 1}), Timeline());
+      MediaInformation("01:00:00:00", {25, 1}, {24, 1}, 250),
+      Timeline(Rate(), core::TimecodeMode::kNonDropFrame, 90'000, 250));
+
+  ExpectOnlyDiagnostic(result,
+                       timeline_video_diagnostic_code::kVariableFrameRate);
+}
+
+TEST(TimelineVideoInspectionServiceTest,
+     AcceptsAverageRateWithinOneFrameOverTheDuration) {
+  const TimelineVideoInspectionService service;
+
+  const auto result = service.Validate(
+      MediaInformation("01:00:00:00", {251, 10}, {25, 1}, 250),
+      Timeline(Rate(), core::TimecodeMode::kNonDropFrame, 90'000, 250));
+
+  EXPECT_TRUE(result.has_value());
+}
+
+TEST(TimelineVideoInspectionServiceTest,
+     RejectsAverageRateMoreThanOneFrameOffOverTheDuration) {
+  const TimelineVideoInspectionService service;
+
+  const auto result = service.Validate(
+      MediaInformation("01:00:00:00", {126, 5}, {25, 1}, 250),
+      Timeline(Rate(), core::TimecodeMode::kNonDropFrame, 90'000, 250));
+
+  ExpectOnlyDiagnostic(result,
+                       timeline_video_diagnostic_code::kVariableFrameRate);
+}
+
+TEST(TimelineVideoInspectionServiceTest,
+     RejectsDifferingRatesWhenTheDurationIsUnknown) {
+  const TimelineVideoInspectionService service;
+
+  const auto result = service.Validate(
+      MediaInformation("01:00:00:00", {251, 10}, {25, 1}, std::nullopt),
+      Timeline());
 
   ExpectOnlyDiagnostic(result,
                        timeline_video_diagnostic_code::kVariableFrameRate);

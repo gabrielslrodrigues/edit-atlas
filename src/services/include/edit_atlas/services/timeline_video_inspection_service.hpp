@@ -52,7 +52,9 @@ inline constexpr std::string_view kInconsistentTimeline =
 /// Complete average and nominal frame rates are unavailable.
 inline constexpr std::string_view kMissingFrameRate =
     "video.missing_frame_rate";
-/// Average and nominal frame rates disagree.
+/// Average and nominal frame rates differ by more than
+/// `kVideoDurationToleranceFrames` frames over the video's duration, or differ
+/// at all when no duration is known.
 inline constexpr std::string_view kVariableFrameRate =
     "video.variable_frame_rate";
 /// The constant video frame rate differs from the timeline frame rate.
