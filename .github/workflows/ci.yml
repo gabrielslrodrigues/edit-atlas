@@ -25,10 +25,17 @@ concurrency:
 
 jobs:
   style:
-    name: Style
+    name: Style / Conventions
     uses: ./.github/workflows/style.yml
     permissions:
       contents: read
+
+  iwyu:
+    name: Style / Include What You Use
+    uses: ./.github/workflows/iwyu.yml
+    permissions:
+      contents: read
+      packages: write
 
   # Which frontend ships is a build option, so CI derives it instead of
   # assuming it. Everything else in the supported list is exercised on the
@@ -113,6 +120,7 @@ jobs:
     name: CI gate
     needs:
       - style
+      - iwyu
       - packages
       - package-verification
       - packaged-e2e

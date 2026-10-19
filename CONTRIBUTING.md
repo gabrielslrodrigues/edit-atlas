@@ -110,7 +110,12 @@ with these custom rules:
 Configuring with `-DEDIT_ATLAS_INCLUDE_WHAT_YOU_USE=ON` enforces Include What
 You Use: with Clang and a Ninja or Makefile generator, include-what-you-use
 runs beside every compilation, and any change it suggests fails the build. The
-Linux CI Debug build enables it. The first configure builds the
+dedicated Linux CI Debug build enables it on Ubuntu 26.04 with Clang 22,
+IWYU 0.26, and GCC 16's standard library; install its host dependencies with
+`scripts/ci/install-ubuntu-dependencies.sh --iwyu`. Package builds stay on
+Ubuntu 24.04 to preserve their glibc 2.39 baseline. IWYU findings depend on
+both the analyser and standard library, so use the CI toolchain when resolving
+conflicting local findings. The first configure builds the
 include-what-you-use release matching the compiler's Clang into
 `build/include-what-you-use`, which needs Clang's development files
 (`llvm-<N>-dev` and `libclang-<N>-dev` on Ubuntu). Besides a Qt mapping

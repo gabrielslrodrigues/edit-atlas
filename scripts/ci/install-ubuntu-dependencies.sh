@@ -2,14 +2,14 @@
 
 set -euo pipefail
 
-# Install Ubuntu dependencies for builds or the packaged E2E environment.
+# Install Ubuntu dependencies for builds, IWYU, or packaged E2E.
 
 usage() {
-  echo "Usage: $0 [--build|--e2e]" >&2
+  echo "Usage: $0 [--build|--iwyu|--e2e]" >&2
 }
 
 # Install one dependency profile without interactive package-manager prompts.
-# Arguments: optional --build or --e2e profile.
+# Arguments: optional --build, --iwyu, or --e2e profile.
 # Outputs: package-manager progress; prerequisite failures to stderr.
 # Returns: 2 for invalid arguments, 1 when elevation is unavailable.
 main() {
@@ -25,15 +25,12 @@ main() {
 
   dependency_profile="${1:---build}"
   case "${dependency_profile}" in
-    --build)
+    --build|--iwyu)
       packages=(
         autoconf
         autoconf-archive
         automake
         bison
-        clang-20
-        clang-tools-20
-        libclang-20-dev
         dpkg-dev
         libc6-dev
         libegl1-mesa-dev
@@ -49,7 +46,6 @@ main() {
         libxkbcommon-x11-dev
         libxrender-dev
         libxtst-dev
-        llvm-20-dev
         libxcb-cursor-dev
         libxcb-glx0-dev
         libxcb-icccm4-dev
@@ -75,6 +71,17 @@ main() {
         rpm
         wayland-protocols
       )
+      if [[ "${dependency_profile}" == "--iwyu" ]]; then
+        packages+=(
+          clang-22
+          clang-tools-22
+          libclang-22-dev
+          libstdc++-16-dev
+          llvm-22-dev
+        )
+      else
+        packages+=(clang-20 clang-tools-20)
+      fi
       ;;
     --e2e)
       packages=(
