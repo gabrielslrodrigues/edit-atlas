@@ -25,6 +25,7 @@
 #include <gtest/gtest.h>
 
 #include "edit_atlas/core/editorial_timeline.hpp"
+#include "edit_atlas/core/format.hpp"
 #include "edit_atlas/core/timecode.hpp"
 #include "edit_atlas/core/timeline_projection.hpp"
 #include "edit_atlas/formats/xlsx/xlsx_exporter.hpp"

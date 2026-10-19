@@ -10,11 +10,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include <expected>
 #include <memory>
 #include <optional>
 #include <utility>
 
 #include <QByteArray>
+#include <QByteArrayView>
 #include <QCoreApplication>
 #include <QDir>
 #include <QObject>
@@ -22,11 +24,13 @@
 #include <QQmlEngine>
 #include <QQuickStyle>
 #include <QString>
+#include <QStringLiteral>
 #include <QTemporaryDir>
 #include <QTranslator>
-#include <QtGlobal>
+#include <QtEnvironmentVariables>
 #include <QtLogging>
 #include <QtQuickTest/quicktest.h>
+#include <QtSystemDetection>
 #include <QtTest/qtest.h>
 
 #include "edit_atlas/core/format_registry.hpp"

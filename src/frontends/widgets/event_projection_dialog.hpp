@@ -17,6 +17,7 @@
 #include <vector>
 
 #include <QDialog>
+#include <QObject>
 #include <QPushButton>
 #include <QWidget>
 

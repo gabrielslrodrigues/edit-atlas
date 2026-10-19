@@ -17,7 +17,7 @@
 
 #include <QFutureWatcher>
 #include <QObject>
-#include <QtGlobal>
+#include <QtTypes>
 
 #include "edit_atlas/core/format_registry.hpp"
 #include "edit_atlas/services/timeline_document_export_service.hpp"

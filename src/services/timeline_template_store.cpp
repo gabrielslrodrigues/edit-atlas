@@ -13,14 +13,16 @@
 #include "timeline_template_store.hpp"
 
 #include <algorithm>
+#include <cmath>
 #include <concepts>
-#include <cstddef>
 #include <cstdint>
 #include <exception>
 #include <expected>
 #include <filesystem>
+#include <functional>
 #include <initializer_list>
 #include <limits>
+#include <map>
 #include <optional>
 #include <span>
 #include <string>
@@ -31,7 +33,12 @@
 #include <variant>
 #include <vector>
 
+#include <nlohmann/detail/iterators/iter_impl.hpp>
+#include <nlohmann/detail/iterators/iteration_proxy.hpp>
+#include <nlohmann/detail/json_ref.hpp>
+#include <nlohmann/detail/value_t.hpp>
 #include <nlohmann/json.hpp>
+#include <nlohmann/json_fwd.hpp>
 
 #include "edit_atlas/core/editorial_timeline.hpp"
 #include "edit_atlas/core/timeline_projection.hpp"

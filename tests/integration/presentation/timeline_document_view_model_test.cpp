@@ -17,9 +17,12 @@
 #include <optional>
 #include <string>
 #include <string_view>
+#include <variant>
 
+#include <QByteArray>
 #include <QSignalSpy>
 #include <QString>
+#include <QStringLiteral>
 #include <QTemporaryDir>
 #include <QVariant>
 #include <gtest/gtest.h>
@@ -29,6 +32,7 @@
 #include "edit_atlas/formats/cmx3600/cmx3600_importer.hpp"
 #include "edit_atlas/formats/xlsx/xlsx_exporter.hpp"
 #include "edit_atlas/services/built_in_formats.hpp"
+#include "edit_atlas/services/timeline_document_export_service.hpp"
 #include "edit_atlas/services/timeline_document_import_service.hpp"
 #include "edit_atlas/services/timeline_filter.hpp"
 

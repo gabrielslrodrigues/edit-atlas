@@ -15,15 +15,20 @@
 #include <cstddef>
 #include <filesystem>
 #include <string>
+#include <system_error>
 #include <utility>
 
+#include <QByteArray>
 #include <QDialog>
 #include <QFileDialog>
 #include <QFileInfo>
+#include <QList>
 #include <QMessageBox>
 #include <QPushButton>
 #include <QString>
+#include <QStringLiteral>
 #include <QWidget>
+#include <QtTypes>
 
 #include "accessibility.hpp"
 #include "edit_atlas/presentation/desktop_integration.hpp"

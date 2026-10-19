@@ -19,7 +19,6 @@
 #include <QAbstractTableModel>
 #include <QModelIndex>
 #include <QObject>
-#include <QVariant>
 #include <Qt>
 
 #include "edit_atlas/core/editorial_timeline.hpp"

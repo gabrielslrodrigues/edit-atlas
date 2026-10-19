@@ -16,9 +16,14 @@
 #include <string_view>
 #include <vector>
 
+#include <QChar>
 #include <QCoreApplication>
+#include <QList>
 #include <QString>
 #include <QStringList>
+#include <QStringLiteral>
+#include <QtTranslation>
+#include <QtTypes>
 
 #include "edit_atlas/core/editorial_timeline.hpp"
 #include "edit_atlas/core/timeline_document_pipeline.hpp"

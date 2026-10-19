@@ -12,12 +12,17 @@
 
 #include "edit_atlas/presentation/typography.hpp"
 
+#include <string>
+
 #include <QCoreApplication>
 #include <QFont>
 #include <QFontDatabase>
 #include <QGuiApplication>
+#include <QList>
+#include <QObject>
 #include <QString>
 #include <QStringList>
+#include <QStringLiteral>
 #include <Qt>
 #include <spdlog/spdlog.h>
 

@@ -18,6 +18,7 @@
 
 #include <QLabel>
 #include <QListWidget>
+#include <QObject>
 #include <QPushButton>
 #include <QWidget>
 

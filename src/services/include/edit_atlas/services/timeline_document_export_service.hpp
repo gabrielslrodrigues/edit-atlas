@@ -15,6 +15,7 @@
 
 #include <expected>
 #include <filesystem>
+#include <span>
 #include <string>
 #include <system_error>
 #include <vector>

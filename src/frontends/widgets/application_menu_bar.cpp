@@ -14,15 +14,21 @@
 
 #include <cstddef>
 #include <filesystem>
+#include <initializer_list>
 #include <string>
+#include <vector>
 
 #include <QAction>
 #include <QActionGroup>
+#include <QByteArray>
 #include <QFileInfo>
 #include <QKeySequence>
 #include <QMenu>
 #include <QString>
+#include <QStringLiteral>
+#include <QVariant>
 #include <QWidget>
+#include <QtTypes>
 
 #include "accessibility.hpp"
 #include "edit_atlas/presentation/application_state.hpp"

@@ -18,8 +18,8 @@
 #include <QObject>
 #include <QString>
 #include <QUrl>
-#include <QtGlobal>
 #include <QtQmlIntegration/qqmlintegration.h>
+#include <QtTypes>
 
 #include "edit_atlas/core/format_registry.hpp"
 #include "edit_atlas/presentation/timeline_document_view_model.hpp"

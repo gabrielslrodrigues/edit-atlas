@@ -16,6 +16,7 @@
 #include <cstddef>
 #include <limits>
 #include <numeric>
+#include <optional>
 #include <string>
 #include <string_view>
 #include <utility>
@@ -24,11 +25,14 @@
 
 #include <QAbstractTableModel>
 #include <QChar>
+#include <QList>
 #include <QModelIndex>
 #include <QString>
 #include <QStringList>
+#include <QStringLiteral>
 #include <QVariant>
 #include <Qt>
+#include <QtTypes>
 
 #include "edit_atlas/core/editorial_timeline.hpp"
 #include "edit_atlas/core/timecode.hpp"

@@ -21,6 +21,7 @@
 #include <QDialog>
 #include <QGroupBox>
 #include <QLineEdit>
+#include <QObject>
 #include <QPushButton>
 #include <QString>
 #include <QWidget>

@@ -13,11 +13,12 @@
 #include "edit_atlas/presentation/translation.hpp"
 
 #include <QCoreApplication>
-#include <QResource>
 #include <QSettings>
 #include <QString>
+#include <QStringLiteral>
 #include <QTranslator>
 #include <QVariant>
+#include <QtResource>
 
 static void InitializeTranslationResources(void) {
   Q_INIT_RESOURCE(edit_atlas_presentation_translations);

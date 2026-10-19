@@ -18,27 +18,37 @@
 
 #include <QAbstractItemView>
 #include <QAccessible>
+#include <QAccessibleActionInterface>
+#include <QAccessibleInterface>
+#include <QAccessibleSelectionInterface>
+#include <QAccessibleValueInterface>
 #include <QAccessibleWidget>
 #include <QAction>
 #include <QComboBox>
 #include <QCoreApplication>
 #include <QDialogButtonBox>
+#include <QFlags>
 #include <QInputDialog>
 #include <QItemSelectionModel>
 #include <QKeySequence>
 #include <QLineEdit>
+#include <QList>
 #include <QListWidget>
 #include <QListWidgetItem>
 #include <QMenu>
+#include <QObject>
 #include <QPushButton>
 #include <QRect>
 #include <QString>
 #include <QStringList>
+#include <QStringLiteral>
 #include <QStringView>
 #include <QTimer>
 #include <QToolButton>
 #include <QVariant>
 #include <QWidget>
+#include <Qt>
+#include <QtSystemDetection>
 
 namespace edit_atlas::frontends::widgets {
 

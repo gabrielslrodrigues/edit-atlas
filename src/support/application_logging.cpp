@@ -15,13 +15,13 @@
 #include <algorithm>
 #include <charconv>
 #include <chrono>
+#include <compare>
 #include <cstddef>
 #include <cstdint>
 #include <exception>
 #include <expected>
 #include <filesystem>
 #include <fstream>
-#include <ios>
 #include <limits>
 #include <memory>
 #include <mutex>
@@ -33,8 +33,9 @@
 #include <vector>
 
 #include <spdlog/common.h>
-#include <spdlog/details/log_msg.h>
+#include <spdlog/formatter.h>
 #include <spdlog/logger.h>
+#include <spdlog/sinks/ansicolor_sink.h>
 #include <spdlog/sinks/base_sink.h>
 #include <spdlog/sinks/stdout_color_sinks.h>
 #include <spdlog/spdlog.h>

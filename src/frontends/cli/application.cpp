@@ -14,12 +14,14 @@
 
 #include <algorithm>
 #include <exception>
+#include <expected>
 #include <filesystem>
 #include <optional>
 #include <ostream>
 #include <span>
 #include <string>
 #include <string_view>
+#include <system_error>
 #include <utility>
 #include <vector>
 
@@ -27,10 +29,13 @@
 
 #include "diagnostic_output.hpp"
 #include "edit_atlas/core/editorial_timeline.hpp"
+#include "edit_atlas/core/format.hpp"
+#include "edit_atlas/core/format_registry.hpp"
 #include "edit_atlas/core/timeline_projection.hpp"
 #include "edit_atlas/core/version.hpp"
 #include "edit_atlas/formats/cmx3600/cmx3600_importer.hpp"
 #include "edit_atlas/formats/xlsx/xlsx_exporter.hpp"
+#include "edit_atlas/media/video_decoder.hpp"
 #include "edit_atlas/services/built_in_formats.hpp"
 #include "edit_atlas/services/timeline_document_export_service.hpp"
 #include "edit_atlas/services/timeline_document_import_service.hpp"

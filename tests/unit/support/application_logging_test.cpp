@@ -16,14 +16,15 @@
 #include <cstddef>
 #include <filesystem>
 #include <fstream>
-#include <ios>
 #include <iterator>
+#include <memory>
 #include <string>
 #include <string_view>
 #include <system_error>
 #include <utility>
 
 #include <gtest/gtest.h>
+#include <spdlog/logger.h>
 #include <spdlog/spdlog.h>
 
 namespace edit_atlas::support {

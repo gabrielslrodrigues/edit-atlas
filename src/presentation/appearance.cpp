@@ -13,10 +13,13 @@
 #include "edit_atlas/presentation/appearance.hpp"
 
 #include <QCoreApplication>
+#include <QDebug>
 #include <QGuiApplication>
 #include <QSettings>
 #include <QString>
+#include <QStringLiteral>
 #include <QStyleHints>
+#include <QVariant>
 #include <Qt>
 
 namespace edit_atlas::presentation {

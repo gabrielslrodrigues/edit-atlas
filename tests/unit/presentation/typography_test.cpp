@@ -12,7 +12,11 @@
 
 #include "edit_atlas/presentation/typography.hpp"
 
+#include <string>
+
+#include <QList>
 #include <QString>
+#include <QStringLiteral>
 #include <gtest/gtest.h>
 
 namespace edit_atlas::presentation {

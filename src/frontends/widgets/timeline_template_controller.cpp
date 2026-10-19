@@ -18,18 +18,24 @@
 #include <span>
 #include <string>
 #include <string_view>
+#include <system_error>
 #include <utility>
 #include <variant>
 #include <vector>
 
+#include <QByteArray>
+#include <QChar>
 #include <QDialog>
 #include <QInputDialog>
 #include <QLineEdit>
+#include <QList>
 #include <QMessageBox>
 #include <QPushButton>
 #include <QString>
 #include <QStringList>
+#include <QStringLiteral>
 #include <QWidget>
+#include <QtTypes>
 #include <spdlog/spdlog.h>
 
 #include "accessibility.hpp"

@@ -15,6 +15,7 @@
 #include <expected>
 #include <memory>
 
+#include "edit_atlas/core/format.hpp"
 #include "edit_atlas/core/format_registry.hpp"
 #include "edit_atlas/formats/cmx3600/cmx3600_importer.hpp"
 #include "edit_atlas/formats/xlsx/xlsx_exporter.hpp"

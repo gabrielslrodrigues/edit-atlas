@@ -12,8 +12,12 @@
 
 #include "edit_atlas/frontends/quick/application_information_view_model.hpp"
 
+#include <expected>
+#include <string>
+
 #include <QString>
 #include <QStringList>
+#include <QStringLiteral>
 #include <gtest/gtest.h>
 
 #include "edit_atlas/services/built_in_formats.hpp"

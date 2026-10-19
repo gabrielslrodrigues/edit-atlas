@@ -17,11 +17,8 @@
 #include <vector>
 
 #include <QAbstractListModel>
-#include <QByteArray>
-#include <QHash>
 #include <QModelIndex>
 #include <QObject>
-#include <QVariant>
 #include <Qt>
 
 #include "edit_atlas/core/timeline_projection.hpp"

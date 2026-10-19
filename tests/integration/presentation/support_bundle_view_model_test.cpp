@@ -15,10 +15,11 @@
 #include <cstddef>
 #include <filesystem>
 #include <fstream>
-#include <ios>
 #include <string>
 #include <string_view>
+#include <vector>
 
+#include <QByteArray>
 #include <QSignalSpy>
 #include <QString>
 #include <QTemporaryDir>

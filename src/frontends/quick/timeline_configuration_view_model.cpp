@@ -15,23 +15,29 @@
 #include <algorithm>
 #include <cstddef>
 #include <filesystem>
+#include <optional>
+#include <span>
 #include <string>
 #include <utility>
 #include <variant>
+#include <vector>
 
 #include <QAbstractItemModel>
 #include <QByteArray>
+#include <QList>
 #include <QModelIndex>
 #include <QObject>
 #include <QString>
 #include <QStringList>
-#include <QtGlobal>
+#include <QVariant>
+#include <QtTypes>
 
 #include "edit_atlas/presentation/timeline_document_view_model.hpp"
 #include "edit_atlas/presentation/timeline_event_projection_model.hpp"
 #include "edit_atlas/presentation/timeline_filter_model.hpp"
 #include "edit_atlas/presentation/timeline_template_model.hpp"
 #include "edit_atlas/presentation/timeline_template_view_model.hpp"
+#include "edit_atlas/services/timeline_filter.hpp"
 #include "edit_atlas/services/timeline_template_service.hpp"
 
 namespace edit_atlas::frontends::quick {

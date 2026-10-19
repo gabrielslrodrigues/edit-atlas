@@ -15,9 +15,11 @@
 #include <QDesktopServices>
 #include <QDir>
 #include <QFileInfo>
-#include <QProcess>
+#include <QProcess>  // IWYU pragma: keep
 #include <QString>
+#include <QStringLiteral>
 #include <QUrl>
+#include <QtSystemDetection>  // IWYU pragma: keep
 
 namespace edit_atlas::presentation::desktop_integration {
 
