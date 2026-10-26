@@ -27,6 +27,15 @@ project(
     LANGUAGES CXX
 )
 
+set(EDIT_ATLAS_PRERELEASE_SUFFIX "" CACHE STRING
+    "Release candidate suffix, empty or -rc.N with positive N"
+)
+if(NOT EDIT_ATLAS_PRERELEASE_SUFFIX STREQUAL ""
+    AND NOT EDIT_ATLAS_PRERELEASE_SUFFIX MATCHES "^-rc\\.[1-9][0-9]*$")
+    message(FATAL_ERROR "EDIT_ATLAS_PRERELEASE_SUFFIX must be empty or -rc.N")
+endif()
+set(EDIT_ATLAS_VERSION "${PROJECT_VERSION}${EDIT_ATLAS_PRERELEASE_SUFFIX}")
+
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
@@ -177,7 +186,6 @@ string(
     GET "${edit_atlas_vcpkg_manifest}"
     builtin-baseline
 )
-set(EDIT_ATLAS_VERSION "${PROJECT_VERSION}")
 set(EDIT_ATLAS_QT_VERSION "${Qt6_VERSION}")
 set(EDIT_ATLAS_VCPKG_BASELINE "${edit_atlas_vcpkg_baseline}")
 configure_file(

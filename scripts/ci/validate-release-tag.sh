@@ -12,8 +12,8 @@ fi
 tag="${GITHUB_REF_NAME:-}"
 commit="${GITHUB_SHA:-}"
 
-if [[ ! "$tag" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-  echo "Release tags must use the vX.Y.Z form: '$tag'" >&2
+if [[ ! "$tag" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-rc\.[1-9][0-9]*)?$ ]]; then
+  echo "Release tags must use vX.Y.Z or vX.Y.Z-rc.N (N > 0): '$tag'" >&2
   exit 1
 fi
 
@@ -27,7 +27,7 @@ if [[ -z "$project_version" ]]; then
 fi
 
 expected_tag="v$project_version"
-if [[ "$tag" != "$expected_tag" ]]; then
+if [[ "${tag%%-rc.*}" != "$expected_tag" ]]; then
   echo "Tag '$tag' does not match project version '$expected_tag'." >&2
   exit 1
 fi

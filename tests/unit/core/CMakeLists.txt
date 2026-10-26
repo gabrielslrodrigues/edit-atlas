@@ -21,7 +21,9 @@ target_link_libraries(
 
 target_compile_definitions(
     edit_atlas_core_tests
-    PRIVATE EDIT_ATLAS_EXPECTED_VERSION="${PROJECT_VERSION}"
+    PRIVATE
+        EDIT_ATLAS_EXPECTED_VERSION="${PROJECT_VERSION}"
+        EDIT_ATLAS_EXPECTED_PRERELEASE_SUFFIX="${EDIT_ATLAS_PRERELEASE_SUFFIX}"
 )
 
 target_precompile_headers(edit_atlas_core_tests PRIVATE <gtest/gtest.h>)

@@ -49,10 +49,24 @@ if(WIN32)
     )
     set(CPACK_GENERATOR "WIX")
     set(CPACK_PACKAGE_FILE_NAME
-        "edit-atlas-${PROJECT_VERSION}-windows-x64"
+        "edit-atlas-${EDIT_ATLAS_VERSION}-windows-x64"
     )
     set(CPACK_PACKAGE_EXECUTABLES "edit-atlas" "Edit Atlas")
     set(CPACK_WIX_VERSION 3)
+    # Candidates and finals share ProductVersion. Require CPack's early
+    # same-version major upgrade so old files and registration are replaced.
+    set(CPACK_WIX_TEMPLATE
+        "${CMAKE_ROOT}/Modules/Internal/CPack/WIX-v3/WIX.template.in"
+    )
+    file(READ "${CPACK_WIX_TEMPLATE}" edit_atlas_wix_template)
+    if(NOT edit_atlas_wix_template MATCHES
+        "AllowSameVersionUpgrades=\"yes\""
+        OR NOT edit_atlas_wix_template MATCHES
+        "Schedule=\"afterInstallInitialize\"")
+        message(FATAL_ERROR
+            "The CPack WiX template must support early same-version upgrades."
+        )
+    endif()
     set(CPACK_WIX_ARCHITECTURE x64)
     set(CPACK_WIX_INSTALL_SCOPE perMachine)
     set(CPACK_WIX_COMPONENT_INSTALL OFF)
@@ -74,7 +88,7 @@ if(WIN32)
 elseif(APPLE)
     set(CPACK_GENERATOR "productbuild")
     set(CPACK_PACKAGE_FILE_NAME
-        "edit-atlas-${PROJECT_VERSION}-macos-universal"
+        "edit-atlas-${EDIT_ATLAS_VERSION}-macos-universal"
     )
     set(CPACK_PRODUCTBUILD_IDENTIFIER
         "com.github.gabrielslrodrigues.edit-atlas"
@@ -86,11 +100,16 @@ elseif(APPLE)
     set(CPACK_PRODUCTBUILD_DOMAINS_ROOT ON)
 elseif(LINUX)
     set(CPACK_GENERATOR "TGZ;DEB;RPM")
+    string(REPLACE "-rc." "~rc." edit_atlas_linux_version
+        "${EDIT_ATLAS_VERSION}"
+    )
+    set(CPACK_DEBIAN_PACKAGE_VERSION "${edit_atlas_linux_version}")
+    set(CPACK_RPM_PACKAGE_VERSION "${edit_atlas_linux_version}")
     set(CPACK_PACKAGE_FILE_NAME
-        "edit-atlas-${PROJECT_VERSION}-linux-x86_64"
+        "edit-atlas-${EDIT_ATLAS_VERSION}-linux-x86_64"
     )
     set(CPACK_DEBIAN_FILE_NAME
-        "edit-atlas-${PROJECT_VERSION}-linux-x86_64.deb"
+        "edit-atlas-${EDIT_ATLAS_VERSION}-linux-x86_64.deb"
     )
     set(CPACK_DEBIAN_PACKAGE_NAME "edit-atlas")
     set(CPACK_DEBIAN_PACKAGE_ARCHITECTURE "amd64")
@@ -100,7 +119,7 @@ elseif(LINUX)
     set(CPACK_DEBIAN_PACKAGE_DEPENDS "libc6 (>= 2.39)")
     set(CPACK_DEBIAN_PACKAGE_SHLIBDEPS ON)
     set(CPACK_RPM_FILE_NAME
-        "edit-atlas-${PROJECT_VERSION}-linux-x86_64.rpm"
+        "edit-atlas-${EDIT_ATLAS_VERSION}-linux-x86_64.rpm"
     )
     set(CPACK_RPM_PACKAGE_NAME "edit-atlas")
     set(CPACK_RPM_PACKAGE_ARCHITECTURE "x86_64")

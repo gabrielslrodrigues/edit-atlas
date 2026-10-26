@@ -79,6 +79,17 @@ main() {
     exit 1
   fi
 
+  # An equal-version install must replace the payload, as a final release
+  # and its candidates share the numeric bundle and package version.
+  run_as_root rm "$executable"
+  run_as_root touch "$application/Contents/edit-atlas-obsolete-file"
+  run_as_root installer -pkg "$package" -target /
+  if [[ ! -x "$executable" ||
+    -e "$application/Contents/edit-atlas-obsolete-file" ]]; then
+    echo "Equal-version installation did not replace the application." >&2
+    exit 1
+  fi
+
   cmake \
     "-DEDIT_ATLAS_DEPLOYMENT_ROOT=$application" \
     "-DEDIT_ATLAS_EXECUTABLE=$executable" \

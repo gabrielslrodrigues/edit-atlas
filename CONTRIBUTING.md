@@ -227,8 +227,15 @@ developer profile.
   `EDIT_ATLAS_LINUX_C_COMPILER` and `EDIT_ATLAS_LINUX_CXX_COMPILER`, or neither,
   for a deliberate override. Changing compilers changes vcpkg package ABIs and
   rebuilds affected ports.
-- The `version-string` in `vcpkg.json` is the single project version source;
-  CMake reads it, and release tags are validated against it.
+- The `version-string` in `vcpkg.json` is the single numeric project version
+  source (`X.Y.Z`). Release tags are `vX.Y.Z` or `vX.Y.Z-rc.N`, where `N`
+  is a positive integer without leading zeroes; their base must match the
+  manifest. CI passes the tag's suffix through the CMake cache variable
+  `EDIT_ATLAS_PRERELEASE_SUFFIX` (empty for a final release). Applications,
+  the CLI, package filenames, and corresponding-source offers carry the full
+  version. DEB and RPM metadata use `X.Y.Z~rc.N` so a final release sorts
+  later. MSI ProductVersion and macOS bundle/PKG versions stay numeric;
+  their installers must replace a candidate with a final of the same base.
 - The `builtin-baseline` in `vcpkg.json` must equal the checked-out vcpkg
   submodule commit. The corresponding-source scripts enforce this, because
   the archives a release publishes must match the ports it built from.

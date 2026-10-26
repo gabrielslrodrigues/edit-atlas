@@ -20,8 +20,10 @@
 namespace edit_atlas::core {
 namespace {
 
-TEST(VersionTest, ReturnsProjectVersion) {
-  EXPECT_EQ(Version(), std::string_view{EDIT_ATLAS_EXPECTED_VERSION});
+TEST(VersionTest, ReturnsProjectVersionWithPrereleaseSuffix) {
+  const std::string expected = std::string{EDIT_ATLAS_EXPECTED_VERSION} +
+                               EDIT_ATLAS_EXPECTED_PRERELEASE_SUFFIX;
+  EXPECT_EQ(Version(), std::string_view{expected});
 }
 
 }  // namespace

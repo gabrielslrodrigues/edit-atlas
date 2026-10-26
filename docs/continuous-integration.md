@@ -138,9 +138,47 @@ Ordinary CI has no release or Pages permission.
 
 Only `release.yml` responds to version tags. Its draft-release job uses the
 protected `edit-atlas-release` environment, and only its publication job can
-write release contents. Versioned documentation runs only after the draft has
-been successfully published. Pull-request and branch workflows therefore
-cannot create releases or publish versioned documentation.
+write release contents. Versioned documentation runs only after a final
+release draft has been successfully published; prereleases never invoke it.
+Pull-request and branch workflows therefore cannot create releases or publish
+versioned documentation.
+
+## Public release candidates
+
+Push `vX.Y.Z-rc.N` to run the same protected release path as `vX.Y.Z`,
+where `N` is a positive integer without leading zeroes. Tag validation rejects
+malformed suffixes and a base version that differs from `vcpkg.json` before
+any build. The release caller passes the tag to `release-candidate.yml`,
+which validates it again and passes its suffix to both Debug and Release
+configurations through `EDIT_ATLAS_PRERELEASE_SUFFIX`.
+
+Candidate applications and the CLI report `X.Y.Z-rc.N`. Package filenames,
+corresponding-source archives, and packaged source-offer URLs carry that
+full version. The asset inventory and checksums follow the same verification
+path as a final release. Package verification and production-frontend
+packaged E2E must pass before publication.
+
+The draft is created and published with `--prerelease --latest=false`,
+including when resuming an existing draft, so a candidate cannot replace
+GitHub's latest release. Candidate runs skip versioned documentation; the
+Pages validators continue to accept only final tags. Changelog entries
+continue to describe the delta between final releases.
+
+DEB and RPM metadata use `X.Y.Z~rc.N`, which sorts before the final
+`X.Y.Z`. MSI ProductVersion and macOS bundle/PKG versions stay `X.Y.Z`.
+Windows packaging requires CPack's WiX 3 template to enable same-version
+major upgrades before installing files, preserving the fixed UpgradeCode
+and generated ProductCode. macOS package verification reinstalls over an
+equal-version bundle and requires the executable to be restored and an
+obsolete file to be removed. Native installer metadata cannot distinguish
+candidates from finals of the same base, so replacement works in either
+direction; the reported application version identifies the installed build.
+
+Before publishing a final release, verify installing it over the last public
+candidate on Windows, macOS, DEB, and RPM, and confirm the CLI reports the
+final version and only one application remains installed. The macOS
+same-package reinstall gate checks replacement semantics but does not
+substitute for that candidate-to-final check.
 
 ## Release dry run
 
