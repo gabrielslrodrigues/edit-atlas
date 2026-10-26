@@ -107,6 +107,23 @@ with these custom rules:
   sit beside their sources rather than under `include/edit_atlas/`, are
   included by bare file name rather than by a path from the source root.
 
+Configuring with `-DEDIT_ATLAS_INCLUDE_WHAT_YOU_USE=ON` enforces Include What
+You Use: with Clang and a Ninja or Makefile generator, include-what-you-use
+runs beside every compilation, and any change it suggests fails the build. The
+dedicated Linux CI Debug build enables it on Ubuntu 26.04 with Clang 22,
+IWYU 0.26, and GCC 16's standard library; install its host dependencies with
+`scripts/ci/install-ubuntu-dependencies.sh --iwyu`. Package builds stay on
+Ubuntu 24.04 to preserve their glibc 2.39 baseline. IWYU findings depend on
+both the analyser and standard library, so use the CI toolchain when resolving
+conflicting local findings. The first configure builds the
+include-what-you-use release matching the compiler's Clang into
+`build/include-what-you-use`, which needs Clang's development files
+(`llvm-<N>-dev` and `libclang-<N>-dev` on Ubuntu). Besides a Qt mapping
+generated from the configured Qt, it reads `tools/iwyu/edit_atlas.imp`: when
+it suggests a library's internal header, map that header there to the public
+one instead of including it. Only Linux runs the check, so an include used only in
+another platform's preprocessor branch carries `// IWYU pragma: keep`.
+
 Formatting follows Google's two-space, 80-column style. Formatting and
 linting do not establish semantic compliance: review headers, dependencies,
 ownership, lifetimes, class design, type usage, concurrency, and exception

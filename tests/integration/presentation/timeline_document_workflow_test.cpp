@@ -16,20 +16,24 @@
 #include <chrono>
 #include <condition_variable>
 #include <cstddef>
+#include <expected>
 #include <filesystem>
 #include <fstream>
-#include <ios>
 #include <iterator>
 #include <memory>
 #include <mutex>
 #include <optional>
+#include <span>
 #include <string>
 #include <string_view>
 #include <utility>
+#include <variant>
 #include <vector>
 
+#include <QByteArray>
 #include <QSignalSpy>
 #include <QString>
+#include <QStringLiteral>
 #include <QTemporaryDir>
 #include <QTemporaryFile>
 #include <gtest/gtest.h>

@@ -12,13 +12,19 @@
 
 #include "edit_atlas/presentation/typography.hpp"
 
+#include <initializer_list>
+#include <string>
+
 #include <QApplication>
+#include <QChar>
 #include <QFont>
 #include <QFontDatabase>
 #include <QFontInfo>
 #include <QFontMetrics>
+#include <QList>
 #include <QString>
-#include <QtGlobal>
+#include <QStringLiteral>
+#include <QtSystemDetection>  // IWYU pragma: keep
 #include <gtest/gtest.h>
 
 namespace edit_atlas::frontends::widgets {

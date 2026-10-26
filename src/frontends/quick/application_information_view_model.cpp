@@ -21,12 +21,15 @@
 #include <QObject>
 #include <QString>
 #include <QStringList>
+#include <QStringLiteral>
 #include <QUrl>
+#include <QtTypes>
 
 #include "edit_atlas/core/format_registry.hpp"
 #include "edit_atlas/media/video_decoder.hpp"
 #include "edit_atlas/presentation/desktop_integration.hpp"
 #include "edit_atlas/presentation/diagnostic_support.hpp"
+#include "edit_atlas/support/support_bundle.hpp"
 
 namespace edit_atlas::frontends::quick {
 namespace {

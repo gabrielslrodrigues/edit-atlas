@@ -19,12 +19,14 @@
 #include <vector>
 
 #include <QByteArray>
+#include <QList>
 #include <QSettings>
 #include <QStandardPaths>
 #include <QString>
-#include <QStringList>
+#include <QStringLiteral>
 #include <QVariant>
-#include <QtGlobal>
+#include <QtEnvironmentVariables>
+#include <QtTypes>
 
 namespace edit_atlas::presentation {
 namespace {

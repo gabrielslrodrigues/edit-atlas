@@ -18,13 +18,15 @@
 #include <system_error>
 #include <utility>
 
+#include <QByteArray>
 #include <QDir>
 #include <QFileInfo>
 #include <QObject>
 #include <QSettings>
 #include <QString>
+#include <QStringLiteral>
 #include <QUrl>
-#include <QtGlobal>
+#include <QVariant>
 
 #include "edit_atlas/core/format_registry.hpp"
 #include "edit_atlas/presentation/desktop_integration.hpp"

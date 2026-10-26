@@ -25,9 +25,12 @@
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QLineEdit>
+#include <QList>
 #include <QPushButton>
 #include <QString>
+#include <QStringLiteral>
 #include <QVBoxLayout>
+#include <QVariant>
 #include <QWidget>
 
 #include "accessibility.hpp"

@@ -16,13 +16,10 @@
 #include <vector>
 
 #include <QAbstractListModel>
-#include <QByteArray>
-#include <QHash>
 #include <QModelIndex>
 #include <QObject>
 #include <QString>
 #include <QStringList>
-#include <QVariant>
 #include <Qt>
 
 #include "edit_atlas/core/editorial_timeline.hpp"

@@ -28,6 +28,7 @@
 
 #include "edit_atlas/core/editorial_timeline.hpp"
 #include "edit_atlas/core/rgb_image.hpp"
+#include "edit_atlas/core/timecode.hpp"
 #include "edit_atlas/media/video_decoder.hpp"
 #include "edit_atlas/services/timeline_video_inspection_service.hpp"
 

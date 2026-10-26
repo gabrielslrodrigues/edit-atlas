@@ -21,8 +21,9 @@
 
 #include <QCoreApplication>
 #include <QGuiApplication>
+#include <QString>
 #include <QSysInfo>
-#include <QtGlobal>
+#include <QtVersion>
 #include <spdlog/spdlog.h>
 
 #include "edit_atlas/core/format.hpp"

@@ -12,9 +12,15 @@
 
 #include "edit_atlas/presentation/appearance.hpp"
 
+#include <initializer_list>
+#include <string>
+
+#include <QChar>
+#include <QLatin1Char>
 #include <QObject>
 #include <QSettings>
 #include <QString>
+#include <QStringLiteral>
 #include <gtest/gtest.h>
 
 namespace edit_atlas::presentation {

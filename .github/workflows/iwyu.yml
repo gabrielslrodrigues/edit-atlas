@@ -1,0 +1,127 @@
+name: Style / Include What You Use
+
+on:
+  workflow_call:
+
+permissions:
+  contents: read
+
+jobs:
+  iwyu:
+    name: Clang 22 / Linux x64
+    runs-on: ubuntu-26.04
+    timeout-minutes: 180
+    permissions:
+      contents: read
+      packages: write
+    concurrency:
+      group: vcpkg-cache-ubuntu-26.04-x64-linux-iwyu
+      cancel-in-progress: false
+    env:
+      EDIT_ATLAS_LINUX_C_COMPILER: /usr/bin/clang-22
+      EDIT_ATLAS_LINUX_CXX_COMPILER: /usr/bin/clang++-22
+      FEED_URL: https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json
+      VCPKG_BINARY_SOURCES: clear;nuget,https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json,readwrite
+      VCPKG_DISABLE_METRICS: 1
+      VCPKG_EXE: ${{ github.workspace }}/vcpkg/vcpkg
+      VCPKG_USERNAME: ${{ github.repository_owner }}
+      X_VCPKG_NUGET_ID_PREFIX: edit-atlas-iwyu-
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v7.0.1
+        with:
+          submodules: recursive
+
+      - name: Free Linux runner disk space
+        run: |
+          df --human-readable /
+          sudo rm -rf \
+            /opt/ghc \
+            /opt/hostedtoolcache/CodeQL \
+            /usr/local/.ghcup \
+            /usr/local/lib/android \
+            /usr/local/share/boost \
+            /usr/local/share/powershell \
+            /usr/share/dotnet
+          df --human-readable /
+
+      - name: Install Ubuntu IWYU dependencies
+        timeout-minutes: 45
+        run: ./scripts/ci/install-ubuntu-dependencies.sh --iwyu
+
+      # Installing GCC 16 headers alone does not prevent Clang from selecting
+      # a newer GCC added to the hosted runner image.
+      - name: Require the GCC 16 toolchain
+        run: |
+          gcc_runtime="$("$EDIT_ATLAS_LINUX_CXX_COMPILER" -print-libgcc-file-name)"
+          if [[ "${gcc_runtime}" != /usr/lib/gcc/x86_64-linux-gnu/16/* ]]; then
+            echo "::error::Expected GCC 16; Clang selected ${gcc_runtime}" >&2
+            exit 1
+          fi
+
+      - name: Install CMake and Ninja
+        uses: lukka/get-cmake@e6906078ebd1ccb8ce51ab4626ac46a1b5a517e3 # v4.4.0
+
+      - name: Bootstrap vcpkg
+        run: ./vcpkg/bootstrap-vcpkg.sh -disableMetrics
+
+      - name: Configure GitHub Packages NuGet source
+        shell: bash
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          nuget_path="$("$VCPKG_EXE" fetch nuget | tail -n 1)"
+          mono "$nuget_path" sources add \
+            -Source "$FEED_URL" \
+            -StorePasswordInClearText \
+            -Name GitHubPackages \
+            -UserName "$VCPKG_USERNAME" \
+            -Password "$GITHUB_TOKEN"
+          mono "$nuget_path" setapikey "$GITHUB_TOKEN" -Source "$FEED_URL"
+
+      - name: Restore include-what-you-use build
+        id: include-what-you-use-cache
+        uses: actions/cache/restore@v6
+        with:
+          path: build/include-what-you-use
+          key: >-
+            include-what-you-use-v1-ubuntu-26.04-clang-22-${{ hashFiles(
+              'cmake/BuildIncludeWhatYouUse.cmake',
+              'cmake/EditAtlasIncludeWhatYouUse.cmake',
+              'scripts/ci/install-ubuntu-dependencies.sh'
+            ) }}
+
+      - name: Configure Debug with Include What You Use
+        run: >-
+          cmake --preset debug-x64-linux
+          -DEDIT_ATLAS_INCLUDE_WHAT_YOU_USE=ON
+
+      - name: Save include-what-you-use build
+        if: >-
+          steps.include-what-you-use-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v6
+        with:
+          path: build/include-what-you-use
+          key: ${{ steps.include-what-you-use-cache.outputs.cache-primary-key }}
+
+      - name: Clean vcpkg temporary directories
+        run: |
+          cmake -E remove_directory "${{ github.workspace }}/vcpkg/buildtrees"
+          cmake -E remove_directory "${{ github.workspace }}/vcpkg/downloads"
+          cmake -E remove_directory "${{ github.workspace }}/vcpkg/packages"
+
+      - name: Build Debug with Include What You Use
+        run: cmake --build --preset debug-x64-linux
+
+      - name: Upload IWYU build diagnostics
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: iwyu-build-diagnostics
+          path: |
+            build/*/CMakeFiles/CMakeConfigureLog.yaml
+            build/*/vcpkg-manifest-install.log
+            vcpkg/buildtrees/**/*.log
+          if-no-files-found: ignore
+          retention-days: 7

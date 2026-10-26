@@ -17,6 +17,7 @@
 
 #include <QFutureWatcher>
 #include <QMetaObject>
+#include <QMetaType>
 #include <QObject>
 #include <QPointer>
 #include <Qt>

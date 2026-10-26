@@ -15,10 +15,8 @@
 
 #include <filesystem>
 
-#include <QDragEnterEvent>
-#include <QDropEvent>
-#include <QEvent>
 #include <QMainWindow>
+#include <QObject>
 #include <QTranslator>
 #include <QWidget>
 

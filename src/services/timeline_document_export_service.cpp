@@ -13,6 +13,7 @@
 #include "edit_atlas/services/timeline_document_export_service.hpp"
 
 #include <expected>
+#include <optional>
 #include <system_error>
 #include <utility>
 

@@ -20,23 +20,32 @@
 #include <string>
 #include <string_view>
 #include <utility>
+#include <vector>
 
 #include <QAbstractItemModel>
+#include <QByteArray>
 #include <QFileInfo>
+#include <QList>
 #include <QObject>
 #include <QSortFilterProxyModel>
 #include <QString>
 #include <QStringList>
+#include <QStringLiteral>
 #include <QTranslator>
 #include <QUrl>
-#include <QtGlobal>
+#include <Qt>
 
 #include "edit_atlas/core/editorial_timeline.hpp"
+#include "edit_atlas/core/format.hpp"
 #include "edit_atlas/core/format_registry.hpp"
 #include "edit_atlas/core/timecode.hpp"
 #include "edit_atlas/formats/cmx3600/cmx3600_importer.hpp"
+#include "edit_atlas/frontends/quick/application_information_view_model.hpp"
 #include "edit_atlas/frontends/quick/spreadsheet_export_view_model.hpp"
+#include "edit_atlas/frontends/quick/support_bundle_view_model.hpp"
+#include "edit_atlas/frontends/quick/timeline_configuration_view_model.hpp"
 #include "edit_atlas/presentation/application_state.hpp"
+#include "edit_atlas/presentation/diagnostic_model.hpp"
 #include "edit_atlas/presentation/diagnostic_text.hpp"
 #include "edit_atlas/presentation/timeline_document_view_model.hpp"
 #include "edit_atlas/presentation/timeline_event_model.hpp"

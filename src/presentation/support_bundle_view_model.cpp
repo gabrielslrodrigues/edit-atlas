@@ -14,10 +14,13 @@
 
 #include <expected>
 #include <filesystem>
+#include <memory>
 #include <optional>
+#include <string>
 #include <utility>
 
 #include <QObject>
+#include <spdlog/logger.h>
 #include <spdlog/spdlog.h>
 
 #include "edit_atlas/presentation/support_bundle_workflow.hpp"

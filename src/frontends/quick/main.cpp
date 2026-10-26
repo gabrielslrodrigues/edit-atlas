@@ -11,22 +11,27 @@
 // limitations under the License.
 
 #include <cstdlib>
+#include <expected>
+#include <filesystem>
 #include <string>
 #include <utility>
 
 #include <QCoreApplication>
 #include <QGuiApplication>
 #include <QIcon>
+#include <QMap>
 #include <QObject>
 #include <QQmlApplicationEngine>
 #include <QQuickStyle>
 #include <QString>
+#include <QStringLiteral>
 #include <QTranslator>
 #include <QVariant>
 #include <QVariantMap>
 #include <Qt>
 #include <spdlog/spdlog.h>
 
+#include "edit_atlas/core/format_registry.hpp"
 #include "edit_atlas/core/version.hpp"
 #include "edit_atlas/frontends/quick/application_shell_view_model.hpp"
 #include "edit_atlas/media/video_decoder.hpp"

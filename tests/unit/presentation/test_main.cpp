@@ -10,12 +10,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <QByteArray>
+#include <QByteArrayView>
 #include <QCoreApplication>
 #include <QDir>
 #include <QString>
+#include <QStringLiteral>
 #include <QTemporaryDir>
-#include <QtGlobal>
+#include <QtEnvironmentVariables>
 #include <gtest/gtest.h>
 
 #include "edit_atlas/presentation/application_state.hpp"

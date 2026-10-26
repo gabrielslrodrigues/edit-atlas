@@ -10,6 +10,7 @@ triggers and permissions.
 | Workflow | Trigger | Responsibility |
 | --- | --- | --- |
 | `ci.yml` | `master`, pull requests, daily schedule, manual dispatch | Orchestrate ordinary package validation and the packaged E2E of every supported frontend, report the single required gate, then delete transient package-transfer artifacts |
+| `iwyu.yml` | Reusable only | Enforce direct includes in a Debug build on Ubuntu 26.04 with Clang 22, IWYU 0.26, and GCC 16 headers |
 | `style.yml` | Reusable only | Check pinned language tools and repository text conventions on Linux and Windows |
 | `build-and-package.yml` | Reusable only | Build and test every supported triplet, package Widgets and Quick, and create universal macOS packages |
 | `package-verification.yml` | Reusable only | Install and verify both frontend packages on every supported clean verification system |
@@ -100,8 +101,14 @@ cmake --preset debug-x64-linux \
 cmake --build --preset debug-x64-linux
 ```
 
-CI verifies this control build so PCH availability cannot replace direct
-includes.
+The required `iwyu.yml` workflow enables
+`EDIT_ATLAS_INCLUDE_WHAT_YOU_USE`, which disables PCH and fails compilation
+on include findings across application and test sources. It uses Ubuntu
+26.04 with Clang 22, IWYU 0.26, and GCC 16's standard library because IWYU
+findings depend on both the analyser and the standard-library headers.
+Package production stays on Ubuntu 24.04 to preserve the glibc 2.39 baseline.
+The IWYU job uses a separate NuGet package prefix and concurrency group; its
+first run builds its own dependencies, including Qt.
 
 ## Artifact lifecycle
 
@@ -125,9 +132,9 @@ the same triplet is serialized while different triplets run concurrently.
 ## Permissions and publication boundary
 
 The reusable workflows default to read-only repository access. Callers grant
-`packages: write` only to package production and `actions: write` only where
-transient artifacts must be deleted. Ordinary CI has no release or Pages
-permission.
+`packages: write` only to package production and IWYU dependency caching,
+and `actions: write` only where transient artifacts must be deleted.
+Ordinary CI has no release or Pages permission.
 
 Only `release.yml` responds to version tags. Its draft-release job uses the
 protected `edit-atlas-release` environment, and only its publication job can
@@ -216,8 +223,8 @@ another.
 `master` requires exactly one status check, `CI gate`. Nothing else belongs
 in the ruleset.
 
-The gate job in `ci.yml` depends on style checks, package production, package
-verification, and the packaged E2E of every supported frontend, runs with
+The gate job in `ci.yml` depends on style checks, IWYU, package production,
+package verification, and the packaged E2E of every supported frontend, runs with
 `if: always()`, and fails unless every dependency concluded `success`. Making
 a job mandatory therefore means adding it to the gate's `needs:` list, which
 is reviewed with the change that introduces it. Renaming, re-matrixing, or

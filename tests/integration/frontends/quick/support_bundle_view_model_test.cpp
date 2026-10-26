@@ -13,16 +13,18 @@
 #include "edit_atlas/frontends/quick/support_bundle_view_model.hpp"
 
 #include <cstddef>
+#include <expected>
 #include <filesystem>
 #include <fstream>
-#include <ios>
 #include <string>
 #include <string_view>
 
+#include <QByteArray>
 #include <QDir>
 #include <QSettings>
 #include <QSignalSpy>
 #include <QString>
+#include <QStringLiteral>
 #include <QTemporaryDir>
 #include <QUrl>
 #include <gtest/gtest.h>

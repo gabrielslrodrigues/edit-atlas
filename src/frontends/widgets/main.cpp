@@ -11,6 +11,8 @@
 // limitations under the License.
 
 #include <cstdlib>
+#include <expected>
+#include <filesystem>
 #include <string>
 #include <utility>
 
@@ -20,10 +22,12 @@
 #include <QIcon>
 #include <QObject>
 #include <QString>
+#include <QStringLiteral>
 #include <QTranslator>
 #include <spdlog/spdlog.h>
 
 #include "accessibility.hpp"
+#include "edit_atlas/core/format_registry.hpp"
 #include "edit_atlas/core/version.hpp"
 #include "edit_atlas/frontends/widgets/application_style.hpp"
 #include "edit_atlas/frontends/widgets/main_window.hpp"
@@ -34,6 +38,7 @@
 #include "edit_atlas/presentation/translation.hpp"
 #include "edit_atlas/services/built_in_formats.hpp"
 #include "edit_atlas/support/application_logging.hpp"
+#include "edit_atlas/support/support_bundle.hpp"
 
 int main(int argc, char* argv[]) {
   QApplication application{argc, argv};

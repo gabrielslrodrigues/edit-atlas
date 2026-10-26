@@ -14,15 +14,20 @@
 
 #include <cstddef>
 #include <filesystem>
+#include <span>
 #include <string>
 #include <system_error>
 #include <vector>
 
 #include <QAction>
+#include <QByteArray>
+#include <QList>
 #include <QSettings>
 #include <QString>
 #include <QStringList>
-#include <QtGlobal>
+#include <QStringLiteral>
+#include <QVariant>
+#include <QtEnvironmentVariables>
 #include <gtest/gtest.h>
 
 #include "edit_atlas/core/timeline_projection.hpp"
@@ -30,6 +35,8 @@
 #include "edit_atlas/presentation/appearance.hpp"
 #include "edit_atlas/presentation/diagnostic_support.hpp"
 #include "edit_atlas/presentation/translation.hpp"
+#include "edit_atlas/services/timeline_filter.hpp"
+#include "edit_atlas/services/timeline_template.hpp"
 #include "edit_atlas/services/timeline_template_service.hpp"
 
 namespace edit_atlas::frontends::widgets {

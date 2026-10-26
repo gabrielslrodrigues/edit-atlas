@@ -21,6 +21,8 @@
 
 #include <QSignalSpy>
 #include <QString>
+#include <QStringLiteral>
+#include <QVariant>
 #include <gtest/gtest.h>
 
 #include "edit_atlas/core/editorial_timeline.hpp"
