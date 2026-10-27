@@ -13,8 +13,8 @@ release_tag="$1"
 output_dir="$2"
 release_version="${release_tag#v}"
 
-if [[ ! "$release_tag" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-  echo "Release tag must use the vX.Y.Z form: $release_tag" >&2
+if [[ ! "$release_tag" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-rc\.[1-9][0-9]*)?$ ]]; then
+  echo "Release tag must use vX.Y.Z or vX.Y.Z-rc.N (N > 0): $release_tag" >&2
   exit 1
 fi
 
@@ -22,7 +22,7 @@ project_version="$({
   sed -nE 's/^[[:space:]]*"version-string":[[:space:]]*"([0-9]+\.[0-9]+\.[0-9]+)",?$/\1/p' \
     vcpkg.json
 } | head -n 1)"
-if [[ "$release_version" != "$project_version" ]]; then
+if [[ "${release_version%%-rc.*}" != "$project_version" ]]; then
   printf 'Release tag %s does not match project version %s.\n' \
     "$release_tag" "$project_version" >&2
   exit 1

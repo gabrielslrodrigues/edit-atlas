@@ -13,7 +13,7 @@ fail() {
 }
 
 # Check required package names, source archives, notices, and checksums.
-# Arguments: release directory, vX.Y.Z tag.
+# Arguments: release directory, vX.Y.Z or vX.Y.Z-rc.N tag.
 # Outputs: asset inventory to stdout; invalid assets to stderr.
 # Returns: 2 for invalid arguments, 1 when any asset fails validation.
 main() {
@@ -28,9 +28,11 @@ main() {
   local notice
   local path
   local present
+  local project_version
   local release_dir
   local release_tag
   local required
+  local source_dir
   local version
 
   if (( $# != 2 )); then
@@ -42,8 +44,19 @@ main() {
   release_tag="$2"
   version="${release_tag#v}"
 
-  if [[ ! "$release_tag" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-    echo "Release tag must use the vX.Y.Z form: $release_tag" >&2
+  if [[ ! "$release_tag" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-rc\.[1-9][0-9]*)?$ ]]; then
+    echo "Release tag must use vX.Y.Z or vX.Y.Z-rc.N (N > 0): $release_tag" >&2
+    exit 1
+  fi
+
+  source_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/../.." && pwd)"
+  project_version="$(
+    sed -nE \
+      's/^[[:space:]]*"version-string":[[:space:]]*"([0-9]+\.[0-9]+\.[0-9]+)",?$/\1/p' \
+      "$source_dir/vcpkg.json"
+  )"
+  if [[ "${version%%-rc.*}" != "$project_version" ]]; then
+    echo "Release tag does not match manifest version $project_version." >&2
     exit 1
   fi
 

@@ -64,6 +64,7 @@ main() {
   local package
   local package_dir
   local relative_path
+  local reported_version
   local script_dir
   local source_dir
   local universal_app
@@ -177,11 +178,18 @@ main() {
       -c "Print :CFBundleShortVersionString" \
       "$universal_app/Contents/Info.plist"
   )"
+  reported_version="$("$universal_app/Contents/MacOS/edit-atlas-cli" --version)"
+  reported_version="${reported_version#Edit Atlas }"
+  if [[ "${reported_version%%-rc.*}" != "$version" ]]; then
+    echo "The CLI and bundle versions disagree." >&2
+    exit 1
+  fi
   cmake -E make_directory "$package_dir"
-  package="$package_dir/edit-atlas-$version-macos-universal.pkg"
+  package="$package_dir/edit-atlas-$reported_version-macos-universal.pkg"
   pkgbuild \
     --component "$universal_app" \
     --install-location /Applications \
+    --version "$version" \
     "$package"
   shasum -a 256 "$package" >"$package.sha256"
 

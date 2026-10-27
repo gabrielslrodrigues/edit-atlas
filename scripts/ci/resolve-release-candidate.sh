@@ -2,13 +2,10 @@
 
 set -euo pipefail
 
-# Derives the release candidate version from the checked-out manifest, which
-# is the single source of truth CMake also reads. A dry run has no tag to
-# validate against, so the candidate tag is synthesized from that version and
-# handed to the same release scripts a tagged run uses.
+# Use the caller's release tag, or synthesize a final tag for a dry run.
 
-if (( $# > 1 )); then
-  echo "Usage: $0 [output-file]" >&2
+if (( $# > 2 )); then
+  echo "Usage: $0 [output-file [release-tag]]" >&2
   exit 2
 fi
 
@@ -27,18 +24,28 @@ fi
 # need, and the corresponding-source scripts already enforce the match in the
 # jobs that do check the submodule out.
 
-candidate_tag="v$project_version"
+candidate_tag="${2:-v$project_version}"
+if [[ ! "$candidate_tag" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-rc\.[1-9][0-9]*)?$ ||
+  "${candidate_tag%%-rc.*}" != "v$project_version" ]]; then
+  echo "Invalid release tag for version $project_version: $candidate_tag" >&2
+  exit 1
+fi
+candidate_version="${candidate_tag#v}"
+prerelease_suffix="${candidate_version#"$project_version"}"
+
 commit="$(git rev-parse HEAD)"
 
 echo "Release candidate $candidate_tag at $commit." >&2
-if git rev-parse -q --verify "refs/tags/$candidate_tag" >/dev/null; then
+if [[ -z "${2:-}" ]] &&
+  git rev-parse -q --verify "refs/tags/$candidate_tag" >/dev/null; then
   printf 'Note: tag %s already exists; this run publishes nothing.\n' \
     "$candidate_tag" >&2
 fi
 
 output="${1:-/dev/stdout}"
 {
-  echo "version=$project_version"
+  echo "version=$candidate_version"
+  echo "prerelease_suffix=$prerelease_suffix"
   echo "tag=$candidate_tag"
   echo "commit=$commit"
 } >> "$output"

@@ -32,7 +32,7 @@ target_sources(
 
 target_compile_definitions(
     edit_atlas_core
-    PRIVATE EDIT_ATLAS_VERSION="${PROJECT_VERSION}"
+    PRIVATE EDIT_ATLAS_VERSION="${EDIT_ATLAS_VERSION}"
 )
 
 target_compile_features(edit_atlas_core PUBLIC cxx_std_23)

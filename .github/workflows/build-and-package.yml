@@ -3,6 +3,11 @@ name: Build and Package
 on:
   workflow_call:
     inputs:
+      prerelease_suffix:
+        description: Empty for finals, or -rc.N for a release candidate
+        required: false
+        default: ''
+        type: string
       artifact_retention_days:
         description: Retention for transient staged bundles and packages
         required: false
@@ -223,6 +228,7 @@ jobs:
         run: >-
           cmake -S "${{ matrix.source_dir }}"
           --preset ${{ matrix.debug_preset }}
+          "-DEDIT_ATLAS_PRERELEASE_SUFFIX=${{ inputs.prerelease_suffix }}"
 
       - name: Report vcpkg binary package activity
         if: always()
@@ -319,6 +325,7 @@ jobs:
         run: >-
           cmake -S "${{ matrix.source_dir }}"
           --preset ${{ matrix.release_preset }}
+          "-DEDIT_ATLAS_PRERELEASE_SUFFIX=${{ inputs.prerelease_suffix }}"
 
       - name: Clean vcpkg temporary directories
         run: |

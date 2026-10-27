@@ -9,6 +9,11 @@ name: Release candidate
 on:
   workflow_call:
     inputs:
+      tag:
+        description: Release tag; empty derives vX.Y.Z from the manifest
+        required: false
+        default: ''
+        type: string
       asset_artifact_name:
         description: Artifact name for the assembled, verified assets
         required: true
@@ -25,10 +30,10 @@ on:
         type: number
     outputs:
       version:
-        description: Candidate version derived from the manifest
+        description: Full candidate version
         value: ${{ jobs.candidate.outputs.version }}
       tag:
-        description: Candidate tag derived from the manifest
+        description: Validated or synthesized candidate tag
         value: ${{ jobs.candidate.outputs.tag }}
       frontend:
         description: Frontend whose packages the candidate contains
@@ -45,6 +50,7 @@ jobs:
       contents: read
     outputs:
       version: ${{ steps.resolve.outputs.version }}
+      prerelease_suffix: ${{ steps.resolve.outputs.prerelease_suffix }}
       tag: ${{ steps.resolve.outputs.tag }}
       frontend: ${{ steps.frontends.outputs.production }}
 
@@ -54,7 +60,11 @@ jobs:
 
       - name: Resolve the candidate version
         id: resolve
-        run: ./scripts/ci/resolve-release-candidate.sh "$GITHUB_OUTPUT"
+        env:
+          RELEASE_TAG: ${{ inputs.tag }}
+        run: >-
+          ./scripts/ci/resolve-release-candidate.sh
+          "$GITHUB_OUTPUT" "$RELEASE_TAG"
 
       # A release publishes the frontend production ships, which is a build
       # option rather than a fixed toolkit, so it is derived here instead of
@@ -125,6 +135,7 @@ jobs:
     uses: ./.github/workflows/build-and-package.yml
     with:
       artifact_retention_days: ${{ inputs.artifact_retention_days }}
+      prerelease_suffix: ${{ needs.candidate.outputs.prerelease_suffix }}
     permissions:
       actions: write
       contents: read

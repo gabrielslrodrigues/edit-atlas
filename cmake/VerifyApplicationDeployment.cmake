@@ -61,7 +61,9 @@ if(NOT edit_atlas_cli_smoke_result EQUAL 0)
         "${edit_atlas_cli_smoke_error}"
     )
 endif()
-if(NOT edit_atlas_cli_version MATCHES "^Edit Atlas [0-9]+\\.[0-9]+\\.[0-9]+")
+string(STRIP "${edit_atlas_cli_version}" edit_atlas_cli_version)
+if(NOT edit_atlas_cli_version MATCHES
+    "^Edit Atlas [0-9]+\\.[0-9]+\\.[0-9]+(-rc\\.[1-9][0-9]*)?$")
     message(
         FATAL_ERROR
         "The staged command-line executable returned an unexpected version: "
