@@ -94,6 +94,12 @@ filterConditionNRegularExpression
 filterConditionNRemove
 ```
 
+The Quick `toggleFiltersButton` exposes a checkable button whose checked
+state means the panel is expanded. Automation sets it checked before waiting
+for a filter row; absence of a row during model or accessibility-tree refresh
+must never be interpreted as a request to toggle the panel. Widgets keeps its
+filter panel visible and does not require this button.
+
 Identifiers are renumbered after a row is removed. An adapter should reacquire
 a row after operations that add, remove, clear, or apply filter conditions.
 

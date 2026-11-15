@@ -94,7 +94,7 @@ jobs:
             build/e2e/crash-dumps
             build/e2e/output
           if-no-files-found: ignore
-          retention-days: 7
+          retention-days: 14
 
   macos:
     # GitHub-hosted macOS runners cannot grant Accessibility permission to the
@@ -192,7 +192,7 @@ jobs:
             build/e2e/crash-dumps
             build/e2e/output
           if-no-files-found: ignore
-          retention-days: 7
+          retention-days: 14
 
   windows:
     name: Windows / ${{ inputs.frontend }} frontend
@@ -249,4 +249,4 @@ jobs:
             build/e2e/output
             build/e2e/*.log
           if-no-files-found: ignore
-          retention-days: 7
+          retention-days: 14

@@ -116,8 +116,9 @@ first run builds its own dependencies, including Qt.
 Application packages and native macOS stages are inter-job transfer artifacts,
 not public development releases. Ordinary CI gives them one-day fallback
 retention and deletes them after package and E2E validation. E2E reports,
-crash dumps, installer logs, and build diagnostics remain available for seven
-days because they do not distribute a runnable Edit Atlas package.
+accessibility trees, screenshots, and crash dumps remain available for 14 days;
+installer logs and build diagnostics remain for seven days. These diagnostics
+do not distribute a runnable Edit Atlas package.
 
 Release runs retain transfer artifacts for up to three days as recovery data.
 The release workflow publishes only the resolved production frontend and its
