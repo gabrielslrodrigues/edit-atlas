@@ -129,6 +129,29 @@ The vcpkg NuGet feed is a dependency binary cache rather than a workflow
 artifact. Package jobs retain the existing per-triplet concurrency groups so
 the same triplet is serialized while different triplets run concurrently.
 
+## Dependency setup and diagnostics
+
+Native and IWYU jobs allow 300 minutes for a cold dependency build. System
+package installation has a separate 15-minute limit; package verification
+still has a 20-minute job limit. Ubuntu setup retries downloads three times
+with 30-second connection timeouts and rejects any failed repository index
+before installing packages.
+
+`cmake/CleanVcpkg.cmake` preserves `downloads/tools` between build phases,
+including the NuGet executable. It removes downloaded source archives,
+`buildtrees`, and package staging, after copying build-tree logs into
+`build/ci-logs`. It reports logical file bytes before and after cleanup;
+these are directory contents, not filesystem free-space measurements. Final
+cleanup removes tools too. The NuGet binary-cache backend is unchanged.
+
+Configure and build phases stream output into `build/ci-logs` and report
+elapsed time and exit status. Cache reporting reads these captured configure
+logs even if CMake never finishes writing its manifest-install log. It
+separates restored packages, started builds, completed builds, and cache-error
+log lines. Missing logs mean unknown activity, not zero builds. Failure and
+cancellation uploads precede final cleanup; a forcibly terminated runner may
+still be unable to upload diagnostics.
+
 ## Permissions and publication boundary
 
 The reusable workflows default to read-only repository access. Callers grant

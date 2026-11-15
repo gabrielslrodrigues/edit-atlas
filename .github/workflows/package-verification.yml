@@ -38,8 +38,10 @@ jobs:
     steps:
       - name: Install Ubuntu verification tools
         if: matrix.distribution == 'ubuntu'
+        timeout-minutes: 15
+        shell: bash
         run: |
-          set -eu
+          set -euo pipefail
           # A container inherits the vanilla sources and reaches the public
           # archive, while the runner hosting it has a local mirror.
           for sources in /etc/apt/sources.list \
@@ -50,10 +52,14 @@ jobs:
               -e 's|http://security\.ubuntu\.com|http://azure.archive.ubuntu.com|g' \
               "${sources}"
           done
-          printf 'Acquire::Retries "3";\n' \
-            > /etc/apt/apt.conf.d/99-edit-atlas-retries
-          apt-get update
-          apt-get install --yes --no-install-recommends \
+          apt_options=(
+            -o APT::Update::Error-Mode=any
+            -o Acquire::Retries=3
+            -o Acquire::http::Timeout=30
+            -o Acquire::https::Timeout=30
+          )
+          apt-get "${apt_options[@]}" update
+          apt-get "${apt_options[@]}" install --yes --no-install-recommends \
             binutils \
             ca-certificates \
             cmake \
@@ -66,6 +72,7 @@ jobs:
 
       - name: Install Fedora verification tools
         if: matrix.distribution == 'fedora'
+        timeout-minutes: 15
         run: >-
           dnf install
           --assumeyes
