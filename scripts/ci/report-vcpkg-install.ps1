@@ -3,8 +3,13 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
-$logs = @(Get-ChildItem -LiteralPath $LogDirectory `
-  -Filter 'configure-*.log' -File -ErrorAction SilentlyContinue)
+$logOptions = @{
+  LiteralPath = $LogDirectory
+  Filter = 'configure-*.log'
+  File = $true
+  ErrorAction = 'SilentlyContinue'
+}
+$logs = @(Get-ChildItem @logOptions)
 if ($logs.Count -eq 0) {
   Write-Warning 'No configure log was captured; cache activity is unknown.'
   exit 0
@@ -30,9 +35,11 @@ foreach ($log in $logs) {
     }
   }
   $finished = @($started | Where-Object { $completed.Contains($_) })
-  $message = "$($log.BaseName): $restoredCount restored; " `
-    + "$($started.Count) builds started; $($finished.Count) completed; " `
-    + "$cacheErrors cache-error log lines"
+  $message = @(
+    "$($log.BaseName): $restoredCount restored; "
+    "$($started.Count) builds started; $($finished.Count) completed; "
+    "$cacheErrors cache-error log lines"
+  ) -join ''
   Write-Host $message
   if ($env:GITHUB_STEP_SUMMARY) {
     Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value "- $message"

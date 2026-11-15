@@ -1,4 +1,4 @@
-"""Recovery policy regressions using recorded GitHub failure signatures."""
+"""Exercise recovery policy with recorded GitHub failures."""
 
 import json
 import unittest
@@ -117,7 +117,7 @@ class RecoveryTest(unittest.TestCase):
             self.evidence_log("unknown"),
             self.evidence_log("future-category"),
             log.replace('"version": 1', '"version": 2'),
-            log.replace('"version": 1', 'not json'),
+            log.replace('"version": 1', "not json"),
         ]:
             self.assertIsNone(recovery.classify_job(job, [], invalid))
             self.assertIsNone(

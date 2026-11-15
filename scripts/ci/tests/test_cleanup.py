@@ -1,4 +1,4 @@
-"""Exercise cleanup against disposable dependency trees, never real builds."""
+"""Exercise cleanup against disposable dependency trees."""
 
 import os
 import subprocess

@@ -1,4 +1,4 @@
-"""Opening filters must not toggle a visible panel during row recreation."""
+"""Keep filters open during row recreation."""
 
 import pytest
 
@@ -13,7 +13,7 @@ class FilterSession:
         self.fields_waited = 0
 
     def has_element(self, identifier, *, showing=True):
-        # Row lookup can be empty while the accessibility tree refreshes.
+        # Row lookup can be empty during an accessibility tree refresh.
         return identifier == "toggleFiltersButton" and self.quick
 
     def set_checked(self, identifier, checked):

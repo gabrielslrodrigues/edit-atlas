@@ -1,4 +1,4 @@
-"""Classify scheduled CI failures and request at most one complete rerun."""
+"""Classify scheduled CI failures and request one full rerun."""
 
 from __future__ import annotations
 
@@ -24,13 +24,13 @@ def eligible(run: dict, repository: str, master_sha: str) -> bool:
         and run.get("head_sha") == master_sha
         and run.get("run_attempt") == 1
         and run.get("status") == "completed"
-        # A manually cancelled run must never be restarted automatically.
+        # Never restart a manually cancelled run.
         and run.get("conclusion") == "failure"
     )
 
 
 def step_evidence(step: dict, log: str) -> str | None:
-    """Read the final structured record belonging to this failed step."""
+    """Read the final structured record for this failed step."""
     category = None
     for line in log.splitlines():
         fields = line.split("\t", 2)
@@ -60,7 +60,7 @@ def step_evidence(step: dict, log: str) -> str | None:
 
 
 def classify_job(job: dict, annotations: list[dict], log: str) -> str | None:
-    """Require explicit evidence for every failed step, regardless of name."""
+    """Require explicit evidence for every failed step."""
     steps = job.get("steps", [])
     if not steps and any(
         RUNNER_FAILURE in annotation.get("message", "")
@@ -84,7 +84,7 @@ def classify_job(job: dict, annotations: list[dict], log: str) -> str | None:
 
 
 def decide(jobs: list[dict], evidence: dict) -> tuple[bool, list[str]]:
-    """Require infrastructure evidence for every originating failed job."""
+    """Require infrastructure evidence for each originating failure."""
     reasons = []
     for job in jobs:
         if job.get("conclusion") in ("success", "skipped"):
@@ -99,7 +99,7 @@ def decide(jobs: list[dict], evidence: dict) -> tuple[bool, list[str]]:
 
 
 def gh(*arguments: str) -> str:
-    """Call GitHub CLI without a shell; API failures fail recovery closed."""
+    """Call GitHub CLI; API failures block recovery."""
     return subprocess.run(
         ["gh", *arguments], check=True, capture_output=True, text=True
     ).stdout
@@ -166,8 +166,8 @@ def recover() -> None:
     if not retry:
         summary(["No automatic retry: validation remains blocking."])
         return
-    # The workflow serializes by original run ID. Re-read state immediately
-    # before mutation to reject duplicate events or a concurrent manual run.
+    # Serialization uses the original run ID. Recheck state before
+    # mutation to reject duplicate events or a concurrent manual run.
     run = api(run_path)
     master_sha = api(f"{base}/git/ref/heads/master")["object"]["sha"]
     if not eligible(run, repository, master_sha):

@@ -1,4 +1,4 @@
-"""Exercise APT failures without installing packages or changing the host."""
+"""Exercise APT failures without changing the host."""
 
 import os
 import subprocess
@@ -8,7 +8,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[3]
 INSTALLER = ROOT / "scripts/ci/install-ubuntu-dependencies.sh"
-APT = '''#!/usr/bin/env bash
+APT = """#!/usr/bin/env bash
 set -euo pipefail
 printf '%s\\n' "$*" >> "$APT_TEST_LOG"
 for required in APT::Update::Error-Mode=any Acquire::Retries=3 \\
@@ -29,7 +29,7 @@ elif [[ "$APT_TEST_RESULT" == missing ]]; then
   echo 'E: Unable to locate package fixture' >&2
   exit 100
 fi
-'''
+"""
 
 
 class AptSetupTest(unittest.TestCase):
@@ -41,8 +41,8 @@ class AptSetupTest(unittest.TestCase):
         step = step.split("      - name: Install Fedora", 1)[0]
         body = step.split("          run: |\n", 1)[1]
         verification = "\n".join(line[12:] for line in body.splitlines())
-        # Only package setup is exercised; source-rewriting is not run on
-        # the developer's host. The same options remain in the extracted body.
+        # Exercise package setup without rewriting host sources.
+        # Keep the same options in the extracted body.
         verification = verification[verification.index("apt_options=(") :]
         for profile in ["host", "verification"]:
             for outcome in ["dns", "recovered", "missing"]:
@@ -52,7 +52,7 @@ class AptSetupTest(unittest.TestCase):
                         scripts = {
                             "apt-get": APT,
                             "sudo": '#!/usr/bin/env bash\nexec "$@"\n',
-                            "tee": '#!/usr/bin/env bash\ncat >/dev/null\n',
+                            "tee": "#!/usr/bin/env bash\ncat >/dev/null\n",
                         }
                         for name, contents in scripts.items():
                             path = directory / name

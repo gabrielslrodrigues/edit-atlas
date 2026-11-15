@@ -1,4 +1,4 @@
-"""Exercise infrastructure evidence using disposable commands, never a network."""
+"""Exercise infrastructure evidence with disposable commands."""
 
 import json
 import os
