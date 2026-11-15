@@ -38,6 +38,6 @@ jobs:
       - name: Verify CI automation contracts
         run: python -m unittest discover -s scripts/ci/tests -p "test_*.py"
 
-      - name: Verify Ubuntu setup failure handling
+      - name: Verify infrastructure setup failure handling
         if: runner.os == 'Linux'
-        run: python3 -m unittest discover -s scripts/ci/tests -p "apt_*.py"
+        run: python3 -m unittest discover -s scripts/ci/tests -p "*_setup.py"

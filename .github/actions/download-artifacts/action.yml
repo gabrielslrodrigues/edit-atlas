@@ -1,0 +1,23 @@
+name: Download workflow artifacts
+description: Download artifacts from this run with classified failure evidence
+inputs:
+  name:
+    description: Exact artifact name (mutually exclusive with pattern)
+    default: ''
+  pattern:
+    description: Artifact glob; each match gets its own subdirectory
+    default: ''
+  path:
+    description: Extraction directory
+    required: true
+runs:
+  using: composite
+  steps:
+    - uses: ./.github/actions/run-infrastructure
+      env:
+        GH_TOKEN: ${{ github.token }}
+        ARTIFACT_NAME: ${{ inputs.name }}
+        ARTIFACT_PATTERN: ${{ inputs.pattern }}
+        ARTIFACT_DIRECTORY: ${{ inputs.path }}
+      with:
+        run: bash ./scripts/ci/download-artifacts.sh

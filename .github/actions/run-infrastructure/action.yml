@@ -1,0 +1,41 @@
+name: Run infrastructure operation
+description: Preserve command failures and emit classified recovery evidence
+inputs:
+  run:
+    description: Setup commands; never compilation or validation commands
+    required: true
+  shell:
+    description: bash or pwsh
+    default: bash
+runs:
+  using: composite
+  steps:
+    - shell: bash
+      env:
+        INFRASTRUCTURE_SCRIPT: ${{ inputs.run }}
+        INFRASTRUCTURE_SHELL: ${{ inputs.shell }}
+      run: |
+        set -euo pipefail
+        script_directory="$(mktemp -d "${RUNNER_TEMP}/infrastructure-XXXXXX")"
+        script_file="${script_directory}/operation"
+        trap 'rm -rf "${script_directory}"' EXIT
+        case "${INFRASTRUCTURE_SHELL}" in
+          bash)
+            printf '%s\n' "${INFRASTRUCTURE_SCRIPT}" > "${script_file}"
+            command=(bash -euo pipefail "${script_file}")
+            ;;
+          pwsh)
+            script_file="${script_file}.ps1"
+            printf '%s\n' \
+              '$ErrorActionPreference = "Stop"' \
+              '$PSNativeCommandUseErrorActionPreference = $true' \
+              "${INFRASTRUCTURE_SCRIPT}" > "${script_file}"
+            command=(pwsh -NoProfile -NonInteractive -File "${script_file}")
+            ;;
+          *)
+            echo 'Unsupported infrastructure shell' >&2
+            exit 2
+            ;;
+        esac
+        bash "${GITHUB_ACTION_PATH}/../../../scripts/ci/run-infrastructure.sh" \
+          "${command[@]}"

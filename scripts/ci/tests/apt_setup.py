@@ -39,8 +39,8 @@ class AptSetupTest(unittest.TestCase):
         marker = "      - name: Install Ubuntu verification tools"
         step = workflow.split(marker, 1)[1]
         step = step.split("      - name: Install Fedora", 1)[0]
-        body = step.split("        run: |\n", 1)[1]
-        verification = "\n".join(line[10:] for line in body.splitlines())
+        body = step.split("          run: |\n", 1)[1]
+        verification = "\n".join(line[12:] for line in body.splitlines())
         # Only package setup is exercised; source-rewriting is not run on
         # the developer's host. The same options remain in the extracted body.
         verification = verification[verification.index("apt_options=(") :]

@@ -10,6 +10,7 @@ triggers and permissions.
 | Workflow | Trigger | Responsibility |
 | --- | --- | --- |
 | `ci.yml` | `master`, pull requests, daily schedule, manual dispatch | Orchestrate ordinary package validation and the packaged E2E of every supported frontend, report the single required gate, then delete transient package-transfer artifacts |
+| `ci-recovery.yml` | Completion of scheduled CI | Classify infrastructure failures and request at most one complete retry on the current master commit |
 | `iwyu.yml` | Reusable only | Enforce direct includes in a Debug build on Ubuntu 26.04 with Clang 22, IWYU 0.26, and GCC 16 headers |
 | `style.yml` | Reusable only | Check pinned language tools and repository text conventions on Linux and Windows |
 | `build-and-package.yml` | Reusable only | Build and test every supported triplet, package Widgets and Quick, and create universal macOS packages |
@@ -152,11 +153,64 @@ log lines. Missing logs mean unknown activity, not zero builds. Failure and
 cancellation uploads precede final cleanup; a forcibly terminated runner may
 still be unable to upload diagnostics.
 
+## Scheduled recovery
+
+`ci-recovery.yml` examines completed scheduled CI runs using code from
+`master`, never code from the triggering ref. Only a failed first attempt
+on the current `master` commit is eligible. Pull requests, releases, manual
+runs, obsolete commits, and cancelled workflows are not restarted.
+
+Every originating failure must have recognized evidence: a hosted runner
+was never acquired, or a system-setup/artifact-download step encountered a
+DNS, connection, or transient HTTP service error. Unknown failures,
+compiler diagnostics, IWYU findings, test failures, and unexplained timeouts
+remain blocking. A dependency skip or the resulting failed `CI gate` is not
+an independent failure; a failed gate alone is insufficient evidence.
+
+Setup steps use `.github/actions/run-infrastructure`; artifact transfers use
+`.github/actions/download-artifacts`. The setup wrapper streams command
+output, preserves its exit status, and emits an `EDIT_ATLAS_CI_FAILURE` JSON
+record with protocol version 1 and category `transient-network` or `unknown`.
+Permanent errors override transient signatures. Successful operations emit no
+failure record, even if an internal retry logged a network error. The gate
+emits `dependency-failure` only when its dependencies did not succeed.
+Recovery consumes records from each failed step, not a whitelist of display
+names. Missing, malformed, unsupported, or unknown evidence blocks recovery.
+Runner-allocation failures still use GitHub annotations because no step ran.
+
+New setup operations must use the shared helper; compilation and validation
+must not use it. Renaming jobs or adding setup operations through the helper
+requires no recovery-policy edit. New tool error signatures belong in
+`run-infrastructure.sh`, beside the classification tests. Keep failure records
+in the step log so recovery does not depend on a successful artifact upload.
+
+The download helper uses `gh run download` for the current repository and run.
+An exact name extracts directly into the destination; a glob preserves each
+artifact's subdirectory. Download jobs and their reusable-workflow callers
+need `actions: read`. Hosted runners provide `gh`; verification containers
+install it with their other tools. Container checkout precedes setup so the
+local helpers are available, using checkout's REST fallback when Git is absent.
+
+Recovery serializes by original run ID and rechecks the attempt and current
+master immediately before requesting one complete rerun. It does not retry
+only downstream jobs: transfer artifacts have already been deleted, so the
+second attempt must recreate packages and run all validation. Existing gate
+requirements remain intact. Original logs stay under attempt 1, and recovery
+summaries record classification, refusal, or rerun submission. The completion
+of attempt 2 produces an outcome summary but cannot trigger another retry.
+
+After deployment, record 14 daily runs in the reliability issue, separating
+first-attempt successes from recovered successes and unexplained failures.
+A recovered success does not erase the original infrastructure failure.
+
 ## Permissions and publication boundary
 
 The reusable workflows default to read-only repository access. Callers grant
 `packages: write` only to package production and IWYU dependency caching,
-and `actions: write` only where transient artifacts must be deleted.
+and `actions: write` where transient artifacts must be deleted or the
+scheduled recovery workflow must request a rerun. Recovery also has read-only
+Checks access for runner-allocation annotations. Artifact consumers receive
+`actions: read` for the download helper.
 Ordinary CI has no release or Pages permission.
 
 Only `release.yml` responds to version tags. Its draft-release job uses the

@@ -48,7 +48,10 @@ jobs:
 
       - name: Install Ubuntu IWYU dependencies
         timeout-minutes: 15
-        run: ./scripts/ci/install-ubuntu-dependencies.sh --iwyu
+        uses: ./.github/actions/run-infrastructure
+        with:
+          shell: bash
+          run: ./scripts/ci/install-ubuntu-dependencies.sh --iwyu
 
       # Installing GCC 16 headers alone does not prevent Clang from selecting
       # a newer GCC added to the hosted runner image.
@@ -64,21 +67,26 @@ jobs:
         uses: lukka/get-cmake@e6906078ebd1ccb8ce51ab4626ac46a1b5a517e3 # v4.4.0
 
       - name: Bootstrap vcpkg
-        run: ./vcpkg/bootstrap-vcpkg.sh -disableMetrics
+        uses: ./.github/actions/run-infrastructure
+        with:
+          shell: bash
+          run: ./vcpkg/bootstrap-vcpkg.sh -disableMetrics
 
       - name: Configure GitHub Packages NuGet source
-        shell: bash
         env:
           GITHUB_TOKEN: ${{ github.token }}
-        run: |
-          nuget_path="$("$VCPKG_EXE" fetch nuget | tail -n 1)"
-          mono "$nuget_path" sources add \
-            -Source "$FEED_URL" \
-            -StorePasswordInClearText \
-            -Name GitHubPackages \
-            -UserName "$VCPKG_USERNAME" \
-            -Password "$GITHUB_TOKEN"
-          mono "$nuget_path" setapikey "$GITHUB_TOKEN" -Source "$FEED_URL"
+        uses: ./.github/actions/run-infrastructure
+        with:
+          shell: bash
+          run: |
+            nuget_path="$("$VCPKG_EXE" fetch nuget | tail -n 1)"
+            mono "$nuget_path" sources add \
+              -Source "$FEED_URL" \
+              -StorePasswordInClearText \
+              -Name GitHubPackages \
+              -UserName "$VCPKG_USERNAME" \
+              -Password "$GITHUB_TOKEN"
+            mono "$nuget_path" setapikey "$GITHUB_TOKEN" -Source "$FEED_URL"
 
       - name: Restore include-what-you-use build
         id: include-what-you-use-cache
