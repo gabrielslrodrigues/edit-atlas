@@ -4,7 +4,7 @@ from threading import Event
 
 import pytest
 
-from adapters.windows_uia import WindowsUiaAdapter
+from adapters.windows_uia import WindowsApplicationSession
 from application.gui import EditAtlasApplication
 from application.polling import PollTimeoutError
 
@@ -123,7 +123,7 @@ def test_moving_a_column_reports_the_row_that_actually_moved() -> None:
 
 def test_windows_move_resolves_button_before_verifying_selection() -> None:
     session = ProjectionSession()
-    adapter = WindowsUiaAdapter.__new__(WindowsUiaAdapter)
+    adapter = WindowsApplicationSession.__new__(WindowsApplicationSession)
     adapter._timeout = 1
     button = object()
     calls = []
