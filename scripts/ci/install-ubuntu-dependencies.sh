@@ -146,6 +146,7 @@ path-exclude=/usr/share/linda/*
 EOF
 
   apt_options=(
+    -o APT::Update::Error-Mode=any
     -o Acquire::Retries=3
     -o Acquire::http::Timeout=30
     -o Acquire::https::Timeout=30

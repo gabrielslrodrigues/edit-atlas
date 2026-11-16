@@ -72,6 +72,7 @@ jobs:
     if: always() && needs.packages.result == 'success'
     uses: ./.github/workflows/package-verification.yml
     permissions:
+      actions: read
       contents: read
 
   packaged-e2e:
@@ -84,6 +85,7 @@ jobs:
     with:
       frontend: ${{ needs.frontends.outputs.production }}
     permissions:
+      actions: read
       contents: read
       packages: read
 
@@ -109,6 +111,7 @@ jobs:
     with:
       frontend: ${{ matrix.frontend }}
     permissions:
+      actions: read
       contents: read
       packages: read
 
@@ -164,6 +167,10 @@ jobs:
               unsuccessful.append(job)
 
           if unsuccessful:
+              print(
+                  'EDIT_ATLAS_CI_FAILURE '
+                  '{"version":1,"category":"dependency-failure"}'
+              )
               names = ", ".join(unsuccessful)
               sys.exit(f"::error::gated workflows did not succeed: {names}")
           GATE

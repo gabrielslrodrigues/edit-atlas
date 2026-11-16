@@ -1,7 +1,10 @@
 from __future__ import annotations
 
+from threading import Event
+
 import pytest
 
+from adapters.windows_uia import WindowsApplicationSession
 from application.gui import EditAtlasApplication
 from application.polling import PollTimeoutError
 
@@ -116,3 +119,46 @@ def test_moving_a_column_reports_the_row_that_actually_moved() -> None:
     message = str(failure.value)
     assert "'Clip name'" in message
     assert "'Initial frame'" in message
+
+
+def test_windows_move_resolves_button_before_verifying_selection() -> None:
+    session = ProjectionSession()
+    adapter = WindowsApplicationSession.__new__(WindowsApplicationSession)
+    adapter._timeout = 1
+    button = object()
+    calls = []
+
+    def element(identifier):
+        calls.append("resolve button")
+        session.current = "Initial frame"
+        return button
+
+    def select(identifier, name):
+        calls.append("verify selection")
+        session.select_list_item(identifier, name)
+
+    def invoke(node):
+        assert node is button
+        calls.append("invoke")
+        session.activate("moveColumnUpButton")
+        completed = Event()
+        completed.set()
+        return completed
+
+    adapter.element = element
+    adapter.select_list_item = select
+    adapter._invoke = invoke
+    adapter._ensure_running = lambda: None
+
+    adapter.move_list_item(
+        "eventColumnsList", "Clip name", "moveColumnUpButton"
+    )
+
+    assert calls == ["resolve button", "verify selection", "invoke"]
+    assert session.items == [
+        "Event",
+        "Clip name",
+        "Reel",
+        "Source line",
+        "Initial frame",
+    ]

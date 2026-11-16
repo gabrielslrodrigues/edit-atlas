@@ -352,10 +352,8 @@ class EditAtlasApplication:
         return information
 
     def _ensure_filters_visible(self) -> None:
-        if self._session.has_element("filterCondition0Field"):
-            return
         if self._session.has_element("toggleFiltersButton"):
-            self._session.activate("toggleFiltersButton")
+            self._session.set_checked("toggleFiltersButton", True)
         self._session.element("filterCondition0Field")
 
     def _open_spreadsheet_export_columns(self) -> bool:

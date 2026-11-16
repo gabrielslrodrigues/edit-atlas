@@ -1,0 +1,34 @@
+name: Scheduled CI recovery
+
+on:
+  workflow_run:
+    workflows: ["CI"]
+    types: ["completed"]
+    branches: ["master"]
+
+permissions:
+  contents: read
+  actions: write
+  checks: read
+
+concurrency:
+  group: scheduled-ci-recovery-${{ github.event.workflow_run.id }}
+  cancel-in-progress: false
+
+jobs:
+  recover:
+    if: github.event.workflow_run.event == 'schedule'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      # Never execute code from the triggering run with this write token.
+      - name: Check out recovery policy from master
+        uses: actions/checkout@v7.0.1
+        with:
+          ref: master
+          persist-credentials: false
+
+      - name: Classify and recover scheduled CI
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 scripts/ci/recover_scheduled_ci.py

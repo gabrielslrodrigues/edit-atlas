@@ -379,6 +379,25 @@ TestCase {
         tryCompare(dialog, "visible", false)
     }
 
+    function test_filterExpansionHasCheckedState() {
+        temporaryFilterPanel = timelineConfigurationComponent.createObject(
+            applicationWindow.contentItem,
+            { "width": applicationWindow.width })
+        const panel = temporaryFilterPanel
+        const button = findChild(panel, "toggleFiltersButton")
+        verify(button !== null)
+        compare(button.checkable, true)
+        compare(button.checked, true)
+        panel.expanded = false
+        tryCompare(button, "checked", false)
+        button.Accessible.toggleAction()
+        tryCompare(panel, "expanded", true)
+        panel.expanded = false
+        tryCompare(button, "checked", false)
+        button.Accessible.toggleAction()
+        tryCompare(panel, "expanded", true)
+    }
+
     function test_dynamicFilterRowsHaveUniqueIdentifiers() {
         const configuration = testApplicationShell.timelineConfiguration
         temporaryFilterPanel = timelineConfigurationComponent.createObject(
