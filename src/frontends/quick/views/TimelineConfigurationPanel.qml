@@ -63,9 +63,14 @@ Atlas.Surface {
 
             Button {
                 objectName: "toggleFiltersButton"
+                checkable: true
+                checked: root.expanded
+                Accessible.checkable: true
+                Accessible.checked: checked
+                Accessible.onToggleAction: toggle()
                 text: root.expanded ? qsTr("Hide Filters")
                                     : qsTr("Show Filters")
-                onClicked: root.expanded = !root.expanded
+                onCheckedChanged: root.expanded = checked
             }
         }
 

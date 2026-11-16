@@ -21,7 +21,7 @@ jobs:
   build-and-package:
     name: Native / ${{ matrix.name }}
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 180
+    timeout-minutes: 300
     permissions:
       contents: read
       packages: write
@@ -128,8 +128,11 @@ jobs:
 
       - name: Install Ubuntu host dependencies
         if: runner.os == 'Linux'
-        timeout-minutes: 45
-        run: ./scripts/ci/install-ubuntu-dependencies.sh
+        timeout-minutes: 15
+        uses: ./.github/actions/run-infrastructure
+        with:
+          shell: bash
+          run: ./scripts/ci/install-ubuntu-dependencies.sh
 
       - name: Prepare apt archive cache for save
         if: >-
@@ -159,10 +162,14 @@ jobs:
               hashFiles('scripts/ci/install-macos-dependencies.sh') }}
 
       - name: Install macOS host dependencies
+        timeout-minutes: 15
         if: runner.os == 'macOS'
         env:
           HOMEBREW_NO_AUTO_UPDATE: 1
-        run: ./scripts/ci/install-macos-dependencies.sh
+        uses: ./.github/actions/run-infrastructure
+        with:
+          shell: bash
+          run: ./scripts/ci/install-macos-dependencies.sh
 
       - name: Save Homebrew download cache
         if: >-
@@ -185,66 +192,75 @@ jobs:
 
       - name: Bootstrap vcpkg
         if: runner.os != 'Windows'
-        run: ./vcpkg/bootstrap-vcpkg.sh -disableMetrics
+        uses: ./.github/actions/run-infrastructure
+        with:
+          shell: bash
+          run: ./vcpkg/bootstrap-vcpkg.sh -disableMetrics
 
       - name: Bootstrap vcpkg
         if: runner.os == 'Windows'
-        shell: pwsh
-        run: .\vcpkg\bootstrap-vcpkg.bat -disableMetrics
+        uses: ./.github/actions/run-infrastructure
+        with:
+          shell: pwsh
+          run: .\vcpkg\bootstrap-vcpkg.bat -disableMetrics
 
       - name: Configure GitHub Packages NuGet source
         if: runner.os == 'Windows'
-        shell: pwsh
         env:
           GITHUB_TOKEN: ${{ github.token }}
-        run: |
-          $nuget = (& $env:VCPKG_EXE fetch nuget | Select-Object -Last 1).Trim()
-          & $nuget sources add `
-            -Source $env:FEED_URL `
-            -StorePasswordInClearText `
-            -Name GitHubPackages `
-            -UserName $env:VCPKG_USERNAME `
-            -Password $env:GITHUB_TOKEN
-          & $nuget setapikey $env:GITHUB_TOKEN -Source $env:FEED_URL
+        uses: ./.github/actions/run-infrastructure
+        with:
+          shell: pwsh
+          run: |
+            $nuget = (& $env:VCPKG_EXE fetch nuget | Select-Object -Last 1).Trim()
+            & $nuget sources add `
+              -Source $env:FEED_URL `
+              -StorePasswordInClearText `
+              -Name GitHubPackages `
+              -UserName $env:VCPKG_USERNAME `
+              -Password $env:GITHUB_TOKEN
+            & $nuget setapikey $env:GITHUB_TOKEN -Source $env:FEED_URL
 
       - name: Configure GitHub Packages NuGet source
         if: runner.os != 'Windows'
-        shell: bash
         env:
           GITHUB_TOKEN: ${{ github.token }}
-        run: |
-          nuget_path="$("$VCPKG_EXE" fetch nuget | tail -n 1)"
-          mono "$nuget_path" sources add \
-            -Source "$FEED_URL" \
-            -StorePasswordInClearText \
-            -Name GitHubPackages \
-            -UserName "$VCPKG_USERNAME" \
-            -Password "$GITHUB_TOKEN"
-          mono "$nuget_path" setapikey "$GITHUB_TOKEN" -Source "$FEED_URL"
+        uses: ./.github/actions/run-infrastructure
+        with:
+          shell: bash
+          run: |
+            nuget_path="$("$VCPKG_EXE" fetch nuget | tail -n 1)"
+            mono "$nuget_path" sources add \
+              -Source "$FEED_URL" \
+              -StorePasswordInClearText \
+              -Name GitHubPackages \
+              -UserName "$VCPKG_USERNAME" \
+              -Password "$GITHUB_TOKEN"
+            mono "$nuget_path" setapikey "$GITHUB_TOKEN" -Source "$FEED_URL"
 
       # The shared Debug build exercises both graphical frontends and the CLI.
       - name: Configure Debug
         id: configure
-        run: >-
-          cmake -S "${{ matrix.source_dir }}"
-          --preset ${{ matrix.debug_preset }}
-          "-DEDIT_ATLAS_PRERELEASE_SUFFIX=${{ inputs.prerelease_suffix }}"
-
-      - name: Report vcpkg binary package activity
-        if: always()
         shell: pwsh
         run: >-
-          ./scripts/ci/report-vcpkg-install.ps1
-          -BuildDirectory "${{ github.workspace }}/build/${{ matrix.debug_preset }}"
+          ./scripts/ci/run-build-phase.ps1 -Phase configure-debug
+          -CMakeArguments @('-S', '${{ matrix.source_dir }}',
+          '--preset', '${{ matrix.debug_preset }}',
+          '-DEDIT_ATLAS_PRERELEASE_SUFFIX=${{ inputs.prerelease_suffix }}')
 
       - name: Clean vcpkg temporary directories
-        run: |
-          cmake -E remove_directory "${{ github.workspace }}/vcpkg/buildtrees"
-          cmake -E remove_directory "${{ github.workspace }}/vcpkg/downloads"
-          cmake -E remove_directory "${{ github.workspace }}/vcpkg/packages"
+        run: >-
+          cmake
+          "-DEDIT_ATLAS_VCPKG_ROOT=${{ github.workspace }}/vcpkg"
+          "-DEDIT_ATLAS_DIAGNOSTICS_DIR=${{ github.workspace }}/build/ci-logs/debug-buildtrees"
+          -P cmake/CleanVcpkg.cmake
 
       - name: Build Debug
-        run: cmake --build --preset ${{ matrix.debug_preset }}
+        shell: pwsh
+        run: >-
+          ./scripts/ci/run-build-phase.ps1 -Phase build-debug
+          -CMakeArguments @('--build', '--preset',
+          '${{ matrix.debug_preset }}')
 
       - name: Lint Qt Quick QML
         if: runner.os == 'Linux'
@@ -322,19 +338,26 @@ jobs:
       # Package-only application targets reuse the frontend libraries built in
       # this single Release tree while retaining independent install rules.
       - name: Configure Release
+        shell: pwsh
         run: >-
-          cmake -S "${{ matrix.source_dir }}"
-          --preset ${{ matrix.release_preset }}
-          "-DEDIT_ATLAS_PRERELEASE_SUFFIX=${{ inputs.prerelease_suffix }}"
+          ./scripts/ci/run-build-phase.ps1 -Phase configure-release
+          -CMakeArguments @('-S', '${{ matrix.source_dir }}',
+          '--preset', '${{ matrix.release_preset }}',
+          '-DEDIT_ATLAS_PRERELEASE_SUFFIX=${{ inputs.prerelease_suffix }}')
 
       - name: Clean vcpkg temporary directories
-        run: |
-          cmake -E remove_directory "${{ github.workspace }}/vcpkg/buildtrees"
-          cmake -E remove_directory "${{ github.workspace }}/vcpkg/downloads"
-          cmake -E remove_directory "${{ github.workspace }}/vcpkg/packages"
+        run: >-
+          cmake
+          "-DEDIT_ATLAS_VCPKG_ROOT=${{ github.workspace }}/vcpkg"
+          "-DEDIT_ATLAS_DIAGNOSTICS_DIR=${{ github.workspace }}/build/ci-logs/release-buildtrees"
+          -P cmake/CleanVcpkg.cmake
 
       - name: Build Release
-        run: cmake --build --preset ${{ matrix.release_preset }}
+        shell: pwsh
+        run: >-
+          ./scripts/ci/run-build-phase.ps1 -Phase build-release
+          -CMakeArguments @('--build', '--preset',
+          '${{ matrix.release_preset }}')
 
       - name: Verify Widgets Release Qt linkage
         run: >-
@@ -504,12 +527,18 @@ jobs:
           cmake -E remove_directory
           "build/${{ matrix.release_preset }}"
 
+      - name: Report vcpkg binary package activity
+        if: always()
+        shell: pwsh
+        run: ./scripts/ci/report-vcpkg-install.ps1
+
       - name: Upload build and test diagnostics
-        if: failure()
+        if: failure() || cancelled()
         uses: actions/upload-artifact@v7
         with:
           name: ${{ runner.os }}-${{ runner.arch }}-build-test-diagnostics
           path: |
+            build/ci-logs
             build/*/CMakeFiles/CMakeConfigureLog.yaml
             build/*/Testing/Temporary
             build/*/vcpkg-manifest-install.log
@@ -519,10 +548,11 @@ jobs:
 
       - name: Clean vcpkg temporary directories
         if: always()
-        run: |
-          cmake -E remove_directory "${{ github.workspace }}/vcpkg/buildtrees"
-          cmake -E remove_directory "${{ github.workspace }}/vcpkg/downloads"
-          cmake -E remove_directory "${{ github.workspace }}/vcpkg/packages"
+        run: >-
+          cmake
+          "-DEDIT_ATLAS_VCPKG_ROOT=${{ github.workspace }}/vcpkg"
+          -DEDIT_ATLAS_FINAL_CLEANUP=ON
+          -P cmake/CleanVcpkg.cmake
 
   package-macos-universal:
     name: Universal / macOS
@@ -542,7 +572,7 @@ jobs:
         uses: lukka/get-cmake@v4.4.0
 
       - name: Download native staged bundles
-        uses: actions/download-artifact@v8
+        uses: ./.github/actions/download-artifacts
         with:
           pattern: '*-frontend-*-osx-stage'
           path: build/stages

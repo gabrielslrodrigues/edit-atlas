@@ -359,16 +359,11 @@ class WindowsApplicationSession:
             return False
 
     def move_list_item(self, identifier: str, name: str, control: str) -> None:
-        # Enumerating the list's accessible children resets the widget's
-        # current row, and the controls beside a list act on that row,
-        # so a
-        # lookup between selecting a row and acting on it destroys its
-        # own
-        # precondition. Both elements are resolved first for that
-        # reason.
-        node = self._list_item(identifier, name)
+        # Resolve the button before selecting: tree lookup can page the
+        # list and change its current row. Verify the selection before
+        # invoking the cached button without another tree lookup.
         button = self.element(control)
-        self._click_accessible_node(node, f"list item {name!r}")
+        self.select_list_item(identifier, name)
         completed = self._invoke(button)
         wait_until(
             completed.is_set,

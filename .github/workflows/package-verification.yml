@@ -4,6 +4,7 @@ on:
   workflow_call:
 
 permissions:
+  actions: read
   contents: read
 
 jobs:
@@ -36,56 +37,70 @@ jobs:
             container: fedora:44
 
     steps:
-      - name: Install Ubuntu verification tools
-        if: matrix.distribution == 'ubuntu'
-        run: |
-          set -eu
-          # A container inherits the vanilla sources and reaches the public
-          # archive, while the runner hosting it has a local mirror.
-          for sources in /etc/apt/sources.list \
-              /etc/apt/sources.list.d/ubuntu.sources; do
-            [ -f "${sources}" ] || continue
-            sed -i \
-              -e 's|http://archive\.ubuntu\.com|http://azure.archive.ubuntu.com|g' \
-              -e 's|http://security\.ubuntu\.com|http://azure.archive.ubuntu.com|g' \
-              "${sources}"
-          done
-          printf 'Acquire::Retries "3";\n' \
-            > /etc/apt/apt.conf.d/99-edit-atlas-retries
-          apt-get update
-          apt-get install --yes --no-install-recommends \
-            binutils \
-            ca-certificates \
-            cmake \
-            findutils \
-            git \
-            libgomp1 \
-            libxkbcommon0 \
-            xauth \
-            xvfb
-
-      - name: Install Fedora verification tools
-        if: matrix.distribution == 'fedora'
-        run: >-
-          dnf install
-          --assumeyes
-          binutils
-          ca-certificates
-          cmake
-          cpio
-          findutils
-          git
-          libgomp
-          libxkbcommon
-          rpm
-          xorg-x11-server-Xvfb
-          xorg-x11-xauth
-
       - name: Check out source
         uses: actions/checkout@v7.0.1
 
+      - name: Install Ubuntu verification tools
+        if: matrix.distribution == 'ubuntu'
+        timeout-minutes: 15
+        uses: ./.github/actions/run-infrastructure
+        with:
+          shell: bash
+          run: |
+            set -euo pipefail
+            # A container inherits the vanilla sources and reaches the public
+            # archive, while the runner hosting it has a local mirror.
+            for sources in /etc/apt/sources.list \
+                /etc/apt/sources.list.d/ubuntu.sources; do
+              [ -f "${sources}" ] || continue
+              sed -i \
+                -e 's|http://archive\.ubuntu\.com|http://azure.archive.ubuntu.com|g' \
+                -e 's|http://security\.ubuntu\.com|http://azure.archive.ubuntu.com|g' \
+                "${sources}"
+            done
+            apt_options=(
+              -o APT::Update::Error-Mode=any
+              -o Acquire::Retries=3
+              -o Acquire::http::Timeout=30
+              -o Acquire::https::Timeout=30
+            )
+            apt-get "${apt_options[@]}" update
+            apt-get "${apt_options[@]}" install --yes --no-install-recommends \
+              binutils \
+              ca-certificates \
+              cmake \
+              findutils \
+              git \
+              gh \
+              libgomp1 \
+              libxkbcommon0 \
+              xauth \
+              xvfb
+
+      - name: Install Fedora verification tools
+        if: matrix.distribution == 'fedora'
+        timeout-minutes: 15
+        uses: ./.github/actions/run-infrastructure
+        with:
+          shell: bash
+          run: >-
+            dnf install
+            --assumeyes
+            binutils
+            ca-certificates
+            cmake
+            cpio
+            findutils
+            git
+            gh
+            libgomp
+            libxkbcommon
+            rpm
+            xorg-x11-server-Xvfb
+            xorg-x11-xauth
+
       - name: Download Linux packages
-        uses: actions/download-artifact@v8
+        uses: ./.github/actions/download-artifacts
         with:
           name: ${{ matrix.frontend }}-frontend-x64-linux-packages
           path: build/packages/${{ matrix.frontend }}/x64-linux
@@ -134,7 +149,7 @@ jobs:
         uses: lukka/get-cmake@v4.4.0
 
       - name: Download macOS package
-        uses: actions/download-artifact@v8
+        uses: ./.github/actions/download-artifacts
         with:
           name: ${{ matrix.frontend }}-frontend-universal-osx-packages
           path: build/packages/${{ matrix.frontend }}/universal-osx
@@ -197,7 +212,7 @@ jobs:
           vsversion: 2022
 
       - name: Download Windows package
-        uses: actions/download-artifact@v8
+        uses: ./.github/actions/download-artifacts
         with:
           name: ${{ matrix.frontend }}-frontend-x64-windows-packages
           path: build/packages/${{ matrix.frontend }}/x64-windows

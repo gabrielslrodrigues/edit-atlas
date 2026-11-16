@@ -185,6 +185,10 @@ default contain:
 - `crash-dumps/` — platform crash reports when available; and
 - `output/` — generated workbooks and support bundles.
 
+CI retains these E2E diagnostics for 14 days, including failure screenshots
+and accessibility trees. Tests are never automatically retried to turn an
+intermittent application or automation failure into a pass.
+
 The harness terminates registered application processes and removes its marked
 state root even after failure. Provisioners also uninstall the package and
 dispose of their isolated environment. Generated results, the uv virtual
